@@ -10,7 +10,8 @@
 			"name": "Debug test.md",
 			"program": "${workspaceFolder}/test.md",
 			"stopOnEntry": true,
-			"trace": false
+			"trace": false,
+			"debugServer": 4711
 		}
 	]
 }
