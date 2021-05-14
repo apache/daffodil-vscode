@@ -8,7 +8,8 @@
 			"type": "mock",
 			"request": "launch",
 			"name": "Debug test.md",
-			"program": "${workspaceFolder}/test.md",
+			"program": "${workspaceFolder}/jpeg.dfdl.xsd",
+			"data": "${workspaceFolder}/works.jpg",
 			"stopOnEntry": true,
 			"trace": false,
 			"debugServer": 4711

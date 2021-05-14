@@ -139,12 +139,18 @@
         "configurationAttributes": {
           "launch": {
             "required": [
-              "program"
+              "program",
+              "data"
             ],
             "properties": {
               "program": {
                 "type": "string",
-                "description": "Absolute path to a text file.",
+                "description": "Absolute path to the DFDL schema file.",
+                "default": "${workspaceFolder}/${command:AskForProgramName}"
+              },
+              "data": {
+                "type": "string",
+                "description": "Absolute path to the input data file.",
                 "default": "${workspaceFolder}/${command:AskForProgramName}"
               },
               "stopOnEntry": {
