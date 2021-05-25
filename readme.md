@@ -1,39 +1,22 @@
+![Daffodil Debug](images/daffodil.jpg)
+
 # VS Code Daffodil Debug
 
-This is a starter sample for developing VS Code debug adapters.
+This is an example extension for VS Code using the DAPodil debugging backend which enables intereactive debugging of Daffodil DFDL schema parsing.
 
-**Daffodil Debug** simulates a debug adapter for Visual Studio Code.
-It supports *step*, *continue*, *breakpoints*, *exceptions*, and
-*variable access* but it is not connected to any real debugger.
+## Install and Run
 
-The sample is meant as an educational piece showing how to implement a debug
-adapter for VS Code. It can be used as a starting point for developing a real adapter.
+* Download the latest [VSIX release from GitHub](https://github.com/jw3/example-daffodil-vscode/releases)
 
-More information about how to develop a new debug adapter can be found
-[here](https://code.visualstudio.com/docs/extensions/example-debuggers).
+## Build and Run as a developer 
 
-## Using Daffodil Debug
-
-* Install the **Daffodil Debug** extension in VS Code.
-* Create a new 'program' file `readme.md` and enter several lines of arbitrary text.
-* Switch to the debug viewlet and press the gear dropdown.
-* Select the debug environment "Daffodil Debug".
-* Press the green 'play' button to start debugging.
-
-You can now 'step through' the `readme.md` file, set and hit breakpoints, and run into exceptions (if the word exception appears in a line).
-
-![Daffodil Debug](images/daffodil-debug.gif)
-
-## Build and Run
-
-[![build status](https://travis-ci.org/Microsoft/vscode-daffodil-debug.svg?branch=master)](https://travis-ci.org/Microsoft/vscode-daffodil-debug)
-[![build status](https://ci.appveyor.com/api/projects/status/empmw5q1tk6h1fly/branch/master?svg=true)](https://ci.appveyor.com/project/weinand/vscode-daffodil-debug)
-
-
-* Clone the project [https://github.com/Microsoft/vscode-daffodil-debug.git](https://github.com/Microsoft/vscode-daffodil-debug.git)
+* Clone the project [https://github.com/jw3/example-daffodil-vscode.git](https://github.com/jw3/example-daffodil-vscode.git)
 * Open the project folder in VS Code.
-* Press `F5` to build and launch Daffodil Debug in another VS Code window. In that window:
-  * Open a new workspace, create a new 'program' file `readme.md` and enter several lines of arbitrary text.
-  * Switch to the debug viewlet and press the gear dropdown.
-  * Select the debug environment "Daffodil Debug".
-  * Press `F5` to start debugging.
+* Press `F5` to build and launch Daffodil Debug in another VS Code window.
+
+## Current status of the plugin
+
+The extension and backend tested against the extensions available at https://github.com/DFDLSchemas
+
+## Reference
+- https://code.visualstudio.com/docs/extensions/example-debuggers
