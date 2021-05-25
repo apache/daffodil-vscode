@@ -8,7 +8,7 @@ export interface FileAccessor {
 	readFile(path: string): Promise<string>;
 }
 
-export interface IMockBreakpoint {
+export interface IDaffodilBreakpoint {
 	id: number;
 	line: number;
 	verified: boolean;
@@ -33,9 +33,9 @@ interface IStack {
 }
 
 /**
- * A Mock runtime with minimal debugger functionality.
+ * A Daffodil runtime with minimal debugger functionality.
  */
-export class MockRuntime extends EventEmitter {
+export class DaffodilRuntime extends EventEmitter {
 
 	// the initial (and one and only) file we are 'debugging'
 	private _sourceFile: string = '';
@@ -50,8 +50,8 @@ export class MockRuntime extends EventEmitter {
 	private _currentLine = 0;
 	private _currentColumn: number | undefined;
 
-	// maps from sourceFile to array of Mock breakpoints
-	private _breakPoints = new Map<string, IMockBreakpoint[]>();
+	// maps from sourceFile to array of Daffodil breakpoints
+	private _breakPoints = new Map<string, IDaffodilBreakpoint[]>();
 
 	// since we want to send breakpoint events, we will assign an id to every event
 	// so that the frontend can match events with breakpoints.
@@ -105,7 +105,7 @@ export class MockRuntime extends EventEmitter {
 	}
 
 	/**
-	 * "Step into" for Mock debug means: go to next character
+	 * "Step into" for Daffodil Debug means: go to next character
 	 */
 	public stepIn(targetId: number | undefined) {
 		if (typeof targetId === 'number') {
@@ -124,7 +124,7 @@ export class MockRuntime extends EventEmitter {
 	}
 
 	/**
-	 * "Step out" for Mock debug means: go to previous character
+	 * "Step out" for Daffodil Debug means: go to previous character
 	 */
 	public stepOut() {
 		if (typeof this._currentColumn === 'number') {
@@ -213,12 +213,12 @@ export class MockRuntime extends EventEmitter {
 	/*
 	 * Set breakpoint in file with given line.
 	 */
-	public async setBreakPoint(path: string, line: number): Promise<IMockBreakpoint> {
+	public async setBreakPoint(path: string, line: number): Promise<IDaffodilBreakpoint> {
 
-		const bp: IMockBreakpoint = { verified: false, line, id: this._breakpointId++ };
+		const bp: IDaffodilBreakpoint = { verified: false, line, id: this._breakpointId++ };
 		let bps = this._breakPoints.get(path);
 		if (!bps) {
-			bps = new Array<IMockBreakpoint>();
+			bps = new Array<IDaffodilBreakpoint>();
 			this._breakPoints.set(path, bps);
 		}
 		bps.push(bp);
@@ -231,7 +231,7 @@ export class MockRuntime extends EventEmitter {
 	/*
 	 * Clear breakpoint in file with given line.
 	 */
-	public clearBreakPoint(path: string, line: number): IMockBreakpoint | undefined {
+	public clearBreakPoint(path: string, line: number): IDaffodilBreakpoint | undefined {
 		const bps = this._breakPoints.get(path);
 		if (bps) {
 			const index = bps.findIndex(bp => bp.line === line);

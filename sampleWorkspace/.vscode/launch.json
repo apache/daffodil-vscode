@@ -5,7 +5,7 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"type": "mock",
+			"type": "daffodil",
 			"request": "launch",
 			"name": "Debug test.md",
 			"program": "${workspaceFolder}/jpeg.dfdl.xsd",

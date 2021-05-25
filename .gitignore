@@ -3,7 +3,7 @@ dist
 node_modules
 .vscode-test/
 npm-debug.log
-mock-debug.txt
+daffodil-debug.txt
 *.vsix
 .DS_Store
 daffodil-debugger*

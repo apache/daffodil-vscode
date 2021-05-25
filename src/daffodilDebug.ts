@@ -11,7 +11,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
-import { MockRuntime, IMockBreakpoint, FileAccessor } from './mockRuntime';
+import { DaffodilRuntime, IDaffodilBreakpoint, FileAccessor } from './daffodilRuntime';
 import { Subject } from 'await-notify';
 
 function timeout(ms: number) {
@@ -19,9 +19,9 @@ function timeout(ms: number) {
 }
 
 /**
- * This interface describes the mock-debug specific launch attributes
+ * This interface describes the daffodil-debug specific launch attributes
  * (which are not part of the Debug Adapter Protocol).
- * The schema for these attributes lives in the package.json of the mock-debug extension.
+ * The schema for these attributes lives in the package.json of the daffodil-debug extension.
  * The interface should always match this schema.
  */
 interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
@@ -35,13 +35,13 @@ interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	noDebug?: boolean;
 }
 
-export class MockDebugSession extends LoggingDebugSession {
+export class DaffodilDebugSession extends LoggingDebugSession {
 
 	// we don't support multiple threads, so we can use a hardcoded ID for the default thread
 	private static threadID = 1;
 
-	// a Mock runtime (or debugger)
-	private _runtime: MockRuntime;
+	// a Daffodil runtime (or debugger)
+	private _runtime: DaffodilRuntime;
 
 	private _variableHandles = new Handles<string>();
 
@@ -63,35 +63,35 @@ export class MockDebugSession extends LoggingDebugSession {
 	 * We configure the default implementation of a debug adapter here.
 	 */
 	public constructor(fileAccessor: FileAccessor) {
-		super("mock-debug.txt");
+		super("daffodil-debug.txt");
 
 		// this debugger uses zero-based lines and columns
 		this.setDebuggerLinesStartAt1(false);
 		this.setDebuggerColumnsStartAt1(false);
 
-		this._runtime = new MockRuntime(fileAccessor);
+		this._runtime = new DaffodilRuntime(fileAccessor);
 
 		// setup event handlers
 		this._runtime.on('stopOnEntry', () => {
-			this.sendEvent(new StoppedEvent('entry', MockDebugSession.threadID));
+			this.sendEvent(new StoppedEvent('entry', DaffodilDebugSession.threadID));
 		});
 		this._runtime.on('stopOnStep', () => {
-			this.sendEvent(new StoppedEvent('step', MockDebugSession.threadID));
+			this.sendEvent(new StoppedEvent('step', DaffodilDebugSession.threadID));
 		});
 		this._runtime.on('stopOnBreakpoint', () => {
-			this.sendEvent(new StoppedEvent('breakpoint', MockDebugSession.threadID));
+			this.sendEvent(new StoppedEvent('breakpoint', DaffodilDebugSession.threadID));
 		});
 		this._runtime.on('stopOnDataBreakpoint', () => {
-			this.sendEvent(new StoppedEvent('data breakpoint', MockDebugSession.threadID));
+			this.sendEvent(new StoppedEvent('data breakpoint', DaffodilDebugSession.threadID));
 		});
 		this._runtime.on('stopOnException', (exception) => {
 			if (exception) {
-				this.sendEvent(new StoppedEvent(`exception(${exception})`, MockDebugSession.threadID));
+				this.sendEvent(new StoppedEvent(`exception(${exception})`, DaffodilDebugSession.threadID));
 			} else {
-				this.sendEvent(new StoppedEvent('exception', MockDebugSession.threadID));
+				this.sendEvent(new StoppedEvent('exception', DaffodilDebugSession.threadID));
 			}
 		});
-		this._runtime.on('breakpointValidated', (bp: IMockBreakpoint) => {
+		this._runtime.on('breakpointValidated', (bp: IDaffodilBreakpoint) => {
 			this.sendEvent(new BreakpointEvent('changed', { verified: bp.verified, id: bp.id } as DebugProtocol.Breakpoint));
 		});
 		this._runtime.on('output', (text, filePath, line, column) => {
@@ -301,7 +301,7 @@ export class MockDebugSession extends LoggingDebugSession {
 		// runtime supports no threads so just return a default thread.
 		response.body = {
 			threads: [
-				new Thread(MockDebugSession.threadID, "thread 1")
+				new Thread(DaffodilDebugSession.threadID, "thread 1")
 			]
 		};
 		this.sendResponse(response);
@@ -653,6 +653,6 @@ export class MockDebugSession extends LoggingDebugSession {
 	//---- helpers
 
 	private createSource(filePath: string): Source {
-		return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), undefined, undefined, 'mock-adapter-data');
+		return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), undefined, undefined, 'daffodil-adapter-data');
 	}
 }
