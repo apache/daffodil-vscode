@@ -12,14 +12,14 @@ import { FileAccessor } from './daffodilRuntime';
 export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?: vscode.DebugAdapterDescriptorFactory) {
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('extension.daffodil-debug.runEditorContents', (resource: vscode.Uri) => {
+		vscode.commands.registerCommand('extension.dfdl-debug.runEditorContents', (resource: vscode.Uri) => {
 			let targetResource = resource;
 			if (!targetResource && vscode.window.activeTextEditor) {
 				targetResource = vscode.window.activeTextEditor.document.uri;
 			}
 			if (targetResource) {
 				vscode.debug.startDebugging(undefined, {
-						type: 'daffodil',
+						type: 'dfdl',
 						name: 'Run File',
 						request: 'launch',
 						program: targetResource.fsPath
@@ -28,21 +28,21 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 				);
 			}
 		}),
-		vscode.commands.registerCommand('extension.daffodil-debug.debugEditorContents', (resource: vscode.Uri) => {
+		vscode.commands.registerCommand('extension.dfdl-debug.debugEditorContents', (resource: vscode.Uri) => {
 			let targetResource = resource;
 			if (!targetResource && vscode.window.activeTextEditor) {
 				targetResource = vscode.window.activeTextEditor.document.uri;
 			}
 			if (targetResource) {
 				vscode.debug.startDebugging(undefined, {
-					type: 'daffodil',
+					type: 'dfdl',
 					name: 'Debug File',
 					request: 'launch',
 					program: targetResource.fsPath
 				});
 			}
 		}),
-		vscode.commands.registerCommand('extension.daffodil-debug.toggleFormatting', (variable) => {
+		vscode.commands.registerCommand('extension.dfdl-debug.toggleFormatting', (variable) => {
 			const ds = vscode.debug.activeDebugSession;
 			if (ds) {
 				ds.customRequest('toggleFormatting');
@@ -50,37 +50,37 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 		})
 	);
 
-	context.subscriptions.push(vscode.commands.registerCommand('extension.daffodil-debug.getProgramName', config => {
+	context.subscriptions.push(vscode.commands.registerCommand('extension.dfdl-debug.getProgramName', config => {
 		return vscode.window.showInputBox({
 			placeHolder: "Please enter the name of a markdown file in the workspace folder",
 			value: "readme.md"
 		});
 	}));
 
-	// register a configuration provider for 'daffodil' debug type
+	// register a configuration provider for 'dfdl' debug type
 	const provider = new DaffodilConfigurationProvider();
-	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('daffodil', provider));
+	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('dfdl', provider));
 
-	// register a dynamic configuration provider for 'daffodil' debug type
-	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('daffodil', {
+	// register a dynamic configuration provider for 'dfdl' debug type
+	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('dfdl', {
 		provideDebugConfigurations(folder: WorkspaceFolder | undefined): ProviderResult<DebugConfiguration[]> {
 			return [
 				{
 					name: "Dynamic Launch",
 					request: "launch",
-					type: "daffodil",
+					type: "dfdl",
 					program: "${file}"
 				},
 				{
 					name: "Another Dynamic Launch",
 					request: "launch",
-					type: "daffodil",
+					type: "dfdl",
 					program: "${file}"
 				},
 				{
 					name: "Daffodil Launch",
 					request: "launch",
-					type: "daffodil",
+					type: "dfdl",
 					program: "${file}"
 				}
 			];
@@ -90,7 +90,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 	if (!factory) {
 		factory = new InlineDebugAdapterFactory();
 	}
-	context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('daffodil', factory));
+	context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('dfdl', factory));
 	if ('dispose' in factory) {
 		context.subscriptions.push(factory);
 	}
@@ -148,7 +148,7 @@ class DaffodilConfigurationProvider implements vscode.DebugConfigurationProvider
 		if (!config.type && !config.request && !config.name) {
 			const editor = vscode.window.activeTextEditor;
 			if (editor && editor.document.languageId === 'markdown') {
-				config.type = 'daffodil';
+				config.type = 'dfdl';
 				config.name = 'Launch';
 				config.request = 'launch';
 				config.program = '${file}';
