@@ -8,7 +8,7 @@ import { HttpClient } from 'typed-rest-client/HttpClient';
 // Function for getting the da-podil debugger
 export async function getDebugger() {
     let dapodilDebuggerVersion = await vscode.window.showInputBox({'prompt': "Enter in desired dapodil debugger version:"});
-    const delay = ms => new Promise(res => setTimeout(res, ms));
+    dapodilDebuggerVersion = dapodilDebuggerVersion?.includes("v") ? dapodilDebuggerVersion : `v${dapodilDebuggerVersion}`;
 
     if(vscode.workspace.workspaceFolders !== undefined) {
         let rootPath = vscode.workspace.workspaceFolders[0].uri.path;
@@ -17,10 +17,10 @@ export async function getDebugger() {
         }
 
         // Code for downloading and setting up da-podil files
-        if (!fs.existsSync(`${rootPath}/daffodil-debugger-${dapodilDebuggerVersion}`)) {
+        if (!fs.existsSync(`${rootPath}/daffodil-debugger-${dapodilDebuggerVersion.substring(1)}`)) {
             // Get da-podil of version entered using http client
             const client = new HttpClient("clientTest");
-            const dapodilUrl = `https://github.com/jw3/example-daffodil-debug/releases/download/v${dapodilDebuggerVersion}/daffodil-debugger-${dapodilDebuggerVersion}.zip`;
+            const dapodilUrl = `https://github.com/jw3/example-daffodil-debug/releases/download/${dapodilDebuggerVersion}/daffodil-debugger-${dapodilDebuggerVersion.substring(1)}.zip`;
             const response = await client.get(dapodilUrl);
             
             if (response.message.statusCode !== 200) {
@@ -59,10 +59,7 @@ export async function getDebugger() {
         else {
             // Linux/Mac stop debugger if already running and make sure script is executable
             child_process.exec("kill -9 $(ps -ef | grep 'daffodil' | grep 'jar' | awk '{ print $2 }') || return 0") // ensure debugger server not running and
-            child_process.exec(`chmod +x ${rootPath}/daffodil-debugger-${dapodilDebuggerVersion}/bin/da-podil`)     // make sure da-podil is executable
+            child_process.exec(`chmod +x ${rootPath}/daffodil-debugger-${dapodilDebuggerVersion.substring(1)}/bin/da-podil`)     // make sure da-podil is executable
         }
-
-        // Wait for 5000 ms to make sure debugger is running before the extension tries to connect to it
-        await delay(5000);
     }
 }
