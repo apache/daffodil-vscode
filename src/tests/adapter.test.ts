@@ -65,7 +65,7 @@ suite('Node Debug Adapter', () => {
 
 		test('should run program to the end', () => {
 
-			const PROGRAM = Path.join(DATA_ROOT, 'test.md');
+			const PROGRAM = Path.join(DATA_ROOT, 'works.jpg');
 
 			return Promise.all([
 				dc.configurationSequence(),
@@ -76,7 +76,7 @@ suite('Node Debug Adapter', () => {
 
 		test('should stop on entry', () => {
 
-			const PROGRAM = Path.join(DATA_ROOT, 'test.md');
+			const PROGRAM = Path.join(DATA_ROOT, 'works.jpg');
 			const ENTRY_LINE = 1;
 
 			return Promise.all([
@@ -91,7 +91,7 @@ suite('Node Debug Adapter', () => {
 
 		test('should stop on a breakpoint', () => {
 
-			const PROGRAM = Path.join(DATA_ROOT, 'test.md');
+			const PROGRAM = Path.join(DATA_ROOT, 'works.jpg');
 			const BREAKPOINT_LINE = 2;
 
 			return dc.hitBreakpoint({ program: PROGRAM }, { path: PROGRAM, line: BREAKPOINT_LINE } );

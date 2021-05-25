@@ -5,9 +5,9 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"type": "daffodil",
+			"type": "dfdl",
 			"request": "launch",
-			"name": "Debug test.md",
+			"name": "Debug JPEG",
 			"program": "${workspaceFolder}/jpeg.dfdl.xsd",
 			"data": "${workspaceFolder}/works.jpg",
 			"stopOnEntry": true,
