@@ -7,12 +7,16 @@
 import * as vscode from 'vscode';
 import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
 import { DaffodilDebugSession } from './daffodilDebug';
+import { getDebugger } from './daffodilDebugger';
 import { FileAccessor } from './daffodilRuntime';
 
 export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?: vscode.DebugAdapterDescriptorFactory) {
+	// vscode.debug.onDidReceiveDebugSessionCustomEvent(async () =>{
+	// 	await getDebugger();
+	// })
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('extension.dfdl-debug.runEditorContents', (resource: vscode.Uri) => {
+		vscode.commands.registerCommand('extension.dfdl-debug.runEditorContents', (resource: vscode.Uri) =>  {
 			let targetResource = resource;
 			if (!targetResource && vscode.window.activeTextEditor) {
 				targetResource = vscode.window.activeTextEditor.document.uri;
@@ -162,7 +166,9 @@ class DaffodilConfigurationProvider implements vscode.DebugConfigurationProvider
 			});
 		}
 
-		return config;
+		return getDebugger().then(result => {
+			return config;
+		})
 	}
 }
 

@@ -13,7 +13,6 @@ import { platform } from 'process';
 import { ProviderResult } from 'vscode';
 import { DaffodilDebugSession } from './daffodilDebug';
 import { activateDaffodilDebug, workspaceFileAccessor } from './activateDaffodilDebug';
-import { getDebugger } from './daffodilDebugger';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -22,8 +21,6 @@ import { getDebugger } from './daffodilDebugger';
 const runMode: 'external' | 'server' | 'namedPipeServer' | 'inline' = 'inline';
 
 export async function activate(context: vscode.ExtensionContext) {
-
-	await getDebugger(); // start the daffodil debugger
 
 	// debug adapters can be run in different ways by using a vscode.DebugAdapterDescriptorFactory:
 	switch (runMode) {

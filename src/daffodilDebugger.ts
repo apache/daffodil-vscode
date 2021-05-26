@@ -9,6 +9,7 @@ import { HttpClient } from 'typed-rest-client/HttpClient';
 export async function getDebugger() {
     let dapodilDebuggerVersion = await vscode.window.showInputBox({'prompt': "Enter in desired dapodil debugger version:"});
     dapodilDebuggerVersion = dapodilDebuggerVersion?.includes("v") ? dapodilDebuggerVersion : `v${dapodilDebuggerVersion}`;
+    const delay = ms => new Promise(res => setTimeout(res, ms));
 
     if(vscode.workspace.workspaceFolders !== undefined) {
         let rootPath = vscode.workspace.workspaceFolders[0].uri.path;
@@ -30,7 +31,7 @@ export async function getDebugger() {
             }
 
             // Create zip from rest call
-            const filePath = `${rootPath}/daffodil-debugger.zip`;
+            const filePath = `${rootPath}/daffodil-debugger-${dapodilDebuggerVersion.substring(1)}.zip`;
             const file = fs.createWriteStream(filePath);
 
             await new Promise((res, rej) => {
@@ -61,5 +62,20 @@ export async function getDebugger() {
             child_process.exec("kill -9 $(ps -ef | grep 'daffodil' | grep 'jar' | awk '{ print $2 }') || return 0") // ensure debugger server not running and
             child_process.exec(`chmod +x ${rootPath}/daffodil-debugger-${dapodilDebuggerVersion.substring(1)}/bin/da-podil`)     // make sure da-podil is executable
         }
+
+        // Assign script name based on os platform
+        let scriptName = os.platform() === 'win32' ? "da-podil.bat": "da-podil";
+
+        // Start debugger in terminal based on scriptName
+        let terminal = vscode.window.createTerminal({
+            name: scriptName,
+            cwd: `${rootPath}/daffodil-debugger-${dapodilDebuggerVersion.substring(1)}/bin/`,
+            hideFromUser: false,
+            shellPath: scriptName,
+        });
+        terminal.show();
+
+        // Wait for 5000 ms to make sure debugger is running before the extension tries to connect to it
+        await delay(5000);
     }
 }

@@ -1,7 +1,7 @@
 {
   "name": "daffodil-debug",
   "displayName": "Daffodil Debug",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "Daffodil",
   "description": "Daffodil Schema Debugger - debug Apache Daffodil schema files.",
   "author": {
@@ -173,8 +173,7 @@
             "request": "launch",
             "name": "Ask for file name",
             "program": "${workspaceFolder}/${command:AskForProgramName}",
-            "stopOnEntry": true,
-            "preLaunchTask": "Run Debbuger"
+            "stopOnEntry": true
           }
         ],
         "configurationSnippets": [
@@ -186,8 +185,7 @@
               "request": "launch",
               "name": "Ask for file name",
               "program": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
-              "stopOnEntry": true,
-              "preLaunchTask": "Run Debbuger"
+              "stopOnEntry": true
             }
           }
         ],

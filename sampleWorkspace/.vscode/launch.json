@@ -12,8 +12,7 @@
 			"data": "${workspaceFolder}/works.jpg",
 			"stopOnEntry": true,
 			"trace": false,
-			"debugServer": 4711,
-			"preLaunchTask": "Run Debugger"
+			"debugServer": 4711
 		}
 	]
 }
