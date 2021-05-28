@@ -155,6 +155,10 @@
                 "description": "Absolute path to the input data file.",
                 "default": "${workspaceFolder}/${command:AskForProgramName}"
               },
+              "infosetOutputPath": {
+                "type": "string",
+                "description": "Destination for final Infoset (absolute-path | 'console')"
+              },
               "stopOnEntry": {
                 "type": "boolean",
                 "description": "Automatically stop after launch.",
