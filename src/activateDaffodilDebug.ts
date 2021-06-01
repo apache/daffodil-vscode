@@ -11,9 +11,6 @@ import { getDebugger } from './daffodilDebugger';
 import { FileAccessor } from './daffodilRuntime';
 
 export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?: vscode.DebugAdapterDescriptorFactory) {
-	// vscode.debug.onDidReceiveDebugSessionCustomEvent(async () =>{
-	// 	await getDebugger();
-	// })
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('extension.dfdl-debug.runEditorContents', (resource: vscode.Uri) =>  {
@@ -157,6 +154,7 @@ class DaffodilConfigurationProvider implements vscode.DebugConfigurationProvider
 				config.request = 'launch';
 				config.program = '${file}';
 				config.stopOnEntry = true;
+				config.useExistingServer = false;
 			}
 		}
 
@@ -166,7 +164,7 @@ class DaffodilConfigurationProvider implements vscode.DebugConfigurationProvider
 			});
 		}
 
-		return getDebugger().then(result => {
+		return getDebugger(config).then(result => {
 			return config;
 		})
 	}
