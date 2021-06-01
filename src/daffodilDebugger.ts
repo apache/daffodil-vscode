@@ -4,13 +4,64 @@ import * as unzip from 'unzip-stream';
 import * as os from 'os';
 import * as child_process from 'child_process';
 import { HttpClient } from 'typed-rest-client/HttpClient';
+import { RestClient } from 'typed-rest-client/RestClient';
+
+// Class for getting release data
+export class Release {
+    name: string;
+    zipball_url: string;
+    tarball_url: string;
+    commit: JSON;
+    node_id: string;
+
+    constructor(name: string, zipball_url: string, tarball_url: string, commit: JSON, node_id: string) {
+        this.name = name;
+        this.zipball_url = zipball_url;
+        this.tarball_url = tarball_url;
+        this.commit = commit;
+        this.node_id = node_id;
+    }
+}
+
+// Function for handling getting the version of the debugger
+export async function getDebugVersion(config: vscode.DebugConfiguration) {
+    const client = new RestClient("client")
+    let request = await client.get<Release[]>('https://api.github.com/repos/jw3/example-daffodil-debug/tags')
+    
+    if (request.statusCode !== 200 || !request.result) {
+        const err: Error = new Error(`Check request url, and tags of the repo. Follow this template if not already https://api.github.com/repos/{owner}/{rep_name}/tags`);
+        err["httpStatusCode"] = request.statusCode;
+        throw err;
+    }
+
+    let releases: string[] = []
+    request.result.forEach((release) => {
+        releases.push(release.name);
+    });
+
+    let dapodilDebuggerVersion = await vscode.window.showQuickPick(releases);
+
+    if (!dapodilDebuggerVersion || !(dapodilDebuggerVersion in releases)) {
+        const err: Error = new Error(`Dapodil Debugger Version is not set or bad version entered.`);
+        throw err;
+    }
+
+    dapodilDebuggerVersion = dapodilDebuggerVersion?.includes("v") ? dapodilDebuggerVersion : `v${dapodilDebuggerVersion}`;
+    return dapodilDebuggerVersion
+}
+
 
 // Function for getting the da-podil debugger
 export async function getDebugger(config: vscode.DebugConfiguration) {
     // If useExistingServer var set to false make sure version of debugger entered is downloaded then ran
     if (!config.useExistingServer) {
-        let dapodilDebuggerVersion = await vscode.window.showInputBox({'prompt': "Enter in desired dapodil debugger version:"});
-        dapodilDebuggerVersion = dapodilDebuggerVersion?.includes("v") ? dapodilDebuggerVersion : `v${dapodilDebuggerVersion}`;
+        let dapodilDebuggerVersion = await getDebugVersion(config);
+
+        if (!dapodilDebuggerVersion) {
+            const err: Error = new Error(`Dapodil Debugger Version is not set or bad version entered.`);
+            throw err;
+        }
+
         const delay = ms => new Promise(res => setTimeout(res, ms));
 
         if(vscode.workspace.workspaceFolders !== undefined) {
@@ -23,12 +74,12 @@ export async function getDebugger(config: vscode.DebugConfiguration) {
             // Code for downloading and setting up da-podil files
             if (!fs.existsSync(`${rootPath}/daffodil-debugger-${dapodilDebuggerVersion.substring(1)}`)) {
                 // Get da-podil of version entered using http client
-                const client = new HttpClient("clientTest");
+                const client = new HttpClient("client");
                 const dapodilUrl = `https://github.com/jw3/example-daffodil-debug/releases/download/${dapodilDebuggerVersion}/daffodil-debugger-${dapodilDebuggerVersion.substring(1)}.zip`;
                 const response = await client.get(dapodilUrl);
                 
                 if (response.message.statusCode !== 200) {
-                    const err: Error = new Error(`Unexpected HTTP response: ${response.message.statusCode}`);
+                    const err: Error = new Error(`Invalid dapodil release version. Check that release for version specified exists.`);
                     err["httpStatusCode"] = response.message.statusCode;
                     throw err;
                 }
