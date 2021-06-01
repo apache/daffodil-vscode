@@ -39,13 +39,9 @@ export async function getDebugVersion(config: vscode.DebugConfiguration) {
         request.result.forEach(r => { if (r.name != "v0.0.0") releases.push(r.name); });
 
         let dapodilDebugVersion = await vscode.window.showQuickPick(releases);
-
-        if (!dapodilDebugVersion) {
-            const err: Error = new Error(`Dapodil Debugger Version is not set or bad version entered.`);
-            throw err;
-        }
-
+        dapodilDebugVersion = dapodilDebugVersion ? dapodilDebugVersion : releases[0] // If dapodilDebugVersion is null use latest version
         dapodilDebugVersion = dapodilDebugVersion?.includes("v") ? dapodilDebugVersion : `v${dapodilDebugVersion}`;
+
         return dapodilDebugVersion
     }
 
@@ -58,11 +54,6 @@ export async function getDebugger(config: vscode.DebugConfiguration) {
     // If useExistingServer var set to false make sure version of debugger entered is downloaded then ran
     if (!config.useExistingServer) {
         let dapodilDebugVersion = await getDebugVersion(config);
-
-        if (!dapodilDebugVersion) {
-            const err: Error = new Error(`Dapodil Debugger Version is not set or bad version entered.`);
-            throw err;
-        }
 
         const delay = ms => new Promise(res => setTimeout(res, ms));
 
