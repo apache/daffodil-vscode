@@ -1,7 +1,7 @@
 {
   "name": "daffodil-debug",
   "displayName": "Daffodil Debug",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "Daffodil",
   "description": "Daffodil Schema Debugger - debug Apache Daffodil schema files.",
   "author": {
@@ -168,6 +168,11 @@
                 "type": "boolean",
                 "description": "Enable connection to running DAP Server",
                 "default": false
+              },
+              "dapodilDebugVersion": {
+                "type": "string",
+                "description": "Version of the dapoil debugger to run/use",
+                "default": "v0.0.5"
               }
             }
           }
