@@ -172,7 +172,7 @@
               "dapodilDebugVersion": {
                 "type": "string",
                 "description": "Version of the dapoil debugger to run/use",
-                "default": "v0.0.5"
+                "default": ""
               }
             }
           }
