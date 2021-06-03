@@ -25,7 +25,7 @@ export class Release {
 
 // Function for handling getting the version of the debugger
 export async function getDebugVersion(config: vscode.DebugConfiguration) {
-    if (!config.dapodilDebugVersion) {        
+    if (!config.dapodilVersion) {        
         const client = new RestClient("client")
         let request = await client.get<Release[]>('https://api.github.com/repos/jw3/example-daffodil-debug/tags')
         
@@ -38,14 +38,14 @@ export async function getDebugVersion(config: vscode.DebugConfiguration) {
         let releases: string[] = []
         request.result.forEach(r => { if (r.name != "v0.0.0") releases.push(r.name); });
 
-        let dapodilDebugVersion = await vscode.window.showQuickPick(releases);
-        dapodilDebugVersion = dapodilDebugVersion ? dapodilDebugVersion : releases[0] // If dapodilDebugVersion is null use latest version
-        dapodilDebugVersion = dapodilDebugVersion?.includes("v") ? dapodilDebugVersion : `v${dapodilDebugVersion}`;
+        let dapodilVersion = await vscode.window.showQuickPick(releases);
+        dapodilVersion = dapodilVersion ? dapodilVersion : releases[0] // If dapodilVersion is null use latest version
+        dapodilVersion = dapodilVersion?.includes("v") ? dapodilVersion : `v${dapodilVersion}`;
 
-        return dapodilDebugVersion
+        return dapodilVersion
     }
 
-    return config.dapodilDebugVersion?.includes("v") ? config.dapodilDebugVersion : `v${config.dapodilDebugVersion}`;
+    return config.dapodilVersion?.includes("v") ? config.dapodilVersion : `v${config.dapodilVersion}`;
 }
 
 
@@ -53,7 +53,7 @@ export async function getDebugVersion(config: vscode.DebugConfiguration) {
 export async function getDebugger(config: vscode.DebugConfiguration) {
     // If useExistingServer var set to false make sure version of debugger entered is downloaded then ran
     if (!config.useExistingServer) {
-        let dapodilDebugVersion = await getDebugVersion(config);
+        let dapodilVersion = await getDebugVersion(config);
 
         const delay = ms => new Promise(res => setTimeout(res, ms));
 
@@ -65,10 +65,10 @@ export async function getDebugger(config: vscode.DebugConfiguration) {
             }
 
             // Code for downloading and setting up da-podil files
-            if (!fs.existsSync(`${rootPath}/daffodil-debugger-${dapodilDebugVersion.substring(1)}`)) {
+            if (!fs.existsSync(`${rootPath}/daffodil-debugger-${dapodilVersion.substring(1)}`)) {
                 // Get da-podil of version entered using http client
                 const client = new HttpClient("client");
-                const dapodilUrl = `https://github.com/jw3/example-daffodil-debug/releases/download/${dapodilDebugVersion}/daffodil-debugger-${dapodilDebugVersion.substring(1)}.zip`;
+                const dapodilUrl = `https://github.com/jw3/example-daffodil-debug/releases/download/${dapodilVersion}/daffodil-debugger-${dapodilVersion.substring(1)}.zip`;
                 const response = await client.get(dapodilUrl);
                 
                 if (response.message.statusCode !== 200) {
@@ -78,7 +78,7 @@ export async function getDebugger(config: vscode.DebugConfiguration) {
                 }
 
                 // Create zip from rest call
-                const filePath = `${rootPath}/daffodil-debugger-${dapodilDebugVersion.substring(1)}.zip`;
+                const filePath = `${rootPath}/daffodil-debugger-${dapodilVersion.substring(1)}.zip`;
                 const file = fs.createWriteStream(filePath);
 
                 await new Promise((res, rej) => {
@@ -107,7 +107,7 @@ export async function getDebugger(config: vscode.DebugConfiguration) {
             else {
                 // Linux/Mac stop debugger if already running and make sure script is executable
                 child_process.exec("kill -9 $(ps -ef | grep 'daffodil' | grep 'jar' | awk '{ print $2 }') || return 0") // ensure debugger server not running and
-                child_process.exec(`chmod +x ${rootPath}/daffodil-debugger-${dapodilDebugVersion.substring(1)}/bin/da-podil`)     // make sure da-podil is executable
+                child_process.exec(`chmod +x ${rootPath}/daffodil-debugger-${dapodilVersion.substring(1)}/bin/da-podil`)     // make sure da-podil is executable
             }
 
             // Assign script name based on os platform
@@ -116,7 +116,7 @@ export async function getDebugger(config: vscode.DebugConfiguration) {
             // Start debugger in terminal based on scriptName
             let terminal = vscode.window.createTerminal({
                 name: scriptName,
-                cwd: `${rootPath}/daffodil-debugger-${dapodilDebugVersion.substring(1)}/bin/`,
+                cwd: `${rootPath}/daffodil-debugger-${dapodilVersion.substring(1)}/bin/`,
                 hideFromUser: false,
                 shellPath: scriptName,
             });

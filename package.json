@@ -169,7 +169,7 @@
                 "description": "Enable connection to running DAP Server",
                 "default": false
               },
-              "dapodilDebugVersion": {
+              "dapodilVersion": {
                 "type": "string",
                 "description": "Version of the dapoil debugger to run/use",
                 "default": ""

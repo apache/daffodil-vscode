@@ -155,7 +155,7 @@ class DaffodilConfigurationProvider implements vscode.DebugConfigurationProvider
 				config.program = '${file}';
 				config.stopOnEntry = true;
 				config.useExistingServer = false;
-				config.dapodilDebugVersion = ""
+				config.dapodilVersion = ""
 			}
 		}
 
