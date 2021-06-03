@@ -20,7 +20,6 @@ The extension and backend tested against the extensions available at https://git
 
 ## What data formats work
 
-Whatever is blank still needs to be tested
 
 | Data Format  | Pass/Fail |
 |--------------|-----------|
@@ -30,24 +29,24 @@ Whatever is blank still needs to be tested
 | CSV          | Pass      |
 | NITF         | Pass      |
 | shapeFile    | Pass      |
-| SWIFT-MT     |           |
+| SWIFT-MT     | N/A       |
 | QuasiXML     | Pass      |
-| PCAP         |           |
+| PCAP         | Pass      |
 | PNG          | Pass      |
-| EDIFACT      |           |
+| EDIFACT      | Pass      |
 | iCalendar    | Pass      |
-| ISO8583      |           |
-| mil-std-2045 |           |
-| MagVar       |           |
-| NACHA        |           |
-| IBM4690-TLOG |           |
+| ISO8583      | Pass      |
+| mil-std-2045 | Pass      |
+| MagVar       | Pass      |
+| NACHA        | Pass      |
+| IBM4690-TLOG | Pass      |
 | JPEG         | Pass      |
 | GIF          | Pass      |
-| HL7-v2.7     |           |
-| HIPAA-5010   |           |
-| IPFIX        |           |
-| Cobol        |           |
-| GeoNames     |           |
+| HL7-v2.7     | N/A       |
+| HIPAA-5010   | N/A       |
+| IPFIX        | Pass      |
+| Cobol        | N/A       |
+| GeoNames     | Pass      |
 
 
 ## Reference
