@@ -1,7 +1,7 @@
 {
   "name": "daffodil-debug",
   "displayName": "Daffodil Debug",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "Daffodil",
   "description": "Daffodil Schema Debugger - debug Apache Daffodil schema files.",
   "author": {
@@ -43,7 +43,8 @@
     "await-notify": "1.0.1",
     "child_process": "^1.0.2",
     "unzip-stream": "^0.3.1",
-    "vscode-debugadapter": "^1.46.0"
+    "vscode-debugadapter": "^1.46.0",
+    "xdg-app-paths": "^7.3.0"
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",

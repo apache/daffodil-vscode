@@ -2834,6 +2834,11 @@ os-homedir@^1.0.0:
   resolved "https://registry.yarnpkg.com/os-homedir/-/os-homedir-1.0.2.tgz#ffbc4988336e0e833de0c168c7ef152121aa7fb3"
   integrity sha1-/7xJiDNuDoM94MFox+8VISGqf7M=
 
+os-paths@^6.2.0:
+  version "6.9.0"
+  resolved "https://registry.yarnpkg.com/os-paths/-/os-paths-6.9.0.tgz#c6ab6a0a6bac700acaa415fdceb2a4c309af78fe"
+  integrity sha512-b6fbX4phQ0zydXASUr4GNAIWGtG1LzUoHdQxUpgkpYz/WszdpVGlRKkMIaLhZnRymDz4lPQfX9cx0qvDfYPmPg==
+
 os-tmpdir@^1.0.0, os-tmpdir@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/os-tmpdir/-/os-tmpdir-1.0.2.tgz#bbe67406c79aa85c5cfec766fe5734555dfa1274"
@@ -4128,6 +4133,20 @@ wrappy@1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
   integrity sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
+
+xdg-app-paths@^7.3.0:
+  version "7.3.0"
+  resolved "https://registry.yarnpkg.com/xdg-app-paths/-/xdg-app-paths-7.3.0.tgz#8bbee36206e6be334c0331293971d30e847c29f4"
+  integrity sha512-0AIKfMMKidtt5fB9S10Hlf7qS5XTBGrzZSkSUvk7vC/4FhGFCdVn8SmigfspouEqOgLvB3Z+HmWKYu/1fXE9Dw==
+  dependencies:
+    xdg-portable "^9.0.0"
+
+xdg-portable@^9.0.0:
+  version "9.4.0"
+  resolved "https://registry.yarnpkg.com/xdg-portable/-/xdg-portable-9.4.0.tgz#cbbcffd4c9faf2f3b1c6cba04b799f885e20f31e"
+  integrity sha512-L6M5PMpxOJeT5FGnI5TjrN2jPT/rdwu+/aEjO9gbY7wLe4qq+v9oPYJpqqlaL6qNc6zE/Usmq0dvkA793nfBqw==
+  dependencies:
+    os-paths "^6.2.0"
 
 xtend@^4.0.0, xtend@~4.0.1:
   version "4.0.2"
