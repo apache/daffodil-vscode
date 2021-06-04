@@ -8,7 +8,6 @@ import { RestClient } from 'typed-rest-client/RestClient';
 import XDGAppPaths from 'xdg-app-paths';
 const xdgAppPaths = XDGAppPaths({"name": "dapodil"})
 
-
 // Class for getting release data
 export class Release {
     name: string;
