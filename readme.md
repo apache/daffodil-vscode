@@ -7,6 +7,7 @@ This is an example extension for VS Code using the DAPodil debugging backend whi
 ## Install and Run
 
 * Download the latest [VSIX release from GitHub](https://github.com/jw3/example-daffodil-vscode/releases)
+* Install it using the "Install from VSIX" command from within VS Code, or on the command-line via `code --install-extension <path-to-vsix>`.
 
 ## Build and Run as a developer 
 
