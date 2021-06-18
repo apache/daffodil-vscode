@@ -1,13 +1,9 @@
 {
   "name": "daffodil-debug",
   "displayName": "Daffodil Debug",
-  "version": "0.0.6",
-  "publisher": "Daffodil",
+  "version": "0.0.7",
+  "publisher": "jw3",
   "description": "Daffodil Schema Debugger - debug Apache Daffodil schema files.",
-  "author": {
-    "name": "Daffodil Developers",
-    "email": "dev@daffodil.apache.org"
-  },
   "license": "Apache-2.0",
   "keywords": [
     "multi-root ready"
@@ -155,9 +151,9 @@
                 "description": "Absolute path to the input data file.",
                 "default": "${workspaceFolder}/${command:AskForProgramName}"
               },
-              "infosetOutputPath": {
+              "infosetOutput": {
                 "type": "string",
-                "description": "Destination for final Infoset (absolute-path | 'console')"
+                "description": "Destination for final Infoset (file-path | 'console' | 'none')"
               },
               "stopOnEntry": {
                 "type": "boolean",
