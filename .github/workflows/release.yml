@@ -1,0 +1,38 @@
+---
+name: Automatic Release
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Export tag to env
+        run: |
+          GIT_TAG=$(echo ${GITHUB_REF#refs/*/} | cut -d 'v' -f 2)
+          echo "GIT_TAG=$GIT_TAG" >> $GITHUB_ENV
+      
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+
+      - name: Install dependencies
+        run: yarn install
+      
+      - name: Create vsix
+        run: |
+          yarn run package -o daffodil-debug-${{env.GIT_TAG}}.vsix
+    
+      - name: Create release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: |
+            ${{github.workspace}}/daffodil-debug-${{env.GIT_TAG}}.vsix

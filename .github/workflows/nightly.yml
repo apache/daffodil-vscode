@@ -1,0 +1,38 @@
+---
+name: Deploy Nightly
+on:
+  schedule:
+    - cron: '0 2 * * *' # run at 2 AM UTC
+
+jobs:
+  nightly:
+    name: Deploy nightly
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+
+      - name: Install dependencies
+        run: yarn install
+      
+      - name: Create vsix
+        run: |
+          yarn run package -o extension-nightly.vsix
+      
+      - name: Deploy release
+        uses: WebFreak001/deploy-nightly@v1.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # automatically provided by github actions
+        with:
+          upload_url: https://uploads.github.com/repos/jw3/example-daffodil-vscode/releases/45167120/assets{?name,label}
+          release_id: 45167120 
+          asset_path: ${{github.workspace}}/extension-nightly.vsix
+          asset_name: daffodil-debug-nightly.vsix
+          asset_content_type: vsix
+          max_releases: 1
