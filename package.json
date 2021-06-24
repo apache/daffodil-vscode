@@ -3,7 +3,7 @@
   "displayName": "Daffodil Debug",
   "version": "0.0.7",
   "publisher": "jw3",
-  "description": "Daffodil Schema Debugger - debug Apache Daffodil schema files.",
+  "description": "Daffodil Schema Debugger: debug DFDL schema files using Apache Daffodil.",
   "license": "Apache-2.0",
   "keywords": [
     "multi-root ready"

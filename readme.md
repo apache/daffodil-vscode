@@ -2,16 +2,65 @@
 
 # VS Code Daffodil Debug
 
-This is an example extension for VS Code using the DAPodil debugging backend which enables intereactive debugging of Daffodil DFDL schema parsing.
+This is a VS Code extension which enables the interactive debugging of DFDL schema parsing using [Apache Daffodil](https://daffodil.apache.org/).
 
-## Install and Run
+## Installation
 
-* Download the latest `.vsix` file from the [releases page](https://github.com/jw3/example-daffodil-vscode/releases).
-* Install it:
-  * using the "Extensions: Install from VSIX" command from within VS Code (open the Command Palette with Shift-Command-P, then type `vsix` to bring up the command); or
-  * on the command-line via `code --install-extension <path-to-vsix>`.
-* Debugging a schema:
-  * TODO
+Until the extension is available in the [VS Code Extension Marketplace](https://marketplace.visualstudio.com/vscode), please download the latest `.vsix` file from the [releases page](https://github.com/jw3/example-daffodil-vscode/releases). Then install it by either:
+  * using the "Extensions: Install from VSIX" command from within VS Code (open the Command Palette with Shift-Command-P, then type `vsix` to bring up the command and pointing it at the downloaded `vsix` file); or
+  * on the command-line via `code --install-extension <path-to-downloaded-vsix>`.
+
+## Debugging a DFDL schema
+
+### Debug configuration
+
+Debugging a schema needs both the schema to use and a data file to parse. Currently the selection of these two components is quite manual--you need to create a "launch configuration", which is a JSON description of the debugging session.
+
+1. Select `Run -> Open Configurations` from the VS Code menubar. This will load a `launch.json` file into the editor. You may have existing `configurations, or it may be empty.
+2. Press `Add Configuration...` and select the `Daffodil Debug - Launch` option. This should add something like the following to the list of `configurations`:
+
+```json
+{
+  "type": "dfdl",
+  "request": "launch",
+  "name": "Ask for file name",
+  "program": "${workspaceFolder}/${command:AskForProgramName}",
+  "stopOnEntry": true
+},
+```
+
+You'll need to modify this section name your session appropriately, map the `program` element to your schema file, map `data` to the data file you want to parse, and some minor changes that will be addressed in a future release:
+
+```diff
+{
+  "type": "dfdl",
+  "request": "launch",
+- "name": "Ask for file name",
++ "name": "DFDL parse: My Data",
+- "program": "${workspaceFolder}/${command:AskForProgramName}",
++ "program": "/path/to/my/schema.dfdl.xsd",
++ "data": "/path/to/my/data",
+  "stopOnEntry": true
++ ,
++ "debugServer": 4711
+},
+```
+
+### Launch a debugging session
+
+In this example, you'd see a `DFDL parse: My Data` menu item at the top of the "Run and Debug" pane (Command-Shift-D). Then press the "play" button to start the debugging session.
+
+Once started, the debugger extension will let you choose what version of the Daffodil backend you want to use. Unless you have a good reason, select the latest version from the list. The schema processing will then start.
+
+In the Terminal you'll see log output from the debugger backend:
+
+```
+2021-06-23 17:51:12,513 [io-compute-6] INFO  d.d.d.DAPodil - waiting at tcp://0.0.0.0:4711 
+2021-06-23 17:51:15,882 [io-compute-3] INFO  d.d.d.DAPodil - connected at tcp://0.0.0.0:4711 
+...
+```
+
+Your schema file will also be loaded in VS Code and there should be a visible marking at the beginning where the debugger has paused upon entry to the debugging session. You can then control the debugger using the available VS Code debugger controls.
 
 ## Build and Run as a developer 
 
