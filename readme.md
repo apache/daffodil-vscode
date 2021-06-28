@@ -62,6 +62,19 @@ In the Terminal you'll see log output from the debugger backend:
 
 Your schema file will also be loaded in VS Code and there should be a visible marking at the beginning where the debugger has paused upon entry to the debugging session. You can then control the debugger using the available VS Code debugger controls.
 
+### Other options for launching a debugging session
+* Option 1:
+  * Open up the schema file you wish to debug
+  * From inside the file open the Command Palette (Mac = Command+Shift+P, Windows/Linux = Ctrl+Shift+P)
+  * Once the command Palette is opened start typing `Daffodil Debug:`
+    * Option 1 = `Daffodil Debug: Debug File` - This will allow for the user to fully step through the schema (WIP), once fully completed will produce a infoset to a file named `SCHEMA-infoset.xml` which it then opened as well.
+    * Option 2 = `Daffodil Debug: Run File` - This will just run the schema through producing the infoset to a file named `SCHEMA-infoset.xml`.
+* Option 2:
+  * Open up the schema file you wish to debug
+  * Click the play button in the top right, you will get two options:
+    * Option 1 = `Debug File` - This will allow for the user to fully step through the schema (WIP), once fully completed will produce a infoset to a file named `SCHEMA-infoset.xml` which it then opened as well.
+    * Option 2 = `Run File` - This will just run the schema through producing the infoset to a file named `SCHEMA-infoset.xml` which it then opened as well.
+
 ## Build and Run as a developer 
 
 * Clone the project [https://github.com/jw3/example-daffodil-vscode.git](https://github.com/jw3/example-daffodil-vscode.git)

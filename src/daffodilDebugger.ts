@@ -40,7 +40,7 @@ export async function getDebugVersion(config: vscode.DebugConfiguration) {
         let releases: string[] = []
         request.result.forEach(r => { if (r.name != "v0.0.0") releases.push(r.name); });
 
-        let dapodilVersion = await vscode.window.showQuickPick(releases);
+        let dapodilVersion = await vscode.window.showQuickPick(releases, {"ignoreFocusOut": true});
         dapodilVersion = dapodilVersion ? dapodilVersion : releases[0] // If dapodilVersion is null use latest version
         dapodilVersion = dapodilVersion?.includes("v") ? dapodilVersion : `v${dapodilVersion}`;
 

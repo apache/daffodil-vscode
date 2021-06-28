@@ -9,39 +9,54 @@ import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken 
 import { DaffodilDebugSession } from './daffodilDebug';
 import { getDebugger } from './daffodilDebugger';
 import { FileAccessor } from './daffodilRuntime';
+import * as path from 'path';
+
+// Function for setting up the commands for Run and Debug file
+function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
+
+	let targetResource = resource;
+	let noDebug = runOrDebug == "run" ? true : false;
+
+	if (!targetResource && vscode.window.activeTextEditor) {
+		targetResource = vscode.window.activeTextEditor.document.uri;
+	}
+	if (targetResource) {
+		let schemaName = path.basename(targetResource.fsPath).split(".")[0]
+		let infosetFile = `${schemaName}-infoset.xml`
+
+		vscode.debug.startDebugging(undefined, {
+				type: 'dfdl',
+				name: 'Run File',
+				request: 'launch',
+				program: targetResource.fsPath,
+				data: "${command:AskForProgramName}",
+				debugServer: 4711,
+				infosetOutput: {
+					type: "file",
+					path: "${workspaceFolder}/" + infosetFile
+				}
+			},
+			{ noDebug: noDebug }
+		);
+
+		vscode.debug.onDidTerminateDebugSession(async () => {
+			if (!vscode.workspace.workspaceFolders) { return }
+			
+			vscode.workspace.openTextDocument(`${vscode.workspace.workspaceFolders[0].uri.fsPath}/${infosetFile}`).then(doc => {
+				vscode.window.showTextDocument(doc);
+			})
+		});
+	}
+}
 
 export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?: vscode.DebugAdapterDescriptorFactory) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('extension.dfdl-debug.runEditorContents', (resource: vscode.Uri) =>  {
-			let targetResource = resource;
-			if (!targetResource && vscode.window.activeTextEditor) {
-				targetResource = vscode.window.activeTextEditor.document.uri;
-			}
-			if (targetResource) {
-				vscode.debug.startDebugging(undefined, {
-						type: 'dfdl',
-						name: 'Run File',
-						request: 'launch',
-						program: targetResource.fsPath
-					},
-					{ noDebug: true }
-				);
-			}
+			createDebugRunFileConfigs(resource, "run");
 		}),
 		vscode.commands.registerCommand('extension.dfdl-debug.debugEditorContents', (resource: vscode.Uri) => {
-			let targetResource = resource;
-			if (!targetResource && vscode.window.activeTextEditor) {
-				targetResource = vscode.window.activeTextEditor.document.uri;
-			}
-			if (targetResource) {
-				vscode.debug.startDebugging(undefined, {
-					type: 'dfdl',
-					name: 'Debug File',
-					request: 'launch',
-					program: targetResource.fsPath
-				});
-			}
+			createDebugRunFileConfigs(resource, "debug");
 		}),
 		vscode.commands.registerCommand('extension.dfdl-debug.toggleFormatting', (variable) => {
 			const ds = vscode.debug.activeDebugSession;
@@ -51,10 +66,16 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 		})
 	);
 
-	context.subscriptions.push(vscode.commands.registerCommand('extension.dfdl-debug.getProgramName', config => {
-		return vscode.window.showInputBox({
-			placeHolder: "Please enter the name of a markdown file in the workspace folder",
-			value: "readme.md"
+	context.subscriptions.push(vscode.commands.registerCommand('extension.dfdl-debug.getDataName', async (config) => {
+		// Open native file explorer to allow user to select data file from anywhere on their machine
+		return await vscode.window.showOpenDialog({
+            canSelectMany: false, openLabel: 'Select',
+            canSelectFiles: true, canSelectFolders: false
+        })
+		.then(fileUri => {
+			if (fileUri && fileUri[0]) {
+				return fileUri[0].fsPath;
+			}
 		});
 	}));
 
@@ -97,7 +118,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 	}
 
 	// override VS Code's default implementation of the debug hover
-	context.subscriptions.push(vscode.languages.registerEvaluatableExpressionProvider('markdown', {
+	context.subscriptions.push(vscode.languages.registerEvaluatableExpressionProvider('xml', {
 		provideEvaluatableExpression(document: vscode.TextDocument, position: vscode.Position): vscode.ProviderResult<vscode.EvaluatableExpression> {
 			const wordRange = document.getWordRangeAtPosition(position);
 			return wordRange ? new vscode.EvaluatableExpression(wordRange) : undefined;
@@ -105,7 +126,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 	}));
 
 	// override VS Code's default implementation of the "inline values" feature"
-	context.subscriptions.push(vscode.languages.registerInlineValuesProvider('markdown', {
+	context.subscriptions.push(vscode.languages.registerInlineValuesProvider('xml', {
 
 		provideInlineValues(document: vscode.TextDocument, viewport: vscode.Range, context: vscode.InlineValueContext) : vscode.ProviderResult<vscode.InlineValue[]> {
 
@@ -148,14 +169,19 @@ class DaffodilConfigurationProvider implements vscode.DebugConfigurationProvider
 		// if launch.json is missing or empty
 		if (!config.type && !config.request && !config.name) {
 			const editor = vscode.window.activeTextEditor;
-			if (editor && editor.document.languageId === 'markdown') {
+			if (editor && editor.document.languageId === 'xml') {
 				config.type = 'dfdl';
 				config.name = 'Launch';
 				config.request = 'launch';
 				config.program = '${file}';
 				config.stopOnEntry = true;
 				config.useExistingServer = false;
-				config.dapodilVersion = ""
+				config.dapodilVersion = "";
+				config.infosetOutput = {
+					"type": "file",
+					"path": "${workspaceFolder}/${file}-infoset.xml"
+				};
+				config.debugServer = 4711;
 			}
 		}
 

@@ -64,7 +64,7 @@
   "activationEvents": [
     "onDebugResolve:dfdl",
     "onDebugDynamicConfigurations:dfdl",
-    "onCommand:extension.dfdl-debug.getProgramName",
+    "onCommand:extension.dfdl-debug.getDataName",
     "onCommand:extension.dfdl-debug.runEditorContents",
     "onCommand:extension.dfdl-debug.debugEditorContents"
   ],
@@ -76,21 +76,21 @@
       "editor/title/run": [
         {
           "command": "extension.dfdl-debug.runEditorContents",
-          "when": "resourceLangId == markdown"
+          "when": "resourceLangId == xml"
         },
         {
           "command": "extension.dfdl-debug.debugEditorContents",
-          "when": "resourceLangId == markdown"
+          "when": "resourceLangId == xml"
         }
       ],
       "commandPalette": [
         {
           "command": "extension.dfdl-debug.debugEditorContents",
-          "when": "resourceLangId == markdown"
+          "when": "resourceLangId == xml"
         },
         {
           "command": "extension.dfdl-debug.runEditorContents",
-          "when": "resourceLangId == markdown"
+          "when": "resourceLangId == xml"
         }
       ],
       "debug/variables/context": [
@@ -122,14 +122,14 @@
     ],
     "breakpoints": [
       {
-        "language": "markdown"
+        "language": "xml"
       }
     ],
     "debuggers": [
       {
         "type": "dfdl",
         "languages": [
-          "markdown"
+          "xml"
         ],
         "label": "Daffodil Debug",
         "program": "./out/extension.js",
@@ -152,8 +152,12 @@
                 "default": "${workspaceFolder}/${command:AskForProgramName}"
               },
               "infosetOutput": {
-                "type": "string",
-                "description": "Destination for final Infoset (file-path | 'console' | 'none')"
+                "type": "object",
+                "description": "Destination for final Infoset (file-path | 'console' | 'none')",
+                "default": {
+                  "type": "console",
+                  "path": "${workspaceFolder}/infoset.xml"
+                }
               },
               "stopOnEntry": {
                 "type": "boolean",
@@ -190,7 +194,7 @@
         "configurationSnippets": [
           {
             "label": "Daffodil Debug: Launch",
-            "description": "A new configuration for 'debugging' a user selected markdown file.",
+            "description": "A new configuration for 'debugging' a user selected xml file.",
             "body": {
               "type": "dfdl",
               "request": "launch",
@@ -201,7 +205,7 @@
           }
         ],
         "variables": {
-          "AskForProgramName": "extension.dfdl-debug.getProgramName"
+          "AskForProgramName": "extension.dfdl-debug.getDataName"
         }
       }
     ]
