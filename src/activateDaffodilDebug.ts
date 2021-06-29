@@ -21,8 +21,7 @@ function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
 		targetResource = vscode.window.activeTextEditor.document.uri;
 	}
 	if (targetResource) {
-		let schemaName = path.basename(targetResource.fsPath).split(".")[0]
-		let infosetFile = `${schemaName}-infoset.xml`
+		let infosetFile = `${path.basename(targetResource.fsPath).split(".")[0]}-infoset.xml`
 
 		vscode.debug.startDebugging(undefined, {
 				type: 'dfdl',
@@ -86,24 +85,68 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 	// register a dynamic configuration provider for 'dfdl' debug type
 	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('dfdl', {
 		provideDebugConfigurations(folder: WorkspaceFolder | undefined): ProviderResult<DebugConfiguration[]> {
+			if (!vscode.workspace.workspaceFolders) {
+				return [
+					{
+						name: "Dynamic Launch",
+						request: "launch",
+						type: "dfdl",
+						program: "${file}"
+					},
+					{
+						name: "Another Dynamic Launch",
+						request: "launch",
+						type: "dfdl",
+						program: "${file}"
+					},
+					{
+						name: "Daffodil Launch",
+						request: "launch",
+						type: "dfdl",
+						program: "${file}"
+					}
+				];
+			}
+
+			let targetResource = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.document.uri : vscode.workspace.workspaceFolders[0].uri;
+			let infosetFile = `${path.basename(targetResource.fsPath).split(".")[0]}-infoset.xml`
+
 			return [
 				{
 					name: "Dynamic Launch",
 					request: "launch",
 					type: "dfdl",
-					program: "${file}"
+					program: "${file}",
+					data: "${command:AskForProgramName}",
+					debugServer: 4711,
+					infosetOutput: {
+						type: "file",
+						path: "${workspaceFolder}/" + infosetFile
+					}
 				},
 				{
 					name: "Another Dynamic Launch",
 					request: "launch",
 					type: "dfdl",
-					program: "${file}"
+					program: "${file}",
+					data: "${command:AskForProgramName}",
+					debugServer: 4711,
+					infosetOutput: {
+						type: "file",
+						path: "${workspaceFolder}/" + infosetFile
+					}
 				},
 				{
 					name: "Daffodil Launch",
 					request: "launch",
 					type: "dfdl",
-					program: "${file}"
+					program: "${file}",
+					data: "${command:AskForProgramName}",
+					debugServer: 4711,
+					infosetOutput: {
+						type: "file",
+						path: "${workspaceFolder}/" + infosetFile
+					}
 				}
 			];
 		}
