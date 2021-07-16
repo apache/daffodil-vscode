@@ -91,19 +91,37 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 						name: "Dynamic Launch",
 						request: "launch",
 						type: "dfdl",
-						program: "${file}"
+						program: "${file}",
+						data: "${command:AskForProgramName}",
+						debugServer: 4711,
+						infosetOutput: {
+							"type": "file",
+							"path": "${workspaceFolder}/${file}-infoset.xml"
+						}
 					},
 					{
 						name: "Another Dynamic Launch",
 						request: "launch",
 						type: "dfdl",
-						program: "${file}"
+						program: "${file}",
+						data: "${command:AskForProgramName}",
+						debugServer: 4711,
+						infosetOutput: {
+							"type": "file",
+							"path": "${workspaceFolder}/${file}-infoset.xml"
+						}
 					},
 					{
 						name: "Daffodil Launch",
 						request: "launch",
 						type: "dfdl",
-						program: "${file}"
+						program: "${file}",
+						data: "${command:AskForProgramName}",
+						debugServer: 4711,
+						infosetOutput: {
+							"type": "file",
+							"path": "${workspaceFolder}/${file}-infoset.xml"
+						}
 					}
 				];
 			}
@@ -217,9 +235,10 @@ class DaffodilConfigurationProvider implements vscode.DebugConfigurationProvider
 				config.name = 'Launch';
 				config.request = 'launch';
 				config.program = '${file}';
+				config.data = "${command:AskForProgramName}",
 				config.stopOnEntry = true;
 				config.useExistingServer = false;
-				config.dapodilVersion = "";
+				config.dapodilVersion = "v0.0.8";
 				config.infosetOutput = {
 					"type": "file",
 					"path": "${workspaceFolder}/${file}-infoset.xml"
