@@ -9,7 +9,7 @@
 			"request": "launch",
 			"name": "Debug JPEG",
 			"program": "${workspaceFolder}/jpeg.dfdl.xsd",
-			"data": "${workspaceFolder}/works.jpg",
+			"data": "${workspaceFolder}",
 			"infosetOutput": {
 				"type": "file",
 				"path": "${workspaceFolder}/infoset.xml"

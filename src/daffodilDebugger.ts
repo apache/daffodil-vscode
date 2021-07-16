@@ -25,6 +25,19 @@ export class Release {
     }
 }
 
+// Function to get data file given a folder
+export async function getDataFileFromFolder(dataFolder: string) {
+    return await vscode.window.showOpenDialog({
+        canSelectMany: false, openLabel: 'Select',
+        canSelectFiles: true, canSelectFolders: false, defaultUri: vscode.Uri.parse(dataFolder)
+    })
+    .then(fileUri => {
+        if (fileUri && fileUri[0]) {
+            return fileUri[0].fsPath;
+        }
+    });
+}
+
 // Function for handling getting the version of the debugger
 export async function getDebugVersion(config: vscode.DebugConfiguration) {
     if (!config.dapodilVersion) {        

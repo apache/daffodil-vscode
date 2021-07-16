@@ -188,7 +188,14 @@
             "request": "launch",
             "name": "Ask for file name",
             "program": "${workspaceFolder}/${command:AskForProgramName}",
-            "stopOnEntry": true
+            "stopOnEntry": true,
+            "data": "${command:AskForProgramName}",
+				    "dapodilVersion": "v0.0.8",
+				    "infosetOutput": {
+					    "type": "file",
+					    "path": "${workspaceFolder}/infoset.xml"
+				    },
+				    "debugServer": 4711
           }
         ],
         "configurationSnippets": [
@@ -200,7 +207,14 @@
               "request": "launch",
               "name": "Ask for file name",
               "program": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
-              "stopOnEntry": true
+              "stopOnEntry": true,
+              "data": "${command:AskForProgramName}",
+              "dapodilVersion": "v0.0.8",
+              "infosetOutput": {
+                "type": "file",
+                "path": "${workspaceFolder}/infoset.xml"
+              },
+              "debugServer": 4711
             }
           }
         ],
