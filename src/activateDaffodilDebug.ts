@@ -16,13 +16,13 @@ import * as fs from 'fs';
 function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
 
 	let targetResource = resource;
-	let noDebug = runOrDebug == "run" ? true : false;
+	let noDebug = runOrDebug === "run" ? true : false;
 
 	if (!targetResource && vscode.window.activeTextEditor) {
 		targetResource = vscode.window.activeTextEditor.document.uri;
 	}
 	if (targetResource) {
-		let infosetFile = `${path.basename(targetResource.fsPath).split(".")[0]}-infoset.xml`
+		let infosetFile = `${path.basename(targetResource.fsPath).split(".")[0]}-infoset.xml`;
 
 		vscode.debug.startDebugging(undefined, {
 				type: 'dfdl',
@@ -40,11 +40,11 @@ function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
 		);
 
 		vscode.debug.onDidTerminateDebugSession(async () => {
-			if (!vscode.workspace.workspaceFolders) { return }
+			if (!vscode.workspace.workspaceFolders) { return; }
 			
 			vscode.workspace.openTextDocument(`${vscode.workspace.workspaceFolders[0].uri.fsPath}/${infosetFile}`).then(doc => {
 				vscode.window.showTextDocument(doc);
-			})
+			});
 		});
 	}
 }
@@ -128,7 +128,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 			}
 
 			let targetResource = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.document.uri : vscode.workspace.workspaceFolders[0].uri;
-			let infosetFile = `${path.basename(targetResource.fsPath).split(".")[0]}-infoset.xml`
+			let infosetFile = `${path.basename(targetResource.fsPath).split(".")[0]}-infoset.xml`;
 
 			return [
 				{
@@ -256,22 +256,22 @@ class DaffodilConfigurationProvider implements vscode.DebugConfigurationProvider
 
 		let dataFolder = config.data;
 
-		if (dataFolder.includes("${workspaceFolder}") && vscode.workspace.workspaceFolders && dataFolder.split(".").length == 1) {
+		if (dataFolder.includes("${workspaceFolder}") && vscode.workspace.workspaceFolders && dataFolder.split(".").length === 1) {
 			dataFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
 		}
 
-		if (!dataFolder.includes("${workspaceFolder}") && dataFolder.split(".").length == 1 && fs.lstatSync(dataFolder).isDirectory()) {
+		if (!dataFolder.includes("${workspaceFolder}") && dataFolder.split(".").length === 1 && fs.lstatSync(dataFolder).isDirectory()) {
 			return getDataFileFromFolder(dataFolder).then(dataFile => {
 				config.data = dataFile;
 				return getDebugger(config).then(result => {
 					return config;
-				})
-			})
+				});
+			});
 		}
 		
 		return getDebugger(config).then(result => {
 			return config;
-		})
+		});
 	}
 }
 

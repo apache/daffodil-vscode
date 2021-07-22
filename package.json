@@ -30,7 +30,7 @@
     "watch": "webpack --watch --devtool nosources-source-map --info-verbosity verbose --config ./build/extension.webpack.config.js",
     "watch2": "tsc -watch -p ./",
     "pretest": "yarn run compile && yarn run lint",
-    "test": "node ./out/test/runTest.js",
+    "test": "node node_modules/mocha/bin/_mocha -u tdd --timeout 999999 --colors ./out/tests",
     "package": "vsce package",
     "publish": "vsce publish",
     "package-ext": "webpack --mode production --config ./build/extension.webpack.config.js"
