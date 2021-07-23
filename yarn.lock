@@ -1984,6 +1984,11 @@ he@1.2.0:
   resolved "https://registry.yarnpkg.com/he/-/he-1.2.0.tgz#84ae65fa7eafb165fddb61566ae14baf05664f0f"
   integrity sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==
 
+hexy@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/hexy/-/hexy-0.3.1.tgz#51a56aa57a6a092fd0911bede51b6b137173f7c4"
+  integrity sha512-mUarDrcDM53Hwvlm/sMkFQ1TfxOzLhQlDEaSqpIaQV9b+8u7Ba+dPS7zf/Ivx0CVfGzMBbPwuRUUbFy+5vDD7A==
+
 hmac-drbg@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/hmac-drbg/-/hmac-drbg-1.0.1.tgz#d2745701025a6c775a6c545793ed502fc0c649a1"

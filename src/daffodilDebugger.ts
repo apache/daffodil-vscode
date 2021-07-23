@@ -1,4 +1,4 @@
-import * as vscode from 'vscode'
+import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as unzip from 'unzip-stream';
 import * as os from 'os';
@@ -6,22 +6,22 @@ import * as child_process from 'child_process';
 import { HttpClient } from 'typed-rest-client/HttpClient';
 import { RestClient } from 'typed-rest-client/RestClient';
 import XDGAppPaths from 'xdg-app-paths';
-const xdgAppPaths = XDGAppPaths({"name": "dapodil"})
+const xdgAppPaths = XDGAppPaths({"name": "dapodil"});
 
 // Class for getting release data
 export class Release {
     name: string;
-    zipball_url: string;
-    tarball_url: string;
+    zipballUrl: string;
+    tarballUrl: string;
     commit: JSON;
-    node_id: string;
+    nodeId: string;
 
-    constructor(name: string, zipball_url: string, tarball_url: string, commit: JSON, node_id: string) {
+    constructor(name: string, zipballUrl: string, tarballUrl: string, commit: JSON, nodeId: string) {
         this.name = name;
-        this.zipball_url = zipball_url;
-        this.tarball_url = tarball_url;
+        this.zipballUrl = zipballUrl;
+        this.tarballUrl = tarballUrl;
         this.commit = commit;
-        this.node_id = node_id;
+        this.nodeId = nodeId;
     }
 }
 
@@ -41,8 +41,8 @@ export async function getDataFileFromFolder(dataFolder: string) {
 // Function for handling getting the version of the debugger
 export async function getDebugVersion(config: vscode.DebugConfiguration) {
     if (!config.dapodilVersion) {        
-        const client = new RestClient("client")
-        let request = await client.get<Release[]>('https://api.github.com/repos/jw3/example-daffodil-debug/tags')
+        const client = new RestClient("client");
+        let request = await client.get<Release[]>('https://api.github.com/repos/jw3/example-daffodil-debug/tags');
 
         if (request.statusCode !== 200 || !request.result) {
             const err: Error = new Error(`Check request url, and tags of the repo. Follow this template if not already https://api.github.com/repos/{owner}/{rep_name}/tags`);
@@ -50,14 +50,18 @@ export async function getDebugVersion(config: vscode.DebugConfiguration) {
             throw err;
         }
 
-        let releases: string[] = []
-        request.result.forEach(r => { if (r.name != "v0.0.0") releases.push(r.name); });
+        let releases: string[] = [];
+        request.result.forEach(r => {
+            if (r.name !== "v0.0.0") {
+                releases.push(r.name);
+            }
+        });
 
         let dapodilVersion = await vscode.window.showQuickPick(releases, {"ignoreFocusOut": true});
-        dapodilVersion = dapodilVersion ? dapodilVersion : releases[0] // If dapodilVersion is null use latest version
+        dapodilVersion = dapodilVersion ? dapodilVersion : releases[0]; // If dapodilVersion is null use latest version
         dapodilVersion = dapodilVersion?.includes("v") ? dapodilVersion : `v${dapodilVersion}`;
 
-        return dapodilVersion
+        return dapodilVersion;
     }
 
     return config.dapodilVersion?.includes("v") ? config.dapodilVersion : `v${config.dapodilVersion}`;
@@ -72,11 +76,11 @@ export async function getDebugger(config: vscode.DebugConfiguration) {
         const delay = ms => new Promise(res => setTimeout(res, ms));
 
         if(vscode.workspace.workspaceFolders !== undefined) {
-            let rootPath = xdgAppPaths.data()
+            let rootPath = xdgAppPaths.data();
 
             // If directory for storing debugger does exist create it
             if (!fs.existsSync(rootPath)) {
-                fs.mkdirSync(rootPath)
+                fs.mkdirSync(rootPath);
             }
 
             // Code for downloading and setting up da-podil files
@@ -97,7 +101,7 @@ export async function getDebugger(config: vscode.DebugConfiguration) {
                 const file = fs.createWriteStream(filePath);
 
                 await new Promise((res, rej) => {
-                    file.on("error", (err) => function () { throw err });
+                    file.on("error", (err) => function () { throw err; });
                     const stream = response.message.pipe(file);
                     stream.on("close", () => {
                         try { res(filePath); } catch (err) { rej(err); }
@@ -121,8 +125,8 @@ export async function getDebugger(config: vscode.DebugConfiguration) {
             }
             else {
                 // Linux/Mac stop debugger if already running and make sure script is executable
-                child_process.exec("kill -9 $(ps -ef | grep 'daffodil' | grep 'jar' | awk '{ print $2 }') || return 0")     // ensure debugger server not running and
-                child_process.execSync(`chmod +x ${rootPath.replace(" ", "\\ ")}/daffodil-debugger-${dapodilVersion.substring(1)}/bin/da-podil`)    // make sure da-podil is executable
+                child_process.exec("kill -9 $(ps -ef | grep 'daffodil' | grep 'jar' | awk '{ print $2 }') || return 0");     // ensure debugger server not running and
+                child_process.execSync(`chmod +x ${rootPath.replace(" ", "\\ ")}/daffodil-debugger-${dapodilVersion.substring(1)}/bin/da-podil`);    // make sure da-podil is executable
             }
 
             // Assign script name based on os platform

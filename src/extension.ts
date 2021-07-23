@@ -6,6 +6,7 @@
 
 import * as Net from 'net';
 import * as vscode from 'vscode';
+import * as htmlView from './hexview/htmlView';
 import { randomBytes } from 'crypto';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -26,17 +27,17 @@ export async function activate(context: vscode.ExtensionContext) {
 	switch (runMode) {
 		case 'server':
 			// run the debug adapter as a server inside the extension and communicate via a socket
-			activateDaffodilDebug(context, new DaffodilDebugAdapterServerDescriptorFactory());
+			activateDaffodilDebug(context, new DaffodilDebugAdapterServerDescriptorFactory(context));
 			break;
 
 		case 'namedPipeServer':
 			// run the debug adapter as a server inside the extension and communicate via a named pipe (Windows) or UNIX domain socket (non-Windows)
-			activateDaffodilDebug(context, new DaffodilDebugAdapterNamedPipeServerDescriptorFactory());
+			activateDaffodilDebug(context, new DaffodilDebugAdapterNamedPipeServerDescriptorFactory(context));
 			break;
 
 		case 'external': default:
 			// run the debug adapter as a separate process
-			activateDaffodilDebug(context, new DebugAdapterExecutableFactory());
+			activateDaffodilDebug(context, new DebugAdapterExecutableFactory(context));
 			break;
 
 		case 'inline':
@@ -51,10 +52,17 @@ export function deactivate() {
 }
 
 class DebugAdapterExecutableFactory implements vscode.DebugAdapterDescriptorFactory {
+	context: vscode.ExtensionContext;
+	htmlViewer: htmlView.DebuggerHtmlView;
+
+	constructor(context: vscode.ExtensionContext) {
+		this.context = context;
+		this.htmlViewer = new htmlView.DebuggerHtmlView(context);
+	}
 
 	// The following use of a DebugAdapter factory shows how to control what debug adapter executable is used.
 	// Since the code implements the default behavior, it is absolutely not neccessary and we show it here only for educational purpose.
-
+	
 	createDebugAdapterDescriptor(_session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): ProviderResult<vscode.DebugAdapterDescriptor> {
 		// param "executable" contains the executable optionally specified in the package.json (if any)
 
@@ -80,9 +88,15 @@ class DebugAdapterExecutableFactory implements vscode.DebugAdapterDescriptorFact
 class DaffodilDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterDescriptorFactory {
 
 	private server?: Net.Server;
+	context: vscode.ExtensionContext;
+	htmlViewer: htmlView.DebuggerHtmlView;
+
+	constructor(context: vscode.ExtensionContext) {
+		this.context = context;
+		this.htmlViewer = new htmlView.DebuggerHtmlView(context);
+	}
 
 	createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
-
 		if (!this.server) {
 			// start listening on a random port
 			this.server = Net.createServer(socket => {
@@ -106,6 +120,13 @@ class DaffodilDebugAdapterServerDescriptorFactory implements vscode.DebugAdapter
 class DaffodilDebugAdapterNamedPipeServerDescriptorFactory implements vscode.DebugAdapterDescriptorFactory {
 
 	private server?: Net.Server;
+	context: vscode.ExtensionContext;
+	htmlViewer: htmlView.DebuggerHtmlView;
+
+	constructor(context: vscode.ExtensionContext) {
+		this.context = context;
+		this.htmlViewer = new htmlView.DebuggerHtmlView(context);
+	}
 
 	createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
 

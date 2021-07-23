@@ -1,3 +1,4 @@
 {
-	"debug.inlineValues": true
+	"debug.inlineValues": true,
+	"workbench.colorCustomizations": {}
 }

@@ -5,12 +5,15 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as htmlView from './hexview/htmlView';
 import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
 import { DaffodilDebugSession } from './daffodilDebug';
 import { getDebugger, getDataFileFromFolder } from './daffodilDebugger';
 import { FileAccessor } from './daffodilRuntime';
-import * as path from 'path';
 import * as fs from 'fs';
+import XDGAppPaths from 'xdg-app-paths';
+const xdgAppPaths = XDGAppPaths({"name": "dapodil"});
 
 // Function for setting up the commands for Run and Debug file
 function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
@@ -33,7 +36,7 @@ function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
 				debugServer: 4711,
 				infosetOutput: {
 					type: "file",
-					path: "${workspaceFolder}/" + infosetFile
+					path: infosetFile
 				}
 			},
 			{ noDebug: noDebug }
@@ -68,7 +71,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.dfdl-debug.getDataName', async (config) => {
 		// Open native file explorer to allow user to select data file from anywhere on their machine
-		return await vscode.window.showOpenDialog({
+		let dataFile = await vscode.window.showOpenDialog({
             canSelectMany: false, openLabel: 'Select',
             canSelectFiles: true, canSelectFolders: false
         })
@@ -76,7 +79,17 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 			if (fileUri && fileUri[0]) {
 				return fileUri[0].fsPath;
 			}
+
+			return "";
 		});
+
+		// Create file that holds path to data file used
+		fs.writeFile(`${xdgAppPaths.data()}/.dataFile`, dataFile, function(err){
+			if (err) {
+				vscode.window.showInformationMessage(`error code: ${err.code} - ${err.message}`);
+			}
+		});
+		return dataFile;
 	}));
 
 	// register a configuration provider for 'dfdl' debug type
@@ -97,7 +110,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 						debugServer: 4711,
 						infosetOutput: {
 							"type": "file",
-							"path": "${workspaceFolder}/${file}-infoset.xml"
+							"path": "${file}-infoset.xml"
 						}
 					},
 					{
@@ -109,7 +122,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 						debugServer: 4711,
 						infosetOutput: {
 							"type": "file",
-							"path": "${workspaceFolder}/${file}-infoset.xml"
+							"path": "${file}-infoset.xml"
 						}
 					},
 					{
@@ -121,7 +134,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 						debugServer: 4711,
 						infosetOutput: {
 							"type": "file",
-							"path": "${workspaceFolder}/${file}-infoset.xml"
+							"path": "${file}-infoset.xml"
 						}
 					}
 				];
@@ -140,7 +153,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 					debugServer: 4711,
 					infosetOutput: {
 						type: "file",
-						path: "${workspaceFolder}/" + infosetFile
+						path: infosetFile
 					}
 				},
 				{
@@ -152,7 +165,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 					debugServer: 4711,
 					infosetOutput: {
 						type: "file",
-						path: "${workspaceFolder}/" + infosetFile
+						path: infosetFile
 					}
 				},
 				{
@@ -164,7 +177,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 					debugServer: 4711,
 					infosetOutput: {
 						type: "file",
-						path: "${workspaceFolder}/" + infosetFile
+						path: infosetFile
 					}
 				}
 			];
@@ -172,7 +185,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 	}, vscode.DebugConfigurationProviderTriggerKind.Dynamic));
 
 	if (!factory) {
-		factory = new InlineDebugAdapterFactory();
+		factory = new InlineDebugAdapterFactory(context);
 	}
 	context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('dfdl', factory));
 	if ('dispose' in factory) {
@@ -239,10 +252,10 @@ class DaffodilConfigurationProvider implements vscode.DebugConfigurationProvider
 				config.data = '${command:AskForProgramName}';
 				config.stopOnEntry = true;
 				config.useExistingServer = false;
-				config.dapodilVersion = "v0.0.8";
+				config.dapodilVersion = "v0.0.9-1";
 				config.infosetOutput = {
 					"type": "file",
-					"path": "${workspaceFolder}/${file}-infoset.xml"
+					"path": "${file}-infoset.xml"
 				};
 				config.debugServer = 4711;
 			}
@@ -260,7 +273,9 @@ class DaffodilConfigurationProvider implements vscode.DebugConfigurationProvider
 			dataFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
 		}
 
-		if (!dataFolder.includes("${workspaceFolder}") && dataFolder.split(".").length === 1 && fs.lstatSync(dataFolder).isDirectory()) {
+		if (!dataFolder.includes("${command:AskForProgramName}") && !dataFolder.includes("${workspaceFolder}") 
+			&& dataFolder.split(".").length === 1 && fs.lstatSync(dataFolder).isDirectory()) 
+		{
 			return getDataFileFromFolder(dataFolder).then(dataFile => {
 				config.data = dataFile;
 				return getDebugger(config).then(result => {
@@ -296,6 +311,13 @@ export const workspaceFileAccessor: FileAccessor = {
 };
 
 class InlineDebugAdapterFactory implements vscode.DebugAdapterDescriptorFactory {
+	context: vscode.ExtensionContext;
+	htmlViewer: htmlView.DebuggerHtmlView;
+
+	constructor(context: vscode.ExtensionContext) {
+		this.context = context;
+		this.htmlViewer = new htmlView.DebuggerHtmlView(context);
+	}
 
 	createDebugAdapterDescriptor(_session: vscode.DebugSession): ProviderResult<vscode.DebugAdapterDescriptor> {
 		return new vscode.DebugAdapterInlineImplementation(new DaffodilDebugSession(workspaceFileAccessor));

@@ -38,6 +38,7 @@
   "dependencies": {
     "await-notify": "1.0.1",
     "child_process": "^1.0.2",
+    "hexy": "^0.3.1",
     "unzip-stream": "^0.3.1",
     "vscode-debugadapter": "^1.46.0",
     "xdg-app-paths": "^7.3.0"
@@ -189,8 +190,8 @@
             "name": "Ask for file name",
             "program": "${workspaceFolder}/${command:AskForProgramName}",
             "stopOnEntry": true,
-            "data": "${command:AskForProgramName}",
-				    "dapodilVersion": "v0.0.8",
+            "data": "${workspaceFolder}/${command:AskForProgramName}",
+				    "dapodilVersion": "v0.0.9-1",
 				    "infosetOutput": {
 					    "type": "file",
 					    "path": "${workspaceFolder}/infoset.xml"
@@ -208,8 +209,8 @@
               "name": "Ask for file name",
               "program": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
               "stopOnEntry": true,
-              "data": "${command:AskForProgramName}",
-              "dapodilVersion": "v0.0.8",
+              "data": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
+              "dapodilVersion": "v0.0.9-1",
               "infosetOutput": {
                 "type": "file",
                 "path": "${workspaceFolder}/infoset.xml"

@@ -9,15 +9,15 @@
 			"request": "launch",
 			"name": "Debug JPEG",
 			"program": "${workspaceFolder}/jpeg.dfdl.xsd",
-			"data": "${workspaceFolder}",
+			"data": "${workspaceFolder}/works.jpg",
 			"infosetOutput": {
 				"type": "file",
-				"path": "${workspaceFolder}/infoset.xml"
+				"path": "${workspaceFolder}/jpeg-infoset.xml"
 			},
 			"stopOnEntry": true,
 			"trace": false,
 			"debugServer": 4711,
-			"dapodilVersion": "v0.0.7"
+			"dapodilVersion": "v0.0.9-1"
 		}
 	]
 }
