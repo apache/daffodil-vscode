@@ -79,6 +79,7 @@ Your schema file will also be loaded in VS Code and there should be a visible ma
 
 * Clone the project [https://github.com/jw3/example-daffodil-vscode.git](https://github.com/jw3/example-daffodil-vscode.git)
 * Open the project folder in VS Code.
+* Run `yarn` to update the local dependencies.
 * Press `F5` to build and launch Daffodil Debug in another VS Code window.
 
 ## Current status of the plugin
