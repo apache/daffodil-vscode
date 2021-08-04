@@ -6,7 +6,7 @@
 
 import * as Net from 'net';
 import * as vscode from 'vscode';
-import * as htmlView from './hexview/htmlView';
+import * as htmlView from './hexview/hexView';
 import { randomBytes } from 'crypto';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -53,11 +53,11 @@ export function deactivate() {
 
 class DebugAdapterExecutableFactory implements vscode.DebugAdapterDescriptorFactory {
 	context: vscode.ExtensionContext;
-	htmlViewer: htmlView.DebuggerHtmlView;
+	htmlViewer: htmlView.DebuggerHexView;
 
 	constructor(context: vscode.ExtensionContext) {
 		this.context = context;
-		this.htmlViewer = new htmlView.DebuggerHtmlView(context);
+		this.htmlViewer = new htmlView.DebuggerHexView(context);
 	}
 
 	// The following use of a DebugAdapter factory shows how to control what debug adapter executable is used.
@@ -89,11 +89,11 @@ class DaffodilDebugAdapterServerDescriptorFactory implements vscode.DebugAdapter
 
 	private server?: Net.Server;
 	context: vscode.ExtensionContext;
-	htmlViewer: htmlView.DebuggerHtmlView;
+	htmlViewer: htmlView.DebuggerHexView;
 
 	constructor(context: vscode.ExtensionContext) {
 		this.context = context;
-		this.htmlViewer = new htmlView.DebuggerHtmlView(context);
+		this.htmlViewer = new htmlView.DebuggerHexView(context);
 	}
 
 	createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
@@ -121,11 +121,11 @@ class DaffodilDebugAdapterNamedPipeServerDescriptorFactory implements vscode.Deb
 
 	private server?: Net.Server;
 	context: vscode.ExtensionContext;
-	htmlViewer: htmlView.DebuggerHtmlView;
+	htmlViewer: htmlView.DebuggerHexView;
 
 	constructor(context: vscode.ExtensionContext) {
 		this.context = context;
-		this.htmlViewer = new htmlView.DebuggerHtmlView(context);
+		this.htmlViewer = new htmlView.DebuggerHexView(context);
 	}
 
 	createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {

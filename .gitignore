@@ -9,3 +9,4 @@ daffodil-debug.txt
 daffodil-debugger*
 *.debug
 *infoset*
+datafile-hex
