@@ -65,6 +65,7 @@
   "activationEvents": [
     "onDebugResolve:dfdl",
     "onDebugDynamicConfigurations:dfdl",
+    "onCommand:extension.dfdl-debug.getProgramName",
     "onCommand:extension.dfdl-debug.getDataName",
     "onCommand:extension.dfdl-debug.runEditorContents",
     "onCommand:extension.dfdl-debug.debugEditorContents"
@@ -145,12 +146,12 @@
               "program": {
                 "type": "string",
                 "description": "Absolute path to the DFDL schema file.",
-                "default": "${workspaceFolder}/${command:AskForProgramName}"
+                "default": "${command:AskForProgramName}"
               },
               "data": {
                 "type": "string",
                 "description": "Absolute path to the input data file.",
-                "default": "${workspaceFolder}/${command:AskForProgramName}"
+                "default": "${command:AskForDataName}"
               },
               "infosetOutput": {
                 "type": "object",
@@ -188,9 +189,9 @@
             "type": "dfdl",
             "request": "launch",
             "name": "Ask for file name",
-            "program": "${workspaceFolder}/${command:AskForProgramName}",
+            "program": "${command:AskForProgramName}",
             "stopOnEntry": true,
-            "data": "${workspaceFolder}/${command:AskForProgramName}",
+            "data": "${command:AskForDataName}",
 				    "dapodilVersion": "v0.0.9-1",
 				    "infosetOutput": {
 					    "type": "file",
@@ -207,9 +208,9 @@
               "type": "dfdl",
               "request": "launch",
               "name": "Ask for file name",
-              "program": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
+              "program": "^\"\\${command:AskForProgramName}\"",
               "stopOnEntry": true,
-              "data": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
+              "data": "^\"\\${command:AskForDataName}\"",
               "dapodilVersion": "v0.0.9-1",
               "infosetOutput": {
                 "type": "file",
@@ -220,7 +221,8 @@
           }
         ],
         "variables": {
-          "AskForProgramName": "extension.dfdl-debug.getDataName"
+          "AskForProgramName": "extension.dfdl-debug.getProgramName",
+          "AskForDataName": "extension.dfdl-debug.getDataName"
         }
       }
     ]

@@ -32,7 +32,7 @@ function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
 				name: 'Run File',
 				request: 'launch',
 				program: targetResource.fsPath,
-				data: "${command:AskForProgramName}",
+				data: "${command:AskForDataName}",
 				debugServer: 4711,
 				infosetOutput: {
 					type: "file",
@@ -69,11 +69,28 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 		})
 	);
 
+	context.subscriptions.push(vscode.commands.registerCommand('extension.dfdl-debug.getProgramName', async (config) => {
+		// Open native file explorer to allow user to select data file from anywhere on their machine
+		return await vscode.window.showOpenDialog({
+            canSelectMany: false, openLabel: "Select DFDL schema to debug",
+            canSelectFiles: true, canSelectFolders: false,
+			title: "Select DFDL schema to debug"
+        })
+		.then(fileUri => {
+			if (fileUri && fileUri[0]) {
+				return fileUri[0].fsPath;
+			}
+
+			return "";
+		});
+	}));
+
 	context.subscriptions.push(vscode.commands.registerCommand('extension.dfdl-debug.getDataName', async (config) => {
 		// Open native file explorer to allow user to select data file from anywhere on their machine
 		let dataFile = await vscode.window.showOpenDialog({
-            canSelectMany: false, openLabel: 'Select',
-            canSelectFiles: true, canSelectFolders: false
+            canSelectMany: false, openLabel: "Select input data file to debug",
+            canSelectFiles: true, canSelectFolders: false,
+			title: "Select input data file to debug"
         })
 		.then(fileUri => {
 			if (fileUri && fileUri[0]) {
@@ -106,7 +123,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 						request: "launch",
 						type: "dfdl",
 						program: "${file}",
-						data: "${command:AskForProgramName}",
+						data: "${command:AskForDataName}",
 						debugServer: 4711,
 						infosetOutput: {
 							"type": "file",
@@ -118,7 +135,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 						request: "launch",
 						type: "dfdl",
 						program: "${file}",
-						data: "${command:AskForProgramName}",
+						data: "${command:AskForDataName}",
 						debugServer: 4711,
 						infosetOutput: {
 							"type": "file",
@@ -130,7 +147,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 						request: "launch",
 						type: "dfdl",
 						program: "${file}",
-						data: "${command:AskForProgramName}",
+						data: "${command:AskForDataName}",
 						debugServer: 4711,
 						infosetOutput: {
 							"type": "file",
@@ -149,7 +166,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 					request: "launch",
 					type: "dfdl",
 					program: "${file}",
-					data: "${command:AskForProgramName}",
+					data: "${command:AskForDataName}",
 					debugServer: 4711,
 					infosetOutput: {
 						type: "file",
@@ -161,7 +178,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 					request: "launch",
 					type: "dfdl",
 					program: "${file}",
-					data: "${command:AskForProgramName}",
+					data: "${command:AskForDataName}",
 					debugServer: 4711,
 					infosetOutput: {
 						type: "file",
@@ -173,7 +190,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 					request: "launch",
 					type: "dfdl",
 					program: "${file}",
-					data: "${command:AskForProgramName}",
+					data: "${command:AskForDataName}",
 					debugServer: 4711,
 					infosetOutput: {
 						type: "file",
@@ -249,7 +266,7 @@ class DaffodilConfigurationProvider implements vscode.DebugConfigurationProvider
 				config.name = 'Launch';
 				config.request = 'launch';
 				config.program = '${file}';
-				config.data = '${command:AskForProgramName}';
+				config.data = '${command:AskForDataName}';
 				config.stopOnEntry = true;
 				config.useExistingServer = false;
 				config.dapodilVersion = "v0.0.9-1";
@@ -273,7 +290,7 @@ class DaffodilConfigurationProvider implements vscode.DebugConfigurationProvider
 			dataFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
 		}
 
-		if (!dataFolder.includes("${command:AskForProgramName}") && !dataFolder.includes("${workspaceFolder}") 
+		if (!dataFolder.includes("${command:AskForProgramName}") && !dataFolder.includes("${command:AskForDataName}") && !dataFolder.includes("${workspaceFolder}") 
 			&& dataFolder.split(".").length === 1 && fs.lstatSync(dataFolder).isDirectory()) 
 		{
 			return getDataFileFromFolder(dataFolder).then(dataFile => {

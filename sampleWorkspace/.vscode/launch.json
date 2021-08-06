@@ -8,8 +8,8 @@
 			"type": "dfdl",
 			"request": "launch",
 			"name": "Debug JPEG",
-			"program": "${workspaceFolder}/jpeg.dfdl.xsd",
-			"data": "${workspaceFolder}/works.jpg",
+			"program": "${command:AskForProgramName}",
+			"data": "${command:AskForDataName}",
 			"infosetOutput": {
 				"type": "file",
 				"path": "${workspaceFolder}/jpeg-infoset.xml"
