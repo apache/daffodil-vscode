@@ -8,8 +8,8 @@
 			"type": "dfdl",
 			"request": "launch",
 			"name": "Debug JPEG",
-			"program": "${command:AskForProgramName}",
-			"data": "${command:AskForDataName}",
+			"program": "${workspaceFolder}/jpeg.dfdl.xsd",
+			"data": "${workspaceFolder}/works.jpg",
 			"infosetOutput": {
 				"type": "file",
 				"path": "${workspaceFolder}/jpeg-infoset.xml"
@@ -17,7 +17,7 @@
 			"stopOnEntry": true,
 			"trace": false,
 			"debugServer": 4711,
-			"dapodilVersion": "v0.0.9-1"
+			"dapodilVersion": "v0.0.11"
 		}
 	]
 }

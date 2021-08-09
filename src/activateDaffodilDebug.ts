@@ -14,6 +14,7 @@ import { FileAccessor } from './daffodilRuntime';
 import * as fs from 'fs';
 import XDGAppPaths from 'xdg-app-paths';
 const xdgAppPaths = XDGAppPaths({"name": "dapodil"});
+import * as infoset from './infoset';
 
 // Function for setting up the commands for Run and Debug file
 function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
@@ -53,7 +54,6 @@ function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
 }
 
 export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?: vscode.DebugAdapterDescriptorFactory) {
-
 	context.subscriptions.push(
 		vscode.commands.registerCommand('extension.dfdl-debug.runEditorContents', (resource: vscode.Uri) =>  {
 			createDebugRunFileConfigs(resource, "run");
@@ -248,6 +248,8 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 			return allValues;
 		}
 	}));
+
+	infoset.activate(context);
 }
 
 class DaffodilConfigurationProvider implements vscode.DebugConfigurationProvider {

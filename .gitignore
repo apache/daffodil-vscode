@@ -8,5 +8,4 @@ daffodil-debug.txt
 .DS_Store
 daffodil-debugger*
 *.debug
-*infoset*
 datafile-hex

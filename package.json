@@ -119,11 +119,33 @@
       },
       {
         "command": "extension.dfdl-debug.toggleFormatting",
-        "title": "Toggle between decimal and hex formatting"
+        "title": "Toggle between decimal and hex formatting",
+        "category": "Daffodil Debug",
+        "enablement": "inDebugMode"
       },
       {
         "command": "hexview.display",
-        "title": "Display the hex view"
+        "title": "Display the hex view",
+        "category": "Daffodil Debug",
+        "enablement": "inDebugMode"
+      },
+      {
+        "command": "infoset.display",
+        "title": "Display the infoset view",
+        "category": "Daffodil Debug",
+        "enablement": "inDebugMode"
+      },
+      {
+        "command": "infoset.save",
+        "title": "Save the current infoset",
+        "category": "Daffodil Debug",
+        "enablement": "inDebugMode"
+      },
+      {
+        "command": "infoset.diff",
+        "title": "View infoset diff",
+        "category": "Daffodil Debug",
+        "enablement": "inDebugMode"
       }
     ],
     "breakpoints": [
