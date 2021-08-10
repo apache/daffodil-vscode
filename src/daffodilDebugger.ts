@@ -58,8 +58,10 @@ export async function getDebugVersion(config: vscode.DebugConfiguration) {
         });
 
         let dapodilVersion = await vscode.window.showQuickPick(releases, {"ignoreFocusOut": true});
-        dapodilVersion = dapodilVersion ? dapodilVersion : releases[0]; // If dapodilVersion is null use latest version
-        dapodilVersion = dapodilVersion?.includes("v") ? dapodilVersion : `v${dapodilVersion}`;
+        
+        if (!dapodilVersion) {
+            throw new Error("You must select a version of the Daffodil Debugger to run");
+        }
 
         return dapodilVersion;
     }

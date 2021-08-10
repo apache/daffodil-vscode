@@ -7,6 +7,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as hexView from './hexview/hexView';
+import * as os from 'os';
+import * as child_process from 'child_process';
 import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
 import { DaffodilDebugSession } from './daffodilDebug';
 import { getDebugger, getDataFileFromFolder } from './daffodilDebugger';
@@ -15,6 +17,23 @@ import * as fs from 'fs';
 import XDGAppPaths from 'xdg-app-paths';
 const xdgAppPaths = XDGAppPaths({"name": "dapodil"});
 import * as infoset from './infoset';
+import { deactivate } from './extension';
+
+// Function for stopping debuggin
+function stopDebugging() {
+	vscode.debug.stopDebugging();
+	deactivate();
+	vscode.window.activeTerminal?.processId.then(id => {
+		if (id) {
+			if (os.platform() === 'win32') {
+				child_process.exec(`taskkill /F /PID ${id}`);
+			}
+			else {
+				child_process.exec(`kill -9 ${id}`);
+			}
+		}
+	});
+}
 
 // Function for setting up the commands for Run and Debug file
 function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
@@ -71,7 +90,7 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.dfdl-debug.getProgramName', async (config) => {
 		// Open native file explorer to allow user to select data file from anywhere on their machine
-		return await vscode.window.showOpenDialog({
+		let programFile = await vscode.window.showOpenDialog({
             canSelectMany: false, openLabel: "Select DFDL schema to debug",
             canSelectFiles: true, canSelectFolders: false,
 			title: "Select DFDL schema to debug"
@@ -83,9 +102,30 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 
 			return "";
 		});
+
+		// Create file that holds path to program file used
+		await fs.writeFile(`${xdgAppPaths.data()}/.programFile`, programFile, function(err){
+			if (err) {
+				vscode.window.showInformationMessage(`error code: ${err.code} - ${err.message}`);
+			}
+		});
+
+		// If program file not selected stop launch
+		if (programFile === "") {
+			stopDebugging();
+		}
+
+		return programFile;
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.dfdl-debug.getDataName', async (config) => {
+		// If prgramFile is not set do not prompt for dataFile
+		const programFile = Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.parse(`${xdgAppPaths.data()}/.programFile`))).toString("utf8");
+		if (programFile === "") {
+			stopDebugging();
+			return "";
+		}
+
 		// Open native file explorer to allow user to select data file from anywhere on their machine
 		let dataFile = await vscode.window.showOpenDialog({
             canSelectMany: false, openLabel: "Select input data file to debug",
@@ -106,6 +146,12 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 				vscode.window.showInformationMessage(`error code: ${err.code} - ${err.message}`);
 			}
 		});
+
+		// If data file not selected stop launch
+		if (dataFile === "") {
+			stopDebugging();
+		}
+
 		return dataFile;
 	}));
 
@@ -233,14 +279,8 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 						const varName = m[0];
 						const varRange = new vscode.Range(l, m.index, l, m.index + varName.length);
 
-						// some literal text
-						//allValues.push(new vscode.InlineValueText(varRange, `${varName}: ${viewport.start.line}`));
-
 						// value found via variable lookup
 						allValues.push(new vscode.InlineValueVariableLookup(varRange, varName, false));
-
-						// value determined via expression evaluation
-						//allValues.push(new vscode.InlineValueEvaluatableExpression(varRange, varName));
 					}
 				} while (m);
 			}
