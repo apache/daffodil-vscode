@@ -13,7 +13,7 @@
   },
   "icon": "images/daffodil.jpg",
   "categories": [
-    "Debuggers"
+    "Debuggers", "Snippets"
   ],
   "private": true,
   "repository": {
@@ -74,6 +74,12 @@
     "request": "never"
   },
   "contributes": {
+    "snippets": [
+      {
+        "language": "xml",
+        "path": "./snippets/snippets.json"
+      }
+    ],
     "menus": {
       "editor/title/run": [
         {
