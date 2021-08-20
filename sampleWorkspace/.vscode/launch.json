@@ -16,8 +16,7 @@
 			},
 			"stopOnEntry": true,
 			"trace": false,
-			"debugServer": 4711,
-			"dapodilVersion": "v0.0.12"
+			"debugServer": 4711
 		}
 	]
 }

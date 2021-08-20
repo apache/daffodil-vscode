@@ -12,3 +12,8 @@ tsconfig.json
 out
 sampleWebWorkerWorkspace
 sampleWorkspace
+
+# sbt directories
+target
+server
+project

@@ -12,10 +12,20 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Export tag to env
+      - name: Export git tag and package.json version
         run: |
           GIT_TAG=$(echo ${GITHUB_REF#refs/*/} | cut -d 'v' -f 2)
+          LIB_VERSION=$(echo $(node -p "JSON.stringify(require('./package.json').version)") | sed 's|"||g')
           echo "GIT_TAG=$GIT_TAG" >> $GITHUB_ENV
+          echo "LIB_VERSION=$LIB_VERSION" >> $GITHUB_ENV
+
+      - name: Check if git tag matches package version
+        run: if [[ ${{env.GIT_TAG}} != ${{env.LIB_VERSION}} ]]; then exit 1; else exit 0; fi
+        shell: bash
+      
+      - name: Create backend package
+        run: |
+          sbt universal:packageBin
       
       - name: Setup node
         uses: actions/setup-node@v1
@@ -24,7 +34,10 @@ jobs:
 
       - name: Install dependencies
         run: yarn install
-      
+
+      - name: Yarn Compile
+        run: yarn compile
+
       - name: Create vsix
         run: |
           yarn run package -o daffodil-debug-${{env.GIT_TAG}}.vsix
@@ -36,3 +49,4 @@ jobs:
           prerelease: false
           files: |
             ${{github.workspace}}/daffodil-debug-${{env.GIT_TAG}}.vsix
+            ${{github.workspace}}/server/core/target/universal/daffodil-debugger-*.zip

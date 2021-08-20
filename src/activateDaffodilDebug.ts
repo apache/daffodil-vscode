@@ -304,7 +304,6 @@ class DaffodilConfigurationProvider implements vscode.DebugConfigurationProvider
 				config.data = '${command:AskForDataName}';
 				config.stopOnEntry = true;
 				config.useExistingServer = false;
-				config.dapodilVersion = "v0.0.9-1";
 				config.infosetOutput = {
 					"type": "file",
 					"path": "${file}-infoset.xml"

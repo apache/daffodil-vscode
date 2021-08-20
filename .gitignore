@@ -9,3 +9,9 @@ daffodil-debug.txt
 daffodil-debugger*
 *.debug
 datafile-hex
+.idea
+
+
+target
+.bsp
+src/version.ts
