@@ -258,7 +258,7 @@ object Parse {
         .resource(state, events, breakpoints, control, infoset, dataDump)
       parse <- Resource.eval(args.data.flatMap(in => Parse(args.schemaURI, in, debugger)))
 
-      infosetWriting = args.infosetOutput match {
+      parsing = args.infosetOutput match {
         case Debugee.LaunchArgs.InfosetOutput.None =>
           parse.run().drain
         case Debugee.LaunchArgs.InfosetOutput.Console =>
@@ -267,8 +267,8 @@ object Parse {
             .through(text.utf8Decode)
             .foldMonoid
             .evalTap(_ => Logger[IO].debug("done collecting infoset XML output"))
-            .map(infosetXML => Events.OutputEvent.createConsoleOutput(infosetXML))
-            .enqueueNoneTerminated(dapEvents)
+            .map(infosetXML => Some(Events.OutputEvent.createConsoleOutput(infosetXML)))
+            .enqueueUnterminated(dapEvents) // later handling will terminate dapEvents
         case Debugee.LaunchArgs.InfosetOutput.File(path) =>
           parse.run().through(Files[IO].writeAll(path))
       }
@@ -312,8 +312,10 @@ object Parse {
         .concurrently(
           Stream(
             Stream.eval(startup),
-            infosetWriting.onFinalizeCase(ec => Logger[IO].debug(s"infosetWriting: $ec")),
-            deliverParseData.onFinalizeCase(ec => Logger[IO].debug(s"deliverParseData: $ec"))
+            parsing.onFinalizeCase(ec => Logger[IO].debug(s"parsing: $ec")),
+            deliverParseData.onFinalizeCase(ec => Logger[IO].debug(s"deliverParseData: $ec")) ++ Stream.eval(
+              dapEvents.offer(None) // ensure dapEvents is terminated when the parse is terminated
+            )
           ).parJoinUnbounded
         )
         .compile
