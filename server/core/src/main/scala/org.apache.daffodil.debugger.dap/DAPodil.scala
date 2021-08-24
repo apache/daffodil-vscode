@@ -728,6 +728,7 @@ object DAPodil extends IOApp {
       supportsExceptionInfoRequest: Boolean = false,
       supportsDataBreakpoints: Boolean = false,
       supportsClipboardContext: Boolean = false,
-      supportsLoadedSourcesRequest: Boolean = true
+      // disable loaded sources as it is handled in the extension: https://github.com/jw3/example-daffodil-vscode/issues/95
+      supportsLoadedSourcesRequest: Boolean = false
   )
 }
