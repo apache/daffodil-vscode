@@ -1,7 +1,7 @@
 {
   "name": "daffodil-debug",
   "displayName": "Daffodil Debug",
-  "version": "0.0.10",
+  "version": "0.0.11-pre1",
   "publisher": "jw3",
   "description": "Daffodil Schema Debugger: debug DFDL schema files using Apache Daffodil.",
   "license": "Apache-2.0",
@@ -13,7 +13,8 @@
   },
   "icon": "images/daffodil.jpg",
   "categories": [
-    "Debuggers", "Snippets"
+    "Debuggers",
+    "Snippets"
   ],
   "private": true,
   "repository": {
@@ -220,11 +221,11 @@
             "program": "${command:AskForProgramName}",
             "stopOnEntry": true,
             "data": "${command:AskForDataName}",
-				    "infosetOutput": {
-					    "type": "file",
-					    "path": "${workspaceFolder}/infoset.xml"
-				    },
-				    "debugServer": 4711
+            "infosetOutput": {
+              "type": "file",
+              "path": "${workspaceFolder}/infoset.xml"
+            },
+            "debugServer": 4711
           }
         ],
         "configurationSnippets": [
