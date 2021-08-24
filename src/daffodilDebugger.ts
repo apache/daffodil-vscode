@@ -14,8 +14,8 @@ class Backend {
 }
 
 class Artifact {
-    constructor(readonly daffodilVersion: string, readonly version: string = LIB_VERSION) {}
-    
+    constructor(readonly daffodilVersion: string, readonly version: string = LIB_VERSION) { }
+
     name = `daffodil-debugger-${this.daffodilVersion}-${this.version}`;
     archive = `${this.name}.zip`;
     archiveUrl = (backend: Backend) => `https://github.com/${backend.owner}/${backend.repo}/releases/download/v${this.version}/${this.archive}`;
@@ -49,11 +49,11 @@ export async function getDataFileFromFolder(dataFolder: string) {
         canSelectMany: false, openLabel: 'Select',
         canSelectFiles: true, canSelectFolders: false, defaultUri: vscode.Uri.parse(dataFolder)
     })
-    .then(fileUri => {
-        if (fileUri && fileUri[0]) {
-            return fileUri[0].fsPath;
-        }
-    });
+        .then(fileUri => {
+            if (fileUri && fileUri[0]) {
+                return fileUri[0].fsPath;
+            }
+        });
 }
 
 // Function for getting the daffodil-debugger
@@ -108,7 +108,7 @@ export async function getDebugger(config: vscode.DebugConfiguration) {
             // Stop debugger if running
             if (os.platform() === 'win32') {
                 // Windows stop debugger if already running
-                child_process.execSync("tskill java");
+                child_process.execSync('tskill java 2>nul 1>nul || echo "Java not running"');
             }
             else {
                 // Linux/Mac stop debugger if already running and make sure script is executable
