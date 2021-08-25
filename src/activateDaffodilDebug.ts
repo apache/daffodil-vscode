@@ -48,18 +48,18 @@ function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
 		let infosetFile = `${path.basename(targetResource.fsPath).split(".")[0]}-infoset.xml`;
 
 		vscode.debug.startDebugging(undefined, {
-				type: 'dfdl',
-				name: 'Run File',
-				request: 'launch',
-				program: targetResource.fsPath,
-				data: "${command:AskForDataName}",
-				debugServer: 4711,
-				infosetOutput: {
-					type: "file",
-					path: infosetFile
-				}
-			},
-			{ noDebug: noDebug }
+			type: 'dfdl',
+			name: 'Run File',
+			request: 'launch',
+			program: targetResource.fsPath,
+			data: "${command:AskForDataName}",
+			debugServer: 4711,
+			infosetOutput: {
+				type: "file",
+				path: infosetFile
+			}
+		},
+		{ noDebug: noDebug }
 		);
 
 		vscode.debug.onDidTerminateDebugSession(async () => {
@@ -91,17 +91,17 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 	context.subscriptions.push(vscode.commands.registerCommand('extension.dfdl-debug.getProgramName', async (config) => {
 		// Open native file explorer to allow user to select data file from anywhere on their machine
 		let programFile = await vscode.window.showOpenDialog({
-            canSelectMany: false, openLabel: "Select DFDL schema to debug",
-            canSelectFiles: true, canSelectFolders: false,
+			canSelectMany: false, openLabel: "Select DFDL schema to debug",
+			canSelectFiles: true, canSelectFolders: false,
 			title: "Select DFDL schema to debug"
-        })
-		.then(fileUri => {
-			if (fileUri && fileUri[0]) {
-				return fileUri[0].fsPath;
-			}
+		})
+			.then(fileUri => {
+				if (fileUri && fileUri[0]) {
+					return fileUri[0].fsPath;
+				}
 
-			return "";
-		});
+				return "";
+			});
 
 		// Create file that holds path to program file used
 		await fs.writeFile(`${xdgAppPaths.data()}/.programFile`, programFile, function(err){
@@ -128,17 +128,17 @@ export function activateDaffodilDebug(context: vscode.ExtensionContext, factory?
 
 		// Open native file explorer to allow user to select data file from anywhere on their machine
 		let dataFile = await vscode.window.showOpenDialog({
-            canSelectMany: false, openLabel: "Select input data file to debug",
-            canSelectFiles: true, canSelectFolders: false,
+			canSelectMany: false, openLabel: "Select input data file to debug",
+			canSelectFiles: true, canSelectFolders: false,
 			title: "Select input data file to debug"
-        })
-		.then(fileUri => {
-			if (fileUri && fileUri[0]) {
-				return fileUri[0].fsPath;
-			}
+		})
+			.then(fileUri => {
+				if (fileUri && fileUri[0]) {
+					return fileUri[0].fsPath;
+				}
 
-			return "";
-		});
+				return "";
+			});
 
 		// If data file not selected stop launch
 		if (dataFile === "") {

@@ -552,11 +552,11 @@ export class DaffodilDebugSession extends LoggingDebugSession {
 	protected dataBreakpointInfoRequest(response: DebugProtocol.DataBreakpointInfoResponse, args: DebugProtocol.DataBreakpointInfoArguments): void {
 
 		response.body = {
-            dataId: null,
-            description: "cannot break on data access",
-            accessTypes: undefined,
-            canPersist: false
-        };
+			dataId: null,
+			description: "cannot break on data access",
+			accessTypes: undefined,
+			canPersist: false
+		};
 
 		if (args.variablesReference && args.name) {
 			const id = this._variableHandles.get(args.variablesReference);
