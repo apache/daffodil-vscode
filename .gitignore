@@ -1,17 +1,29 @@
+#
+# Platform and environment specific entries should be placed in .git/info/exclude
+#
+
+# js/ts build
 out
 dist
 node_modules
-.vscode-test/
-npm-debug.log
-daffodil-debug.txt
-*.vsix
-.DS_Store
-daffodil-debugger*
-*.debug
-datafile-hex
-.idea
 
-
+# sbt
 target
 .bsp
+
+# build
 src/version.ts
+
+# unknown
+.vscode-test/
+
+# application build
+# todo;; the build logic needs refactored to write these elsewhere
+#        either target/ or /tmp or ...
+*.vsix
+
+# application runtime
+# todo;; the app logic needs refactored to write these elsewhere
+#        either /tmp or XDG or ...
+datafile-hex
+npm-debug.log

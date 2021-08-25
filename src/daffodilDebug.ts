@@ -19,9 +19,9 @@ function timeout(ms: number) {
 }
 
 /**
- * This interface describes the daffodil-debug specific launch attributes
+ * This interface describes the daffodil-debugger specific launch attributes
  * (which are not part of the Debug Adapter Protocol).
- * The schema for these attributes lives in the package.json of the daffodil-debug extension.
+ * The schema for these attributes lives in the package.json of the daffodil-debugger extension.
  * The interface should always match this schema.
  */
 interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
@@ -63,7 +63,7 @@ export class DaffodilDebugSession extends LoggingDebugSession {
 	 * We configure the default implementation of a debug adapter here.
 	 */
 	public constructor(fileAccessor: FileAccessor) {
-		super("daffodil-debug.txt");
+		super("daffodil-debugger.txt");
 
 		// this debugger uses zero-based lines and columns
 		this.setDebuggerLinesStartAt1(false);

@@ -40,7 +40,7 @@ jobs:
 
       - name: Create vsix
         run: |
-          yarn run package -o daffodil-debug-${{env.GIT_TAG}}.vsix
+          yarn run package -o daffodil-debugger-${{env.GIT_TAG}}.vsix
     
       - name: Create release
         uses: "marvinpinto/action-automatic-releases@latest"
@@ -48,5 +48,5 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
-            ${{github.workspace}}/daffodil-debug-${{env.GIT_TAG}}.vsix
+            ${{github.workspace}}/daffodil-debugger-${{env.GIT_TAG}}.vsix
             ${{github.workspace}}/server/core/target/universal/daffodil-debugger-*.zip
