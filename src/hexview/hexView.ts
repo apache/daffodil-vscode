@@ -13,15 +13,9 @@ export class DebuggerHexView {
     ? `${vscode.workspace.workspaceFolders[0].uri.fsPath}/datafile-hex`
     : `${xdgAppPaths.data()}/datafile-hex`
   hexString: string = ''
-  initialState: boolean = true
   bytePos1b: number = -1
   decorator: vscode.TextEditorDecorationType =
-    vscode.window.createTextEditorDecorationType({
-      gutterIconPath: `${xdgAppPaths.data()}/.arrow.svg`,
-      gutterIconSize: 'contain',
-      color: 'black',
-      backgroundColor: 'yellow',
-    })
+    vscode.window.createTextEditorDecorationType({})
 
   constructor(context: vscode.ExtensionContext) {
     context.subscriptions.push(
@@ -45,6 +39,13 @@ export class DebuggerHexView {
       })
     )
     this.context = context
+
+    this.decorator = vscode.window.createTextEditorDecorationType({
+      gutterIconPath: this.context.asAbsolutePath('./images/arrow.svg'),
+      gutterIconSize: 'contain',
+      color: 'black',
+      backgroundColor: 'yellow',
+    })
   }
 
   // Method for getting the decorator
@@ -53,7 +54,7 @@ export class DebuggerHexView {
 
     if (hexLength !== dataPositon) {
       this.decorator = vscode.window.createTextEditorDecorationType({
-        gutterIconPath: `${xdgAppPaths.data()}/.arrow.svg`,
+        gutterIconPath: this.context.asAbsolutePath('./images/arrow.svg'),
         gutterIconSize: 'contain',
         color: 'black',
         backgroundColor: 'yellow',
@@ -82,14 +83,12 @@ export class DebuggerHexView {
   // Overriden onTerminatedDebugSession method
   onTerminatedDebugSession(session: vscode.DebugSession) {
     if (session.type === 'dfdl') {
-      this.deleteFile(`${xdgAppPaths.data()}/.arrow.svg`)
       vscode.window.visibleTextEditors.forEach((editior) => {
         if (editior.document.fileName === this.hexFile) {
           editior.hide() // method is deprecated but is only way to close specific editor not just the active one
         }
       })
       this.dataFile = ''
-      this.initialState = true
       this.bytePos1b = -1
     }
   }
@@ -159,23 +158,6 @@ export class DebuggerHexView {
       range,
     ])
     hexEditor.revealRange(range)
-  }
-
-  // Method to create the svg arrow file
-  async createArrowIconFile() {
-    await fs.writeFileSync(
-      `${xdgAppPaths.data()}/.arrow.svg`,
-      `<?xml version="1.0" encoding="iso-8859-1"?>
-        <!-- Generator: Adobe Illustrator 18.1.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-        <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-             viewBox="0 0 16.526 16.526" style="enable-background:new 0 0 16.526 16.526; fill: yellow; transform: scale(0.75);" xml:space="preserve">
-        <g>
-            <path d="M16.343,7.733C15.74,7.13,9.986,1.559,9.986,1.559S9.22,0.788,9.22,1.81s0,2.649,0,2.649
-                s-0.445,0-1.123,0c-2.095,0-6.17,0-7.731,0C0.366,4.459,0,4.448,0,4.92c0,0.474,0,5.854,0,6.516c0,0.662,0.438,0.547,0.438,0.547
-                c1.603,0,5.545,0,7.714,0c0.758,0,1.251,0,1.251,0s0,2.032,0,2.872s0.731,0.065,0.731,0.065l6.159-6.331
-                C16.293,8.59,16.782,8.171,16.343,7.733z"/>
-        </g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g></svg>`
-    )
   }
 
   // Method to close hexFile if opened in editor
@@ -260,12 +242,6 @@ export class DebuggerHexView {
           )
         }
       })
-    }
-
-    // Create arrow file and open up hex document only on start of debug
-    if (this.initialState) {
-      await this.createArrowIconFile()
-      this.initialState = false
     }
 
     // Only update position if hex file is opened
