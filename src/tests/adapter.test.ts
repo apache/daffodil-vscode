@@ -3,138 +3,136 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import assert = require('assert');
-import * as Path from 'path';
-import {DebugClient} from 'vscode-debugadapter-testsupport';
+import assert = require('assert')
+import * as Path from 'path'
+import { DebugClient } from 'vscode-debugadapter-testsupport'
 // import {DebugProtocol} from 'vscode-debugprotocol';
 
 suite('Node Debug Adapter', () => {
+  const DEBUG_ADAPTER = './out/debugAdapter.js'
 
-	const DEBUG_ADAPTER = './out/debugAdapter.js';
+  const PROJECT_ROOT = Path.join(__dirname, '../../')
+  const DATA_ROOT = Path.join(PROJECT_ROOT, 'src/tests/data/')
 
-	const PROJECT_ROOT = Path.join(__dirname, '../../');
-	const DATA_ROOT = Path.join(PROJECT_ROOT, 'src/tests/data/');
+  let dc: DebugClient
 
+  setup(() => {
+    dc = new DebugClient('node', DEBUG_ADAPTER, 'dfdl')
+    return dc.start()
+  })
 
-	let dc: DebugClient;
+  teardown(() => dc.stop())
 
-	setup( () => {
-		dc = new DebugClient('node', DEBUG_ADAPTER, 'dfdl');
-		return dc.start();
-	});
+  suite('basic', () => {
+    test('unknown request should produce error', (done) => {
+      dc.send('illegal_request')
+        .then(() => {
+          done(new Error('does not report error on unknown request'))
+        })
+        .catch(() => {
+          done()
+        })
+    })
+  })
 
-	teardown( () => dc.stop() );
+  suite('initialize', () => {
+    test('should return supported features', () => {
+      return dc.initializeRequest().then((response) => {
+        response.body = response.body || {}
+        assert.equal(response.body.supportsConfigurationDoneRequest, true)
+      })
+    })
 
+    test("should produce error for invalid 'pathFormat'", (done) => {
+      dc.initializeRequest({
+        adapterID: 'dfdl',
+        linesStartAt1: true,
+        columnsStartAt1: true,
+        pathFormat: 'url',
+      })
+        .then((response) => {
+          done(
+            new Error("does not report error on invalid 'pathFormat' attribute")
+          )
+        })
+        .catch((err) => {
+          // error expected
+          done()
+        })
+    })
+  })
 
-	suite('basic', () => {
+  suite('launch', () => {
+    test('should run program to the end', () => {
+      const PROGRAM = Path.join(DATA_ROOT, 'works.jpg')
 
-		test('unknown request should produce error', done => {
-			dc.send('illegal_request').then(() => {
-				done(new Error("does not report error on unknown request"));
-			}).catch(() => {
-				done();
-			});
-		});
-	});
+      return Promise.all([
+        dc.configurationSequence(),
+        dc.launch({ program: PROGRAM }),
+        dc.waitForEvent('terminated'),
+      ])
+    })
 
-	suite('initialize', () => {
+    test('should stop on entry', () => {
+      const PROGRAM = Path.join(DATA_ROOT, 'works.jpg')
+      const ENTRY_LINE = 1
 
-		test('should return supported features', () => {
-			return dc.initializeRequest().then(response => {
-				response.body = response.body || {};
-				assert.equal(response.body.supportsConfigurationDoneRequest, true);
-			});
-		});
+      return Promise.all([
+        dc.configurationSequence(),
+        dc.launch({ program: PROGRAM, stopOnEntry: true }),
+        dc.assertStoppedLocation('entry', { line: ENTRY_LINE }),
+      ])
+    })
+  })
 
-		test('should produce error for invalid \'pathFormat\'', done => {
-			dc.initializeRequest({
-				adapterID: 'dfdl',
-				linesStartAt1: true,
-				columnsStartAt1: true,
-				pathFormat: 'url'
-			}).then(response => {
-				done(new Error("does not report error on invalid 'pathFormat' attribute"));
-			}).catch(err => {
-				// error expected
-				done();
-			});
-		});
-	});
+  // suite('setBreakpoints', () => {
 
-	suite('launch', () => {
+  // 	test('should stop on a breakpoint', () => {
 
-		test('should run program to the end', () => {
+  // 		const PROGRAM = Path.join(DATA_ROOT, 'works.jpg');
+  // 		const BREAKPOINT_LINE = 2;
 
-			const PROGRAM = Path.join(DATA_ROOT, 'works.jpg');
+  // 		return dc.hitBreakpoint({ program: PROGRAM }, { path: PROGRAM, line: BREAKPOINT_LINE } );
+  // 	});
 
-			return Promise.all([
-				dc.configurationSequence(),
-				dc.launch({ program: PROGRAM }),
-				dc.waitForEvent('terminated')
-			]);
-		});
+  // 	test('hitting a lazy breakpoint should send a breakpoint event', () => {
 
-		test('should stop on entry', () => {
+  // 		const PROGRAM = Path.join(DATA_ROOT, 'test-jpeg.dfdl.xsd');
+  // 		const BREAKPOINT_LINE = 3;
 
-			const PROGRAM = Path.join(DATA_ROOT, 'works.jpg');
-			const ENTRY_LINE = 1;
+  // 		return Promise.all([
 
-			return Promise.all([
-				dc.configurationSequence(),
-				dc.launch({ program: PROGRAM, stopOnEntry: true }),
-				dc.assertStoppedLocation('entry', { line: ENTRY_LINE } )
-			]);
-		});
-	});
+  // 			dc.hitBreakpoint({ program: PROGRAM }, { path: PROGRAM, line: BREAKPOINT_LINE, verified: false } ),
 
-	// suite('setBreakpoints', () => {
+  // 			dc.waitForEvent('breakpoint').then(event => {
+  // 				const bpevent = event as DebugProtocol.BreakpointEvent;
+  // 				assert.strictEqual(bpevent.body.breakpoint.verified, true, "event mismatch: verified");
+  // 			})
+  // 		]);
+  // 	});
+  // });
 
-	// 	test('should stop on a breakpoint', () => {
+  // suite('setExceptionBreakpoints', () => {
 
-	// 		const PROGRAM = Path.join(DATA_ROOT, 'works.jpg');
-	// 		const BREAKPOINT_LINE = 2;
+  // 	test('should stop on an exception', () => {
 
-	// 		return dc.hitBreakpoint({ program: PROGRAM }, { path: PROGRAM, line: BREAKPOINT_LINE } );
-	// 	});
+  // 		const PROGRAM_WITH_EXCEPTION = Path.join(DATA_ROOT, 'test-jpeg.dfdl.xsd');
+  // 		const EXCEPTION_LINE = 4;
 
-	// 	test('hitting a lazy breakpoint should send a breakpoint event', () => {
+  // 		return Promise.all([
 
-	// 		const PROGRAM = Path.join(DATA_ROOT, 'test-jpeg.dfdl.xsd');
-	// 		const BREAKPOINT_LINE = 3;
+  // 			dc.waitForEvent('initialized').then(event => {
+  // 				return dc.setExceptionBreakpointsRequest({
+  // 					filters: [ 'otherExceptions' ]
+  // 				});
+  // 			}).then(response => {
+  // 				return dc.configurationDoneRequest();
+  // 			}),
 
-	// 		return Promise.all([
+  // 			dc.launch({ program: PROGRAM_WITH_EXCEPTION }),
 
-	// 			dc.hitBreakpoint({ program: PROGRAM }, { path: PROGRAM, line: BREAKPOINT_LINE, verified: false } ),
-
-	// 			dc.waitForEvent('breakpoint').then(event => {
-	// 				const bpevent = event as DebugProtocol.BreakpointEvent;
-	// 				assert.strictEqual(bpevent.body.breakpoint.verified, true, "event mismatch: verified");
-	// 			})
-	// 		]);
-	// 	});
-	// });
-
-	// suite('setExceptionBreakpoints', () => {
-
-	// 	test('should stop on an exception', () => {
-
-	// 		const PROGRAM_WITH_EXCEPTION = Path.join(DATA_ROOT, 'test-jpeg.dfdl.xsd');
-	// 		const EXCEPTION_LINE = 4;
-
-	// 		return Promise.all([
-
-	// 			dc.waitForEvent('initialized').then(event => {
-	// 				return dc.setExceptionBreakpointsRequest({
-	// 					filters: [ 'otherExceptions' ]
-	// 				});
-	// 			}).then(response => {
-	// 				return dc.configurationDoneRequest();
-	// 			}),
-
-	// 			dc.launch({ program: PROGRAM_WITH_EXCEPTION }),
-
-	// 			dc.assertStoppedLocation('exception', { line: EXCEPTION_LINE } )
-	// 		]);
-	// 	});
-	// });
-});
+  // 			dc.assertStoppedLocation('exception', { line: EXCEPTION_LINE } )
+  // 		]);
+  // 	});
+  // });
+})

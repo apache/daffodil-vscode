@@ -18,6 +18,10 @@ jobs:
 
       - name: Install dependencies
         run: yarn install
+
+      - name: Check formatting
+        run: |
+          yarn run prettier src -c
       
       - name: Create vsix
         run: |
