@@ -427,6 +427,8 @@ class DaffodilConfigurationProvider
       !dataFolder.includes('${command:AskForProgramName}') &&
       !dataFolder.includes('${command:AskForDataName}') &&
       !dataFolder.includes('${workspaceFolder}') &&
+      vscode.workspace.workspaceFolders &&
+      dataFolder !== vscode.workspace.workspaceFolders[0].uri.fsPath &&
       dataFolder.split('.').length === 1 &&
       fs.lstatSync(dataFolder).isDirectory()
     ) {
