@@ -23,6 +23,9 @@ jobs:
         run: |
           yarn run prettier src -c
 
+      - name: Yarn Compile
+        run: yarn compile
+
       - name: Get filename
         run: |
           GIT_ID=$(git describe)
