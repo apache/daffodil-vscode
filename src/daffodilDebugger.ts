@@ -81,9 +81,9 @@ export async function getDebugger(config: vscode.DebugConfiguration) {
     if (vscode.workspace.workspaceFolders !== undefined) {
       let rootPath = xdgAppPaths.data()
 
-      // If directory for storing debugger does exist create it
+      // If data and app directories for storing debugger does not exist create them
       if (!fs.existsSync(rootPath)) {
-        fs.mkdirSync(rootPath)
+        fs.mkdirSync(rootPath, { recursive: true })
       }
 
       // Code for downloading and setting up daffodil-debugger files
@@ -102,7 +102,7 @@ export async function getDebugger(config: vscode.DebugConfiguration) {
         }
 
         // Create zip from rest call
-        const filePath = `${rootPath}/${artifact.archive}}`
+        const filePath = `${rootPath}/${artifact.archive}`
         const file = fs.createWriteStream(filePath)
 
         await new Promise((res, rej) => {
