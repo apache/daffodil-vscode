@@ -17,6 +17,7 @@ import fs2._
 import fs2.concurrent.Signal
 import java.io._
 import java.net._
+import java.nio.file.Path
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
@@ -228,7 +229,7 @@ class DAPodil(
       case DAPodil.State.Launched(debugee) =>
         for {
           _ <- debugee.setBreakpoints(
-            DAPodil.Path(args.source.path),
+            Path.of(args.source.path),
             args.breakpoints.toList.map(bp => DAPodil.Line(bp.line))
           )
           breakpoints = args.breakpoints.toList.zipWithIndex.map {
@@ -391,6 +392,8 @@ object DAPodil extends IOApp {
         |  daffodilVersion: ${BuildInfo.daffodilVersion}
         |  scalaVersion: ${BuildInfo.scalaVersion}
         |  sbtVersion: ${BuildInfo.sbtVersion}
+        |
+        |Built off commit ${BuildInfo.commit.take(7)} at ${BuildInfo.builtAtString}.
         |******************************************************""".stripMargin
 
   def run(args: List[String]): IO[ExitCode] =
@@ -489,7 +492,7 @@ object DAPodil extends IOApp {
     def step(): IO[Unit]
     def continue(): IO[Unit]
     def pause(): IO[Unit]
-    def setBreakpoints(path: DAPodil.Path, lines: List[DAPodil.Line]): IO[Unit]
+    def setBreakpoints(path: Path, lines: List[DAPodil.Line]): IO[Unit]
     def eval(args: EvaluateArguments): IO[Option[Types.Variable]]
   }
 
@@ -663,7 +666,6 @@ object DAPodil extends IOApp {
       st => st.frames.map(f => s"${f.stackFrame.line}:${f.stackFrame.column}").mkString("; ")
   }
 
-  case class Path(value: String) extends AnyVal
   case class Line(value: Int) extends AnyVal
   case class Location(path: Path, line: Line)
 
@@ -688,7 +690,7 @@ object DAPodil extends IOApp {
   }
 
   // TODO: path *can* be optional for non-empty source reference ids; need to experiment
-  case class Source(path: java.nio.file.Path, ref: Option[Source.Ref]) {
+  case class Source(path: Path, ref: Option[Source.Ref]) {
     def toDAP: Types.Source =
       new Types.Source(path.toString, ref.map(_.value).getOrElse(0))
   }

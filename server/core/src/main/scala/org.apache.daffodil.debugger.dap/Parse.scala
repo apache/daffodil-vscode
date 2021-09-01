@@ -13,9 +13,7 @@ import fs2._
 import fs2.concurrent._
 import fs2.io.file.Files
 import java.io._
-import java.net.URI
-import java.nio.file
-import java.nio.file.Paths
+import java.nio.file._
 import org.apache.daffodil.debugger.dap.{BuildInfo => DAPBuildInfo}
 import org.apache.daffodil.debugger.Debugger
 import org.apache.daffodil.exceptions.SchemaFileLocation
@@ -43,7 +41,7 @@ object Parse {
   implicit val logger: Logger[IO] = Slf4jLogger.getLogger
 
   def apply(
-      schema: URI,
+      schema: Path,
       data: InputStream,
       debugger: Debugger
   ): IO[Parse] =
@@ -117,7 +115,7 @@ object Parse {
         Some(DAPodil.Debugee.State.Stopped(DAPodil.Debugee.State.Stopped.Reason.Pause))
       )
 
-    def setBreakpoints(path: DAPodil.Path, lines: List[DAPodil.Line]): IO[Unit] =
+    def setBreakpoints(path: Path, lines: List[DAPodil.Line]): IO[Unit] =
       breakpoints.setBreakpoints(path, lines)
 
     def eval(args: EvaluateArguments): IO[Option[Types.Variable]] =
@@ -137,14 +135,11 @@ object Parse {
   object Debugee {
 
     case class LaunchArgs(
-        schemaPath: file.Path,
-        dataPath: file.Path,
+        schemaPath: Path,
+        dataPath: Path,
         stopOnEntry: Boolean,
         infosetOutput: LaunchArgs.InfosetOutput
     ) extends Arguments {
-      def schemaURI: URI =
-        schemaPath.toUri
-
       def data: IO[InputStream] =
         IO.blocking(new FileInputStream(dataPath.toFile).readAllBytes())
           .map(new ByteArrayInputStream(_))
@@ -156,7 +151,7 @@ object Parse {
       object InfosetOutput {
         case object None extends InfosetOutput
         case object Console extends InfosetOutput
-        case class File(path: file.Path) extends InfosetOutput
+        case class File(path: Path) extends InfosetOutput
       }
 
       def parse(arguments: JsonObject): EitherNel[String, LaunchArgs] =
@@ -209,8 +204,8 @@ object Parse {
     }
   }
 
-  val infosetSource = DAPodil.Source(file.Path.of("infoset"), Some(DAPodil.Source.Ref(1)))
-  val dataDumpSource = DAPodil.Source(file.Path.of("data"), Some(DAPodil.Source.Ref(2)))
+  val infosetSource = DAPodil.Source(Path.of("infoset"), Some(DAPodil.Source.Ref(1)))
+  val dataDumpSource = DAPodil.Source(Path.of("data"), Some(DAPodil.Source.Ref(2)))
 
   def debugee(request: Request): EitherNel[String, Resource[IO, DAPodil.Debugee]] =
     Debugee.LaunchArgs.parse(request.arguments).map(debugee)
@@ -235,8 +230,8 @@ object Parse {
 
       events <- Resource.eval(Queue.bounded[IO, Option[Event]](10))
       debugger <- DaffodilDebugger
-        .resource(state, events, breakpoints, control, infoset)
-      parse <- Resource.eval(args.data.flatMap(in => Parse(args.schemaURI, in, debugger)))
+        .resource(args.schemaPath, state, events, breakpoints, control, infoset)
+      parse <- Resource.eval(args.data.flatMap(in => Parse(args.schemaPath, in, debugger)))
 
       parsing = args.infosetOutput match {
         case Debugee.LaunchArgs.InfosetOutput.None =>
@@ -264,7 +259,7 @@ object Parse {
             dapEvents.offer(Some(DataEvent(start.state.currentLocation.bytePos1b)))
           case _ => IO.unit
         }
-        .through(fromParse(nextFrameId, nextRef))
+        .through(fromParse(args.schemaPath, nextFrameId, nextRef))
         .enqueueNoneTerminated(data)
 
       debugee = new Debugee(
@@ -290,7 +285,10 @@ object Parse {
           Stream(
             Stream.eval(startup),
             parsing.onFinalizeCase(ec => Logger[IO].debug(s"parsing: $ec")),
-            deliverParseData.onFinalizeCase(ec => Logger[IO].debug(s"deliverParseData: $ec")) ++ Stream.eval(
+            deliverParseData.onFinalizeCase {
+              case ec @ Resource.ExitCase.Errored(e) => Logger[IO].warn(e)(s"deliverParseData: $ec")
+              case ec                                => Logger[IO].debug(s"deliverParseData: $ec")
+            } ++ Stream.eval(
               dapEvents.offer(None) // ensure dapEvents is terminated when the parse is terminated
             ),
             infosetChanges
@@ -305,6 +303,7 @@ object Parse {
 
   /** Translate parse events to updated Daffodil state. */
   def fromParse(
+      schemaPath: Path,
       frameIds: Next[DAPodil.Frame.Id],
       variableRefs: Next[DAPodil.VariablesReference]
   ): Stream[IO, Parse.Event] => Stream[IO, DAPodil.Data] =
@@ -312,22 +311,17 @@ object Parse {
       events.evalScan(DAPodil.Data.empty) {
         case (_, Parse.Event.Init(_)) => IO.pure(DAPodil.Data.empty)
         case (prev, startElement: Parse.Event.StartElement) =>
-          createFrame(startElement, frameIds, variableRefs).map(prev.push)
+          createFrame(schemaPath, startElement, frameIds, variableRefs).map(prev.push)
         case (prev, Parse.Event.EndElement(_)) => IO.pure(prev.pop)
         case (prev, _: Parse.Event.Fini.type)  => IO.pure(prev)
       }
-
-  def createLocation(loc: SchemaFileLocation): DAPodil.Location =
-    DAPodil.Location(
-      DAPodil.Path(new URI(loc.uriString).getPath),
-      DAPodil.Line(loc.lineNumber.map(_.toInt).getOrElse(0))
-    )
 
   /** Transform Daffodil state to a DAP stack frame.
     *
     * @see https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
     */
   def createFrame(
+      schemaPath: Path,
       startElement: Parse.Event.StartElement,
       frameIds: Next[DAPodil.Frame.Id],
       variableRefs: Next[DAPodil.VariablesReference]
@@ -345,7 +339,7 @@ object Parse {
         startElement.name.map(_.value).getOrElse("???"),
         /* If sourceReference > 0 the contents of the source must be retrieved through
          * the SourceRequest (even if a path is specified). */
-        new Types.Source(startElement.schemaLocation.uriString, 0),
+        new Types.Source(schemaPath.toString, 0),
         startElement.schemaLocation.lineNumber
           .map(_.toInt)
           .getOrElse(1), // line numbers start at 1 according to InitializeRequest
@@ -538,7 +532,7 @@ object Parse {
   case class Delimiter(kind: String, value: DFADelimiter)
 
   trait Breakpoints {
-    def setBreakpoints(path: DAPodil.Path, lines: List[DAPodil.Line]): IO[Unit]
+    def setBreakpoints(path: Path, lines: List[DAPodil.Line]): IO[Unit]
     def shouldBreak(location: DAPodil.Location): IO[Boolean]
   }
 
@@ -547,7 +541,7 @@ object Parse {
       for {
         breakpoints <- Ref[IO].of(DAPodil.Breakpoints.empty)
       } yield new Breakpoints {
-        def setBreakpoints(path: DAPodil.Path, lines: List[DAPodil.Line]): IO[Unit] =
+        def setBreakpoints(path: Path, lines: List[DAPodil.Line]): IO[Unit] =
           breakpoints.update(bp => bp.set(path, lines))
 
         def shouldBreak(location: DAPodil.Location): IO[Boolean] =
@@ -583,7 +577,7 @@ object Parse {
         }
     }
 
-    case class BuildInfo(version: String, daffodilVersion: String, scalaVersion: String)
+    case class BuildInfo(version: String, daffodilVersion: String, scalaVersion: String, commit: String)
 
     def apply(launchArgs: Debugee.LaunchArgs): ConfigEvent =
       ConfigEvent(
@@ -596,7 +590,8 @@ object Parse {
         BuildInfo(
           DAPBuildInfo.version,
           DAPBuildInfo.daffodilVersion,
-          DAPBuildInfo.scalaVersion
+          DAPBuildInfo.scalaVersion,
+          DAPBuildInfo.commit
         )
       )
   }
@@ -692,6 +687,7 @@ object Parse {
     * we use a `Dispatcher` to execute the effects at this "outermost" layer (with respect to the effects).
     */
   class DaffodilDebugger(
+      schemaPath: Path,
       dispatcher: Dispatcher[IO],
       previousState: Ref[IO, Option[StateForDebugger]],
       state: QueueSink[IO, Option[DAPodil.Debugee.State]],
@@ -767,6 +763,12 @@ object Parse {
           IO.unit
         )
 
+    def createLocation(loc: SchemaFileLocation): DAPodil.Location =
+      DAPodil.Location(
+        schemaPath,
+        DAPodil.Line(loc.lineNumber.map(_.toInt).getOrElse(0))
+      )
+
     override def endElement(pstate: PState, processor: Parser): Unit =
       dispatcher.unsafeRunSync {
         events.offer(Some(Event.EndElement(pstate.copyStateForDebugger)))
@@ -775,6 +777,7 @@ object Parse {
 
   object DaffodilDebugger {
     def resource(
+        schemaPath: Path,
         state: QueueSink[IO, Option[DAPodil.Debugee.State]],
         events: QueueSink[IO, Option[Event]],
         breakpoints: Breakpoints,
@@ -785,6 +788,7 @@ object Parse {
         dispatcher <- Dispatcher[IO]
         previousState <- Resource.eval(Ref[IO].of[Option[StateForDebugger]](None))
       } yield new DaffodilDebugger(
+        schemaPath,
         dispatcher,
         previousState,
         state,

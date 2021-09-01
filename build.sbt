@@ -34,7 +34,8 @@ lazy val core = project
       "com.monovore" %% "decline-effect" % "2.1.0",
       "org.typelevel" %% "log4cats-slf4j" % "2.1.0",
     ),
-    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer),
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer, "commit" -> git.gitHeadCommit.value.getOrElse("(unknown)")),
+    buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "org.apache.daffodil.debugger.dap",
     packageName := s"${name.value}-$daffodilVer",
   )
