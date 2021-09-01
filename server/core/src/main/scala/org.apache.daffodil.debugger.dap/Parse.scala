@@ -720,7 +720,7 @@ object Parse {
     override def startElement(pstate: PState, processor: Parser): Unit =
       dispatcher.unsafeRunSync {
         // Generating the infoset requires a PState, not a StateForDebugger, so we can't generate it later from the Event.StartElement (which contains the StateForDebugger).
-        val setInfoset = {
+        lazy val setInfoset = {
           var node = pstate.infoset
           while (node.diParent != null) node = node.diParent
           node match {
