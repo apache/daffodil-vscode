@@ -84,7 +84,7 @@ export function activateDaffodilDebug(
     ),
     vscode.commands.registerCommand(
       'extension.dfdl-debug.toggleFormatting',
-      (variable) => {
+      (_) => {
         const ds = vscode.debug.activeDebugSession
         if (ds) {
           ds.customRequest('toggleFormatting')
@@ -96,7 +96,7 @@ export function activateDaffodilDebug(
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'extension.dfdl-debug.getProgramName',
-      async (config) => {
+      async (_) => {
         // Open native file explorer to allow user to select data file from anywhere on their machine
         let programFile = await vscode.window
           .showOpenDialog({
