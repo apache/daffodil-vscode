@@ -160,30 +160,6 @@ export function activateDaffodilDebug(
           if (!vscode.workspace.workspaceFolders) {
             return [
               {
-                name: 'Dynamic Launch',
-                request: 'launch',
-                type: 'dfdl',
-                program: '${file}',
-                data: '${command:AskForDataName}',
-                debugServer: 4711,
-                infosetOutput: {
-                  type: 'file',
-                  path: '${file}-infoset.xml',
-                },
-              },
-              {
-                name: 'Another Dynamic Launch',
-                request: 'launch',
-                type: 'dfdl',
-                program: '${file}',
-                data: '${command:AskForDataName}',
-                debugServer: 4711,
-                infosetOutput: {
-                  type: 'file',
-                  path: '${file}-infoset.xml',
-                },
-              },
-              {
                 name: 'Daffodil Launch',
                 request: 'launch',
                 type: 'dfdl',
@@ -206,30 +182,6 @@ export function activateDaffodilDebug(
           }-infoset.xml`
 
           return [
-            {
-              name: 'Dynamic Launch',
-              request: 'launch',
-              type: 'dfdl',
-              program: '${file}',
-              data: '${command:AskForDataName}',
-              debugServer: 4711,
-              infosetOutput: {
-                type: 'file',
-                path: infosetFile,
-              },
-            },
-            {
-              name: 'Another Dynamic Launch',
-              request: 'launch',
-              type: 'dfdl',
-              program: '${file}',
-              data: '${command:AskForDataName}',
-              debugServer: 4711,
-              infosetOutput: {
-                type: 'file',
-                path: infosetFile,
-              },
-            },
             {
               name: 'Daffodil Launch',
               request: 'launch',
