@@ -174,7 +174,8 @@ class DAPodil(
       case DAPodil.State.Initialized =>
         debugee(request) match {
           case Left(errors) =>
-            Logger[IO].warn(show"error parsing launch args: ${errors.mkString_(", ")}") *> session
+            state.set(DAPodil.State.FailedToLaunch(request, errors, None)) *>
+              Logger[IO].warn(show"error parsing launch args: ${errors.mkString_(", ")}") *> session
               .sendResponse(request.respondFailure(Some(show"error parsing launch args: ${errors.mkString_(", ")}")))
           case Right(dbgee) =>
             for {
@@ -184,7 +185,10 @@ class DAPodil(
 
               _ <- launched match {
                 case Left(t) =>
-                  state.set(DAPodil.State.FailedToLaunch(request, t)) *>
+                  state.set(
+                    DAPodil.State
+                      .FailedToLaunch(request, NonEmptyList.of("couldn't launch from created debuggee"), Some(t))
+                  ) *>
                     Logger[IO].warn(t)(show"couldn't launch, request $request") *>
                     session.sendResponse(
                       request.respondFailure(Some(show"Couldn't launch Daffodil debugger: ${t.getMessage()}"))
@@ -444,7 +448,7 @@ object DAPodil extends IOApp {
         .flatMap(session => DAPodil.resource(session, Parse.debugee))
         .use(whenDone => whenDone <* Logger[IO].debug("whenDone: completed"))
 
-        _ <- Logger[IO].info(s"disconnected at $uri")
+      _ <- Logger[IO].info(s"disconnected at $uri")
     } yield done
 
   /** Returns a resource that launches the "DAPodil" debugger given a DAP session, returning an effect that waits until the debugger stops or the session ends. */
@@ -535,7 +539,7 @@ object DAPodil extends IOApp {
       val stackTrace: IO[StackTrace] = debugee.data.get.map(_.stack)
       val threads: IO[List[Types.Thread]] = debugee.data.get.map(_.threads)
     }
-    case class FailedToLaunch(request: Request, cause: Throwable) extends State
+    case class FailedToLaunch(request: Request, reasons: NonEmptyList[String], cause: Option[Throwable]) extends State
 
     object Launched {
       def resource(
