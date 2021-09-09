@@ -162,6 +162,7 @@ object Parse {
               Either
                 .catchNonFatal(Paths.get(path.getAsString))
                 .leftMap(t => s"'program' field from launch request is not a valid path: $t")
+                .ensureOr(path => s"program file at $path doesn't exist")(_.toFile().exists())
             )
             .toEitherNel,
           Option(arguments.getAsJsonPrimitive("data"))
@@ -170,6 +171,7 @@ object Parse {
               Either
                 .catchNonFatal(Paths.get(path.getAsString))
                 .leftMap(t => s"'data' field from launch request is not a valid path: $t")
+                .ensureOr(path => s"data file at $path doesn't exist")(_.toFile().exists())
             )
             .toEitherNel,
           Option(arguments.getAsJsonPrimitive("stopOnEntry"))
@@ -193,6 +195,7 @@ object Parse {
                           Either
                             .catchNonFatal(LaunchArgs.InfosetOutput.File(Paths.get(path.getAsString)))
                             .leftMap(t => s"'infosetOutput.path' field from launch request is not a valid path: $t")
+                            .ensureOr(file => s"can't write to infoset output file at ${file.path}")(_.path.toFile().canWrite())
                         )
                         .toEitherNel
                     case invalidType =>
