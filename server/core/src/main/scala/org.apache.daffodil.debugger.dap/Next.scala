@@ -1,7 +1,6 @@
 package org.apache.daffodil.debugger.dap
 
-import cats.effect.IO
-import cats.effect.kernel.Ref
+import cats.effect._
 
 /** Produce the next value in a series, like for data identifiers. */
 trait Next[A] {

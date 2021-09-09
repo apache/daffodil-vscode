@@ -2,7 +2,6 @@ package org.apache.daffodil.debugger.dap
 
 import cats.data._
 import cats.effect._
-import cats.effect.kernel.Ref
 import cats.effect.std._
 import cats.Show
 import cats.syntax.all._
