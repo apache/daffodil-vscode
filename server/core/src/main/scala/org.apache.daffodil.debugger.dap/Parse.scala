@@ -692,7 +692,6 @@ object Parse {
   class DaffodilDebugger(
       schemaPath: Path,
       dispatcher: Dispatcher[IO],
-      previousState: Ref[IO, Option[StateForDebugger]],
       state: QueueSink[IO, Option[DAPodil.Debugee.State]],
       breakpoints: Breakpoints,
       control: Control,
@@ -703,8 +702,7 @@ object Parse {
 
     override def init(pstate: PState, processor: Parser): Unit =
       dispatcher.unsafeRunSync {
-        events.offer(Some(Event.Init(pstate.copyStateForDebugger))) *>
-          previousState.set(Some(pstate.copyStateForDebugger))
+        events.offer(Some(Event.Init(pstate.copyStateForDebugger)))
       }
 
     override def fini(processor: Parser): Unit =
@@ -737,8 +735,7 @@ object Parse {
               events.offer(Some(new Event.StartElement(pstate, isStepping = true))) *> setInfoset,
               events.offer(Some(new Event.StartElement(pstate, isStepping = false)))
             ) *>
-          logger.debug("post-control await") *>
-          previousState.set(Some(pstate.copyStateForDebugger))
+          logger.debug("post-control await")
       }
 
     def infosetToString(ie: InfosetElement): String = {
@@ -789,11 +786,9 @@ object Parse {
     ): Resource[IO, DaffodilDebugger] =
       for {
         dispatcher <- Dispatcher[IO]
-        previousState <- Resource.eval(Ref[IO].of[Option[StateForDebugger]](None))
       } yield new DaffodilDebugger(
         schemaPath,
         dispatcher,
-        previousState,
         state,
         breakpoints,
         control,
