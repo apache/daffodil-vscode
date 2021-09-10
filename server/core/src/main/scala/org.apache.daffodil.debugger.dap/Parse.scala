@@ -726,16 +726,17 @@ object Parse {
           }
         }
 
-        logger.debug("pre-checkBreakpoints") *>
-          checkBreakpoints(createLocation(pstate.schemaFileLocation)) *>
-          logger.debug("pre-control await") *>
+        logger.debug("pre-control await") *>
           // may block until external control says to unblock, for stepping behavior
           control.await
             .ifM(
               events.offer(Some(new Event.StartElement(pstate, isStepping = true))) *> setInfoset,
               events.offer(Some(new Event.StartElement(pstate, isStepping = false)))
             ) *>
-          logger.debug("post-control await")
+          logger.debug("post-control await") *>
+          logger.debug("pre-checkBreakpoints") *>
+          // TODO: there's a race between the readers of `events` and `state`, so somebody could react to a hit breakpoint before the event data was committed
+          checkBreakpoints(createLocation(pstate.schemaFileLocation))
       }
 
     def infosetToString(ie: InfosetElement): String = {
