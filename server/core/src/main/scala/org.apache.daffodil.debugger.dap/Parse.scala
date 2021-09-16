@@ -1,3 +1,19 @@
+/*
+ * Copyright 2021 Adam Rosien, John Wass
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.daffodil.debugger.dap
 
 import cats.Show
@@ -195,7 +211,9 @@ object Parse {
                           Either
                             .catchNonFatal(LaunchArgs.InfosetOutput.File(Paths.get(path.getAsString)))
                             .leftMap(t => s"'infosetOutput.path' field from launch request is not a valid path: $t")
-                            .ensureOr(file => s"can't write to infoset output file at ${file.path}")(_.path.toFile().canWrite())
+                            .ensureOr(file => s"can't write to infoset output file at ${file.path}")(
+                              _.path.toFile().canWrite()
+                            )
                         )
                         .toEitherNel
                     case invalidType =>

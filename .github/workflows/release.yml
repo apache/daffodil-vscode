@@ -34,7 +34,7 @@ jobs:
       
       - name: Create backend package
         run: |
-          sbt universal:packageBin
+          sbt test headerCheck universal:packageBin
       
       - name: Setup node
         uses: actions/setup-node@v1
