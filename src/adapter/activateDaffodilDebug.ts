@@ -6,7 +6,7 @@
 
 import * as vscode from 'vscode'
 import * as path from 'path'
-import * as hexView from '../hexview/hexView'
+import * as hexView from '../hexView'
 import {
   WorkspaceFolder,
   DebugConfiguration,

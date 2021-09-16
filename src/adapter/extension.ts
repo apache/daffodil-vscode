@@ -6,7 +6,7 @@
 
 import * as Net from 'net'
 import * as vscode from 'vscode'
-import * as htmlView from '../hexview/hexView'
+import * as htmlView from '../hexView'
 import { randomBytes } from 'crypto'
 import { tmpdir } from 'os'
 import { join } from 'path'

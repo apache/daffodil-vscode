@@ -15,11 +15,11 @@
  */
 
 import * as vscode from 'vscode'
-import * as daf from '../daffodil'
+import * as daf from './daffodil'
 import * as fs from 'fs'
 import * as hexy from 'hexy'
 import XDGAppPaths from 'xdg-app-paths'
-import { ConfigEvent, DaffodilData } from '../daffodil'
+import { ConfigEvent, DaffodilData } from './daffodil'
 const xdgAppPaths = XDGAppPaths({ name: 'dapodil' })
 
 export class DebuggerHexView {
