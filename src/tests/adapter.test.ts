@@ -9,7 +9,7 @@ import { DebugClient } from 'vscode-debugadapter-testsupport'
 // import {DebugProtocol} from 'vscode-debugprotocol';
 
 suite('Node Debug Adapter', () => {
-  const DEBUG_ADAPTER = './out/debugAdapter.js'
+  const DEBUG_ADAPTER = './out/adapter/debugAdapter.js'
 
   const PROJECT_ROOT = Path.join(__dirname, '../../')
   const DATA_ROOT = Path.join(PROJECT_ROOT, 'src/tests/data/')
