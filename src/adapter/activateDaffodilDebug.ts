@@ -6,7 +6,7 @@
 
 import * as vscode from 'vscode'
 import * as path from 'path'
-import * as hexView from './hexview/hexView'
+import * as hexView from '../hexview/hexView'
 import {
   WorkspaceFolder,
   DebugConfiguration,
@@ -14,10 +14,10 @@ import {
   CancellationToken,
 } from 'vscode'
 import { DaffodilDebugSession } from './daffodilDebug'
-import { getDebugger, getDataFileFromFolder } from './daffodilDebugger'
+import { getDebugger, getDataFileFromFolder } from '../daffodilDebugger'
 import { FileAccessor } from './daffodilRuntime'
 import * as fs from 'fs'
-import * as infoset from './infoset'
+import * as infoset from '../infoset'
 
 // Function for setting up the commands for Run and Debug file
 function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
