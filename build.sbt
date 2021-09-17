@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Adam Rosien, John Wass
+ * Copyright 2021 Concurrent Technologies Corporation, Nteligen LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ lazy val commonSettings = {
       "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVer,
     ),
     licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
-    organization := "Adam Rosien, John Wass",
+    organization := "Concurrent Technologies Corporation, Nteligen LLC",
     scalaVersion := "2.12.13",
     scalacOptions ++= Seq("-Ypartial-unification"),
     startYear := Some(2021),

@@ -1,9 +1,2 @@
 Apache Daffodil VS Code Debug
-Copyright 2021 The Apache Software Foundation
-
-This product includes software developed at
-The Apache Software Foundation (http://www.apache.org/).
-
-Based on source code originally developed by
-- VS Code Mock Debug extension, Copyright (c) Microsoft Corporation. All rights reserved. https://github.com/microsoft/vscode-mock-debug
-- DefinitelyTyped version 0.0.1 https://github.com/borisyankov/DefinitelyTyped
+Copyright 2021 Concurrent Technologies Corporation, Nteligen LLC
