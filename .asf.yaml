@@ -17,9 +17,9 @@ github:
   description: "Apache Daffodil VSCode"
   homepage: https://daffodil.apache.org/
   features:
-    wiki:     false
-    issues:   false
-    projects: false
+    wiki:     true
+    issues:   true
+    projects: true
   enabled_merge_buttons:
     squash:   false
     merge:    false
