@@ -229,6 +229,21 @@
                 "type": "boolean",
                 "description": "Enable connection to running DAP Server",
                 "default": false
+              },
+              "openHexView": {
+                "type": "boolean",
+                "description": "Open hexview on debug start",
+                "default": false
+              },
+              "openInfosetView": {
+                "type": "boolean",
+                "description": "Open hexview on debug start",
+                "default": false
+              },
+              "openInfosetDiffView": {
+                "type": "boolean",
+                "description": "Open hexview on debug start",
+                "default": false
               }
             }
           }
@@ -245,7 +260,10 @@
               "type": "file",
               "path": "${workspaceFolder}/infoset.xml"
             },
-            "debugServer": 4711
+            "debugServer": 4711,
+            "openHexView": false,
+            "openInfosetView": false,
+            "openInfosetDiffView": false
           }
         ],
         "configurationSnippets": [
@@ -263,7 +281,10 @@
                 "type": "file",
                 "path": "${workspaceFolder}/infoset.xml"
               },
-              "debugServer": 4711
+              "debugServer": 4711,
+              "openHexView": false,
+              "openInfosetView": false,
+              "openInfosetDiffView": false
             }
           }
         ],

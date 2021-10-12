@@ -26,6 +26,9 @@ node_modules
 target
 .bsp
 
+# npm install file
+package-lock.json
+
 # build
 src/version.ts
 
