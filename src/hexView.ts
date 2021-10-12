@@ -22,6 +22,7 @@ import * as hexy from 'hexy'
 import XDGAppPaths from 'xdg-app-paths'
 import { ConfigEvent, DaffodilData } from './daffodil'
 const xdgAppPaths = XDGAppPaths({ name: 'daffodil-dap' })
+import { onDebugStartDisplay } from './utils'
 
 export class DebuggerHexView {
   context: vscode.ExtensionContext
@@ -121,6 +122,18 @@ export class DebuggerHexView {
           this.onDisplayHex(e.session, e.body)
           break
       }
+
+      let hexFileOpened = false
+
+      vscode.window.visibleTextEditors.forEach((editor) => {
+        if (editor.document.fileName === this.hexFile) {
+          hexFileOpened = true
+        }
+      })
+
+      if (!hexFileOpened) {
+        onDebugStartDisplay(['hex-view'])
+      }
     }
   }
 
@@ -196,7 +209,7 @@ export class DebuggerHexView {
       vscode.window
         .showTextDocument(doc, {
           selection: range,
-          viewColumn: vscode.ViewColumn.Three,
+          viewColumn: vscode.ViewColumn.Two,
           preserveFocus: true,
           preview: false,
         })
