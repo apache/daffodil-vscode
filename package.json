@@ -1,13 +1,11 @@
 {
   "name": "daffodil-debugger",
-  "displayName": "Daffodil Debugger",
+  "displayName": "Apache Daffodil Schema Debugger",
+  "description": "VS Code extension for Apache Daffodil DFDL schema debugging",
   "version": "1.0.0",
-  "publisher": "jw3",
-  "description": "Daffodil Schema Debugger: debug DFDL schema files using Apache Daffodil.",
+  "publisher": "asf",
+  "author": "Apache Daffodil",
   "license": "Apache-2.0",
-  "keywords": [
-    "multi-root ready"
-  ],
   "engines": {
     "vscode": "^1.55.0"
   },
@@ -16,13 +14,12 @@
     "Debuggers",
     "Snippets"
   ],
-  "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/jw3/example-daffodil-vscode.git"
+    "url": "https://github.com/apache/daffodil-vscode.git"
   },
   "bugs": {
-    "url": "https://github.com/jw3/example-daffodil-vscode/issues"
+    "url": "https://github.com/apache/daffodil-vscode/issues"
   },
   "scripts": {
     "vscode:prepublish": "yarn run package-ext",
