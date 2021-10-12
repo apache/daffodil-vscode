@@ -45,7 +45,7 @@ class Artifact {
 }
 
 const daffodilVersion = '3.1.0' // TODO: will become a runtime parameter driven by config or artifacts in the releases repo
-const backend = new Backend('jw3', 'example-daffodil-vscode') // TODO: move to apache repo
+const backend = new Backend('apache', 'daffodil-vscode')
 const artifact = new Artifact(daffodilVersion)
 
 // Class for getting release data
