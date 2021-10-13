@@ -24,7 +24,7 @@ lazy val commonSettings = {
       "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVer,
     ),
     licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
-    organization := "Concurrent Technologies Corporation, Nteligen LLC",
+    organization := "org.apache.daffodil",
     scalaVersion := "2.12.13",
     scalacOptions ++= Seq("-Ypartial-unification"),
     startYear := Some(2021),
