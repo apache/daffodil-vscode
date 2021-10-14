@@ -81,6 +81,23 @@
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "command": "hexview.display",
+          "when": "resourceLangId == xml",
+          "group": "navigation@3"
+        },
+        {
+          "command": "infoset.display",
+          "when": "resourceLangId == xml",
+          "group": "navigation@1"
+        },
+        {
+          "command": "infoset.diff",
+          "when": "resourceLangId == xml",
+          "group": "navigation@2"
+        }
+      ],
       "editor/title/run": [
         {
           "command": "extension.dfdl-debug.runEditorContents",
@@ -133,23 +150,26 @@
         "command": "hexview.display",
         "title": "Display the hex view",
         "category": "Daffodil Debug",
-        "enablement": "inDebugMode"
+        "enablement": "inDebugMode",
+        "icon": "$(file-binary)"
       },
       {
         "command": "infoset.display",
         "title": "Display the infoset view",
         "category": "Daffodil Debug",
-        "enablement": "inDebugMode"
-      },
-      {
-        "command": "infoset.save",
-        "title": "Save the current infoset",
-        "category": "Daffodil Debug",
-        "enablement": "inDebugMode"
+        "enablement": "inDebugMode",
+        "icon": "$(file-code)"
       },
       {
         "command": "infoset.diff",
         "title": "View infoset diff",
+        "category": "Daffodil Debug",
+        "enablement": "inDebugMode",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "infoset.save",
+        "title": "Save the current infoset",
         "category": "Daffodil Debug",
         "enablement": "inDebugMode"
       }
