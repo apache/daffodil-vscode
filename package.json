@@ -2,7 +2,7 @@
   "name": "daffodil-debugger",
   "displayName": "Apache Daffodil Schema Debugger",
   "description": "VS Code extension for Apache Daffodil DFDL schema debugging",
-  "version": "1.0.0",
+  "version": "1.0.0-SNAPSHOT",
   "publisher": "asf",
   "author": "Apache Daffodil",
   "license": "Apache-2.0",

@@ -18,7 +18,14 @@ lazy val daffodilVer = "3.1.0"
 
 lazy val commonSettings = {
   Seq(
-    git.useGitDescribe := true,
+    version := {
+      val versionRegex = raw"""  "version": "(.*)",""".r
+      val packageJsonStr = scala.io.Source.fromFile("package.json").mkString
+      versionRegex.findFirstMatchIn(packageJsonStr) match {
+        case Some(m) => m.group(1)
+        case None => sys.error("Missing version specifier in package.json")
+      }
+    },
     libraryDependencies ++= Seq(
       "org.apache.daffodil" %% "daffodil-sapi" % daffodilVer,
       "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVer,
@@ -31,7 +38,7 @@ lazy val commonSettings = {
   )
 }
 
-lazy val commonPlugins = Seq(BuildInfoPlugin, GitVersioning, JavaAppPackaging, UniversalPlugin)
+lazy val commonPlugins = Seq(BuildInfoPlugin, JavaAppPackaging, UniversalPlugin)
 
 lazy val `daffodil-debugger` = project
   .in(file("."))
@@ -52,8 +59,7 @@ lazy val core = project
       "com.monovore" %% "decline-effect" % "2.1.0",
       "org.typelevel" %% "log4cats-slf4j" % "2.1.0",
     ),
-    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer, "commit" -> git.gitHeadCommit.value.getOrElse("(unknown)")),
-    buildInfoOptions += BuildInfoOption.BuildTime,
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer),
     buildInfoPackage := "org.apache.daffodil.debugger.dap",
     packageName := s"${name.value}-$daffodilVer",
   )
