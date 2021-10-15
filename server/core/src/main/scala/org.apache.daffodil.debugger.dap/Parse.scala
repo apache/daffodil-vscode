@@ -598,7 +598,7 @@ object Parse {
         }
     }
 
-    case class BuildInfo(version: String, daffodilVersion: String, scalaVersion: String, commit: String)
+    case class BuildInfo(version: String, daffodilVersion: String, scalaVersion: String)
 
     def apply(launchArgs: Debugee.LaunchArgs): ConfigEvent =
       ConfigEvent(
@@ -612,7 +612,6 @@ object Parse {
           DAPBuildInfo.version,
           DAPBuildInfo.daffodilVersion,
           DAPBuildInfo.scalaVersion,
-          DAPBuildInfo.commit
         )
       )
   }
