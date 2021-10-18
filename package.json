@@ -33,7 +33,9 @@
     "publish": "vsce publish",
     "package-ext": "webpack --mode production --config ./build/extension.webpack.config.js",
     "pretest": "yarn run compile && yarn run lint",
-    "test": "node node_modules/mocha/bin/_mocha -u tdd --timeout 999999 --colors ./out/tests"
+    "test": "node node_modules/mocha/bin/_mocha -u tdd --timeout 999999 --colors ./out/tests",
+    "sbt": "sbt universal:packageBin",
+    "build": "yarn sbt && yarn install && yarn compile && yarn package"
   },
   "dependencies": {
     "await-notify": "1.0.1",
