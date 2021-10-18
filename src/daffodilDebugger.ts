@@ -22,14 +22,10 @@ import * as os from 'os'
 import * as child_process from 'child_process'
 import { deactivate } from './adapter/extension'
 import { LIB_VERSION } from './version'
-import { HttpClient } from 'typed-rest-client/HttpClient'
 import XDGAppPaths from 'xdg-app-paths'
+import * as path from 'path'
 
-const xdgAppPaths = XDGAppPaths({ name: 'dapodil' })
-
-class Backend {
-  constructor(readonly owner: string, readonly repo: string) {}
-}
+const xdgAppPaths = XDGAppPaths({ name: 'daffodil-dap' })
 
 class Artifact {
   constructor(
@@ -39,14 +35,12 @@ class Artifact {
 
   name = `daffodil-debugger-${this.daffodilVersion}-${this.version}`
   archive = `${this.name}.zip`
-  archiveUrl = (backend: Backend) =>
-    `https://github.com/${backend.owner}/${backend.repo}/releases/download/v${this.version}/${this.archive}`
+
   scriptName =
     os.platform() === 'win32' ? 'daffodil-debugger.bat' : './daffodil-debugger'
 }
 
 const daffodilVersion = '3.1.0' // TODO: will become a runtime parameter driven by config or artifacts in the releases repo
-const backend = new Backend('apache', 'daffodil-vscode')
 const artifact = new Artifact(daffodilVersion)
 
 // Class for getting release data
@@ -90,7 +84,10 @@ export async function getDataFileFromFolder(dataFolder: string) {
 }
 
 // Function for getting the daffodil-debugger
-export async function getDebugger(config: vscode.DebugConfiguration) {
+export async function getDebugger(
+  context: vscode.ExtensionContext,
+  config: vscode.DebugConfiguration
+) {
   // If useExistingServer var set to false make sure version of debugger entered is downloaded then ran
   if (!config.useExistingServer) {
     const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
@@ -105,42 +102,25 @@ export async function getDebugger(config: vscode.DebugConfiguration) {
 
       // Code for downloading and setting up daffodil-debugger files
       if (!fs.existsSync(`${rootPath}/${artifact.name}`)) {
-        // Get daffodil-debugger of version entered using http client
-        const client = new HttpClient('client') // TODO: supply daffodil version from config
-        const artifactUrl = artifact.archiveUrl(backend)
-        const response = await client.get(artifactUrl)
-
-        if (response.message.statusCode !== 200) {
-          const err: Error = new Error(
-            `Couldn't download the Daffodil debugger backend from ${artifactUrl}.`
+        // Get daffodil-debugger zip from extension files
+        const filePath = path
+          .join(
+            context.asAbsolutePath('./server/core/target/universal'),
+            artifact.archive
           )
-          err['httpStatusCode'] = response.message.statusCode
-          throw err
+          .toString()
+
+        // If debugging the extension without vsix installed make sure debugger is created
+        if (!filePath.includes('.vscode/extension')) {
+          if (!fs.existsSync(filePath)) {
+            let baseFolder = context.asAbsolutePath('./')
+            child_process.execSync(
+              `cd ${baseFolder} && sbt universal:packageBin`
+            )
+          }
         }
 
-        // Create zip from rest call
-        const filePath = `${rootPath}/${artifact.archive}`
-        const file = fs.createWriteStream(filePath)
-
-        await new Promise((res, rej) => {
-          file.on(
-            'error',
-            (err) =>
-              function () {
-                throw err
-              }
-          )
-          const stream = response.message.pipe(file)
-          stream.on('close', () => {
-            try {
-              res(filePath)
-            } catch (err) {
-              rej(err)
-            }
-          })
-        })
-
-        // Unzip file and remove zip file
+        // Unzip file
         await new Promise((res, rej) => {
           let stream = fs
             .createReadStream(filePath)
@@ -153,7 +133,6 @@ export async function getDebugger(config: vscode.DebugConfiguration) {
             }
           })
         })
-        fs.unlinkSync(filePath)
       }
 
       // Stop debugger if running
