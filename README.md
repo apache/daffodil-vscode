@@ -21,14 +21,76 @@
 
 This is a VS Code extension which enables the interactive debugging of DFDL schema parsing using [Apache Daffodil](https://daffodil.apache.org/).
 
+## Build Requirements
+- Java Development Kit (JDK) 11 or higher
+- SBT 0.13.8 or higher
+- Node 10 or higher
+- Yarn (https://yarnpkg.com/getting-started/install)
+
+## Download - Prebuilt
+
+Until the extension is available in the [VS Code Extension Marketplace](https://marketplace.visualstudio.com/vscode), please download the latest `.vsix` file from the [releases page](https://github.com/apache/daffodil-vscode/releases).
+
+
+## Build VSIX and Debugger
+:exclamation:**NOT necessary if using prebuilt VSIX**:exclamation:
+
+:exclamation:**NOT necessary if running extension via VSCode without VSIX but a `yarn install` will be required**:exclamation:
+
+Run full build
+  ```bash
+  yarn build
+  ```
+
+* This command performs the following tasks:
+  * Create sbt zip package
+  * Install dependencies
+  * Compiles Extension
+  * Packages Extension
+  * Creates Files
+    ```
+    server/core/target/universal/daffodil-debugger-*.zip
+    daffodil-debugger-*.vsix
+    ```
+
+## Running Debug Server
+
+The debug server will automatically be ran by the extension unless `useExistingServer` is to set to `true` inside of `.vscode/launch.json`
+
+If you wish to ran the debug server manually the scripts to do so are at the following locations:
+* Debugging through VSCode with or without VSIX:
+  * Linux = `/home/USERNAME/.local/share/daffodil-dap`
+  * Mac = `/Users/USERNAME/Library/Application\ Support/daffodil-dap`
+  * Windows = `C:\\Users\\USERNAME\\AppData\\Roaming\\daffodil-dap`
+  
+
 
 ## Installation
 
-Until the extension is available in the [VS Code Extension Marketplace](https://marketplace.visualstudio.com/vscode), please download the latest `.vsix` file from the [releases page](https://github.com/apache/daffodil-vscode/releases). Then install it by either:
-  * using the "Extensions: Install from VSIX" command from within VS Code (open the Command Palette with Shift-Command-P, then type `vsix` to bring up the command and pointing it at the downloaded `vsix` file); or
-  * on the command-line via `code --install-extension <path-to-downloaded-vsix>`.
+Once you have either downloaded the VSIX file or created it you can now install it. There are two options to do this:
 
+* Via "Extensions: Install from VSIX" command from within VS Code.
+  * Open the Command Palette with Shift-Command-P (Mac) OR Shift-Ctrl-P (Windows/Linux)
+  * Type `vsix` to bring up the command and pointing it at the `vsix` file
+
+* Via command line
+  ```bash
+  code --install-extension daffodil-debugger-*.vsix
+  ```
 
 ## Usage
 
 Please refer to the Wiki page at https://github.com/apache/daffodil-vscode/wiki
+
+## Getting Help
+
+You can ask questions on the dev@daffodil.apache.org or
+users@daffodil.apache.org mailing lists.  You can report bugs via
+[GitHub Issues].
+
+## License
+
+Apache Daffodil VSCode is licensed under the [Apache License, v2.0].
+
+[Apache License, v2.0]: https://www.apache.org/licenses/LICENSE-2.0
+[GitHub Issues]: https://github.com/apache/daffodil-vscode/issues
