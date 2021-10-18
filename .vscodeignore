@@ -31,3 +31,4 @@ sampleWorkspace
 target
 server
 project
+!server/core/target/universal/daffodil-debugger-*.zip

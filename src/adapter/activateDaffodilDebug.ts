@@ -145,7 +145,7 @@ export function activateDaffodilDebug(
   )
 
   // register a configuration provider for 'dfdl' debug type
-  const provider = new DaffodilConfigurationProvider()
+  const provider = new DaffodilConfigurationProvider(context)
   context.subscriptions.push(
     vscode.debug.registerDebugConfigurationProvider('dfdl', provider)
   )
@@ -274,6 +274,12 @@ export function activateDaffodilDebug(
 class DaffodilConfigurationProvider
   implements vscode.DebugConfigurationProvider
 {
+  context: vscode.ExtensionContext
+
+  constructor(context: vscode.ExtensionContext) {
+    this.context = context
+  }
+
   /**
    * Massage a debug configuration just before a debug session is being launched,
    * e.g. add all missing attributes to the debug configuration.
@@ -331,13 +337,13 @@ class DaffodilConfigurationProvider
     ) {
       return getDataFileFromFolder(dataFolder).then((dataFile) => {
         config.data = dataFile
-        return getDebugger(config).then((result) => {
+        return getDebugger(this.context, config).then((result) => {
           return config
         })
       })
     }
 
-    return getDebugger(config).then((result) => {
+    return getDebugger(this.context, config).then((result) => {
       return config
     })
   }
