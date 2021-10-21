@@ -1,9 +1,10 @@
 /*
- * Copyright 2021 Concurrent Technologies Corporation, Nteligen LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -13,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 
 lazy val daffodilVer = "3.1.0"
 
@@ -38,11 +40,24 @@ lazy val commonSettings = {
   )
 }
 
+lazy val ratSettings = Seq(
+  ratLicenses := Seq(
+    ("MIT  ", Rat.MIT_LICENSE_NAME, Rat.MIT_LICENSE_TEXT_MICROSOFT),
+    ("CC0  ", Rat.CREATIVE_COMMONS_LICENSE_NAME, Rat.CREATIVE_COMMONS_LICENSE_TEXT),
+  ),
+  ratLicenseFamilies := Seq(
+    Rat.MIT_LICENSE_NAME,
+    Rat.CREATIVE_COMMONS_LICENSE_NAME
+  ),
+  ratExcludes := Rat.excludes,
+  ratFailBinaries := true,
+)
+
 lazy val commonPlugins = Seq(BuildInfoPlugin, JavaAppPackaging, UniversalPlugin)
 
 lazy val `daffodil-debugger` = project
   .in(file("."))
-  .settings(commonSettings)
+  .settings(commonSettings, ratSettings)
   .settings(publish / skip := true)
   .dependsOn(core)
   .aggregate(core)
