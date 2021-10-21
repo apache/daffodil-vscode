@@ -1,9 +1,10 @@
 /*
- * Copyright 2021 Concurrent Technologies Corporation, Nteligen LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,5 +17,5 @@
 
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.9.0")
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.8.1")
-addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.6.0")
 addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.17")
+addSbtPlugin("org.musigma" % "sbt-rat" % "0.7.0")
