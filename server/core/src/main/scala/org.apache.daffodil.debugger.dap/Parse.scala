@@ -211,9 +211,10 @@ object Parse {
                           Either
                             .catchNonFatal(LaunchArgs.InfosetOutput.File(Paths.get(path.getAsString)))
                             .leftMap(t => s"'infosetOutput.path' field from launch request is not a valid path: $t")
-                            .ensureOr(file => s"can't write to infoset output file at ${file.path}")(
-                              _.path.toFile().canWrite()
-                            )
+                            .ensureOr(file => s"can't write to infoset output file at ${file.path}") { f =>
+                              val file = f.path.toFile
+                              file.canWrite || (!file.exists && file.getParentFile.canWrite)
+                            }
                         )
                         .toEitherNel
                     case invalidType =>
