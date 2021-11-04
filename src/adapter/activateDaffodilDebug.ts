@@ -19,6 +19,8 @@ import { getDebugger, getDataFileFromFolder } from '../daffodilDebugger'
 import { FileAccessor } from './daffodilRuntime'
 import * as fs from 'fs'
 import * as infoset from '../infoset'
+import { getConfig } from '../utils'
+import * as launchWizard from '../launchWizard/launchWizard'
 
 // Function for setting up the commands for Run and Debug file
 function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
@@ -32,21 +34,19 @@ function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
     let infosetFile = `${
       path.basename(targetResource.fsPath).split('.')[0]
     }-infoset.xml`
+    vscode.window.showInformationMessage(infosetFile)
 
     vscode.debug.startDebugging(
       undefined,
-      {
-        type: 'dfdl',
-        name: 'Run File',
-        request: 'launch',
-        program: targetResource.fsPath,
-        data: '${command:AskForDataName}',
-        debugServer: 4711,
-        infosetOutput: {
-          type: 'file',
-          path: infosetFile,
-        },
-      },
+      getConfig(
+        'Run File',
+        'launch',
+        'dfdl',
+        targetResource.fsPath,
+        false,
+        false,
+        { type: 'file', path: '${workspaceFolder}/' + infosetFile }
+      ),
       { noDebug: noDebug }
     )
 
@@ -160,18 +160,15 @@ export function activateDaffodilDebug(
         ): ProviderResult<DebugConfiguration[]> {
           if (!vscode.workspace.workspaceFolders) {
             return [
-              {
-                name: 'Daffodil Launch',
-                request: 'launch',
-                type: 'dfdl',
-                program: '${file}',
-                data: '${command:AskForDataName}',
-                debugServer: 4711,
-                infosetOutput: {
-                  type: 'file',
-                  path: '${file}-infoset.xml',
-                },
-              },
+              getConfig(
+                'Daffodil Launch',
+                'launch',
+                'dfdl',
+                '${file}',
+                false,
+                false,
+                { type: 'file', path: '${file}-infoset.xml' }
+              ),
             ]
           }
 
@@ -183,18 +180,15 @@ export function activateDaffodilDebug(
           }-infoset.xml`
 
           return [
-            {
-              name: 'Daffodil Launch',
-              request: 'launch',
-              type: 'dfdl',
-              program: '${file}',
-              data: '${command:AskForDataName}',
-              debugServer: 4711,
-              infosetOutput: {
-                type: 'file',
-                path: infosetFile,
-              },
-            },
+            getConfig(
+              'Daffodil Launch',
+              'launch',
+              'dfdl',
+              '${file}',
+              false,
+              false,
+              { type: 'file', path: '${workspaceFolder}/' + infosetFile }
+            ),
           ]
         },
       },
@@ -269,6 +263,7 @@ export function activateDaffodilDebug(
   )
 
   infoset.activate(context)
+  launchWizard.activate(context)
 }
 
 class DaffodilConfigurationProvider
@@ -291,21 +286,7 @@ class DaffodilConfigurationProvider
   ): ProviderResult<DebugConfiguration> {
     // if launch.json is missing or empty
     if (!config.type && !config.request && !config.name) {
-      const editor = vscode.window.activeTextEditor
-      if (editor && editor.document.languageId === 'xml') {
-        config.type = 'dfdl'
-        config.name = 'Launch'
-        config.request = 'launch'
-        config.program = '${file}'
-        config.data = '${command:AskForDataName}'
-        config.stopOnEntry = true
-        config.useExistingServer = false
-        config.infosetOutput = {
-          type: 'file',
-          path: '${file}-infoset.xml',
-        }
-        config.debugServer = 4711
-      }
+      config = getConfig('Launch', 'launch', 'dfdl')
     }
 
     if (!config.program) {

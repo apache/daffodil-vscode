@@ -72,7 +72,8 @@
     "onCommand:extension.dfdl-debug.getProgramName",
     "onCommand:extension.dfdl-debug.getDataName",
     "onCommand:extension.dfdl-debug.runEditorContents",
-    "onCommand:extension.dfdl-debug.debugEditorContents"
+    "onCommand:extension.dfdl-debug.debugEditorContents",
+    "onCommand:launch.config"
   ],
   "workspaceTrust": {
     "request": "never"
@@ -87,19 +88,23 @@
     "menus": {
       "editor/title": [
         {
+          "command": "launch.config",
+          "group": "navigation@1"
+        },
+        {
           "command": "hexview.display",
           "when": "resourceLangId == xml",
-          "group": "navigation@3"
+          "group": "navigation@4"
         },
         {
           "command": "infoset.display",
           "when": "resourceLangId == xml",
-          "group": "navigation@1"
+          "group": "navigation@2"
         },
         {
           "command": "infoset.diff",
           "when": "resourceLangId == xml",
-          "group": "navigation@2"
+          "group": "navigation@3"
         }
       ],
       "editor/title/run": [
@@ -176,6 +181,13 @@
         "title": "Save the current infoset",
         "category": "Daffodil Debug",
         "enablement": "inDebugMode"
+      },
+      {
+        "command": "launch.config",
+        "title": "Configure launch.json",
+        "category": "Daffodil Debug",
+        "enablement": "!inDebugMode",
+        "icon": "$(debug-configure)"
       }
     ],
     "breakpoints": [
@@ -226,6 +238,11 @@
                 "type": "boolean",
                 "description": "Enable logging of the Debug Adapter Protocol.",
                 "default": true
+              },
+              "debugServer": {
+                "type": "integer",
+                "description": "Port debug server running on",
+                "default": 4711
               },
               "useExistingServer": {
                 "type": "boolean",
@@ -293,6 +310,77 @@
         "variables": {
           "AskForProgramName": "extension.dfdl-debug.getProgramName",
           "AskForDataName": "extension.dfdl-debug.getDataName"
+        }
+      }
+    ],
+    "configuration": [
+      {
+        "title": "Daffodil Debugger Global",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "dfdl"
+          },
+          "program": {
+            "type": "string",
+            "description": "Absolute path to the DFDL schema file.",
+            "default": "${command:AskForProgramName}"
+          },
+          "data": {
+            "type": "string",
+            "description": "Absolute path to the input data file.",
+            "default": "${command:AskForDataName}"
+          },
+          "infosetOutputType": {
+            "type": "string",
+            "description": "Destination for final Infoset (file | 'console' | 'none')",
+            "enum": [
+              "file",
+              "console",
+              "none"
+            ],
+            "default": "none"
+          },
+          "infosetOutputFilePath": {
+            "type": "string",
+            "description": "Path to output for Infoset file (req: infosetOutput=file)",
+            "default": "${workspaceFolder}/infoset.xml"
+          },
+          "stopOnEntry": {
+            "type": "boolean",
+            "description": "Automatically stop after launch.",
+            "default": true
+          },
+          "trace": {
+            "type": "boolean",
+            "description": "Enable logging of the Debug Adapter Protocol.",
+            "default": true
+          },
+          "useExistingServer": {
+            "type": "boolean",
+            "description": "Enable connection to running DAP Server",
+            "default": false
+          },
+          "debugServer": {
+            "type": "integer",
+            "description": "Port debug server running on",
+            "default": 4711
+          },
+          "openHexView": {
+            "type": "boolean",
+            "description": "Open hexview on debug start",
+            "default": false
+          },
+          "openInfosetView": {
+            "type": "boolean",
+            "description": "Open hexview on debug start",
+            "default": false
+          },
+          "openInfosetDiffView": {
+            "type": "boolean",
+            "description": "Open hexview on debug start",
+            "default": false
+          }
         }
       }
     ]
