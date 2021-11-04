@@ -17,6 +17,8 @@
 
 import * as vscode from 'vscode'
 
+const defaultConf = vscode.workspace.getConfiguration()
+
 // Function to run vscode command and catch the error to not cause other issues
 export function runCommand(command: string) {
   vscode.commands.executeCommand(command).then(undefined, (err) => {
@@ -59,4 +61,59 @@ export async function onDebugStartDisplay(viewsToCheck: string[]) {
         break
     }
   })
+}
+
+// Method for retrieving the config when launch.json does not exist
+export function getConfig(
+  name,
+  request,
+  type,
+  program: string = '',
+  data = false,
+  debugServer = false,
+  infosetOutput: object | null = null,
+  stopOnEntry = false,
+  useExistingServer = false,
+  trace = false,
+  openHexView = false,
+  openInfosetView = false,
+  openInfosetDiffView = false
+) {
+  return {
+    name: name,
+    request: request,
+    type: type,
+    program: program
+      ? program
+      : defaultConf.get('program', '${command:AskForProgramName}'),
+    data: data ? data : defaultConf.get('data', '${command:AskForDataName}'),
+    debugServer: debugServer
+      ? debugServer
+      : defaultConf.get('debugServer', 4711),
+    infosetOutput: infosetOutput
+      ? infosetOutput
+      : {
+          type: defaultConf.get('infosetOutputType', 'none'),
+          path: defaultConf.get(
+            'infosetOutputFilePath',
+            '${workspaceFolder}/infoset.xml'
+          ),
+        },
+    stopOnEntry: stopOnEntry
+      ? stopOnEntry
+      : defaultConf.get('stopOnEntry', true),
+    useExistingServer: useExistingServer
+      ? useExistingServer
+      : defaultConf.get('useExistingServer', false),
+    trace: trace ? trace : defaultConf.get('trace', true),
+    openHexView: openHexView
+      ? openHexView
+      : defaultConf.get('openHexView', false),
+    openInfosetView: openInfosetView
+      ? openInfosetView
+      : defaultConf.get('openInfosetView', false),
+    openInfosetDiffView: openInfosetDiffView
+      ? openInfosetDiffView
+      : defaultConf.get('openInfosetDiffView', false),
+  }
 }
