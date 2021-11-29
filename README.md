@@ -94,3 +94,7 @@ Apache Daffodil VSCode is licensed under the [Apache License, v2.0].
 
 [Apache License, v2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [GitHub Issues]: https://github.com/apache/daffodil-vscode/issues
+
+This product includes the [logback](https://github.com/qos-ch/logback) library, which is available under the Eclipse Public License v1.0.
+
+This product includes the [Java Debug Server for Visual Studio Code](https://github.com/microsoft/java-debug) library, which is available under the Eclipse Public License v1.0.

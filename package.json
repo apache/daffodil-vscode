@@ -35,7 +35,9 @@
     "pretest": "yarn run compile && yarn run lint",
     "test": "node node_modules/mocha/bin/_mocha -u tdd --timeout 999999 --colors ./out/tests",
     "sbt": "sbt universal:packageBin",
-    "build": "yarn sbt && yarn install && yarn compile && yarn package"
+    "pre-build": "mv LICENSE tmp.LICENSE && mv NOTICE tmp.NOTICE && cp build/bin.LICENSE LICENSE && cp build/bin.NOTICE NOTICE",
+    "build": "yarn pre-build && yarn sbt && yarn install && yarn compile && yarn package && yarn post-build",
+    "post-build": "rm -rf NOTICE LICENSE && mv tmp.LICENSE LICENSE && mv tmp.NOTICE NOTICE"
   },
   "dependencies": {
     "await-notify": "1.0.1",
