@@ -18,3 +18,5 @@ build
 coverage
 out
 dist
+
+version.ts

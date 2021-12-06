@@ -613,7 +613,7 @@ object Parse {
         BuildInfo(
           DAPBuildInfo.version,
           DAPBuildInfo.daffodilVersion,
-          DAPBuildInfo.scalaVersion,
+          DAPBuildInfo.scalaVersion
         )
       )
   }

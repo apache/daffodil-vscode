@@ -31,13 +31,13 @@ object Compiler {
     new Compiler {
       def compile(schema: Path): IO[DataProcessor] =
         IO.blocking(
-          Daffodil
-            .compiler()
-            .compileFile(schema.toFile())
-        ).ensureOr(pf => CompilationFailed(pf.getDiagnostics))(!_.isError)
+            Daffodil
+              .compiler()
+              .compileFile(schema.toFile())
+          )
+          .ensureOr(pf => CompilationFailed(pf.getDiagnostics))(!_.isError)
           .map(_.onPath("/"))
     }
 
-  case class CompilationFailed(seq: Seq[Diagnostic])
-      extends Exception(seq.map(_.toString).mkString(", "))
+  case class CompilationFailed(seq: Seq[Diagnostic]) extends Exception(seq.map(_.toString).mkString(", "))
 }
