@@ -21,7 +21,40 @@ import * as daf from './daffodil'
 import * as fs from 'fs'
 import { InfosetEvent } from './daffodil'
 import { Uri } from 'vscode'
-import { onDebugStartDisplay } from './utils'
+import { onDebugStartDisplay, getCurrentConfg } from './utils'
+
+// Function to display an infomation message that the infoset file has been created
+// If the user wishes to open the file then they may click the 'Open' button
+async function openInfosetFilePrompt() {
+  let config = JSON.parse(JSON.stringify(getCurrentConfg()))
+
+  if (config.infosetOutput.type === 'file') {
+    let rootPath = vscode.workspace.workspaceFolders
+      ? vscode.workspace.workspaceFolders[0].uri.fsPath
+      : vscode.Uri.parse('').fsPath
+    let path = config.infosetOutput.path.includes('${workspaceFolder}')
+      ? config.infosetOutput.path.replace('${workspaceFolder}', rootPath)
+      : config.infosetOutput.path
+
+    const action = await vscode.window.showInformationMessage(
+      `Wrote infoset file to ${path}`,
+      'Open',
+      'Dismiss'
+    )
+
+    let uri = vscode.Uri.parse(path)
+
+    switch (action) {
+      case 'Open':
+        let xml = await vscode.workspace.openTextDocument(uri)
+        await vscode.window.showTextDocument(xml, {
+          preview: false,
+          viewColumn: vscode.ViewColumn.One,
+        })
+        break
+    }
+  }
+}
 
 export async function activate(ctx: vscode.ExtensionContext) {
   let sid: string | undefined
@@ -34,8 +67,9 @@ export async function activate(ctx: vscode.ExtensionContext) {
     })
   )
   ctx.subscriptions.push(
-    vscode.debug.onDidTerminateDebugSession((s) => {
+    vscode.debug.onDidTerminateDebugSession(async (s) => {
       sid = undefined
+      await openInfosetFilePrompt()
     })
   )
   ctx.subscriptions.push(
