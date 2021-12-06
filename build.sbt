@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 lazy val daffodilVer = "3.2.1"
 
 lazy val commonSettings = {
@@ -25,32 +24,32 @@ lazy val commonSettings = {
       val packageJsonStr = scala.io.Source.fromFile("package.json").mkString
       versionRegex.findFirstMatchIn(packageJsonStr) match {
         case Some(m) => m.group(1)
-        case None => sys.error("Missing version specifier in package.json")
+        case None    => sys.error("Missing version specifier in package.json")
       }
     },
     libraryDependencies ++= Seq(
       "org.apache.daffodil" %% "daffodil-sapi" % daffodilVer,
-      "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVer,
+      "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVer
     ),
     licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
     organization := "org.apache.daffodil",
     scalaVersion := "2.12.13",
     scalacOptions ++= Seq("-Ypartial-unification"),
-    startYear := Some(2021),
+    startYear := Some(2021)
   )
 }
 
 lazy val ratSettings = Seq(
   ratLicenses := Seq(
     ("MIT  ", Rat.MIT_LICENSE_NAME, Rat.MIT_LICENSE_TEXT_MICROSOFT),
-    ("CC0  ", Rat.CREATIVE_COMMONS_LICENSE_NAME, Rat.CREATIVE_COMMONS_LICENSE_TEXT),
+    ("CC0  ", Rat.CREATIVE_COMMONS_LICENSE_NAME, Rat.CREATIVE_COMMONS_LICENSE_TEXT)
   ),
   ratLicenseFamilies := Seq(
     Rat.MIT_LICENSE_NAME,
     Rat.CREATIVE_COMMONS_LICENSE_NAME
   ),
   ratExcludes := Rat.excludes,
-  ratFailBinaries := true,
+  ratFailBinaries := true
 )
 
 lazy val commonPlugins = Seq(BuildInfoPlugin, JavaAppPackaging, UniversalPlugin)
@@ -72,10 +71,10 @@ lazy val core = project
       "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.31.1",
       "co.fs2" %% "fs2-io" % "3.0.4",
       "com.monovore" %% "decline-effect" % "2.1.0",
-      "org.typelevel" %% "log4cats-slf4j" % "2.1.0",
+      "org.typelevel" %% "log4cats-slf4j" % "2.1.0"
     ),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer),
     buildInfoPackage := "org.apache.daffodil.debugger.dap",
-    packageName := s"${name.value}-$daffodilVer",
+    packageName := s"${name.value}-$daffodilVer"
   )
   .enablePlugins(commonPlugins: _*)

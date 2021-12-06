@@ -451,7 +451,6 @@ export class DaffodilDebugSession extends LoggingDebugSession {
           name: id + '_i',
           type: 'integer',
           value: this._showHex ? '0x' + i.toString(16) : i.toString(10),
-          // eslint-disable-next-line @typescript-eslint/naming-convention
           __vscodeVariableMenuContext: 'simple',
           variablesReference: 0,
         } as DebugProtocol.Variable)
