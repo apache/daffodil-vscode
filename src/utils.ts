@@ -18,6 +18,18 @@
 import * as vscode from 'vscode'
 
 const defaultConf = vscode.workspace.getConfiguration()
+let currentConfig: vscode.ProviderResult<vscode.DebugConfiguration>
+
+// Function to retrieve to the current debug config
+export function getCurrentConfg() {
+  return currentConfig
+}
+
+// Function to set the current debug config
+export function setCurrentConfig(config) {
+  currentConfig = config
+  return currentConfig
+}
 
 // Function to run vscode command and catch the error to not cause other issues
 export function runCommand(command: string) {
@@ -29,18 +41,7 @@ export function runCommand(command: string) {
 // Function for checking if config specifies if either the
 // infoset, infoset diff or hex view needs to be opened
 export async function onDebugStartDisplay(viewsToCheck: string[]) {
-  let config = JSON.parse(
-    JSON.stringify(
-      vscode.workspace
-        .getConfiguration(
-          'launch',
-          vscode.workspace.workspaceFolders
-            ? vscode.workspace.workspaceFolders[0].uri
-            : vscode.Uri.parse('')
-        )
-        .get('configurations')
-    )
-  )[0]
+  let config = JSON.parse(JSON.stringify(getCurrentConfg()))
 
   viewsToCheck.forEach(async (viewToCheck) => {
     switch (viewToCheck) {

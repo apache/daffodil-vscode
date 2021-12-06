@@ -19,7 +19,7 @@ import { getDebugger, getDataFileFromFolder } from '../daffodilDebugger'
 import { FileAccessor } from './daffodilRuntime'
 import * as fs from 'fs'
 import * as infoset from '../infoset'
-import { getConfig } from '../utils'
+import { getConfig, setCurrentConfig } from '../utils'
 import * as launchWizard from '../launchWizard/launchWizard'
 
 // Function for setting up the commands for Run and Debug file
@@ -318,6 +318,7 @@ class DaffodilConfigurationProvider
     ) {
       return getDataFileFromFolder(dataFolder).then((dataFile) => {
         config.data = dataFile
+        setCurrentConfig(config)
         return getDebugger(this.context, config).then((result) => {
           return config
         })
@@ -325,6 +326,7 @@ class DaffodilConfigurationProvider
     }
 
     return getDebugger(this.context, config).then((result) => {
+      setCurrentConfig(config)
       return config
     })
   }
