@@ -265,6 +265,11 @@
                 "type": "boolean",
                 "description": "Open hexview on debug start",
                 "default": false
+              },
+              "daffodilDebugClasspath": {
+                "type": "string",
+                "description": "Additional classpaths to be exported to the debugger",
+                "default": ""
               }
             }
           }
@@ -284,7 +289,8 @@
             "debugServer": 4711,
             "openHexView": false,
             "openInfosetView": false,
-            "openInfosetDiffView": false
+            "openInfosetDiffView": false,
+            "daffodilDebugClasspath": ""
           }
         ],
         "configurationSnippets": [
@@ -305,7 +311,8 @@
               "debugServer": 4711,
               "openHexView": false,
               "openInfosetView": false,
-              "openInfosetDiffView": false
+              "openInfosetDiffView": false,
+              "daffodilDebugClasspath": ""
             }
           }
         ],
@@ -382,6 +389,11 @@
             "type": "boolean",
             "description": "Open hexview on debug start",
             "default": false
+          },
+          "daffodilDebugClasspath": {
+            "type": "string",
+            "description": "Additional classpaths to be exported to the debugger",
+            "default": ""
           }
         }
       }

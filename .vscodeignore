@@ -23,3 +23,5 @@
 !README.md
 !server/core/target/universal/daffodil-debugger-*.zip
 !snippets/*
+!src/launchWizard/launchWizard.js
+!src/launchWizard/styles.css

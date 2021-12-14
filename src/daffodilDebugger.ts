@@ -24,6 +24,7 @@ import { deactivate } from './adapter/extension'
 import { LIB_VERSION } from './version'
 import XDGAppPaths from 'xdg-app-paths'
 import * as path from 'path'
+import { regexp } from './utils'
 
 const xdgAppPaths = XDGAppPaths({ name: 'daffodil-dap' })
 
@@ -113,7 +114,7 @@ export async function getDebugger(
         // If debugging the extension without vsix installed make sure debugger is created
         if (!filePath.includes('.vscode/extension')) {
           if (!fs.existsSync(filePath)) {
-            let baseFolder = context.asAbsolutePath('./')
+            let baseFolder = context.asAbsolutePath('.')
             child_process.execSync(
               `cd ${baseFolder} && sbt universal:packageBin`
             )
@@ -147,9 +148,9 @@ export async function getDebugger(
           "kill -9 $(ps -ef | grep 'daffodil' | grep 'jar' | awk '{ print $2 }') || return 0"
         ) // ensure debugger server not running and
         child_process.execSync(
-          `chmod +x ${rootPath.replace(' ', '\\ ')}/${artifact.name}/bin/${
-            artifact.scriptName
-          }`
+          `chmod +x ${rootPath.replace(regexp['space'], '\\ ')}/${
+            artifact.name
+          }/bin/${artifact.scriptName}`
         ) // make sure debugger is executable
       }
 
@@ -180,12 +181,29 @@ export async function getDebugger(
         return stopDebugging()
       }
 
+      let workspaceFolder = vscode.workspace.workspaceFolders
+        ? vscode.workspace.workspaceFolders[0].uri.fsPath
+        : vscode.Uri.parse('').fsPath
+
+      // Get daffodilDebugger class paths to be added to the debugger
+      let daffodilDebugClasspath = config.daffodilDebugClasspath.includes(
+        '${workspaceFolder}'
+      )
+        ? config.daffodilDebugClasspath.replace(
+            regexp['workspace'],
+            workspaceFolder
+          )
+        : config.daffodilDebugClasspath
+
       // Start debugger in terminal based on scriptName
       let terminal = vscode.window.createTerminal({
         name: artifact.scriptName,
         cwd: `${rootPath}/daffodil-debugger-${daffodilVersion}-${LIB_VERSION}/bin/`,
         hideFromUser: false,
         shellPath: artifact.scriptName,
+        env: {
+          DAFFODIL_DEBUG_CLASSPATH: daffodilDebugClasspath,
+        },
       })
       terminal.show()
 

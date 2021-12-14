@@ -20,6 +20,13 @@ import * as vscode from 'vscode'
 const defaultConf = vscode.workspace.getConfiguration()
 let currentConfig: vscode.ProviderResult<vscode.DebugConfiguration>
 
+export const regexp = {
+  comma: new RegExp(',', 'g'),
+  slash: new RegExp('/', 'g'),
+  space: new RegExp(' ', 'g'),
+  workspace: new RegExp('${workspaceFolder}', 'g'),
+}
+
 // Function to retrieve to the current debug config
 export function getCurrentConfg() {
   return currentConfig
@@ -78,7 +85,8 @@ export function getConfig(
   trace = false,
   openHexView = false,
   openInfosetView = false,
-  openInfosetDiffView = false
+  openInfosetDiffView = false,
+  daffodilDebugClasspath: string = ''
 ) {
   return {
     name: name,
@@ -116,5 +124,8 @@ export function getConfig(
     openInfosetDiffView: openInfosetDiffView
       ? openInfosetDiffView
       : defaultConf.get('openInfosetDiffView', false),
+    daffodilDebugClasspath: daffodilDebugClasspath
+      ? daffodilDebugClasspath
+      : defaultConf.get('daffodilDebugClasspath', ''),
   }
 }
