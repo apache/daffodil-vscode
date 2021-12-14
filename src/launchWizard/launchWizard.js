@@ -18,6 +18,20 @@
 // Retrieve vscode api - Doing this multiple times causes issues with the scripts
 const vscode = acquireVsCodeApi();
 
+// Function to update which checkbox is checked for the classpath, replace/action
+function daffodilDebugClassAction(action) {
+    switch(action) {
+        case 'replace':
+            document.getElementById("daffodilDebugClasspathReplace").checked = true
+            document.getElementById("daffodilDebugClasspathAppend").checked = false
+            break
+        case 'append':
+            document.getElementById("daffodilDebugClasspathReplace").checked = false
+            document.getElementById("daffodilDebugClasspathAppend").checked = true
+            break
+    }
+}
+
 // Function to call extension to open file picker
 function filePicker(id, description) {
     vscode.postMessage({
@@ -67,6 +81,7 @@ function save() {
     var configSelectedValue = configSelectionBox.options[configSelectionBox.selectedIndex].value
     var updateOrCreate = configSelectedValue === 'New Config' ? 'create' : 'update'
     const name = configSelectedValue === 'New Config' ? document.getElementById('name').value : configSelectedValue
+    const daffodilDebugClasspath = document.getElementById('daffodilDebugClasspath').value
     const data = document.getElementById('data').value
     const debugServer = parseInt(document.getElementById('debugServer').value)
     const infosetOutputFilePath = document.getElementById('infosetOutputFilePath').value
@@ -98,7 +113,8 @@ function save() {
                 useExistingServer: useExistingServer,
                 openHexView: openHexView,
                 openInfosetView: openInfosetView,
-                openInfosetDiffView: openInfosetDiffView
+                openInfosetDiffView: openInfosetDiffView,
+                daffodilDebugClasspath: daffodilDebugClasspath
             }
         ]
     }
@@ -112,6 +128,7 @@ function save() {
 function updateConfigValues(config) {
     document.getElementById('name').value = config.name
     document.getElementById('data').value = config.data
+    document.getElementById('daffodilDebugClasspath').value = config.daffodilDebugClasspath
     document.getElementById('debugServer').value = parseInt(config.debugServer)
     document.getElementById('infosetOutputFilePath').value = config.infosetOutput['path'] ? config.infosetOutput['path'] : config.infosetOutputFilePath
     document.getElementById('infosetOutputType').value = config.infosetOutput['type'] ? config.infosetOutput['type'] : config.infosetOutputType
@@ -123,6 +140,32 @@ function updateConfigValues(config) {
     document.getElementById('trace').checked = config.trace
     document.getElementById('useExistingServer').checked = config.useExistingServer
     updateInfosetOutputType()
+}
+
+// Function for updating the classpath input box
+function updateClasspath(message) {
+    let action = ''
+
+    if (document.getElementById('daffodilDebugClasspathAppend').checked && !document.getElementById('daffodilDebugClasspathReplace').checked) {
+        action = 'append'
+    } else {
+        action = 'replace'
+    }
+    
+    if (action === 'append') {
+        let newValue = ''
+        var filesToAdd = message.value.split(":")
+
+        for(var i = 0; i < filesToAdd.length; i++) {
+            if (!document.getElementById('daffodilDebugClasspath').value.includes(filesToAdd[i])) {
+                newValue += filesToAdd[i] + ':'
+            }
+        }
+
+        document.getElementById('daffodilDebugClasspath').value = newValue + document.getElementById('daffodilDebugClasspath').value
+    } else {
+        document.getElementById('daffodilDebugClasspath').value = message.value
+    }
 }
 
 // Function that gets called by default to create and update the hex web view
@@ -140,6 +183,9 @@ function updateConfigValues(config) {
                 break
             case 'programUpdate':
                 document.getElementById('program').value = message.value
+                break
+            case 'daffodilDebugClasspathUpdate':
+                updateClasspath(message)
                 break
         }
     })
