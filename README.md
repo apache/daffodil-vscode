@@ -17,7 +17,7 @@
 
 ![Daffodil Debug](images/daffodil.jpg)
 
-# VS Code Daffodil Debug
+# Apache Daffodil VS Code Extension
 
 This is a VS Code extension which enables the interactive debugging of DFDL schema parsing using [Apache Daffodil](https://daffodil.apache.org/).
 
@@ -35,7 +35,7 @@ Until the extension is available in the [VS Code Extension Marketplace](https://
 ## Build VSIX and Debugger
 :exclamation:**NOT necessary if using prebuilt VSIX**:exclamation:
 
-:exclamation:**NOT necessary if running extension via VSCode without VSIX but a `yarn install` will be required**:exclamation:
+:exclamation:**NOT necessary if running extension via VS Code without VSIX but a `yarn install` will be required**:exclamation:
 
 Run full build
   ```bash
@@ -58,7 +58,7 @@ Run full build
 The debug server will automatically be ran by the extension unless `useExistingServer` is to set to `true` inside of `.vscode/launch.json`
 
 If you wish to ran the debug server manually the scripts to do so are at the following locations:
-* Debugging through VSCode with or without VSIX:
+* Debugging through VS Code with or without VSIX:
   * Linux = `/home/USERNAME/.local/share/daffodil-dap`
   * Mac = `/Users/USERNAME/Library/Application\ Support/daffodil-dap`
   * Windows = `C:\\Users\\USERNAME\\AppData\\Roaming\\daffodil-dap`
@@ -90,7 +90,7 @@ users@daffodil.apache.org mailing lists.  You can report bugs via
 
 ## License
 
-Apache Daffodil VSCode is licensed under the [Apache License, v2.0].
+Apache Daffodil VS Code Extension is licensed under the [Apache License, v2.0].
 
 [Apache License, v2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [GitHub Issues]: https://github.com/apache/daffodil-vscode/issues
