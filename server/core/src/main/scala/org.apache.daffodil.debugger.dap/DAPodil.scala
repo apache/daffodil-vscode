@@ -733,7 +733,7 @@ object DAPodil extends IOApp {
 
   /** Our own capabilities data type that is a superset of java-debug, which doesn't have `supportsLoadedSourcesRequest`.
     *
-    * TODO: VSCode doesn't seem to notice supportsRestartRequest=true and sends Disconnect (+restart) requests instead
+    * TODO: VS Code doesn't seem to notice supportsRestartRequest=true and sends Disconnect (+restart) requests instead
     */
   case class Caps(
       supportsConfigurationDoneRequest: Boolean = true,
