@@ -445,7 +445,7 @@ object Parse {
       state: StateForDebugger,
       refs: Next[DAPodil.VariablesReference]
   ): IO[DAPodil.Frame.Scope] =
-    state.variableMap.qnames.toList
+    state.variableMapForDebugger.qnames.toList
       .groupBy(_.namespace) // TODO: handle NoNamespace or UnspecifiedNamespace as top-level?
       .toList
       .flatTraverse {
@@ -456,7 +456,7 @@ object Parse {
               List(
                 ref -> vs
                   .sortBy(_.toPrettyString)
-                  .fproduct(state.variableMap.find)
+                  .fproduct(state.variableMapForDebugger.find)
                   .map {
                     case (name, value) =>
                       new Types.Variable(
