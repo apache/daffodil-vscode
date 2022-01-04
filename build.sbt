@@ -16,7 +16,7 @@
  */
 
 
-lazy val daffodilVer = "3.1.0"
+lazy val daffodilVer = "3.2.1"
 
 lazy val commonSettings = {
   Seq(
