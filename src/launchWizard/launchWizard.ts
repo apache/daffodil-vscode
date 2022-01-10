@@ -18,6 +18,7 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import { getConfig } from '../utils'
+import * as os from 'os'
 
 const defaultConf = getConfig('Wizard Config', 'launch', 'dfdl')
 
@@ -52,12 +53,15 @@ async function createUpdateConfigFile(data, updateOrCreate) {
     fs.mkdirSync(`${rootPath}/.vscode`)
   }
 
+  const launchPath =
+    os.platform() === 'win32'
+      ? `/${rootPath}/.vscode/launch.json`
+      : `${rootPath}/.vscode/launch.json`
+
   // Create launch.json if it doesn't exist already
   if (!fs.existsSync(`${rootPath}/.vscode/launch.json`)) {
     fs.writeFileSync(`${rootPath}/.vscode/launch.json`, data)
-    vscode.window.showTextDocument(
-      vscode.Uri.parse(`${rootPath}/.vscode/launch.json`)
-    )
+    vscode.window.showTextDocument(vscode.Uri.parse(launchPath))
     return
   }
 
@@ -112,9 +116,7 @@ async function createUpdateConfigFile(data, updateOrCreate) {
     }
   }
 
-  vscode.window.showTextDocument(
-    vscode.Uri.parse(`${rootPath}/.vscode/launch.json`)
-  )
+  vscode.window.showTextDocument(vscode.Uri.parse(launchPath))
 }
 
 // Function to update the config values in the webview panel
@@ -280,10 +282,13 @@ class LaunchWizard {
   getWebViewContent() {
     const scriptUri = vscode.Uri.parse(
       this.ctx.asAbsolutePath('./src/launchWizard/launchWizard.js')
-    ).with({ scheme: 'vscode-resource' })
+    )
     const styleUri = vscode.Uri.parse(
       this.ctx.asAbsolutePath('./src/launchWizard/styles.css')
-    ).with({ scheme: 'vscode-resource' })
+    )
+    const scriptData = fs.readFileSync(scriptUri.fsPath)
+    const styleData = fs.readFileSync(styleUri.fsPath)
+
     const nonce = this.getNonce()
 
     let rootPath = vscode.workspace.workspaceFolders
@@ -359,8 +364,12 @@ class LaunchWizard {
       <title>Launch Config Wizard</title>
     </head>
     <body>
-      <link rel="stylesheet" type="text/css" href="${styleUri}">
-      <script nonce="${nonce}" src="${scriptUri}"></script>
+      <style>
+        ${styleData}
+      </style>
+      <script nonce="${nonce}">
+        ${scriptData}
+      </script>
       <h2 style="color: white;">Daffodil Debugger Config Settings</h2>
 
       <div id="configSelectionDropDown" class="setting-div">
