@@ -15,9 +15,18 @@
   limitations under the License.
 -->
 
-![Daffodil Debug](images/daffodil.jpg)
+
+<div align="center">
+
+<img src="https://daffodil.apache.org/assets/themes/apache/img/apache-daffodil-logo.svg" height="85" alt="Apache Daffodil"/>
 
 # Apache Daffodil VS Code Extension
+
+[![Unit Tests](https://github.com/apache/daffodil-vscode/workflows/Unit%20Tests/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/tests.yml)
+[![Code Formatting](https://github.com/apache/daffodil-vscode/workflows/Code%20Formatting/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/formatting.yml)
+[![Rat Check](https://github.com/apache/daffodil-vscode/workflows/Rat%20Check/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/rat-check.yml)
+
+</div>
 
 This is a VS Code extension which enables the interactive debugging of DFDL schema parsing using [Apache Daffodil](https://daffodil.apache.org/).
 
