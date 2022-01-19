@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as fs from 'fs'
+
 export const dataEvent = 'daffodil.data'
 export interface DaffodilData {
   bytePos1b: number
@@ -49,4 +51,8 @@ export interface BuildInfo {
   version: string
   daffodilVersion: string
   scalaVersion: string
+}
+
+export function getDaffodilVersion(filePath: fs.PathLike) {
+  return JSON.parse(fs.readFileSync(filePath).toString())['daffodilVersion']
 }
