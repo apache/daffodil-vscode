@@ -25,6 +25,7 @@ import { LIB_VERSION } from './version'
 import XDGAppPaths from 'xdg-app-paths'
 import * as path from 'path'
 import { regexp } from './utils'
+import { getDaffodilVersion } from './daffodil'
 
 const xdgAppPaths = XDGAppPaths({ name: 'daffodil-dap' })
 
@@ -40,9 +41,6 @@ class Artifact {
   scriptName =
     os.platform() === 'win32' ? 'daffodil-debugger.bat' : './daffodil-debugger'
 }
-
-const daffodilVersion = '3.1.0' // TODO: will become a runtime parameter driven by config or artifacts in the releases repo
-const artifact = new Artifact(daffodilVersion)
 
 // Class for getting release data
 export class Release {
@@ -89,6 +87,12 @@ export async function getDebugger(
   context: vscode.ExtensionContext,
   config: vscode.DebugConfiguration
 ) {
+  // Get daffodilVersion
+  const daffodilVersion = getDaffodilVersion(
+    context.asAbsolutePath('./package.json')
+  )
+  const artifact = new Artifact(daffodilVersion)
+
   // If useExistingServer var set to false make sure version of debugger entered is downloaded then ran
   if (!config.useExistingServer) {
     const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))

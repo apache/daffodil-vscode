@@ -17,8 +17,24 @@
 
 import * as assert from 'assert'
 import * as daffodil from '../daffodil'
+import * as fs from 'fs'
+import * as path from 'path'
+import { before, after } from 'mocha'
 
 suite('Daffodfil', () => {
+  const PROJECT_ROOT = path.join(__dirname, '../../')
+  const packageFile = path.join(PROJECT_ROOT, 'package-test.json')
+
+  // Create test package.json before anything else happens
+  before(() => {
+    fs.writeFileSync(packageFile, JSON.stringify({ daffodilVersion: '0.0.0' }))
+  })
+
+  // Delete test package.json after all tests are done
+  after(() => {
+    fs.unlinkSync(packageFile)
+  })
+
   // suite to test all functions work properly
   suite('interfaces', () => {
     test('DaffodilData functions properly', () => {
@@ -117,6 +133,13 @@ suite('Daffodfil', () => {
 
     test('configEvent set properly', () => {
       assert.strictEqual(daffodil.configEvent, 'daffodil.config')
+    })
+  })
+
+  suite('getDaffodilVersion', () => {
+    test('getDaffodilVersion returns same version as file', () => {
+      var daffodilVersion = daffodil.getDaffodilVersion(packageFile)
+      assert.strictEqual(daffodilVersion, '0.0.0')
     })
   })
 })

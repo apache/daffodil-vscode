@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-lazy val daffodilVer = "3.2.1"
+import play.api.libs.json._
+
+lazy val packageData = Json.parse(scala.io.Source.fromFile("./package.json").mkString).as[JsObject]
+lazy val daffodilVer = packageData("daffodilVersion").as[String]
 
 lazy val commonSettings = {
   Seq(

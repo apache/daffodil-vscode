@@ -264,14 +264,16 @@ run() {
   fi
 
   if [[ "$DAFFODIL_DEBUG_CLASSPATH" != "" ]]; then
-    app_classpath="$app_classpath:$DAFFODIL_DEBUG_CLASSPATH"
+    new_classpath="$app_classpath:$DAFFODIL_DEBUG_CLASSPATH"
+  else
+    new_classpath="$app_classpath"
   fi
 
   # run sbt
   execRunner "$java_cmd" \
     ${java_opts[@]} \
     "${java_args[@]}" \
-    -cp "$(fix_classpath "$app_classpath")" \
+    -cp "$(fix_classpath "$new_classpath")" \
     "${mainclass[@]}" \
     "${app_commands[@]}" \
     "${residual_args[@]}"
@@ -365,8 +367,7 @@ declare -r app_home="$(realpath "$(dirname "$real_script_path")")"
 declare -r lib_dir="$(realpath "${app_home}/../lib")"
 declare -a app_mainclass=(org.apache.daffodil.debugger.dap.DAPodil)
 
-declare -r script_conf_file="${app_home}/../conf/application.ini"
-declare -a app_classpath="$lib_dir/org.apache.daffodil.daffodil-debugger-1.0.0-SNAPSHOT.jar:$lib_dir/org.scala-lang.scala-library-2.12.13.jar:$lib_dir/org.apache.daffodil.daffodil-sapi_2.12-3.1.0.jar:$lib_dir/org.apache.daffodil.daffodil-runtime1_2.12-3.1.0.jar:$lib_dir/ch.qos.logback.logback-classic-1.2.3.jar:$lib_dir/com.microsoft.java.com.microsoft.java.debug.core-0.31.1.jar:$lib_dir/co.fs2.fs2-io_2.12-3.0.4.jar:$lib_dir/com.monovore.decline-effect_2.12-2.1.0.jar:$lib_dir/org.typelevel.log4cats-slf4j_2.12-2.1.0.jar:$lib_dir/org.apache.daffodil.daffodil-core_2.12-3.1.0.jar:$lib_dir/com.lihaoyi.os-lib_2.12-0.7.6.jar:$lib_dir/org.scala-lang.modules.scala-xml_2.12-1.3.0.jar:$lib_dir/org.scala-lang.modules.scala-parser-combinators_2.12-1.1.2.jar:$lib_dir/com.ibm.icu.icu4j-69.1.jar:$lib_dir/xerces.xercesImpl-2.12.1.jar:$lib_dir/xml-resolver.xml-resolver-1.2.jar:$lib_dir/commons-io.commons-io-2.8.0.jar:$lib_dir/com.typesafe.config-1.4.1.jar:$lib_dir/org.jdom.jdom2-2.0.6.jar:$lib_dir/com.fasterxml.woodstox.woodstox-core-6.2.6.jar:$lib_dir/com.fasterxml.jackson.core.jackson-core-2.12.3.jar:$lib_dir/org.apache.daffodil.daffodil-io_2.12-3.1.0.jar:$lib_dir/org.apache.daffodil.daffodil-udf_2.12-3.1.0.jar:$lib_dir/ch.qos.logback.logback-core-1.2.3.jar:$lib_dir/org.slf4j.slf4j-api-1.7.30.jar:$lib_dir/org.apache.commons.commons-lang3-3.6.jar:$lib_dir/com.google.code.gson.gson-2.7.jar:$lib_dir/io.reactivex.rxjava2.rxjava-2.1.1.jar:$lib_dir/org.reactivestreams.reactive-streams-1.0.0.jar:$lib_dir/co.fs2.fs2-core_2.12-3.0.4.jar:$lib_dir/com.comcast.ip4s-core_2.12-3.0.3.jar:$lib_dir/com.monovore.decline_2.12-2.1.0.jar:$lib_dir/org.typelevel.cats-effect_2.12-3.1.1.jar:$lib_dir/org.typelevel.log4cats-core_2.12-2.1.0.jar:$lib_dir/org.apache.daffodil.daffodil-runtime1-unparser_2.12-3.1.0.jar:$lib_dir/com.lihaoyi.geny_2.12-0.6.9.jar:$lib_dir/xml-apis.xml-apis-1.4.01.jar:$lib_dir/org.codehaus.woodstox.stax2-api-4.2.1.jar:$lib_dir/org.apache.daffodil.daffodil-lib_2.12-3.1.0.jar:$lib_dir/org.typelevel.cats-core_2.12-2.6.1.jar:$lib_dir/org.scodec.scodec-bits_2.12-1.1.27.jar:$lib_dir/org.typelevel.literally_2.12-1.0.2.jar:$lib_dir/org.typelevel.cats-effect-kernel_2.12-3.1.1.jar:$lib_dir/org.typelevel.cats-effect-std_2.12-3.1.1.jar:$lib_dir/org.typelevel.cats-kernel_2.12-2.6.1.jar:$lib_dir/org.typelevel.simulacrum-scalafix-annotations_2.12-0.5.4.jar"
+${{template_declares}}
 
 # java_cmd is overrode in process_args when -java-home is used
 declare java_cmd=$(get_java_cmd)
