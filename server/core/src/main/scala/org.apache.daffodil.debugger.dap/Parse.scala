@@ -32,6 +32,7 @@ import fs2.io.file.Files
 import java.io._
 import java.net.URI
 import java.nio.file._
+import org.apache.commons.io.FileUtils
 import org.apache.daffodil.debugger.dap.{BuildInfo => DAPBuildInfo}
 import org.apache.daffodil.debugger.Debugger
 import org.apache.daffodil.exceptions.SchemaFileLocation
@@ -159,7 +160,7 @@ object Parse {
         infosetOutput: LaunchArgs.InfosetOutput
     ) extends Arguments {
       def data: IO[InputStream] =
-        IO.blocking(new FileInputStream(dataPath.toFile).readAllBytes())
+        IO.blocking(FileUtils.readFileToByteArray(dataPath.toFile))
           .map(new ByteArrayInputStream(_))
     }
 
@@ -228,8 +229,8 @@ object Parse {
     }
   }
 
-  val infosetSource = DAPodil.Source(Path.of("infoset"), Some(DAPodil.Source.Ref(1)))
-  val dataDumpSource = DAPodil.Source(Path.of("data"), Some(DAPodil.Source.Ref(2)))
+  val infosetSource = DAPodil.Source(Paths.get("infoset"), Some(DAPodil.Source.Ref(1)))
+  val dataDumpSource = DAPodil.Source(Paths.get("data"), Some(DAPodil.Source.Ref(2)))
 
   def debugee(request: Request): EitherNel[String, Resource[IO, DAPodil.Debugee]] =
     Debugee.LaunchArgs.parse(request.arguments).map(debugee)
