@@ -34,6 +34,7 @@ import fs2.concurrent.Signal
 import java.io._
 import java.net._
 import java.nio.file.Path
+import java.nio.file.Paths
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
@@ -249,7 +250,7 @@ class DAPodil(
       case DAPodil.State.Launched(debugee) =>
         for {
           _ <- debugee.setBreakpoints(
-            Path.of(args.source.path).toUri(),
+            Paths.get(args.source.path).toUri(),
             args.breakpoints.toList.map(bp => DAPodil.Line(bp.line))
           )
           breakpoints = args.breakpoints.toList.zipWithIndex.map {
