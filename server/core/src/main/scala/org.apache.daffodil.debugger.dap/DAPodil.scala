@@ -249,7 +249,7 @@ class DAPodil(
       case DAPodil.State.Launched(debugee) =>
         for {
           _ <- debugee.setBreakpoints(
-            Path.of(args.source.path),
+            Path.of(args.source.path).toUri(),
             args.breakpoints.toList.map(bp => DAPodil.Line(bp.line))
           )
           breakpoints = args.breakpoints.toList.zipWithIndex.map {
@@ -512,7 +512,7 @@ object DAPodil extends IOApp {
     def step(): IO[Unit]
     def continue(): IO[Unit]
     def pause(): IO[Unit]
-    def setBreakpoints(path: Path, lines: List[DAPodil.Line]): IO[Unit]
+    def setBreakpoints(uri: URI, lines: List[DAPodil.Line]): IO[Unit]
     def eval(args: EvaluateArguments): IO[Option[Types.Variable]]
   }
 
@@ -687,19 +687,20 @@ object DAPodil extends IOApp {
   }
 
   case class Line(value: Int) extends AnyVal
-  case class Location(path: Path, line: Line)
+  case class Location(uri: URI, line: Line)
 
   object Location {
     implicit val show: Show[Location] = Show.fromToString
   }
 
-  case class Breakpoints(value: Map[Path, List[Line]]) {
-    def set(path: Path, lines: List[Line]): Breakpoints =
-      copy(value = value + (path -> lines))
+  case class Breakpoints(value: Map[URI, List[Line]]) {
+    def set(uri: URI, lines: List[Line]): Breakpoints =
+      copy(value = value + (uri.normalize -> lines))
 
     def contains(location: Location): Boolean =
       value.exists {
-        case (path, lines) => path == location.path && lines.exists(_ == location.line)
+        case (uri, lines) =>
+          uri == location.uri && lines.exists(_ == location.line)
       }
   }
 

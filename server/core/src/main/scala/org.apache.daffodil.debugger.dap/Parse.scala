@@ -30,6 +30,7 @@ import fs2._
 import fs2.concurrent._
 import fs2.io.file.Files
 import java.io._
+import java.net.URI
 import java.nio.file._
 import org.apache.daffodil.debugger.dap.{BuildInfo => DAPBuildInfo}
 import org.apache.daffodil.debugger.Debugger
@@ -132,8 +133,8 @@ object Parse {
         Some(DAPodil.Debugee.State.Stopped(DAPodil.Debugee.State.Stopped.Reason.Pause))
       )
 
-    def setBreakpoints(path: Path, lines: List[DAPodil.Line]): IO[Unit] =
-      breakpoints.setBreakpoints(path, lines)
+    def setBreakpoints(uri: URI, lines: List[DAPodil.Line]): IO[Unit] =
+      breakpoints.setBreakpoints(uri, lines)
 
     def eval(args: EvaluateArguments): IO[Option[Types.Variable]] =
       args.expression match {
@@ -253,7 +254,7 @@ object Parse {
 
       events <- Resource.eval(Queue.bounded[IO, Option[Event]](10))
       debugger <- DaffodilDebugger
-        .resource(args.schemaPath, state, events, breakpoints, control, infoset)
+        .resource(state, events, breakpoints, control, infoset)
       parse <- Resource.eval(args.data.flatMap(in => Parse(args.schemaPath, in, debugger)))
 
       parsing = args.infosetOutput match {
@@ -532,7 +533,6 @@ object Parse {
           ),
           pstate.mpstate.delimiters.toList.zipWithIndex.map {
             case (delimiter, i) =>
-              println(s"$i: $delimiter")
               Delimiter(if (i < pstate.mpstate.delimitersLocalIndexStack.top) "remote" else "local", delimiter)
           }
         )
@@ -555,7 +555,7 @@ object Parse {
   case class Delimiter(kind: String, value: DFADelimiter)
 
   trait Breakpoints {
-    def setBreakpoints(path: Path, lines: List[DAPodil.Line]): IO[Unit]
+    def setBreakpoints(uri: URI, lines: List[DAPodil.Line]): IO[Unit]
     def shouldBreak(location: DAPodil.Location): IO[Boolean]
   }
 
@@ -564,8 +564,8 @@ object Parse {
       for {
         breakpoints <- Ref[IO].of(DAPodil.Breakpoints.empty)
       } yield new Breakpoints {
-        def setBreakpoints(path: Path, lines: List[DAPodil.Line]): IO[Unit] =
-          breakpoints.update(bp => bp.set(path, lines))
+        def setBreakpoints(uri: URI, lines: List[DAPodil.Line]): IO[Unit] =
+          breakpoints.update(bp => bp.set(uri, lines))
 
         def shouldBreak(location: DAPodil.Location): IO[Boolean] =
           for {
@@ -709,7 +709,6 @@ object Parse {
     * we use a `Dispatcher` to execute the effects at this "outermost" layer (with respect to the effects).
     */
   class DaffodilDebugger(
-      schemaPath: Path,
       dispatcher: Dispatcher[IO],
       state: QueueSink[IO, Option[DAPodil.Debugee.State]],
       breakpoints: Breakpoints,
@@ -785,7 +784,7 @@ object Parse {
 
     def createLocation(loc: SchemaFileLocation): DAPodil.Location =
       DAPodil.Location(
-        schemaPath,
+        URI.create(loc.uriString).normalize,
         DAPodil.Line(loc.lineNumber.map(_.toInt).getOrElse(0))
       )
 
@@ -797,7 +796,6 @@ object Parse {
 
   object DaffodilDebugger {
     def resource(
-        schemaPath: Path,
         state: QueueSink[IO, Option[DAPodil.Debugee.State]],
         events: QueueSink[IO, Option[Event]],
         breakpoints: Breakpoints,
@@ -807,7 +805,6 @@ object Parse {
       for {
         dispatcher <- Dispatcher[IO]
       } yield new DaffodilDebugger(
-        schemaPath,
         dispatcher,
         state,
         breakpoints,
