@@ -1,6 +1,6 @@
 {
-  "name": "daffodil-debugger",
-  "displayName": "Apache Daffodil Schema Debugger",
+  "name": "apache-daffodil-vscode",
+  "displayName": "Apache Daffodil VS Code Extension",
   "description": "VS Code extension for Apache Daffodil DFDL schema debugging",
   "version": "1.0.0-SNAPSHOT",
   "daffodilVersion": "3.2.1",
@@ -10,7 +10,7 @@
   "engines": {
     "vscode": "^1.55.0"
   },
-  "icon": "images/daffodil.jpg",
+  "icon": "images/daffodil.ico",
   "categories": [
     "Debuggers",
     "Snippets"

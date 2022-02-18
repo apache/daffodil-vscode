@@ -26,8 +26,8 @@ object Rat {
     file("snippets/dfdl.json"),
     file("package.json"),
     file(".prettierrc"),
-    // ignore images - daffiodil.jpg
-    file("images/daffodil.jpg"),
+    // ignore images - daffiodil.ico
+    file("images/daffodil.ico"),
     // yarn and rpm generated files
     file("yarn.lock"),
     file("package-lock.json")
