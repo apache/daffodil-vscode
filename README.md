@@ -18,7 +18,7 @@
 
 <div align="center">
 
-<img src="https://daffodil.apache.org/assets/themes/apache/img/apache-daffodil-logo.svg" height="85" alt="Apache Daffodil"/>
+<img src="https://daffodil.apache.org/assets/themes/apache/img/apache-daffodil-logo.png" height="85" alt="Apache Daffodil"/>
 
 # Apache Daffodil VS Code Extension
 
