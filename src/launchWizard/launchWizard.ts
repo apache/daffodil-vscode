@@ -284,7 +284,7 @@ class LaunchWizard {
       this.ctx.asAbsolutePath('./src/launchWizard/launchWizard.js')
     )
     const styleUri = vscode.Uri.parse(
-      this.ctx.asAbsolutePath('./src/launchWizard/styles.css')
+      this.ctx.asAbsolutePath('./src/styles/styles.css')
     )
     const scriptData = fs.readFileSync(scriptUri.fsPath)
     const styleData = fs.readFileSync(styleUri.fsPath)
@@ -365,6 +365,21 @@ class LaunchWizard {
     </head>
     <body>
       <style>
+        .container {
+          display: block;
+          position: relative;
+          margin: 0px;
+          margin-top: -10px;
+          padding-left: 35px;
+          margin-bottom: 25px;
+          cursor: pointer;
+          font-size: 14px;
+          font-style: italic;
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
+        }      
         ${styleData}
       </style>
       <script nonce="${nonce}">

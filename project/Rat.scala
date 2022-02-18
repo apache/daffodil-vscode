@@ -22,8 +22,13 @@ object Rat {
   lazy val excludes = Seq(
     // git files
     file(".git"),
-    // json files -- these ones do not support comments
-    file("snippets/dfdl.json"),
+    /**
+      * Can't add license headers in JSON files.
+      * Adding a license attribute breaks things in some of these fiels as well.
+      */
+    file("language/dfdl.json"),
+    file("language/syntax.json"),
+    file("language/syntaxes/dfdl.tmLanguage.json"),
     file("package.json"),
     file(".prettierrc"),
     // ignore images - daffiodil.ico
@@ -47,5 +52,4 @@ Licensed under the MIT License. See License.txt in the project root for license 
     """
 This file is made available under the Creative Commons CC0 1.0 Universal
 """
-
 }
