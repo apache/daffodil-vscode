@@ -8,6 +8,7 @@
 import * as Net from 'net'
 import * as vscode from 'vscode'
 import * as htmlView from '../hexView'
+import * as position from '../position'
 import { randomBytes } from 'crypto'
 import { tmpdir } from 'os'
 import { join } from 'path'
@@ -26,6 +27,9 @@ import {
 const runMode: 'external' | 'server' | 'namedPipeServer' | 'inline' = 'inline'
 
 export async function activate(context: vscode.ExtensionContext) {
+  // activate position
+  position.activate(context)
+
   // debug adapters can be run in different ways by using a vscode.DebugAdapterDescriptorFactory:
   switch (runMode) {
     case 'server':
@@ -44,21 +48,22 @@ export async function activate(context: vscode.ExtensionContext) {
       )
       break
 
+    case 'inline':
+      // run the debug adapter inside the extension and directly talk to it
+      activateDaffodilDebug(context)
+      break
+
     case 'external':
     default:
       // run the debug adapter as a separate process
       activateDaffodilDebug(context, new DebugAdapterExecutableFactory(context))
       break
-
-    case 'inline':
-      // run the debug adapter inside the extension and directly talk to it
-      activateDaffodilDebug(context)
-      break
   }
 }
 
 export function deactivate() {
-  // nothing to do
+  // deactivate position
+  position.deactivate()
 }
 
 class DebugAdapterExecutableFactory

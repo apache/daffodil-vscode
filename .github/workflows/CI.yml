@@ -88,7 +88,7 @@ jobs:
 
       - name: Run Rat Check
         run: $SBT ratCheck || (cat target/rat.txt; exit 1)
-      
+
   build-test-package:
     name: Build, Test, and Package
     strategy:
@@ -107,6 +107,9 @@ jobs:
         uses: actions/setup-node@v1.4.6
         with:
           node-version: ${{ matrix.node}}
+      - run: $SBT compile # used to initialize sbt, if not done sbt universal:packageBin ran by yarn build times out -- windows only
+        if: runner.os == 'Windows'
+      - run: yarn install
       - run: yarn build
       - run: yarn test
       - run: $SBT test

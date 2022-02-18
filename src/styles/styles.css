@@ -15,22 +15,6 @@
  * limitations under the License.
  */
 
-.container {
-  display: block;
-  position: relative;
-  margin: 0px;
-  margin-top: -10px;
-  padding-left: 35px;
-  margin-bottom: 25px;
-  cursor: pointer;
-  font-size: 14px;
-  font-style: italic;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
 .file-input {
   color: white;
   cursor: pointer;
@@ -142,4 +126,151 @@
   margin-top: -10px;
   font-style: italic;
   margin-left: 10px;
+}
+
+/**
+  * omega_edit
+*/
+
+.offset-div {
+  font-size: 16px;
+  width: 75px;
+  height: 402px;
+  text-align: center;
+  cursor: default;
+  float: left;
+}
+.offset-area {
+  overflow: scroll;
+  border: 1px solid;
+  margin: 0px;
+  padding: 5px;
+  width: 75px;
+  height: 402px;
+  font-family: monospace;
+  font-size: 12px;
+}
+.offset-text {
+  margin-top: 10px;
+  /* margin: 0px; */
+  margin-bottom: 10px;
+}
+
+.encoding-div {
+  font-size: 16px;
+  width: 300px;
+  height: 402px;
+  cursor: default;
+  float: left;
+  padding-left: 15px;
+}
+.encoding-area {
+  /* color: white; */
+  border: 1px solid;
+  margin: 0px;
+  overflow: scroll;
+  padding: 5px;
+  width: 300px;
+  height: 402px;
+  font-family: monospace;
+  font-size: 12px;
+  /* cursor: pointer; */
+}
+.encoding-text {
+  margin-top: 10px;
+  /* text-align: center; */
+  margin-bottom: 10px;
+}
+
+.decoded-div {
+  font-size: 16px;
+  width: 175px;
+  height: 402px;
+  cursor: default;
+  float: left;
+  padding-left: 15px;
+}
+.decoded-area {
+  border: 1px solid;
+  margin: 0px;
+  overflow: scroll;
+  padding: 5px;
+  width: 300px;
+  height: 402px;
+  font-family: monospace;
+  font-size: 12px;
+  background-color: inherit;
+  color: currentColor;
+}
+.decoded-text {
+  margin-top: 10px;
+  /* text-align: center; */
+  margin-bottom: 10px;
+}
+
+.inspector-div {
+  font-size: 16px;
+  width: 110px;
+  height: 402px;
+  cursor: default;
+  float: left;
+  padding-left: 140px;
+}
+.inspector-text {
+  margin-top: 10px;
+  /* text-align: center; */
+  margin-bottom: 10px;
+}
+.format-area {
+  /* color: white; */
+  border: 1px solid;
+  margin: 0px;
+  overflow: scroll;
+  padding: 5px;
+  width: 100px;
+  height: 243px;
+  font-family: monospace;
+  font-size: 12px;
+  padding-top: -10px;
+  /* cursor: pointer; */
+}
+.stats-area {
+  /* color: white; */
+  border: 1px solid;
+  margin: 0px;
+  overflow: scroll;
+  padding: 5px;
+  width: 100px;
+  height: 100px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.viewport-div {
+  font-size: 16px;
+  /* width: 500px; */
+  height: 402px;
+  cursor: default;
+  /* padding-left: 5px; */
+  float: left;
+  padding-top: 40px;
+}
+.viewport-text {
+  margin-top: 15px;
+  /* text-align: center; */
+  margin-bottom: 10px;
+}
+.viewport-area {
+  /* color: white; */
+  border: 1px solid;
+  margin: 0px;
+  overflow: scroll;
+  padding: 5px;
+  width: 275px;
+  height: 100px;
+  font-family: monospace;
+  font-size: 12px;
+  /* padding-top: -10px; */
+  margin-top: 0px;
+  /* cursor: pointer; */
 }

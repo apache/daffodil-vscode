@@ -265,7 +265,7 @@ export class DebuggerHexView {
 
     // Create file that holds path to data file used
     if (!fs.existsSync(this.hexFile)) {
-      await fs.writeFile(this.hexFile, this.hexString, function (err) {
+      fs.writeFile(this.hexFile, this.hexString, function (err) {
         if (err) {
           vscode.window.showInformationMessage(
             `error code: ${err.code} - ${err.message}`
