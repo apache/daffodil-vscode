@@ -45,3 +45,5 @@ src/version.ts
 #        either /tmp or XDG or ...
 datafile-hex
 npm-debug.log
+
+src/omegaEdit/client

@@ -21,6 +21,7 @@ import * as fs from 'fs'
 import * as infoset from '../infoset'
 import { getConfig, setCurrentConfig } from '../utils'
 import * as launchWizard from '../launchWizard/launchWizard'
+import * as omegaClient from '../omegaEdit/demoClient'
 
 // Function for setting up the commands for Run and Debug file
 function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
@@ -264,6 +265,7 @@ export function activateDaffodilDebug(
 
   infoset.activate(context)
   launchWizard.activate(context)
+  omegaClient.activate(context)
 }
 
 class DaffodilConfigurationProvider
