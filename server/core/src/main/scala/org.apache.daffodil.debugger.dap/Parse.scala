@@ -791,7 +791,8 @@ object Parse {
 
     override def endElement(pstate: PState, processor: Parser): Unit =
       dispatcher.unsafeRunSync {
-        events.offer(Some(Event.EndElement(pstate.copyStateForDebugger)))
+        control.await *> // ensure no events while debugger is paused
+          events.offer(Some(Event.EndElement(pstate.copyStateForDebugger)))
       }
   }
 
