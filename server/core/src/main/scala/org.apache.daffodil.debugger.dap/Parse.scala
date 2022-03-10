@@ -45,6 +45,7 @@ import org.apache.daffodil.sapi.io.InputSourceDataInputStream
 import org.apache.daffodil.util.Misc
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import scala.util.Try
 
 trait Parse {
 
@@ -284,7 +285,7 @@ object Parse {
             dapEvents.offer(Some(DataEvent(start.state.currentLocation.bytePos1b)))
           case _ => IO.unit
         }
-        .through(fromParse(args.schemaPath, nextFrameId, nextRef))
+        .through(fromParse(nextFrameId, nextRef))
         .enqueueNoneTerminated(data)
 
       debugee = new Debugee(
@@ -328,7 +329,6 @@ object Parse {
 
   /** Translate parse events to updated Daffodil state. */
   def fromParse(
-      schemaPath: Path,
       frameIds: Next[DAPodil.Frame.Id],
       variableRefs: Next[DAPodil.VariablesReference]
   ): Stream[IO, Parse.Event] => Stream[IO, DAPodil.Data] =
@@ -336,7 +336,7 @@ object Parse {
       events.evalScan(DAPodil.Data.empty) {
         case (_, Parse.Event.Init(_)) => IO.pure(DAPodil.Data.empty)
         case (prev, startElement: Parse.Event.StartElement) =>
-          createFrame(schemaPath, startElement, frameIds, variableRefs).map(prev.push)
+          createFrame(startElement, frameIds, variableRefs).map(prev.push)
         case (prev, Parse.Event.EndElement(_)) => IO.pure(prev.pop)
         case (prev, _: Parse.Event.Fini.type)  => IO.pure(prev)
       }
@@ -346,7 +346,6 @@ object Parse {
     * @see https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
     */
   def createFrame(
-      schemaPath: Path,
       startElement: Parse.Event.StartElement,
       frameIds: Next[DAPodil.Frame.Id],
       variableRefs: Next[DAPodil.VariablesReference]
@@ -364,7 +363,12 @@ object Parse {
         startElement.name.map(_.value).getOrElse("???"),
         /* If sourceReference > 0 the contents of the source must be retrieved through
          * the SourceRequest (even if a path is specified). */
-        new Types.Source(schemaPath.toString, 0),
+        Try(Paths.get(URI.create(startElement.schemaLocation.uriString)).toString())
+          .fold(
+            _ =>
+              new Types.Source(startElement.schemaLocation.uriString, null, 0), // there is no valid path if the location is a schema contained in a jar file; see #76.
+            path => new Types.Source(path, 0)
+          ),
         startElement.schemaLocation.lineNumber
           .map(_.toInt)
           .getOrElse(1), // line numbers start at 1 according to InitializeRequest
