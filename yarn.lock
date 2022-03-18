@@ -2544,10 +2544,10 @@ object.pick@^1.3.0:
   dependencies:
     isobject "^3.0.1"
 
-omega-edit@0.8.1:
-  version "0.8.1"
-  resolved "https://registry.yarnpkg.com/omega-edit/-/omega-edit-0.8.1.tgz#7bcf2be381f8bf58b672d21bfb0e9e6c75c2c215"
-  integrity sha512-sOLRLqRNPHOXeJvTjgjKbl1kRbqQIa/xyCuQalQxUqMpdXYAWx2zqXOMWnMsyWbpGJ2y616mhkcCqSq/z8fqug==
+omega-edit@0.8.3:
+  version "0.8.3"
+  resolved "https://registry.yarnpkg.com/omega-edit/-/omega-edit-0.8.3.tgz#8979450da610f8b949f8c4f9b26f3f69dbe5470f"
+  integrity sha512-QRBezMczIzA4pvBwdasmao36ovj0k1j9T7B548lacMQMBYZv7l1Rlv9MLOc1yjkIM+AxAEzS0IBujzFA3ufhcQ==
 
 once@^1.3.0, once@^1.3.1, once@^1.4.0:
   version "1.4.0"

@@ -284,7 +284,7 @@ class LaunchWizard {
       this.ctx.asAbsolutePath('./src/launchWizard/launchWizard.js')
     )
     const styleUri = vscode.Uri.parse(
-      this.ctx.asAbsolutePath('./src/launchWizard/styles.css')
+      this.ctx.asAbsolutePath('./src/styles/styles.css')
     )
     const scriptData = fs.readFileSync(scriptUri.fsPath)
     const styleData = fs.readFileSync(styleUri.fsPath)

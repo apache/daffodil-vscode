@@ -30,12 +30,12 @@ class Backend {
 }
 
 class Artifact {
-  constructor(readonly omegaVersion: string) {}
+  constructor(readonly omegaEditVersion: string) {}
 
-  name = `omega-edit-scala-server-${this.omegaVersion}`
+  name = `omega-edit-scala-server-${this.omegaEditVersion}`
   archive = `${this.name}.zip`
   archiveUrl = (backend: Backend) =>
-    `https://github.com/${backend.owner}/${backend.repo}/releases/download/v${this.omegaVersion}/${this.archive}`
+    `https://github.com/${backend.owner}/${backend.repo}/releases/download/v${this.omegaEditVersion}/${this.archive}`
 
   scriptName = os.platform().toLowerCase().startsWith('win32')
     ? 'example-grpc-server.bat'
@@ -52,15 +52,17 @@ class Artifact {
   }
 }
 
-// Method to get omegaVersion from a JSON file
-export function getOmegaVersion(filePath: fs.PathLike) {
-  return JSON.parse(fs.readFileSync(filePath).toString())['omegaVersion']
+// Method to get omegaEditVersion from a JSON file
+export function getOmegaEditVersion(filePath: fs.PathLike) {
+  return JSON.parse(fs.readFileSync(filePath).toString())['omegaEditVersion']
 }
 
 export async function startServer(ctx: vscode.ExtensionContext) {
-  // Get omegaVersion
-  const omegaVersion = getOmegaVersion(ctx.asAbsolutePath('./package.json'))
-  const artifact = new Artifact(omegaVersion)
+  // Get omegaEditVersion
+  const omegaEditVersion = getOmegaEditVersion(
+    ctx.asAbsolutePath('./package.json')
+  )
+  const artifact = new Artifact(omegaEditVersion)
   const backend = new Backend('ctc-oss', 'omega-edit')
   const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
 
@@ -82,7 +84,7 @@ export async function startServer(ctx: vscode.ExtensionContext) {
 
       if (response.message.statusCode !== 200) {
         const err: Error = new Error(
-          `Couldn't download the OmegaEdit sever backend from ${artifactUrl}.`
+          `Couldn't download the Ωedit sever backend from ${artifactUrl}.`
         )
         err['httpStatusCode'] = response.message.statusCode
         throw err
@@ -170,5 +172,9 @@ export async function stopServer() {
         }
       }
     })
+
+    return true
   }
+
+  return false
 }

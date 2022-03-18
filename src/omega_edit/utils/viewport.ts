@@ -17,58 +17,14 @@
 
 import * as vscode from 'vscode'
 import * as hexy from 'hexy'
-import { EditorClient } from 'omega-edit/omega_edit_grpc_pb'
-import { Empty } from 'google-protobuf/google/protobuf/empty_pb'
-import * as grpc from '@grpc/grpc-js'
+import { client } from './settings'
 import {
-  CreateSessionRequest,
   CreateViewportRequest,
   ObjectId,
   ViewportDataRequest,
 } from 'omega-edit/omega_edit_pb'
 
-export const uri = '127.0.0.1:9000'
-export const client = new EditorClient(uri, grpc.credentials.createInsecure())
-
-export var randomId = () => Math.floor(Math.random() * (1000 - 0 + 1))
-
-export function getVersion(): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    client.getOmegaVersion(new Empty(), (err, v) => {
-      if (err) {
-        return reject('getVersion error: ' + err.message)
-      }
-
-      if (!v) {
-        return reject('undefined version')
-      }
-
-      return resolve(`v${v.getMajor()}.${v.getMinor()}.${v.getPatch()}`)
-    })
-  })
-}
-
-export function newSession(path: string | undefined): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    let request = new CreateSessionRequest()
-    if (path) request.setFilePath(path)
-    client.createSession(request, (err, r) => {
-      if (err) {
-        console.log(err.message)
-        return reject('newSession error: ' + err.message)
-      }
-
-      let id = r?.getSessionId()
-      if (!id) {
-        return reject('undefined version')
-      }
-
-      return resolve(id)
-    })
-  })
-}
-
-export function newViewport(
+export function createViewport(
   id: string,
   sid: string,
   offset: number,
@@ -92,18 +48,6 @@ export function newViewport(
       }
 
       return resolve(id)
-    })
-  })
-}
-
-export function deleteSession(id: string): Promise<ObjectId> {
-  return new Promise<ObjectId>((resolve, reject) => {
-    client.destroySession(new ObjectId().setId(id), (err, r) => {
-      if (err) {
-        return reject('deleteSession error: ' + err.message)
-      }
-
-      return resolve(r)
     })
   })
 }
