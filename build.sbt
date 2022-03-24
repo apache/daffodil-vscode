@@ -38,6 +38,9 @@ lazy val commonSettings = {
     organization := "org.apache.daffodil",
     scalaVersion := "2.12.13",
     scalacOptions ++= Seq("-Ypartial-unification"),
+    // remove the -Xcheckinit option added by the sbt tpoletcat plugin. This
+    // option leads to non-reproducible builds
+    scalacOptions --= Seq("-Xcheckinit"),
     startYear := Some(2021)
   )
 }
