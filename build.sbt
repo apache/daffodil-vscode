@@ -34,9 +34,12 @@ lazy val commonSettings = {
       "org.apache.daffodil" %% "daffodil-sapi" % daffodilVer,
       "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVer
     ),
+    dependencyOverrides ++= Seq(
+      "org.apache.commons" % "commons-lang3" % "3.12.0"
+    ),
     licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
     organization := "org.apache.daffodil",
-    scalaVersion := "2.12.13",
+    scalaVersion := "2.12.15",
     scalacOptions ++= Seq("-Ypartial-unification"),
     // remove the -Xcheckinit option added by the sbt tpoletcat plugin. This
     // option leads to non-reproducible builds
@@ -73,11 +76,11 @@ lazy val core = project
   .settings(
     name := "daffodil-debugger",
     libraryDependencies ++= Seq(
-      "ch.qos.logback" % "logback-classic" % "1.2.3",
-      "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.31.1",
-      "co.fs2" %% "fs2-io" % "3.0.4",
-      "com.monovore" %% "decline-effect" % "2.1.0",
-      "org.typelevel" %% "log4cats-slf4j" % "2.1.0"
+      "ch.qos.logback" % "logback-classic" % "1.2.11",
+      "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.35.0",
+      "co.fs2" %% "fs2-io" % "3.0.6",
+      "com.monovore" %% "decline-effect" % "2.2.0",
+      "org.typelevel" %% "log4cats-slf4j" % "2.1.1"
     ),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer),
     buildInfoPackage := "org.apache.daffodil.debugger.dap",
