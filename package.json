@@ -14,7 +14,7 @@
   "icon": "images/daffodil.ico",
   "categories": [
     "Debuggers",
-    "Snippets"
+    "Programming Languages"
   ],
   "repository": {
     "type": "git",
@@ -69,6 +69,7 @@
   },
   "main": "./dist/ext/extension.js",
   "activationEvents": [
+    "onLanguage:dfdl",
     "onDebugResolve:dfdl",
     "onDebugDynamicConfigurations:dfdl",
     "onCommand:extension.dfdl-debug.getProgramName",
@@ -83,12 +84,17 @@
     "request": "never"
   },
   "contributes": {
-    "snippets": [
-      {
-        "language": "xml",
-        "path": "./snippets/dfdl.json"
-      }
-    ],
+    "languages": [{
+      "id": "dfdl",
+      "aliases": ["dfdl", "dfdl"],
+      "extensions": ["dfdl.xsd"],
+      "configuration": "./language/dfdl.json"
+    }],
+    "grammars": [{
+      "language": "dfdl",
+      "scopeName": "source.dfdl.xsd",
+      "path": "./language/syntax.json"
+    }],
     "menus": {
       "editor/title": [
         {
@@ -97,38 +103,38 @@
         },
         {
           "command": "hexview.display",
-          "when": "resourceLangId == xml",
+          "when": "resourceLangId == dfdl",
           "group": "navigation@4"
         },
         {
           "command": "infoset.display",
-          "when": "resourceLangId == xml",
+          "when": "resourceLangId == dfdl",
           "group": "navigation@2"
         },
         {
           "command": "infoset.diff",
-          "when": "resourceLangId == xml",
+          "when": "resourceLangId == dfdl",
           "group": "navigation@3"
         }
       ],
       "editor/title/run": [
         {
           "command": "extension.dfdl-debug.runEditorContents",
-          "when": "resourceLangId == xml"
+          "when": "resourceLangId == dfdl"
         },
         {
           "command": "extension.dfdl-debug.debugEditorContents",
-          "when": "resourceLangId == xml"
+          "when": "resourceLangId == dfdl"
         }
       ],
       "commandPalette": [
         {
           "command": "extension.dfdl-debug.debugEditorContents",
-          "when": "resourceLangId == xml"
+          "when": "resourceLangId == dfdl"
         },
         {
           "command": "extension.dfdl-debug.runEditorContents",
-          "when": "resourceLangId == xml"
+          "when": "resourceLangId == dfdl"
         },
         {
           "command": "omega.grpc"
@@ -212,14 +218,14 @@
     ],
     "breakpoints": [
       {
-        "language": "xml"
+        "language": "dfdl"
       }
     ],
     "debuggers": [
       {
         "type": "dfdl",
         "languages": [
-          "xml"
+          "dfdl"
         ],
         "label": "Daffodil Debug",
         "program": "./out/extension.js",
