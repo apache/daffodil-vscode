@@ -92,8 +92,8 @@
     }],
     "grammars": [{
       "language": "dfdl",
-      "scopeName": "source.dfdl.xsd",
-      "path": "./language/syntax.json"
+      "scopeName": "text.xml.dfdl.xsd",
+      "path": "./language/syntaxes/dfdl.tmLanguage.json"
     }],
     "menus": {
       "editor/title": [
