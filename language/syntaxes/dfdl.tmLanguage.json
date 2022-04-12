@@ -1,0 +1,7 @@
+{
+	"name": "dfdl",
+	"scopeName": "text.xml.dfdl.xsd",
+	"patterns": [{
+		"include": "text.xml"
+	}]
+}
