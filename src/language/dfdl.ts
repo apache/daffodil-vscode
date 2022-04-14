@@ -61,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 			const xsGroupRef = new vscode.CompletionItem('xs:group ref');
 			xsGroupRef.insertText = new vscode.SnippetString('<xs:group ref="$1"$0');
-			//xsGRef.insertText = new vscode.SnippetString('<xs:group ref="$1"$0>\n\n</xs:element>');
+			//xsGroupRef.insertText = new vscode.SnippetString('<xs:group ref="$1"$0>\n\n</xs:element>');
 			xsGroupRef.documentation = new vscode.MarkdownString("A new dfdl reference to an item");
 
 			const dfdlAssert = new vscode.CompletionItem('dfdl:assert');
