@@ -20,6 +20,7 @@
 The "vscode-dfdl"extension.provides auto completion for Data Format Description Language (DFDL) schemas.
 
 ## Set the editor to dfdl mode
+
 ![TurnOnDfdlMode](https://user-images.githubusercontent.com/98881959/152995118-e2da5835-027e-4ff7-90f9-baf36a7e04bb.gif)
 
 ## Features
@@ -79,7 +80,7 @@ Node.js (https://nodejs.org/en/download/)
 VS Code (https://code.visualstudio.com/download)
 
 Open a terminal window in VS Code. Run:
-  npm install typescript
+npm install typescript
 
 ## Suggestions
 
@@ -95,10 +96,10 @@ Run the extension in debug mode
 ## Package the Extension
 
 In a VS Code terminal window, run:
-  npm install -g vsce
+npm install -g vsce
 
 After the vsce install completes, run:
-  vsce package
+vsce package
 
 to the three warnings type 'y'.
 
@@ -107,11 +108,11 @@ The package vscode-dfdl-0.0.1.vsix should be in the project director.
 ## Install the Extension
 
 Close VS Code if it is open. From an OS Command line, run:
-  code --install-extension "path to vsix file"\vscode-dfdl-0.0.1.vsix
+code --install-extension "path to vsix file"\vscode-dfdl-0.0.1.vsix
 
 Re-open VS Code, open the pallet (ctrl+shift+P)
-  select or type 'Change Language Mode'
-  choose 'dfdl'
+select or type 'Change Language Mode'
+choose 'dfdl'
 
 ## Extension Settings
 
@@ -119,8 +120,8 @@ None
 
 ## Known Issues
 
-The extension uses a clunky method to auto complete curly braces within quotes.  Hopefully this can be
-better addressed in the future.  The auto complete method blocks auto completion suggestions while typing between the beginning qoute, opening curly brace and the closing curly brace, ending quote.
+The extension uses a clunky method to auto complete curly braces within quotes. Hopefully this can be
+better addressed in the future. The auto complete method blocks auto completion suggestions while typing between the beginning qoute, opening curly brace and the closing curly brace, ending quote.
 
 Syntax and semantic colorization isn't implemented.
 
@@ -128,4 +129,4 @@ Syntax and semantic colorization isn't implemented.
 
 First beta release. Feedback is appreciated.
 
------------------------------------------------------------------------------------------------------------
+---
