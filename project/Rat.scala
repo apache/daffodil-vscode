@@ -25,6 +25,7 @@ object Rat {
     // json files -- these ones do not support comments
     file("language/dfdl.json"), // license file at language/json-license.txt
     file("language/syntax.json"), // license file at language/json-license.txt
+    file("language/syntaxes/dfdl.tmLanguage.json"), // license file at language/json-license.txt
     file("package.json"),
     file(".prettierrc"),
     // ignore images - daffiodil.ico
