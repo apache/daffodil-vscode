@@ -1,0 +1,31 @@
+{
+	"name": "dfdl",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.dfdl",
+				"match": "\\b(if|while|for|return)\\b"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.dfdl",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.dfdl",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.dfdl.xsd"
+}
