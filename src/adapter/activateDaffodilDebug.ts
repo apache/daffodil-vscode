@@ -23,6 +23,7 @@ import { getConfig, setCurrentConfig } from '../utils'
 import * as launchWizard from '../launchWizard/launchWizard'
 import * as omegaClient from '../omega_edit/client'
 import * as dfdlLang from '../language/dfdl'
+import * as dfdlExt from '../language/semantics/dfdlExt'
 
 // Function for setting up the commands for Run and Debug file
 function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
@@ -265,6 +266,7 @@ export function activateDaffodilDebug(
   )
 
   dfdlLang.activate(context)
+  dfdlExt.activate(context)
   infoset.activate(context)
   launchWizard.activate(context)
   omegaClient.activate(context)

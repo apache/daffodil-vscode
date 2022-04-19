@@ -367,3 +367,79 @@ is subject to the terms and conditions of the following licenses.
    d. Affirmer understands and acknowledges that Creative Commons is not a
       party to this document and has no duty or obligation with respect to
       this CC0 or use of the Work.
+
+   This product bundles content from the VS Code DeltaXML extension, including
+   the following files:
+   - src/langauge/semantics/dfdlExt.ts
+   - src/langauge/semantics/diagnostics.ts
+   - src/langauge/semantics/documentChangeHandler.ts
+   - src/langauge/semantics/functionData.ts
+   - src/langauge/semantics/languageConfiguration.ts
+   - src/langauge/semantics/schemaQuesry.ts
+   - src/langauge/semantics/schScema.ts
+   - src/langauge/semantics/xmlSnippets.ts
+   - src/langauge/semantics/xPathDocumentChangeHandler.ts
+   - src/langauge/semantics/xpLexer.ts
+   - src/langauge/semantics/xslLexer.ts
+   - src/langauge/semantics/xslLexerLight.ts
+   - src/langauge/semantics/xslLexerRenameTags.ts
+   - src/langauge/semantics/xsltSchema.ts
+   - src/langauge/semantics/xsltSchema4.ts
+   - src/langauge/semantics/xsltTokenCompletions.ts
+   - src/langauge/semantics/xsltTokenDiagnostics.ts
+   The content is available under the MIT License:
+
+   MIT License
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+   This product bundles content from the VS Code Highlight Matching Tag extension, including
+   the following files:
+   - src/language/interfaces/command.ts
+   - src/language/interfaces/configuration.ts
+   - src/language/interfaces/interfaces.d.ts
+   - src/language/interfaces/tagLexer.ts
+   - src/language/interfaces/tagMatcher.ts
+   - src/language/interfaces/tagParser.ts
+   - src/language/interfaces/tagStyler.ts
+   The content is available under the MIT License:
+
+   Copyright (c) [2017] [Vincas Stonys.]
+
+   MIT License
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+

@@ -47,6 +47,8 @@
     "google-protobuf": "^3.19.4",
     "hexy": "^0.3.1",
     "minimist": "^1.2.5",
+    "@types/moo": "^0.5.5",
+    "moo": "^0.5.1",
     "omega-edit": "0.8.3",
     "unzip-stream": "^0.3.1",
     "vscode-debugadapter": "^1.46.0",
@@ -84,17 +86,26 @@
     "request": "never"
   },
   "contributes": {
-    "languages": [{
-      "id": "dfdl",
-      "aliases": ["dfdl", "dfdl"],
-      "extensions": ["dfdl.xsd"],
-      "configuration": "./language/dfdl.json"
-    }],
-    "grammars": [{
-      "language": "dfdl",
-      "scopeName": "text.xml.dfdl.xsd",
-      "path": "./language/syntaxes/dfdl.tmLanguage.json"
-    }],
+    "languages": [
+      {
+        "id": "dfdl",
+        "aliases": [
+          "dfdl",
+          "dfdl"
+        ],
+        "extensions": [
+          "dfdl.xsd"
+        ],
+        "configuration": "./language/dfdl.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "dfdl",
+        "scopeName": "text.xml.dfdl.xsd",
+        "path": "./language/syntaxes/dfdl.tmLanguage.json"
+      }
+    ],
     "menus": {
       "editor/title": [
         {
@@ -214,8 +225,18 @@
         "command": "omega.grpc",
         "title": "Omega Edit Ω gRPC Demo",
         "category": "Omega"
+      },
+      {
+        "command": "highlight-matching-tag.jumpToMatchingTag",
+        "title": "Jump to matching tag",
+        "category": "Highlight Matching Tag"
+      },
+      {
+        "command": "highlight-matching-tag.selectPairContents",
+        "title": "Select contents of matching tag pair",
+        "category": "Highlight Matching Tag"
       }
-    ],
+   ],
     "breakpoints": [
       {
         "language": "dfdl"
@@ -418,6 +439,99 @@
             "type": "string",
             "description": "Additional classpaths to be exported to the debugger",
             "default": ""
+          }
+        }
+      },
+      {
+        "type": "object",
+        "title": "vscode-dfdl",
+        "properties": {
+          "vscode-dfdl.enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enables the highlighting and status bar",
+            "scope": "resource"
+          },
+          "vscode-dfdl.showPath": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enables showing tag's path in status bar",
+            "scope": "resource"
+          },
+          "vscode-dfdl.showRuler": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enables showing highlighted tag pair in ruler section",
+            "scope": "resource"
+          },
+          "vscode-dfdl.highlightSelfClosing": {
+            "type": "boolean",
+            "default": false,
+            "description": "Should self-closing tags be highlighted",
+            "scope": "resource"
+          },
+          "vscode-dfdl.highlightFromContent": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to highlight matching tag from inside the tag content",
+            "scope": "resource"
+          },
+          "vscode-dfdl.highlightFromName": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to highlight matching tag from the tag name",
+            "scope": "resource"
+          },
+          "vscode-dfdl.highlightFromAttributes": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to highlight matching tag from the tag attributes",
+            "scope": "resource"
+          },
+          "vscode-dfdl.noDefaultEmptyElements": {
+            "type": "boolean",
+            "default": false,
+            "description": "Don't use default HTML empty elements",
+            "scope": "resource"
+          },
+          "vscode-dfdl.customEmptyElements": {
+            "type": "array",
+            "default": null,
+            "description": "Custom empty elements in addition to the default HTML empty elements",
+            "scope": "resource"
+          },
+          "vscode-dfdl.styles": {
+            "opening": {
+              "left": {
+                "underline": "yellow"
+              },
+              "right": {
+                "surround": "#155FFA"
+              },
+              "name": {
+                "highlight": "rgba(180, 20, 80, 0.3)"
+              }
+            },
+            "closing": {
+              "full": {
+                "custom": {
+                  "dark": {
+                    "borderWidth": "0 0 1px 0",
+                    "borderColor": "white",
+                    "borderStyle": "solid",
+                    "borderRadius": "4px",
+                    "right": "10px"
+                  },
+                  "light": {
+                    "borderWidth": "0 0 1px 0",
+                    "borderColor": "brown",
+                    "borderStyle": "solid",
+                    "borderRadius": "4px",
+                    "right": "10px"
+                  }
+                }
+              }
+            }
           }
         }
       }
