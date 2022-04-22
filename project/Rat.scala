@@ -37,6 +37,11 @@ object Rat {
 
   lazy val MIT_LICENSE_NAME = "MIT License"
 
+  lazy val MIT_LICENSE_TEXT =
+    """
+Licensed under the MIT License. See License.txt in the project root for license information.
+"""
+
   lazy val MIT_LICENSE_TEXT_MICROSOFT =
     """
 Copyright (c) Microsoft Corporation. All rights reserved.
