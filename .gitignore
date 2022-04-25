@@ -32,6 +32,9 @@ package-lock.json
 # build
 src/version.ts
 
+# IDEs
+.idea/
+
 # unknown
 .vscode-test/
 
@@ -45,3 +48,8 @@ src/version.ts
 #        either /tmp or XDG or ...
 datafile-hex
 npm-debug.log
+
+# tmp files
+tmp.*
+
+src/omegaEdit/client
