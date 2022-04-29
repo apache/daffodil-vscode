@@ -68,6 +68,11 @@ export async function activate(ctx: vscode.ExtensionContext) {
   )
   ctx.subscriptions.push(
     vscode.debug.onDidTerminateDebugSession(async (s) => {
+      if (sid !== undefined) {
+        let path = tmp(sid)
+        fs.rmSync(`${path}`, { force: true })
+        fs.rmSync(`${path}.prev`, { force: true })
+      }
       sid = undefined
       await openInfosetFilePrompt()
     })
