@@ -22,7 +22,6 @@ import {
   ChangeRequest,
   ViewportDataRequest,
 } from 'omega-edit/omega_edit_pb'
-import { getVersion } from './utils/version'
 import { createSession, deleteSession, saveSession } from './utils/session'
 import {
   createViewport,
@@ -31,6 +30,7 @@ import {
 } from './utils/viewport'
 import { startServer, stopServer } from './server'
 import { client, randomId } from './utils/settings'
+import * as hexy from 'hexy'
 
 let serverRunning = false
 
@@ -43,18 +43,7 @@ async function cleanupViewportSession(
 
 export function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
-    vscode.commands.registerCommand('omega.version', async () => {
-      if (!serverRunning) {
-        await startServer(ctx)
-        serverRunning = true
-      }
-      let v = await getVersion()
-      vscode.window.showInformationMessage(v)
-    })
-  )
-
-  ctx.subscriptions.push(
-    vscode.commands.registerCommand('omega.grpc', async () => {
+    vscode.commands.registerCommand('data.edit.wip', async () => {
       if (!serverRunning) {
         await startServer(ctx)
         serverRunning = true
@@ -62,15 +51,12 @@ export function activate(ctx: vscode.ExtensionContext) {
 
       let panel = vscode.window.createWebviewPanel(
         'viewport',
-        'Ω Edit gRPC',
+        'ΩEdit',
         vscode.ViewColumn.One,
         {
           enableScripts: true,
         }
       )
-
-      // panel.webview.html = getWebviewContent(uri)
-      panel.webview.html = getWebviewContent(ctx)
 
       let fileToEdit = await vscode.window
         .showOpenDialog({
@@ -84,6 +70,13 @@ export function activate(ctx: vscode.ExtensionContext) {
             return fileUri[0].fsPath
           }
         })
+
+      if (fileToEdit) {
+        let hex = hexy.hexy(
+          fs.readFileSync(vscode.Uri.parse(fileToEdit).fsPath)
+        )
+        panel.webview.html = getWebviewContent(ctx, fileToEdit, hex)
+      }
 
       let s = await createSession(fileToEdit)
       panel.webview.postMessage({
@@ -169,83 +162,125 @@ export function activate(ctx: vscode.ExtensionContext) {
   )
 }
 
-function getWebviewContent(ctx: vscode.ExtensionContext) {
+function getWebviewContent(
+  ctx: vscode.ExtensionContext,
+  fileToEdit: string,
+  hex: string
+) {
   const scriptUri = vscode.Uri.parse(
     ctx.asAbsolutePath('./src/omega_edit/scripts/omega_edit.js')
   )
   const styleUri = vscode.Uri.parse(
-    ctx.asAbsolutePath('./src/styles/styles.css')
+    ctx.asAbsolutePath('./src/styles/omega_edit.css')
   )
   const scriptData = fs.readFileSync(scriptUri.fsPath)
   const styleData = fs.readFileSync(styleUri.fsPath)
 
+  let offsetLines = ''
+  let encodedData = ''
+  let decodedData = ''
+
+  let hexLines = hex.split('\n')
+
+  // Format hex code to make the file look nicer
+  hexLines.forEach((h) => {
+    if (h) {
+      let splitHex = h.split(':')
+      let dataLocations = splitHex[1].split(' ')
+
+      offsetLines += splitHex[0] + '<br/>'
+      if (dataLocations.length > 9) {
+        for (var i = 1; i < 9; i++) {
+          let middle = Math.floor(dataLocations[i].length / 2)
+          encodedData +=
+            dataLocations[i].substr(0, middle).toUpperCase() +
+            '' +
+            dataLocations[i].substr(middle).toUpperCase() +
+            ' '
+        }
+      }
+
+      encodedData += '<br/>'
+      decodedData +=
+        h.split('  ').slice(1, h.split('  ').length).join('  ') + '<br/>'
+    }
+  })
+
   return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Data Editor</title>
-  <style>
-      .save-button {
-        margin-top: 5px;
-        background-color: lightgray;
-        border: none;
-        border-radius: 12px;
-        color: black;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 12px;
-        cursor: pointer;
-        width: 75px;
-        height: 30px;
-      }
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Editor</title>
+    <link rel="stylesheet" href="edit.css">
+    <style>${styleData}</style>
+  </head>
+  <body>
+    <!-- <div id="server">uri</div> -->
+    <!-- <div id="session">?</div> -->
+    <div style="visibilityHidden" id="sessionFile"></div>
+    <div class="offset-div">
+      <p class="offset-text">Offset</p>
+      <div class="offset-area">${offsetLines}</div>
+    </div>
   
-      .grid-container {
-        display: grid;
-        grid-gap: 2px 2px;
-        grid-template-columns: auto auto auto;
-        background-color: #2196F3;
-        padding: 5px;
-      }
-
-      .grid-item {
-        background-color: rgba(255, 255, 255, 0.8);
-        border: 1px solid rgba(0, 0, 0, 0.8);
-        padding: 2px;
-        font-size: 12px;
-        text-align: left;
-        color: black;
-        white-space: pre;
-        font-family: monospace;
-      }
-
-      ${styleData}
-  </style>
-</head>
-<body>
-  <!-- <div id="server">uri</div> -->
-  <!-- <div id="session">?</div> -->
-  <div style="visibilityHidden" id="sessionFile"></div>
-  <div class="grid-container">
-      <div class="grid-item" id="viewport1">empty</div>
-      <div class="grid-item" id="viewport2">empty</div>
-      <div class="grid-item" id="viewport3">empty</div>
-      <div class="grid-item" id="hex1"></div>
-      <div class="grid-item"><textarea id="input" rows="10" cols="50" oninput="sendit(this.value)"></textarea></div>
-      <div class="grid-item" id="hex2"></div>
-  </div>
-  <br/>
-  <div class="setting-div" style="margin-top: 10px;" onclick="check('overwriteSessionFile')">
-    <label class="container">Overwrite File
-      <input type="checkbox" id="overwriteSessionFile">
-      <span class="checkmark"></span>
-    </label>
-    <button id="save" class="save-button" type="button" onclick="saveSession()">Save Session</button>
-  </div>
-  <script>
-      ${scriptData}
-  </script>
-</body>
-</html>`
+    <div class="encoding-div">
+      <p class="encoding-text">Encoding</p>
+        
+      <div class="encoding-area">${encodedData}</div>
+    </div>
+    <div class="decoded-div">
+      <p class="decoded-text">Decoded Text</p>
+        
+      <div class="decoded-area">${decodedData}</div>
+    </div>
+    <div class="inspector-div">
+      <p class="inspector-text">Data Inspector</p>
+      <label style="margin-top: 10px;" class="container">Little Indian
+        <input type="checkbox">
+        <span class="checkmark"></span>
+      </label>
+      <div class="format-area">uint8<br/>
+        uint8<br/>
+        int8<br/>
+        uint16<br/>
+        int16<br/>
+        uint32<br/>
+        int32<br/>
+        uint64<br/>
+        int64<br/>
+        float32<br/>
+        float64<br/>
+        UTF-8<br/>
+        UTF-16<br/>
+      </div>
+      <label style="margin-top: 14px; padding-left: 0px;" class="container">Stats</label>
+      <div class="stats-area">File Size:<br/></div>
+    </div>
+  
+    <div class="viewport-div">
+      <p class="viewport-text">Viewports</p>
+      <label style="margin-top: 5px; padding-left: 0px; width: 100px;" class="container">Offset
+        <div style="position: absolute; top: 0; margin-left: 45px; height: 10px; width: 35px; border: 2px solid;"></div>
+      </label>
+      <div class="viewport-area"></div>
+  
+      <label style="margin-top: 14px; padding-left: 0px; width: 100px;" class="container">Offset
+        <div style="position: absolute; top: 0; margin-left: 45px; height: 10px; width: 35px; border: 2px solid;"></div>
+      </label>
+      <div class="viewport-area"></div>
+      <br/>
+      <label style="margin-top: -5px; padding-left: 0px; width: 100px;" class="container">Offset
+        <div style="position: absolute; top: 0; margin-left: 45px; height: 10px; width: 35px; border: 2px solid;"></div>
+      </label>
+      <div class="viewport-area"></div>
+    </div>
+    <script>
+        ${scriptData}
+    </script>
+    <script>
+    </script>
+  </body>
+  </html>  
+  `
 }

@@ -84,8 +84,9 @@
     "onCommand:extension.dfdl-debug.runEditorContents",
     "onCommand:extension.dfdl-debug.debugEditorContents",
     "onCommand:launch.config",
-    "onCommand:omega.grpc",
-    "onCommand:omega.version"
+    "onCommand:data.edit",
+    "onCommand:omega_edit.version",
+    "onCommand:data.edit.wip"
   ],
   "workspaceTrust": {
     "request": "never"
@@ -153,10 +154,13 @@
           "when": "resourceLangId == dfdl"
         },
         {
-          "command": "omega.grpc"
+          "command": "data.edit"
         },
         {
-          "command": "omega.version"
+          "command": "omega_edit.version"
+        },
+        {
+          "command": "data.edit.wip"
         }
       ],
       "debug/variables/context": [
@@ -222,14 +226,14 @@
         "icon": "$(debug-configure)"
       },
       {
-        "command": "omega.version",
+        "command": "omega_edit.version",
         "title": "Omega Edit Ω Version Info",
-        "category": "Omega"
+        "category": "OmegaEdit"
       },
       {
-        "command": "omega.grpc",
-        "title": "Omega Edit Ω gRPC Demo",
-        "category": "Omega"
+        "command": "data.editor",
+        "title": "Data Editor",
+        "category": "OmegaEdit"
       },
       {
         "command": "highlight-matching-tag.jumpToMatchingTag",
@@ -240,6 +244,11 @@
         "command": "highlight-matching-tag.selectPairContents",
         "title": "Select contents of matching tag pair",
         "category": "Highlight Matching Tag"
+      },
+      {
+        "command": "data.edit.wip",
+        "title": "Data Editor (WIP)",
+        "category": "OmegaEdit"
       }
     ],
     "breakpoints": [
