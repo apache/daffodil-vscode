@@ -227,11 +227,6 @@
                   "path": "${workspaceFolder}/infoset.xml"
                 }
               },
-              "stopOnEntry": {
-                "type": "boolean",
-                "description": "Automatically stop after launch.",
-                "default": true
-              },
               "trace": {
                 "type": "boolean",
                 "description": "Enable logging of the Debug Adapter Protocol.",
@@ -276,7 +271,6 @@
             "request": "launch",
             "name": "Ask for file name",
             "program": "${command:AskForProgramName}",
-            "stopOnEntry": true,
             "data": "${command:AskForDataName}",
             "infosetOutput": {
               "type": "file",
@@ -298,7 +292,6 @@
               "request": "launch",
               "name": "Ask for file name",
               "program": "^\"\\${command:AskForProgramName}\"",
-              "stopOnEntry": true,
               "data": "^\"\\${command:AskForDataName}\"",
               "infosetOutput": {
                 "type": "file",
