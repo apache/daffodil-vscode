@@ -43,7 +43,7 @@ async function cleanupViewportSession(
 
 export function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
-    vscode.commands.registerCommand('omega.version', async () => {
+    vscode.commands.registerCommand('omega_edit.version', async () => {
       if (!serverRunning) {
         await startServer(ctx)
         serverRunning = true
@@ -54,7 +54,7 @@ export function activate(ctx: vscode.ExtensionContext) {
   )
 
   ctx.subscriptions.push(
-    vscode.commands.registerCommand('omega.grpc', async () => {
+    vscode.commands.registerCommand('data.edit', async () => {
       if (!serverRunning) {
         await startServer(ctx)
         serverRunning = true

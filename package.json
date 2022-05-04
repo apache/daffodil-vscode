@@ -231,7 +231,7 @@
         "category": "OmegaEdit"
       },
       {
-        "command": "data.editor",
+        "command": "data.edit",
         "title": "Data Editor",
         "category": "OmegaEdit"
       },
@@ -249,6 +249,19 @@
         "command": "data.edit.wip",
         "title": "Data Editor (WIP)",
         "category": "OmegaEdit"
+      },
+      {
+        "command": "position.goto",
+        "title": "Go to position",
+        "category": "OmegaEdit"
+      }
+    ],
+    "keybindings": [
+      {
+          "command": "position.goto",
+          "key": "ctrl+alt+g",
+          "mac": "ctrl+cmd+g",
+          "when": "editorTextFocus"
       }
     ],
     "breakpoints": [
