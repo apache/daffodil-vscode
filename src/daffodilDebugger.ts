@@ -67,7 +67,7 @@ export class Release {
 
 // Function to get data file given a folder
 export async function getDataFileFromFolder(dataFolder: string) {
-  return await vscode.window
+  return vscode.window
     .showOpenDialog({
       canSelectMany: false,
       openLabel: 'Select',
