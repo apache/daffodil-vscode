@@ -21,6 +21,20 @@ const vscode = acquireVsCodeApi()
 function check(elementId) {
   const element = document.getElementById(elementId)
   element.checked = element.checked ? false : true
+
+  if (elementId == 'overwriteSessionFile') {
+    const newFileElement = document.getElementById('saveNewSessionFile')
+
+    if (newFileElement.checked && element.checked) {
+      newFileElement.checked = false
+    }
+  } else if (elementId == 'saveNewSessionFile') {
+    const overwriteElement = document.getElementById('overwriteSessionFile')
+
+    if (overwriteElement.checked && element.checked) {
+      overwriteElement.checked = false
+    }
+  }
 }
 
 function sendit(value) {
@@ -35,6 +49,7 @@ function saveSession() {
     command: 'save',
     sessionFile: document.getElementById('sessionFile').value,
     overwrite: document.getElementById('overwriteSessionFile').checked,
+    newFile: document.getElementById('saveNewSessionFile').checked,
   })
 }
 

@@ -31,6 +31,7 @@ import {
 } from './utils/viewport'
 import { startServer, stopServer } from './server'
 import { client, randomId } from './utils/settings'
+import { getFilePath } from './utils/misc'
 
 let serverRunning = false
 
@@ -69,7 +70,6 @@ export function activate(ctx: vscode.ExtensionContext) {
         }
       )
 
-      // panel.webview.html = getWebviewContent(uri)
       panel.webview.html = getWebviewContent(ctx)
 
       let fileToEdit = await vscode.window
@@ -90,7 +90,6 @@ export function activate(ctx: vscode.ExtensionContext) {
         command: 'setSessionFile',
         filePath: fileToEdit,
       })
-      // panel.webview.postMessage({ command: 'session', text: s })
 
       let vpin = await createViewport(randomId().toString(), s, 0, 1000)
       let vp1 = await createViewport(randomId().toString(), s, 0, 64)
@@ -128,11 +127,11 @@ export function activate(ctx: vscode.ExtensionContext) {
               })
               return
             case 'save':
-              let filePath = message.overwrite
-                ? message.sessionFile
-                : await vscode.window.showInputBox({
-                    placeHolder: 'Save session as:',
-                  })
+              let filePath = await getFilePath(
+                message.sessionFile,
+                message.overwrite,
+                message.newFile
+              )
 
               if (filePath) {
                 let rootPath = vscode.workspace.workspaceFolders
@@ -241,8 +240,14 @@ function getWebviewContent(ctx: vscode.ExtensionContext) {
       <input type="checkbox" id="overwriteSessionFile">
       <span class="checkmark"></span>
     </label>
-    <button id="save" class="save-button" type="button" onclick="saveSession()">Save Session</button>
   </div>
+  <div class="setting-div" style="margin-top: 10px;" onclick="check('saveNewSessionFile')">
+    <label class="container">Save As New File (no-prompt)
+      <input type="checkbox" id="saveNewSessionFile">
+      <span class="checkmark"></span>
+    </label>
+  </div>
+  <button id="save" class="save-button" type="button" onclick="saveSession()">Save Session</button>
   <script>
       ${scriptData}
   </script>

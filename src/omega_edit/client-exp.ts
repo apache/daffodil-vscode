@@ -31,6 +31,7 @@ import {
 import { startServer, stopServer } from './server'
 import { client, randomId } from './utils/settings'
 import * as hexy from 'hexy'
+import { getFilePath } from './utils/misc'
 
 let serverRunning = false
 
@@ -121,11 +122,11 @@ export function activate(ctx: vscode.ExtensionContext) {
               })
               return
             case 'save':
-              let filePath = message.overwrite
-                ? message.sessionFile
-                : await vscode.window.showInputBox({
-                    placeHolder: 'Save session as:',
-                  })
+              let filePath = await getFilePath(
+                message.sessionFile,
+                message.overwrite,
+                message.newFile
+              )
 
               if (filePath) {
                 let rootPath = vscode.workspace.workspaceFolders

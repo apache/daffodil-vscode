@@ -100,7 +100,8 @@
           "dfdl"
         ],
         "extensions": [
-          "dfdl.xsd"
+          ".xsd",
+          ".xml"
         ],
         "configuration": "./language/dfdl.json"
       }
