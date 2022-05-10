@@ -19,13 +19,17 @@ import { getDebugger, getDataFileFromFolder } from '../daffodilDebugger'
 import { FileAccessor } from './daffodilRuntime'
 import * as fs from 'fs'
 import * as infoset from '../infoset'
-import { getConfig, setCurrentConfig } from '../utils'
+import { getConfig, getCurrentConfig, setCurrentConfig } from '../utils'
 import * as launchWizard from '../launchWizard/launchWizard'
 import * as omegaEditClient from '../omega_edit/client'
 import * as dfdlLang from '../language/dfdl'
 
 // Function for setting up the commands for Run and Debug file
-function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
+function createDebugRunFileConfigs(
+  resource: vscode.Uri,
+  runOrDebug: String,
+  runLast = false
+) {
   let targetResource = resource
   let noDebug = runOrDebug === 'run' ? true : false
 
@@ -38,19 +42,27 @@ function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
     }-infoset.xml`
     vscode.window.showInformationMessage(infosetFile)
 
-    vscode.debug.startDebugging(
-      undefined,
-      getConfig(
-        'Run File',
-        'launch',
-        'dfdl',
-        targetResource.fsPath,
-        false,
-        false,
-        { type: 'file', path: '${workspaceFolder}/' + infosetFile }
-      ),
-      { noDebug: noDebug }
-    )
+    let currentConfig = getCurrentConfig()
+
+    if (runLast && currentConfig) {
+      vscode.debug.startDebugging(undefined, currentConfig, {
+        noDebug: noDebug,
+      })
+    } else {
+      vscode.debug.startDebugging(
+        undefined,
+        getConfig(
+          'Run File',
+          'launch',
+          'dfdl',
+          targetResource.fsPath,
+          false,
+          false,
+          { type: 'file', path: '${workspaceFolder}/' + infosetFile }
+        ),
+        { noDebug: noDebug }
+      )
+    }
 
     vscode.debug.onDidTerminateDebugSession(async () => {
       if (!vscode.workspace.workspaceFolders) {
@@ -83,6 +95,12 @@ export function activateDaffodilDebug(
       'extension.dfdl-debug.debugEditorContents',
       (resource: vscode.Uri) => {
         createDebugRunFileConfigs(resource, 'debug')
+      }
+    ),
+    vscode.commands.registerCommand(
+      'extension.dfdl-debug.debugLastEditorContents',
+      (resource: vscode.Uri) => {
+        createDebugRunFileConfigs(resource, 'debug', true)
       }
     ),
     vscode.commands.registerCommand(

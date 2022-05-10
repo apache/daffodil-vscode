@@ -19,7 +19,7 @@ import * as vscode from 'vscode'
 
 const defaultConf = vscode.workspace.getConfiguration()
 // const
-let currentConfig: vscode.ProviderResult<vscode.DebugConfiguration>
+let currentConfig: vscode.DebugConfiguration
 
 export const regexp = {
   comma: new RegExp(',', 'g'),
@@ -29,7 +29,7 @@ export const regexp = {
 }
 
 // Function to retrieve to the current debug config
-export function getCurrentConfg() {
+export function getCurrentConfig() {
   return currentConfig
 }
 
@@ -49,7 +49,7 @@ export function runCommand(command: string) {
 // Function for checking if config specifies if either the
 // infoset, infoset diff or hex view needs to be opened
 export async function onDebugStartDisplay(viewsToCheck: string[]) {
-  let config = JSON.parse(JSON.stringify(getCurrentConfg()))
+  let config = JSON.parse(JSON.stringify(getCurrentConfig()))
 
   viewsToCheck.forEach(async (viewToCheck) => {
     switch (viewToCheck) {
