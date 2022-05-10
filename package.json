@@ -84,7 +84,8 @@
     "onCommand:launch.config",
     "onCommand:data.edit",
     "onCommand:omega_edit.version",
-    "onCommand:toggle.experimental"
+    "onCommand:toggle.experimental",
+    "onCommand:extension.dfdl-debug.debugLastEditorContents"
   ],
   "workspaceTrust": {
     "request": "never"
@@ -139,6 +140,10 @@
         {
           "command": "extension.dfdl-debug.debugEditorContents",
           "when": "resourceLangId == dfdl"
+        },
+        {
+          "command": "extension.dfdl-debug.debugLastEditorContents",
+          "when": "resourceLangId == dfdl"
         }
       ],
       "commandPalette": [
@@ -160,6 +165,10 @@
         },
         {
           "command": "toggle.experimental"
+        },
+        {
+          "command": "extension.dfdl-debug.debugLastEditorContents",
+          "when": "resourceLangId == dfdl"
         }
       ],
       "debug/variables/context": [
@@ -183,6 +192,13 @@
         "category": "Daffodil Debug",
         "enablement": "!inDebugMode",
         "icon": "$(play)"
+      },
+      {
+        "command": "extension.dfdl-debug.debugLastEditorContents",
+        "title": "Debug Last File",
+        "category": "Daffodil Debug",
+        "enablement": "!inDebugMode",
+        "icon": "$(debug-alt)"
       },
       {
         "command": "extension.dfdl-debug.toggleFormatting",
