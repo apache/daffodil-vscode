@@ -22,7 +22,6 @@ import * as infoset from '../infoset'
 import { getConfig, setCurrentConfig } from '../utils'
 import * as launchWizard from '../launchWizard/launchWizard'
 import * as omegaEditClient from '../omega_edit/client'
-import * as omegaEditClientExp from '../omega_edit/client-exp'
 import * as dfdlLang from '../language/dfdl'
 import * as dfdlExt from '../language/semantics/dfdlExt'
 
@@ -95,7 +94,27 @@ export function activateDaffodilDebug(
           ds.customRequest('toggleFormatting')
         }
       }
-    )
+    ),
+    vscode.commands.registerCommand('toggle.experimental', async (_) => {
+      const action = await vscode.window.showQuickPick(['Yes', 'No'], {
+        title: 'Enable Experimental Features?',
+        canPickMany: false,
+      })
+
+      vscode.commands.executeCommand(
+        'setContext',
+        'experimentalFeaturesEnabled',
+        action === 'Yes' ? true : false
+      )
+
+      if (action === 'Yes') {
+        omegaEditClient.activate(context)
+
+        vscode.window.showInformationMessage(
+          'DFDL: Experimental Features Enabled!'
+        )
+      }
+    })
   )
 
   context.subscriptions.push(
@@ -270,8 +289,6 @@ export function activateDaffodilDebug(
   dfdlExt.activate(context)
   infoset.activate(context)
   launchWizard.activate(context)
-  omegaEditClient.activate(context)
-  omegaEditClientExp.activate(context)
 }
 
 class DaffodilConfigurationProvider

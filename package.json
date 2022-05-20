@@ -4,7 +4,7 @@
   "description": "VS Code extension for Apache Daffodil DFDL schema debugging",
   "version": "1.2.0",
   "daffodilVersion": "3.3.0",
-  "omegaEditVersion": "0.8.3",
+  "omegaEditVersion": "0.9.7",
   "publisher": "asf",
   "author": "Apache Daffodil",
   "license": "Apache-2.0",
@@ -46,14 +46,14 @@
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.5.4",
+    "@types/moo": "^0.5.5",
     "await-notify": "1.0.1",
     "child_process": "^1.0.2",
     "google-protobuf": "^3.19.4",
     "hexy": "^0.3.1",
     "minimist": "^1.2.5",
-    "@types/moo": "^0.5.5",
     "moo": "^0.5.1",
-    "omega-edit": "0.8.3",
+    "omega-edit": "0.9.7",
     "run-script-os": "^1.1.6",
     "unzip-stream": "^0.3.1",
     "vscode-debugadapter": "^1.46.0",
@@ -86,7 +86,7 @@
     "onCommand:launch.config",
     "onCommand:data.edit",
     "onCommand:omega_edit.version",
-    "onCommand:data.edit.wip"
+    "onCommand:toggle.experimental"
   ],
   "workspaceTrust": {
     "request": "never"
@@ -155,13 +155,15 @@
           "when": "resourceLangId == dfdl"
         },
         {
-          "command": "data.edit"
+          "command": "data.edit",
+          "enablement": "experimentalFeaturesEnabled"
         },
         {
-          "command": "omega_edit.version"
+          "command": "omega_edit.version",
+          "enablement": "experimentalFeaturesEnabled"
         },
         {
-          "command": "data.edit.wip"
+          "command": "toggle.experimental"
         }
       ],
       "debug/variables/context": [
@@ -229,12 +231,14 @@
       {
         "command": "omega_edit.version",
         "title": "Omega Edit Ω Version Info",
-        "category": "OmegaEdit"
+        "category": "OmegaEdit",
+        "enablement": "experimentalFeaturesEnabled"
       },
       {
         "command": "data.edit",
         "title": "Data Editor",
-        "category": "OmegaEdit"
+        "category": "OmegaEdit",
+        "enablement": "experimentalFeaturesEnabled"
       },
       {
         "command": "highlight-matching-tag.jumpToMatchingTag",
@@ -247,22 +251,23 @@
         "category": "Highlight Matching Tag"
       },
       {
-        "command": "data.edit.wip",
-        "title": "Data Editor (WIP)",
-        "category": "OmegaEdit"
-      },
-      {
         "command": "position.goto",
         "title": "Go to position",
-        "category": "OmegaEdit"
+        "category": "OmegaEdit",
+        "enablement": "experimentalFeaturesEnabled"
+      },
+      {
+        "command": "toggle.experimental",
+        "title": "Enable Experimental Features",
+        "category": "Daffodil Debug"
       }
     ],
     "keybindings": [
       {
-          "command": "position.goto",
-          "key": "ctrl+alt+g",
-          "mac": "ctrl+cmd+g",
-          "when": "editorTextFocus"
+        "command": "position.goto",
+        "key": "ctrl+alt+g",
+        "mac": "ctrl+cmd+g",
+        "when": "editorTextFocus"
       }
     ],
     "breakpoints": [
