@@ -24,7 +24,11 @@ github:
     squash:   false
     merge:    false
     rebase:   true
+  collaborators:
+    - scholarsmate
+    - michael-hoke
 notifications:
     commits:      commits@daffodil.apache.org
     issues:       commits@daffodil.apache.org
     pullrequests: commits@daffodil.apache.org
+
