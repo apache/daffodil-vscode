@@ -111,5 +111,8 @@ jobs:
         if: runner.os == 'Windows'
       - run: yarn install
       - run: yarn package
+      - run: xvfb-run -a yarn test
+        if: runner.os == 'Linux'
       - run: yarn test
+        if: runner.os != 'Linux'
       - run: $SBT test
