@@ -20,9 +20,10 @@ import * as fs from 'fs'
 import * as omegaEditSession from 'omega-edit/session'
 import * as omegaEditViewport from 'omega-edit/viewport'
 import * as omegaEditVersion from 'omega-edit/version'
-import { startServer, stopServer } from './server'
+import { getServer, stopServer } from './server'
 import { randomId, viewportSubscribe } from './utils'
 import { OmegaEdit } from './omega_edit'
+import { v4 as uuidv4 } from 'uuid'
 
 let serverRunning = false
 
@@ -37,6 +38,9 @@ async function cleanupViewportSession(
   sessionId: string,
   viewportIds: Array<string>
 ) {
+  viewportIds.forEach(async (vid) => {
+    await omegaEditViewport.destroyViewport(vid)
+  })
   await omegaEditSession.destroySession(sessionId)
 }
 
@@ -46,120 +50,150 @@ export function activate(ctx: vscode.ExtensionContext) {
   )
 
   ctx.subscriptions.push(
-    vscode.commands.registerCommand('omega_edit.version', async () => {
-      if (!serverRunning) {
-        await startServer(ctx, omegaEditPackageVersion)
-        serverRunning = true
+    vscode.commands.registerCommand(
+      'omega_edit.version',
+      async (startServer: boolean = true) => {
+        if (!serverRunning && startServer) {
+          await getServer(ctx, omegaEditPackageVersion)
+          serverRunning = true
+        }
+
+        return await omegaEditVersion.getVersion()
       }
-      let v = await omegaEditVersion.getVersion()
-      vscode.window.showInformationMessage(v)
-    })
+    )
   )
 
   ctx.subscriptions.push(
-    vscode.commands.registerCommand('data.edit', async () => {
-      if (!serverRunning) {
-        await startServer(ctx, omegaEditPackageVersion)
-        serverRunning = true
-      }
-
-      let panel = vscode.window.createWebviewPanel(
-        'viewport',
-        'Data Editor',
-        vscode.ViewColumn.One,
-        {
-          enableScripts: true,
+    vscode.commands.registerCommand(
+      'data.edit',
+      async (
+        filePassed: string = '',
+        startServer: boolean = true,
+        subscribeToViewports: boolean = true
+      ) => {
+        if (!serverRunning && startServer) {
+          await getServer(ctx, omegaEditPackageVersion)
+          serverRunning = true
         }
-      )
 
-      let fileToEdit = await vscode.window
-        .showOpenDialog({
-          canSelectMany: false,
-          openLabel: 'Select',
-          canSelectFiles: true,
-          canSelectFolders: false,
-        })
-        .then((fileUri) => {
-          if (fileUri && fileUri[0]) {
-            return fileUri[0].fsPath
-          }
-        })
-
-      panel.webview.html = getWebviewContent(ctx)
-
-      let s = await omegaEditSession.createSession(fileToEdit, '')
-      panel.webview.postMessage({
-        command: 'setSessionFile',
-        filePath: fileToEdit,
-      })
-
-      let vpAll = await omegaEditViewport.createViewport(
-        randomId().toString(),
-        s,
-        0,
-        1000
-      )
-      let vp1 = await omegaEditViewport.createViewport(
-        randomId().toString(),
-        s,
-        0,
-        64
-      )
-      let vp2 = await omegaEditViewport.createViewport(
-        randomId().toString(),
-        s,
-        64,
-        64
-      )
-      let vp3 = await omegaEditViewport.createViewport(
-        randomId().toString(),
-        s,
-        128,
-        64
-      )
-
-      await viewportSubscribe(panel, vpAll, vpAll, 'vpAll', 'hexAll')
-      await viewportSubscribe(panel, vpAll, vp1, 'viewport1', null)
-      await viewportSubscribe(panel, vpAll, vp2, 'viewport2', null)
-      await viewportSubscribe(panel, vpAll, vp3, 'viewport3', null)
-
-      panel.webview.onDidReceiveMessage(
-        async (message) => {
-          if (message.command === 'printChangeCount') {
-            vscode.window.showInformationMessage(message.changeCount)
-            return
-          }
-          var omegaEdit = new OmegaEdit(
-            s,
-            message.offset,
-            message.command === 'overwriteByte'
-              ? `${message.deleteValue},${message.addValue}`
-              : message.data,
-            message.len,
-            panel
-          )
-          omegaEdit.execute(
-            message.command,
-            message.sessionFile ? message.sessionFile : '',
-            message.overwrite ? message.overwrite : false,
-            message.newFile ? message.newFile : false
-          )
-        },
-        undefined,
-        ctx.subscriptions
-      )
-
-      panel.onDidDispose(
-        async () => {
-          await cleanupViewportSession(s, [vpAll, vp1, vp2, vp3])
-          panel.dispose()
-          serverRunning = !(await stopServer())
-        },
-        undefined,
-        ctx.subscriptions
-      )
-    })
+        return await createOmegaEditWebviewPanel(
+          ctx,
+          filePassed,
+          subscribeToViewports
+        )
+      }
+    )
   )
+}
+
+async function createOmegaEditWebviewPanel(
+  ctx: vscode.ExtensionContext,
+  filePassed: string,
+  subscribeToViewports: boolean
+) {
+  let panel = vscode.window.createWebviewPanel(
+    'viewport',
+    'Data Editor',
+    vscode.ViewColumn.One,
+    {
+      enableScripts: true,
+    }
+  )
+
+  let fileToEdit =
+    filePassed !== ''
+      ? filePassed
+      : await vscode.window
+          .showOpenDialog({
+            canSelectMany: false,
+            openLabel: 'Select',
+            canSelectFiles: true,
+            canSelectFolders: false,
+          })
+          .then((fileUri) => {
+            if (fileUri && fileUri[0]) {
+              return fileUri[0].fsPath
+            }
+          })
+
+  panel.webview.html = getWebviewContent(ctx)
+
+  let s = await omegaEditSession.createSession(fileToEdit, uuidv4())
+  panel.webview.postMessage({
+    command: 'setSessionFile',
+    filePath: fileToEdit,
+  })
+
+  let vpAll = await omegaEditViewport.createViewport(
+    randomId().toString(),
+    s,
+    0,
+    1000
+  )
+  let vp1 = await omegaEditViewport.createViewport(
+    randomId().toString(),
+    s,
+    0,
+    64
+  )
+  let vp2 = await omegaEditViewport.createViewport(
+    randomId().toString(),
+    s,
+    64,
+    64
+  )
+  let vp3 = await omegaEditViewport.createViewport(
+    randomId().toString(),
+    s,
+    128,
+    64
+  )
+
+  // This break CI so option was added to skip it during CI
+  if (subscribeToViewports) {
+    await viewportSubscribe(panel, vpAll, vpAll, 'vpAll', 'hexAll')
+    await viewportSubscribe(panel, vpAll, vp1, 'viewport1', null)
+    await viewportSubscribe(panel, vpAll, vp2, 'viewport2', null)
+    await viewportSubscribe(panel, vpAll, vp3, 'viewport3', null)
+  }
+
+  panel.webview.onDidReceiveMessage(
+    async (message) => {
+      if (message.command === 'printChangeCount') {
+        vscode.window.showInformationMessage(message.changeCount)
+        return
+      }
+      var omegaEdit = new OmegaEdit(
+        s,
+        message.offset,
+        message.command === 'overwriteByte'
+          ? `${message.deleteValue},${message.addValue}`
+          : message.data,
+        message.len,
+        panel
+      )
+      omegaEdit.execute(
+        message.command,
+        message.sessionFile ? message.sessionFile : '',
+        message.overwrite ? message.overwrite : false,
+        message.newFile ? message.newFile : false
+      )
+    },
+    undefined,
+    ctx.subscriptions
+  )
+
+  panel.onDidDispose(
+    async () => {
+      await cleanupViewportSession(s, [vpAll, vp1, vp2, vp3])
+      panel.dispose()
+      serverRunning = !(await stopServer())
+    },
+    undefined,
+    ctx.subscriptions
+  )
+
+  return panel
 }
 
 function getWebviewContent(ctx: vscode.ExtensionContext) {

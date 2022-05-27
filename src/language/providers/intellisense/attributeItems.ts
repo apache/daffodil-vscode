@@ -30,11 +30,6 @@ export const attributeCompletion = (additionalItems) => {
         markdownString: 'dfdl escape character definition',
       },
       {
-        item: 'type=',
-        snippetString: 'type="${1|xs:string,xs:decimal,xs:float,xs:double,xs:integer,xs:nonNegativeInteger,xs:int,xs:unsignedInt,xs:short,xs:unsignedShort,xs:long,xs:unsignedLong,xs:byte,xs:unsignedByte,xs:hexBinary,xs:boolean' + additionalItems + '|}"$0',
-        markdownString: 'attribute to specify a simple type element type',
-      },
-      {
         item: 'minOccurs=',
         snippetString: 'minOccurs="${1|0,1|}"$0',
         markdownString: 'mininum number of times element will occur',

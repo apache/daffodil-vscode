@@ -17,14 +17,13 @@
 
 import * as vscode from 'vscode'
 import * as fs from 'fs'
-import * as unzip from 'unzip-stream'
 import * as os from 'os'
 import * as child_process from 'child_process'
 import { deactivate } from './adapter/extension'
 import { LIB_VERSION } from './version'
 import XDGAppPaths from 'xdg-app-paths'
 import * as path from 'path'
-import { regexp } from './utils'
+import { regexp, unzipFile, runScript } from './utils'
 import { getDaffodilVersion } from './daffodil'
 import { Artifact } from './classes/artifact'
 
@@ -87,8 +86,6 @@ export async function getDebugger(
 
   // If useExistingServer var set to false make sure version of debugger entered is downloaded then ran
   if (!config.useExistingServer) {
-    const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
-
     if (vscode.workspace.workspaceFolders !== undefined) {
       let rootPath = xdgAppPaths.data()
 
@@ -120,18 +117,7 @@ export async function getDebugger(
         }
 
         // Unzip file
-        await new Promise((res, rej) => {
-          let stream = fs
-            .createReadStream(filePath)
-            .pipe(unzip.Extract({ path: `${rootPath}` }))
-          stream.on('close', () => {
-            try {
-              res(filePath)
-            } catch (err) {
-              rej(err)
-            }
-          })
-        })
+        await unzipFile(filePath, rootPath)
       }
 
       // Stop debugger if running
@@ -145,11 +131,6 @@ export async function getDebugger(
         child_process.exec(
           "kill -9 $(ps -ef | grep 'daffodil' | grep 'jar' | awk '{ print $2 }') || return 0"
         ) // ensure debugger server not running and
-        child_process.execSync(
-          `chmod +x ${rootPath.replace(regexp['space'], '\\ ')}/${
-            artifact.name
-          }/bin/${artifact.scriptName}`
-        ) // make sure debugger is executable
       }
 
       // Get program file before debugger starts to avoid timeout
@@ -184,14 +165,18 @@ export async function getDebugger(
         : vscode.Uri.parse('').fsPath
 
       // Get daffodilDebugger class paths to be added to the debugger
-      let daffodilDebugClasspath = config.daffodilDebugClasspath.includes(
-        '${workspaceFolder}'
-      )
-        ? config.daffodilDebugClasspath.replace(
-            regexp['workspace'],
-            workspaceFolder
-          )
-        : config.daffodilDebugClasspath
+      let daffodilDebugClasspath = ''
+
+      if (config.daffodilDebugClassPath) {
+        daffodilDebugClasspath = config.daffodilDebugClasspath.includes(
+          '${workspaceFolder}'
+        )
+          ? config.daffodilDebugClasspath.replace(
+              regexp['workspace'],
+              workspaceFolder
+            )
+          : config.daffodilDebugClasspath
+      }
 
       // Start debugger in terminal based on scriptName
 
@@ -206,20 +191,16 @@ export async function getDebugger(
       let shellArgs =
         os.platform() === 'win32' ? [] : ['--login', '-c', artifact.scriptName]
 
-      let terminal = vscode.window.createTerminal({
-        name: artifact.scriptName,
-        cwd: `${rootPath}/daffodil-debugger-${daffodilVersion}-${LIB_VERSION}/bin/`,
-        hideFromUser: false,
-        shellPath: shellPath,
-        shellArgs: shellArgs,
-        env: {
+      await runScript(
+        `${rootPath}/daffodil-debugger-${daffodilVersion}-${LIB_VERSION}`,
+        artifact,
+        shellPath,
+        shellArgs,
+        {
           DAFFODIL_DEBUG_CLASSPATH: daffodilDebugClasspath,
         },
-      })
-      terminal.show()
-
-      // Wait for 5000 ms to make sure debugger is running before the extension tries to connect to it
-      await delay(5000)
+        'daffodil'
+      )
     }
   }
 

@@ -23,7 +23,7 @@ lazy val daffodilVer = packageData("daffodilVersion").as[String]
 lazy val commonSettings =
   Seq(
     version := {
-      val versionRegex = raw"""  "version": "(.*)",""".r
+      val versionRegex = raw""""version": "(.*)",""".r
       val packageJsonStr = scala.io.Source.fromFile("package.json").mkString
       versionRegex.findFirstMatchIn(packageJsonStr) match {
         case Some(m) => m.group(1)

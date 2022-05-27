@@ -16,6 +16,12 @@
  */
 
 import * as vscode from 'vscode'
+import * as fs from 'fs'
+import * as unzip from 'unzip-stream'
+import { Artifact } from './classes/artifact'
+import * as os from 'os'
+import * as child_process from 'child_process'
+const wait_port = require('wait-port')
 
 const defaultConf = vscode.workspace.getConfiguration()
 // const
@@ -78,8 +84,8 @@ export function getConfig(
   request,
   type,
   program: string = '',
-  data = false,
-  debugServer = false,
+  data: string | boolean = false,
+  debugServer: number | boolean = false,
   infosetOutput: object | null = null,
   stopOnEntry = false,
   useExistingServer = false,
@@ -129,4 +135,91 @@ export function getConfig(
       ? daffodilDebugClasspath
       : defaultConf.get('daffodilDebugClasspath', ''),
   }
+}
+
+export async function unzipFile(zipFilePath: string, extractPath: string) {
+  return await new Promise((resolve, reject) => {
+    let stream = fs
+      .createReadStream(zipFilePath)
+      .pipe(unzip.Extract({ path: `${extractPath}` }))
+    stream.on('close', () => {
+      try {
+        resolve(zipFilePath)
+      } catch (err) {
+        reject(err)
+      }
+    })
+  })
+}
+
+export async function executeScript(
+  name: string,
+  cwd: string,
+  shellPath: string,
+  shellArgs: string[] = []
+) {
+  // Start server in terminal based on scriptName
+  let terminal = vscode.window.createTerminal({
+    name: name,
+    cwd: cwd,
+    hideFromUser: false,
+    shellPath: shellPath,
+    shellArgs: shellArgs,
+  })
+  terminal.show()
+
+  return terminal
+}
+
+export async function killProcess(id: number | undefined) {
+  if (id) {
+    if (os.platform() === 'win32') {
+      child_process.exec(`taskkill /F /PID ${id}`)
+    } else {
+      child_process.exec(`kill -9 ${id} 2>&1 || echo 0`)
+    }
+  }
+}
+
+export async function runScript(
+  scriptPath: string,
+  artifact: Artifact,
+  shellPath: string | null = null,
+  shellArgs: string[] = [],
+  env:
+    | {
+        [key: string]: string | null | undefined
+      }
+    | undefined = undefined,
+  type: string = '',
+  hideTerminal: boolean = false
+) {
+  const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
+
+  if (!os.platform().toLowerCase().startsWith('win')) {
+    child_process.execSync(
+      `chmod +x ${scriptPath.replace(
+        ' ',
+        '\\ '
+      )}/bin/${artifact.scriptName.replace('./', '')}`
+    )
+  }
+
+  // Start server in terminal based on scriptName
+  let terminal = vscode.window.createTerminal({
+    name: artifact.scriptName,
+    cwd: `${scriptPath}/bin`,
+    hideFromUser: false,
+    shellPath: shellPath !== null ? shellPath : artifact.scriptName,
+    shellArgs: shellArgs,
+    env: env,
+  })
+
+  if (!hideTerminal) terminal.show()
+
+  type.includes('daffodil')
+    ? await delay(5000).then(() => {})
+    : await wait_port({ host: '127.0.0.1', port: 9000, output: 'silent' })
+
+  return terminal
 }
