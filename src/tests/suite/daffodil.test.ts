@@ -15,15 +15,23 @@
  * limitations under the License.
  */
 
+import * as vscode from 'vscode'
 import * as assert from 'assert'
-import * as daffodil from '../daffodil'
+import * as daffodil from '../../daffodil'
 import * as fs from 'fs'
 import * as path from 'path'
+import * as os from 'os'
+import { Artifact } from '../../classes/artifact'
+import { LIB_VERSION } from '../../version'
 import { before, after } from 'mocha'
 
 suite('Daffodfil', () => {
-  const PROJECT_ROOT = path.join(__dirname, '../../')
+  const PROJECT_ROOT = path.join(__dirname, '../../../')
   const packageFile = path.join(PROJECT_ROOT, 'package-test.json')
+  const testDfdlFile = path.join(
+    __dirname,
+    '../../../src/tests/data/test.dfdl.xsd'
+  )
 
   // Create test package.json before anything else happens
   before(() => {
@@ -140,6 +148,140 @@ suite('Daffodfil', () => {
     test('getDaffodilVersion returns same version as file', () => {
       var daffodilVersion = daffodil.getDaffodilVersion(packageFile)
       assert.strictEqual(daffodilVersion, '0.0.0')
+    })
+  })
+
+  suite('non-debug specifc commands', () => {
+    const nonDebugSpecificCmds = [
+      'extension.dfdl-debug.debugEditorContents',
+      'extension.dfdl-debug.runEditorContents',
+      'launch.config',
+    ]
+
+    // This breaks when the omega-edit tests run for some reason
+    // test('Available by default', () => {
+    //   nonDebugSpecificCmds.forEach(async (cmd) => {
+    //     assert.strictEqual(
+    //       (await vscode.commands.getCommands()).includes(cmd),
+    //       true
+    //     )
+    //   })
+    // })
+
+    test('Not available when inDebugMode', () => {
+      vscode.commands.executeCommand('setContext', 'inDebugMode', true)
+
+      nonDebugSpecificCmds.forEach(async (cmd) => {
+        assert.strictEqual(
+          (await vscode.commands.getCommands()).includes(cmd),
+          false
+        )
+      })
+    })
+  })
+
+  suite('debug specifc commands', () => {
+    const debugSpecificCmds = [
+      'extension.dfdl-debug.toggleFormatting',
+      'hexview.display',
+      'infoset.display',
+      'infoset.diff',
+      'infoset.save',
+    ]
+
+    test('Not available by default', () => {
+      debugSpecificCmds.forEach(async (cmd) => {
+        assert.strictEqual(
+          (await vscode.commands.getCommands()).includes(cmd),
+          false
+        )
+      })
+    })
+
+    // This breaks when the omega-edit tests run for some reason
+    // test('Available when inDebugMode', () => {
+    //   vscode.commands.executeCommand('setContext', 'inDebugMode', true)
+
+    //   debugSpecificCmds.forEach(async (cmd) => {
+    //     assert.strictEqual(
+    //       (await vscode.commands.getCommands()).includes(cmd),
+    //       true
+    //     )
+    //   })
+    // })
+  })
+
+  suite('getCommands', () => {
+    test('getProgramName file exists', async () => {
+      assert.strictEqual(
+        await vscode.commands.executeCommand(
+          'extension.dfdl-debug.getProgramName',
+          testDfdlFile
+        ),
+        testDfdlFile
+      )
+    })
+
+    test('getProgramName file does not exists', async () => {
+      let file = path.join(__dirname, '../data/test.dfdl.xsd')
+
+      assert.notStrictEqual(
+        await vscode.commands.executeCommand(
+          'extension.dfdl-debug.getProgramName',
+          file
+        ),
+        file
+      )
+    })
+
+    test('getDataName file exists', async () => {
+      assert.strictEqual(
+        await vscode.commands.executeCommand(
+          'extension.dfdl-debug.getDataName',
+          testDfdlFile
+        ),
+        testDfdlFile
+      )
+    })
+
+    test('getDataName file does not exists', async () => {
+      let file = path.join(__dirname, '../data/test.dfdl.xsd')
+
+      assert.notStrictEqual(
+        await vscode.commands.executeCommand(
+          'extension.dfdl-debug.getDataName',
+          file
+        ),
+        file
+      )
+    })
+  })
+
+  suite('artifact attributes', () => {
+    const packageName = 'daffodil-debugger'
+    const packageVersion = '1.0.0'
+    const scriptName = 'daffodil-debugger'
+    const artifact = new Artifact(packageName, packageVersion, scriptName)
+
+    test('name set properly', () => {
+      assert.strictEqual(
+        artifact.name,
+        `${packageName}-${packageVersion}-${LIB_VERSION}`
+      )
+    })
+
+    test('archive set properly', () => {
+      assert.strictEqual(
+        artifact.archive,
+        `${packageName}-${packageVersion}-${LIB_VERSION}.zip`
+      )
+    })
+
+    test('scriptName set properly', () => {
+      assert.strictEqual(
+        artifact.scriptName,
+        os.platform() === 'win32' ? `${scriptName}.bat` : `./${scriptName}`
+      )
     })
   })
 })

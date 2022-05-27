@@ -28,38 +28,22 @@ import {
 } from './utils'
 
 import { attributeCompletion } from './intellisense/attributeItems'
+import { getCommonItems, createCompletionItem } from './utils'
 
 function getCompletionItems(
   itemsToUse: string[],
   preVal: string = '',
   additionalItems: string = ''
 ) {
-  let compItems: vscode.CompletionItem[] = []
-  let noPreVals: string[] = [
-    'dfdl:choiceBranchKey=',
-    'dfdl:representation',
-    'dfdl:choiceDispatchKey=',
-    'dfdl:simpleType',
-    'xs:restriction',
-  ]
+  let compItems: vscode.CompletionItem[] = getCommonItems(
+    itemsToUse,
+    preVal,
+    additionalItems
+  )
 
   attributeCompletion(additionalItems).items.forEach((e) => {
     if (itemsToUse.includes(e.item)) {
-      const completionItem = new vscode.CompletionItem(e.item)
-
-      if (preVal !== '' && !noPreVals.includes(e.item)) {
-        completionItem.insertText = new vscode.SnippetString(
-          preVal + e.snippetString
-        )
-      } else {
-        completionItem.insertText = new vscode.SnippetString(e.snippetString)
-      }
-
-      if (e.markdownString) {
-        completionItem.documentation = new vscode.MarkdownString(
-          e.markdownString
-        )
-      }
+      const completionItem = createCompletionItem(e, preVal)
       compItems.push(completionItem)
     }
   })
@@ -200,16 +184,6 @@ export function getAttributeCompletionProvider() {
 
             var xmlItems = [
               {
-                item: 'type=',
-                snippetString:
-                  preVal +
-                  'type="${1|xs:string,xs:decimal,xs:float,xs:double,xs:integer,xs:nonNegativeInteger,xs:int,xs:unsignedInt,xs:short,xs:unsignedShort,xs:long,xs:unsignedLong,xs:byte,xs:unsignedByte,xs:hexBinary,xs:boolean' +
-                  additionalItems +
-                  '|}"$0',
-                markdownString:
-                  'attribute to specify a simple type element type',
-              },
-              {
                 item: 'external=',
                 snippetString: preVal + 'external="${1|true,false|}"$0',
               },
@@ -227,12 +201,11 @@ export function getAttributeCompletionProvider() {
                   e.snippetString
                 )
 
-                if (e.markdownString) {
-                  completionItem.documentation = new vscode.MarkdownString(
-                    e.markdownString
-                  )
-                }
                 compItems.push(completionItem)
+              })
+
+              getCommonItems(['type='], '', additionalItems).forEach((ci) => {
+                compItems.push(ci)
               })
 
               return compItems

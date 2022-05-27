@@ -18,6 +18,7 @@
 import * as vscode from 'vscode'
 import { checkBraceOpen } from './utils'
 import { elementCompletion } from './intellisense/elementItems'
+import { createCompletionItem } from './utils'
 
 export function getElementCompletionProvider(dfdlFormatString: string) {
   return vscode.languages.registerCompletionItemProvider('dfdl', {
@@ -40,14 +41,7 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
 
       elementCompletion(definedVariables, dfdlFormatString).items.forEach(
         (e) => {
-          const completionItem = new vscode.CompletionItem(e.item)
-          completionItem.insertText = new vscode.SnippetString(e.snippetString)
-
-          if (e.markdownString) {
-            completionItem.documentation = new vscode.MarkdownString(
-              e.markdownString
-            )
-          }
+          const completionItem = createCompletionItem(e, '')
           compItems.push(completionItem)
         }
       )
