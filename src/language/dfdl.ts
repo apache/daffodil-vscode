@@ -51,7 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         const xsSchema = new vscode.CompletionItem('xs:schema')
         xsSchema.insertText = new vscode.SnippetString(
-          '<xs:schema xmlns:xs="http://www.w3.org2001/xmlSchema"\n\t\txmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"\n\t\txmlns:daf="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext"\n\t\txmlns:fn="http:/www.w3.org/2005/xpath-functions"\n\t\txmlns:math="www.w3.org/2005/xpath-functions/math" elementFormDefault="qualified">\n$0\n</xs:schema>'
+          '<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"\n\t\txmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"\n\t\txmlns:daf="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext"\n\t\txmlns:fn="http:/www.w3.org/2005/xpath-functions"\n\t\txmlns:math="www.w3.org/2005/xpath-functions/math" elementFormDefault="qualified">\n$0\n</xs:schema>'
         )
 
         const xsElement = new vscode.CompletionItem('xs:element name')
