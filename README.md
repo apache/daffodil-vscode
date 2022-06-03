@@ -89,6 +89,21 @@ Once you have either downloaded the VSIX file or created it you can now install 
 
 Please refer to the Wiki page at https://github.com/apache/daffodil-vscode/wiki
 
+To debug a daffodil schema, choose open a folder from the File menus, then select a dfdl.xsd file. Once the file loads in VS Code, then set a desired breakpoint.
+![Setting Breakpoints](./images/SetBreakpoint.gif)
+
+To start debugging, click on the debug button on the side panel, then click the RUN AND DEBUG button with the dropdown set to Ask for file name.
+![Debugging](./images/StartDebug.gif)
+
+To step through the schema code, use the step over button
+![Step Over](./images/StepThrough.gif)
+
+To view the infoset, use the veiw the XML infoset button
+![View Infoset](./images/ViewInfoset.gif)
+
+To view the data file in hex, use the view hex button
+![View Hex](./images/ViewHex.gif)
+
 ## Getting Help
 
 You can ask questions on the dev@daffodil.apache.org or
