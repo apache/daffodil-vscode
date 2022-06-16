@@ -50,7 +50,7 @@ jobs:
       SBT: sbt -J-Xms1024m -J-Xmx5120m -J-XX:ReservedCodeCacheSize=512m -J-XX:MaxMetaspaceSize=1024m ++2.12.15
 
     steps:
-      - uses: actions/checkout@v2.3.5
+      - uses: actions/checkout@v3.0.2
       - name: Setup Node
         uses: actions/setup-node@v1.4.6
         with:
@@ -82,7 +82,7 @@ jobs:
           java-version: 11
 
       - name: Check out Repository
-        uses: actions/checkout@v2.3.5
+        uses: actions/checkout@v3.0.2
         with:
           fetch-depth: 0
 
@@ -102,7 +102,7 @@ jobs:
     env:
       SBT: sbt -J-Xms1024m -J-Xmx5120m -J-XX:ReservedCodeCacheSize=512m -J-XX:MaxMetaspaceSize=1024m ++2.12.15
     steps:
-      - uses: actions/checkout@v2.3.5
+      - uses: actions/checkout@v3.0.2
       - name: Install Node.js
         uses: actions/setup-node@v1.4.6
         with:
