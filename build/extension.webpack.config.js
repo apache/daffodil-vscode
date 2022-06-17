@@ -49,7 +49,8 @@ module.exports = /** @type WebpackConfig */ {
 		filename: 'extension.js',
 		path: path.resolve(__dirname, '../dist/ext'),
 		libraryTarget: 'commonjs2',
-		devtoolModuleFilenameTemplate: "../../[resource-path]"
+		devtoolModuleFilenameTemplate: "../../[resource-path]",
+		hashFunction: "sha512"
 	},
 	devtool: 'source-map'
 }
