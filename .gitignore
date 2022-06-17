@@ -45,3 +45,9 @@ src/version.ts
 #        either /tmp or XDG or ...
 datafile-hex
 npm-debug.log
+
+# tmp files
+tmp.*
+
+# ignore omega-edit scala server package file
+src/omega_edit/omega-edit-scala-server*

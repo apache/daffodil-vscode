@@ -22,9 +22,7 @@
 
 # Apache Daffodil VS Code Extension
 
-[![Unit Tests](https://github.com/apache/daffodil-vscode/workflows/Unit%20Tests/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/tests.yml)
-[![Code Formatting](https://github.com/apache/daffodil-vscode/workflows/Code%20Formatting/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/formatting.yml)
-[![Rat Check](https://github.com/apache/daffodil-vscode/workflows/Rat%20Check/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/rat-check.yml)
+[![CI](https://github.com/apache/daffodil-vscode/workflows/CI/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/CI.yml)
 
 </div>
 

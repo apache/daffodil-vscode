@@ -2,8 +2,9 @@
   "name": "apache-daffodil-vscode",
   "displayName": "Apache Daffodil VS Code Extension",
   "description": "VS Code extension for Apache Daffodil DFDL schema debugging",
-  "version": "1.0.0",
+  "version": "1.1.0-SNAPSHOT",
   "daffodilVersion": "3.3.0",
+  "omegaEditServerHash": "2f8fec09a67aa2a9d844bcb7c0c0dd54f702186ddaa1eb13e73b1ec6b3cf6d73b687b3e9b35b46da609a14746ff7ec884f7d6abc5ae4ac9ce634235e78c3d56d",
   "publisher": "asf",
   "author": "Apache Daffodil",
   "license": "Apache-2.0",
@@ -13,7 +14,7 @@
   "icon": "images/daffodil.ico",
   "categories": [
     "Debuggers",
-    "Snippets"
+    "Programming Languages"
   ],
   "repository": {
     "type": "git",
@@ -23,11 +24,12 @@
     "url": "https://github.com/apache/daffodil-vscode/issues"
   },
   "scripts": {
+    "omega-edit-download": "tsc -p ./ && node -e \"require('./out/omega_edit/download.js').downloadServer()\"",
     "vscode:prepublish": "yarn run package-ext",
     "precompile": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && yarn omega-edit-download",
     "lint": "yarn run prettier src -c",
-    "watch": "webpack --watch --devtool nosources-source-map --info-verbosity verbose --config ./build/extension.webpack.config.js",
+    "watch": "yarn omega-edit-download && webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js",
     "watch2": "tsc -watch -p ./",
     "package": "vsce package",
     "publish": "vsce publish",
@@ -35,52 +37,81 @@
     "pretest": "yarn run compile",
     "test": "node node_modules/mocha/bin/_mocha -u tdd --timeout 999999 --colors ./out/tests",
     "sbt": "sbt universal:packageBin",
-    "pre-build": "mv LICENSE tmp.LICENSE && mv NOTICE tmp.NOTICE && cp build/bin.LICENSE LICENSE && cp build/bin.NOTICE NOTICE",
+    "pre-build": "run-script-os",
+    "pre-build:default": "mv LICENSE tmp.LICENSE && mv NOTICE tmp.NOTICE && cp build/bin.LICENSE LICENSE && cp build/bin.NOTICE NOTICE",
+    "pre-build:windows": "move LICENSE tmp.LICENSE && move NOTICE tmp.NOTICE && copy build/bin.LICENSE LICENSE && copy build/bin.NOTICE NOTICE",
     "build": "yarn pre-build && yarn sbt && yarn install && yarn compile && yarn package && yarn post-build",
-    "post-build": "rm -rf NOTICE LICENSE && mv tmp.LICENSE LICENSE && mv tmp.NOTICE NOTICE"
+    "post-build": "run-script-os",
+    "post-build:default": "rm NOTICE && rm LICENSE && mv tmp.LICENSE LICENSE && mv tmp.NOTICE NOTICE",
+    "post-build:windows": "del /q NOTICE && del /q LICENSE && move tmp.LICENSE LICENSE && move tmp.NOTICE NOTICE"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.5.4",
+    "@types/moo": "^0.5.5",
     "await-notify": "1.0.1",
-    "child_process": "^1.0.2",
-    "hexy": "^0.3.1",
-    "unzip-stream": "^0.3.1",
-    "vscode-debugadapter": "^1.46.0",
-    "xdg-app-paths": "^7.3.0"
+    "child_process": "1.0.2",
+    "google-protobuf": "3.19.4",
+    "hexy": "0.3.1",
+    "moo": "0.5.1",
+    "omega-edit": "0.9.8",
+    "run-script-os": "1.1.6",
+    "unzip-stream": "0.3.1",
+    "vscode-debugadapter": "1.46.0",
+    "xdg-app-paths": "7.3.0"
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",
     "@types/mocha": "^8.2.2",
     "@types/node": "^14.14.37",
     "@types/vscode": "^1.55.0",
-    "glob": "^7.1.6",
-    "mocha": "^8.3.2",
-    "prettier": "^2.3.2",
-    "ts-loader": "^8.1.0",
-    "typescript": "^4.2.3",
-    "vsce": "^1.87.1",
-    "vscode-debugadapter-testsupport": "^1.46.0",
-    "webpack": "^4.46.0",
-    "webpack-cli": "^3.3.12"
+    "glob": "7.1.6",
+    "mocha": "8.3.2",
+    "prettier": "2.3.2",
+    "ts-loader": "8.1.0",
+    "typescript": "4.3.5",
+    "vsce": "1.87.1",
+    "vscode-debugadapter-testsupport": "1.46.0",
+    "webpack": "4.46.0",
+    "webpack-cli": "3.3.12"
   },
+  "extensionDependencies": [
+    "vincaslt.highlight-matching-tag"
+  ],
   "main": "./dist/ext/extension.js",
-  "browser": "./dist/web/extension.js",
   "activationEvents": [
+    "onLanguage:dfdl",
     "onDebugResolve:dfdl",
     "onDebugDynamicConfigurations:dfdl",
     "onCommand:extension.dfdl-debug.getProgramName",
     "onCommand:extension.dfdl-debug.getDataName",
     "onCommand:extension.dfdl-debug.runEditorContents",
     "onCommand:extension.dfdl-debug.debugEditorContents",
-    "onCommand:launch.config"
+    "onCommand:launch.config",
+    "onCommand:data.edit",
+    "onCommand:omega_edit.version",
+    "onCommand:toggle.experimental"
   ],
   "workspaceTrust": {
     "request": "never"
   },
   "contributes": {
-    "snippets": [
+    "languages": [
       {
-        "language": "xml",
-        "path": "./snippets/dfdl.json"
+        "id": "dfdl",
+        "aliases": [
+          "dfdl"
+        ],
+        "extensions": [
+          ".dfdl.xsd"
+        ],
+        "configuration": "./language/dfdl.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "dfdl",
+        "scopeName": "text.xml.dfdl.xsd",
+        "path": "./language/syntaxes/dfdl.tmLanguage.json"
       }
     ],
     "menus": {
@@ -91,38 +122,49 @@
         },
         {
           "command": "hexview.display",
-          "when": "resourceLangId == xml",
+          "when": "resourceLangId == dfdl",
           "group": "navigation@4"
         },
         {
           "command": "infoset.display",
-          "when": "resourceLangId == xml",
+          "when": "resourceLangId == dfdl",
           "group": "navigation@2"
         },
         {
           "command": "infoset.diff",
-          "when": "resourceLangId == xml",
+          "when": "resourceLangId == dfdl",
           "group": "navigation@3"
         }
       ],
       "editor/title/run": [
         {
           "command": "extension.dfdl-debug.runEditorContents",
-          "when": "resourceLangId == xml"
+          "when": "resourceLangId == dfdl"
         },
         {
           "command": "extension.dfdl-debug.debugEditorContents",
-          "when": "resourceLangId == xml"
+          "when": "resourceLangId == dfdl"
         }
       ],
       "commandPalette": [
         {
           "command": "extension.dfdl-debug.debugEditorContents",
-          "when": "resourceLangId == xml"
+          "when": "resourceLangId == dfdl"
         },
         {
           "command": "extension.dfdl-debug.runEditorContents",
-          "when": "resourceLangId == xml"
+          "when": "resourceLangId == dfdl"
+        },
+        {
+          "command": "data.edit",
+          "enablement": "experimentalFeaturesEnabled"
+        },
+        {
+          "command": "omega_edit.version",
+          "enablement": "experimentalFeaturesEnabled"
+        },
+        {
+          "command": "toggle.experimental"
         }
       ],
       "debug/variables/context": [
@@ -186,18 +228,49 @@
         "category": "Daffodil Debug",
         "enablement": "!inDebugMode",
         "icon": "$(debug-configure)"
+      },
+      {
+        "command": "toggle.experimental",
+        "title": "Enable Experimental Features",
+        "category": "Daffodil Debug"
+      },
+      {
+        "command": "omega_edit.version",
+        "title": "Omega Edit Ω Version Info",
+        "category": "OmegaEdit",
+        "enablement": "experimentalFeaturesEnabled"
+      },
+      {
+        "command": "data.edit",
+        "title": "Data Editor",
+        "category": "OmegaEdit",
+        "enablement": "experimentalFeaturesEnabled"
+      },
+      {
+        "command": "position.goto",
+        "title": "Go to position",
+        "category": "OmegaEdit",
+        "enablement": "experimentalFeaturesEnabled"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "position.goto",
+        "key": "ctrl+alt+g",
+        "mac": "ctrl+cmd+g",
+        "when": "editorTextFocus"
       }
     ],
     "breakpoints": [
       {
-        "language": "xml"
+        "language": "dfdl"
       }
     ],
     "debuggers": [
       {
         "type": "dfdl",
         "languages": [
-          "xml"
+          "dfdl"
         ],
         "label": "Daffodil Debug",
         "program": "./out/extension.js",

@@ -150,3 +150,133 @@ The following NOTICE information applies to binary components distributed with t
   Portions of this code are derived from classes placed in the
   public domain by Arbortext on 10 Apr 2000. See:
   http://www.arbortext.com/customer_support/updates_and_technical_notes/catalogs/docs/README.htm
+
+- extension/dist/ext/extension.js
+- io.grpc.grpc-api-<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+- io.grpc.grpc-context-<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+- io.grpc.grpc-core-<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+- io.grpc.grpc-netty-shaded-<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+- io.grpc.grpc-stub-<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+  Copyright 2014 gRPC authors.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+- com.typesafe.akka.akka-http-core_<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+- com.typesafe.akka.akka-http-_<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+- com.typesafe.akka.akka-http-parsing_<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+  Akka HTTP
+  =========
+
+  The source code is Akka HTTP is hosted at https://github.com/akka/akka-http.
+
+  This software is licensed under the Apache 2 license, quoted below.
+
+  Copyright 2009-2021 Lightbend Inc. [https://www.lightbend.com]
+
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+  use this file except in compliance with the License. You may obtain a copy of
+  the License at
+
+      [http://www.apache.org/licenses/LICENSE-2.0]
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+  License for the specific language governing permissions and limitations under
+  the License.
+
+  Also, please refer to each `licenses/LICENSE.<component>.txt` file for the license
+  terms of the components that this product depends on.
+
+  -------------------------------------------------------------------------------
+  This product contains a modified version of 'HPACK', a Java implementation of
+  the HTTP/2 HPACK algorithm written by Twitter. It can be obtained at:
+
+    * LICENSE:
+      * licenses/LICENSE.hpack.txt (Apache License 2.0)
+    * HOMEPAGE:
+      * https://github.com/twitter/hpack
+
+- io.perfmark.perfmark-api-<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+  Copyright 2019 Google LLC
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  -----------------------------------------------------------------------
+
+  This product contains a modified portion of 'Catapult', an open source
+  Trace Event viewer for Chome, Linux, and Android applications, which can 
+  be obtained at:
+
+    * LICENSE:
+      * traceviewer/src/main/resources/io/perfmark/traceviewer/third_party/catapult/LICENSE (New BSD License)
+    * HOMEPAGE:
+      * https://github.com/catapult-project/catapult
+
+  This product contains a modified portion of 'Polymer', a library for Web
+  Components, which can be obtained at:
+    * LICENSE:
+      * traceviewer/src/main/resources/io/perfmark/traceviewer/third_party/polymer/LICENSE (New BSD License)
+    * HOMEPAGE:
+      * https://github.com/Polymer/polymer
+
+
+  This product contains a modified portion of 'ASM', an open source
+  Java Bytecode library, which can be obtained at:
+
+    * LICENSE:
+      * agent/src/main/resources/io/perfmark/agent/third_party/asm/LICENSE (BSD style License)
+    * HOMEPAGE:
+      * https://asm.ow2.io/
+
+- org.scala-lang.modules.scala-collection-compat_<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+  scala-collection-compat
+  Copyright (c) 2002-2022 EPFL
+  Copyright (c) 2011-2022 Lightbend, Inc.
+
+  Scala includes software developed at
+  LAMP/EPFL (https://lamp.epfl.ch/) and
+  Lightbend, Inc. (https://www.lightbend.com/).
+
+  Licensed under the Apache License, Version 2.0 (the "License").
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+- org.scala-lang.modules.scala-java8-compat_<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+  scala-java8-compat
+  Copyright (c) 2002-2022 EPFL
+  Copyright (c) 2011-2022 Lightbend, Inc.
+
+  scala-java8-compat includes software developed at
+  LAMP/EPFL (https://lamp.epfl.ch/) and
+  Lightbend, Inc. (https://www.lightbend.com/).
+
+  Licensed under the Apache License, Version 2.0 (the "License").
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.

@@ -15,4 +15,26 @@
  * limitations under the License.
  */
 
-sbt.version = 1.6.2
+import * as vscode from 'vscode'
+import { insertSnippet } from './utils'
+
+export function getEndSingleBraceProvider() {
+  return vscode.languages.registerCompletionItemProvider(
+    'dfdl',
+    {
+      provideCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position
+      ) {
+        const wholeLine = document
+          .lineAt(position)
+          .text.substr(0, position.character)
+        if (wholeLine.includes('dfdl:length="{')) {
+          insertSnippet('$1}$0', position)
+        }
+        return undefined
+      },
+    },
+    '{'
+  )
+}

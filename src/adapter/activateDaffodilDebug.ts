@@ -21,6 +21,8 @@ import * as fs from 'fs'
 import * as infoset from '../infoset'
 import { getConfig, setCurrentConfig } from '../utils'
 import * as launchWizard from '../launchWizard/launchWizard'
+import * as omegaEditClient from '../omega_edit/client'
+import * as dfdlLang from '../language/dfdl'
 
 // Function for setting up the commands for Run and Debug file
 function createDebugRunFileConfigs(resource: vscode.Uri, runOrDebug: String) {
@@ -91,7 +93,27 @@ export function activateDaffodilDebug(
           ds.customRequest('toggleFormatting')
         }
       }
-    )
+    ),
+    vscode.commands.registerCommand('toggle.experimental', async (_) => {
+      const action = await vscode.window.showQuickPick(['Yes', 'No'], {
+        title: 'Enable Experimental Features?',
+        canPickMany: false,
+      })
+
+      vscode.commands.executeCommand(
+        'setContext',
+        'experimentalFeaturesEnabled',
+        action === 'Yes' ? true : false
+      )
+
+      if (action === 'Yes') {
+        omegaEditClient.activate(context)
+
+        vscode.window.showInformationMessage(
+          'DFDL: Experimental Features Enabled!'
+        )
+      }
+    })
   )
 
   context.subscriptions.push(
@@ -262,6 +284,7 @@ export function activateDaffodilDebug(
     })
   )
 
+  dfdlLang.activate(context)
   infoset.activate(context)
   launchWizard.activate(context)
 }

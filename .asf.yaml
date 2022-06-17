@@ -6,43 +6,29 @@
 # the License. You may obtain a copy of the License at
 #
 # http://www.apache.org/licenses/LICENSE-2.0
-#
+# 
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
----
-name: Rat Check
+github:
+  description: "VS Code extension for Apache Daffodil"
+  homepage: https://daffodil.apache.org/
+  features:
+    wiki:     true
+    issues:   true
+    projects: true
+  enabled_merge_buttons:
+    squash:   false
+    merge:    false
+    rebase:   true
+  collaborators:
+    - scholarsmate
+    - michael-hoke
+notifications:
+    commits:      commits@daffodil.apache.org
+    issues:       commits@daffodil.apache.org
+    pullrequests: commits@daffodil.apache.org
 
-on:
-  push:
-    branches-ignore: [ 'dependabot/**' ]
-  pull_request:
-    types: [opened, synchronize, reopened]
-
-jobs:
-  check:
-    name: Rat Check
-    runs-on: ubuntu-20.04
-    defaults:
-      run:
-        shell: bash
-    env:
-      SBT: sbt -J-Xms1024m -J-Xmx5120m -J-XX:ReservedCodeCacheSize=512m -J-XX:MaxMetaspaceSize=1024m ++2.12.13
-    
-    steps:
-      - name: Setup Java
-        uses: actions/setup-java@v2.3.1
-        with:
-          distribution: temurin
-          java-version: 11
-
-      - name: Check out Repository
-        uses: actions/checkout@v2.3.5
-        with:
-          fetch-depth: 0
-
-      - name: Run Rat Check
-        run: $SBT ratCheck || (cat target/rat.txt; exit 1)
