@@ -15,7 +15,6 @@
   limitations under the License.
 -->
 
-
 <div align="center">
 
 <img src="https://daffodil.apache.org/assets/themes/apache/img/apache-daffodil-logo.png" height="85" alt="Apache Daffodil"/>
@@ -29,6 +28,7 @@
 This is a VS Code extension which enables the interactive debugging of DFDL schema parsing using [Apache Daffodil](https://daffodil.apache.org/).
 
 ## Build Requirements
+
 - Java Development Kit (JDK) 11 or higher
 - SBT 0.13.8 or higher
 - Node 10 or higher
@@ -38,23 +38,24 @@ This is a VS Code extension which enables the interactive debugging of DFDL sche
 
 Until the extension is available in the [VS Code Extension Marketplace](https://marketplace.visualstudio.com/vscode), please download the latest `.vsix` file from the [releases page](https://github.com/apache/daffodil-vscode/releases).
 
-
 ## Build VSIX and Debugger
+
 :exclamation:**NOT necessary if using prebuilt VSIX**:exclamation:
 
 :exclamation:**NOT necessary if running extension via VS Code without VSIX but a `yarn install` will be required**:exclamation:
 
 Run full build
-  ```bash
-  yarn build
-  ```
 
-* This command performs the following tasks:
-  * Create sbt zip package
-  * Install dependencies
-  * Compiles Extension
-  * Packages Extension
-  * Creates Files
+```bash
+yarn build
+```
+
+- This command performs the following tasks:
+  - Create sbt zip package
+  - Install dependencies
+  - Compiles Extension
+  - Packages Extension
+  - Creates Files
     ```
     server/core/target/universal/daffodil-debugger-*.zip
     daffodil-debugger-*.vsix
@@ -65,22 +66,22 @@ Run full build
 The debug server will automatically be ran by the extension unless `useExistingServer` is to set to `true` inside of `.vscode/launch.json`
 
 If you wish to ran the debug server manually the scripts to do so are at the following locations:
-* Debugging through VS Code with or without VSIX:
-  * Linux = `/home/USERNAME/.local/share/daffodil-dap`
-  * Mac = `/Users/USERNAME/Library/Application\ Support/daffodil-dap`
-  * Windows = `C:\\Users\\USERNAME\\AppData\\Roaming\\daffodil-dap`
-  
 
+- Debugging through VS Code with or without VSIX:
+  - Linux = `/home/USERNAME/.local/share/daffodil-dap`
+  - Mac = `/Users/USERNAME/Library/Application\ Support/daffodil-dap`
+  - Windows = `C:\\Users\\USERNAME\\AppData\\Roaming\\daffodil-dap`
 
 ## Installation
 
 Once you have either downloaded the VSIX file or created it you can now install it. There are two options to do this:
 
-* Via "Extensions: Install from VSIX" command from within VS Code.
-  * Open the Command Palette with Shift-Command-P (Mac) OR Shift-Ctrl-P (Windows/Linux)
-  * Type `vsix` to bring up the command and pointing it at the `vsix` file
+- Via "Extensions: Install from VSIX" command from within VS Code.
 
-* Via command line
+  - Open the Command Palette with Shift-Command-P (Mac) OR Shift-Ctrl-P (Windows/Linux)
+  - Type `vsix` to bring up the command and pointing it at the `vsix` file
+
+- Via command line
   ```bash
   code --install-extension daffodil-debugger-*.vsix
   ```
@@ -89,33 +90,18 @@ Once you have either downloaded the VSIX file or created it you can now install 
 
 Please refer to the Wiki page at https://github.com/apache/daffodil-vscode/wiki
 
-To debug a daffodil schema, choose open a folder from the File menus, then select a dfdl.xsd file. Once the file loads in VS Code, then set a desired breakpoint.
-![Setting Breakpoints](./images/SetBreakpoint.gif)
-
-To start debugging, click on the debug button on the side panel, then click the RUN AND DEBUG button with the dropdown set to Ask for file name.
-![Debugging](./images/StartDebug.gif)
-
-To step through the schema code, use the step over button
-![Step Over](./images/StepThrough.gif)
-
-To view the infoset, use the veiw the XML infoset button
-![View Infoset](./images/ViewInfoset.gif)
-
-To view the data file in hex, use the view hex button
-![View Hex](./images/ViewHex.gif)
-
 ## Getting Help
 
 You can ask questions on the dev@daffodil.apache.org or
-users@daffodil.apache.org mailing lists.  You can report bugs via
+users@daffodil.apache.org mailing lists. You can report bugs via
 [GitHub Issues].
 
 ## License
 
 Apache Daffodil VS Code Extension is licensed under the [Apache License, v2.0].
 
-[Apache License, v2.0]: https://www.apache.org/licenses/LICENSE-2.0
-[GitHub Issues]: https://github.com/apache/daffodil-vscode/issues
+[apache license, v2.0]: https://www.apache.org/licenses/LICENSE-2.0
+[github issues]: https://github.com/apache/daffodil-vscode/issues
 
 This product includes the [logback](https://github.com/qos-ch/logback) library, which is available under the Eclipse Public License v1.0.
 
