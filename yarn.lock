@@ -1614,10 +1614,10 @@ he@1.2.0:
   resolved "https://registry.yarnpkg.com/he/-/he-1.2.0.tgz#84ae65fa7eafb165fddb61566ae14baf05664f0f"
   integrity sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==
 
-hexy@0.3.1:
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/hexy/-/hexy-0.3.1.tgz#51a56aa57a6a092fd0911bede51b6b137173f7c4"
-  integrity sha512-mUarDrcDM53Hwvlm/sMkFQ1TfxOzLhQlDEaSqpIaQV9b+8u7Ba+dPS7zf/Ivx0CVfGzMBbPwuRUUbFy+5vDD7A==
+hexy@0.3.4:
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/hexy/-/hexy-0.3.4.tgz#17e479a5acb92e4d96576dad86252e869b43395a"
+  integrity sha512-P2V2yx+XhEJRjXCe9IlRzbcL33plTaIjn+OSvgWu0Z9+2WkL71d+eC4jQ91rooM+F0JNERnENH6mpHlpcT+qlA==
 
 hmac-drbg@^1.0.1:
   version "1.0.1"

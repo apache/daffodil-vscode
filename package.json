@@ -51,7 +51,7 @@
     "await-notify": "1.0.1",
     "child_process": "1.0.2",
     "google-protobuf": "3.19.4",
-    "hexy": "0.3.1",
+    "hexy": "0.3.4",
     "moo": "0.5.1",
     "omega-edit": "0.9.8",
     "run-script-os": "1.1.6",
