@@ -19,6 +19,30 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"type": "dfdl",
+			"request": "launch",
+			"name": "DfdlDeb",
+			"program": "${command:AskForProgramName}",
+			"stopOnEntry": true,
+			"data": "${command:AskForDataName}",
+			"infosetFormat": "xml",
+			"infosetOutput": {
+				"type": "file",
+				"path": "/infoset.xml"
+			},
+			"tdmlConfig": {
+				"action": "none",
+				"name": "${command:AskForTDMLName}",
+				"description": "${command:AskForTDMLDescription}",
+				"path": "${command:AskForTDMLPath}"
+			},
+			"debugServer": 4711,
+			"openHexView": false,
+			"openInfosetView": false,
+			"openInfosetDiffView": false,
+			"daffodilDebugClasspath": ""
+		},
+		{
 			"name": "Extension",
 			"type": "extensionHost",
 			"request": "launch",
@@ -29,7 +53,7 @@
 			"outFiles": [
 				"${workspaceFolder}/dist/ext/**/*.js"
 			],
-			"preLaunchTask": "npm: watch",
+			"preLaunchTask": "npm: watch"
 		},
 		{
 			"name": "Tests",
@@ -44,6 +68,15 @@
 				"${workspaceFolder}/out/tests/**/*.js",
 			],
 			"preLaunchTask": "npm: compile"
+		},
+		{
+			"type": "scala",
+			"request": "launch",
+			"name": "Daffodil Debug Server",
+			"mainClass": "org.apache.daffodil.debugger.dap.DAPodil",
+			"args": [],
+			"jvmOptions": [],
+			"env": {}
 		}
 	]
 }

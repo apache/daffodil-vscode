@@ -23,7 +23,7 @@ import * as path from 'path'
 import { Artifact } from '../../classes/artifact'
 import { LIB_VERSION } from '../../version'
 import { before, after } from 'mocha'
-import { PROJECT_ROOT, TEST_SCHEMA } from './common'
+import { PROJECT_ROOT, TDML_PATH, TEST_SCHEMA } from './common'
 import { osCheck } from '../../utils'
 
 suite('Daffodfil', () => {
@@ -259,6 +259,28 @@ suite('Daffodfil', () => {
       assert.notStrictEqual(
         await vscode.commands.executeCommand(
           'extension.dfdl-debug.getDataName',
+          file
+        ),
+        file
+      )
+    })
+
+    test('getValidatedTDMLPath file exists', async () => {
+      assert.strictEqual(
+        await vscode.commands.executeCommand(
+          'extension.dfdl-debug.getValidatedTDMLPath',
+          TDML_PATH
+        ),
+        TDML_PATH
+      )
+    })
+
+    test('getValidatedTDMLPath file does not exists', async () => {
+      let file = path.join(__dirname, '../data/test.tdml')
+
+      assert.notStrictEqual(
+        await vscode.commands.executeCommand(
+          'extension.dfdl-debug.getValidatedTDMLPath',
           file
         ),
         file

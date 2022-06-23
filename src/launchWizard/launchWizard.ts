@@ -344,6 +344,37 @@ class LaunchWizard {
       }
     })
 
+    let tdmlActionSelect = ''
+    let tdmlActions = ['none', 'generate', 'append', 'execute']
+    let tdmlAction = defaultValues.tdmlConfig['action']
+      ? defaultValues.tdmlConfig['type']
+      : defaultValues.tdmlAction
+    let tdmlName = defaultValues.tdmlConfig['name']
+      ? defaultValues.tdmlConfig['name']
+      : defaultValues.tdmlName
+    let tdmlDescription = defaultValues.tdmlConfig['description']
+      ? defaultValues.tdmlConfig['description']
+      : defaultValues.tdmlDescription
+    let tdmlPath = defaultValues.tdmlConfig['path']
+      ? defaultValues.tdmlConfig['path']
+      : defaultValues.tdmlPath
+    let tdmlNameDesVisOrHiddenStyle =
+      tdmlAction !== 'none'
+        ? 'margin-top: 10px; visibility: visible;'
+        : 'visibility: hidden'
+    let tdmlPathVisOrHiddenStyle =
+      tdmlAction === 'generate'
+        ? 'margin-top: 10px; visibility: visible;'
+        : 'visibility: hidden'
+
+    tdmlActions.forEach((action) => {
+      if (action === tdmlAction) {
+        tdmlActionSelect += `<option selected value="${action}">${action}</option>`
+      } else {
+        tdmlActionSelect += `<option value="${action}">${action}</option>`
+      }
+    })
+
     return `
   <!DOCTYPE html>
   <html lang="en">
@@ -454,6 +485,26 @@ class LaunchWizard {
           <input type="checkbox" id="openInfosetView" ${openInfosetView}>
           <span class="checkmark"></span>
         </label>
+      </div>
+
+      <div id="tdmlActionDiv" class="setting-div">
+        <p>TDML Action:</p>
+        <p class="setting-description">TDML Action (none | generate | append | execute)</p>
+        <select onChange="updateTDMLAction()" class="file-input" style="width: 200px;" id="tdmlAction">
+          ${tdmlActionSelect}
+        </select>
+
+        <p id="tdmlNameLabel" style="${tdmlNameDesVisOrHiddenStyle}" class="setting-description">
+          TDML Name: <input class="setting-div" value="${tdmlName}" id="tdmlName">
+        </p>
+
+        <p id="tdmlDescriptionLabel" style="${tdmlNameDesVisOrHiddenStyle}" class="setting-description">
+          TDML Description: <input class="setting-div" value="${tdmlDescription}" id="tdmlDescription">
+        </p>
+
+        <p id="tdmlPathLabel" style="${tdmlPathVisOrHiddenStyle}" class="file-input">
+          TDML File Path: <input class="file-input" value="${tdmlPath}" id="tdmlPath">
+        </p>
       </div>
 
       <div id="programDiv" class="setting-div">

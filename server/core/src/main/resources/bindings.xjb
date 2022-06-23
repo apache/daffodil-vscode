@@ -1,0 +1,78 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<jxb:bindings version="2.1"
+          xmlns:tdml="http://www.ibm.com/xmlns/dfdl/testData"
+          xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+          xmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <jxb:globalBindings>
+        <jxb:serializable uid="1" />
+    </jxb:globalBindings>
+    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/DFDL_part3_model.xsd" version="1.0">
+        <jxb:bindings node="//xs:attributeGroup[@name='SetVariableAG']/xs:attribute[@name='value']">
+            <jxb:property name="ValueAttribute"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:element[@name='simpleType']">
+            <jxb:class name="simpleTypeClass"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:element[@name='group']">
+            <jxb:class name="groupClass"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:element[@name='choice']">
+            <jxb:class name="choiceClass"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:element[@name='sequence']">
+            <jxb:class name="sequenceClass"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:element[@name='element']">
+            <jxb:class name="elementClass"/>
+        </jxb:bindings>
+    </jxb:bindings>
+    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/DFDL_part2_attributes.xsd" version="1.0">
+        <jxb:bindings node="//xs:attributeGroup[@name='BaseAGQualified']/xs:attribute[@name='ref']">
+            <jxb:property name="RefAttribute"/>
+        </jxb:bindings>
+    </jxb:bindings>
+    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/DFDL_part1_simpletypes.xsd" version="1.0">
+        <jxb:bindings node="//xs:simpleType[@name='ByteOrderEnum']">
+            <jxb:typesafeEnumClass name="ByteOrderEnumType"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:simpleType[@name='BitOrderEnum']">
+            <jxb:typesafeEnumClass name="BitOrderEnumType"/>
+        </jxb:bindings>
+    </jxb:bindings>
+    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/dafext.xsd" version="1.0">
+        <jxb:bindings node="//xs:attribute[@name='parseUnparsePolicy']">
+            <jxb:property name="ParseUnparsePolicyExt"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:simpleType[@name='PropertyNameType']">
+            <jxb:typesafeEnumClass name="PropertyNameTypeExt"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:complexType[@name='PropertyType']">
+            <jxb:class name="PropertyTypeClass"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:element[@name='property']">
+            <jxb:class name="propertyClass"/>
+        </jxb:bindings>
+    </jxb:bindings>
+    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/dfdlx.xsd" version="1.0">
+        <jxb:bindings node="//xs:simpleType[@name='PropertyNameType']">
+            <jxb:typesafeEnumClass name="PropertyNameTypeX"/>
+        </jxb:bindings>
+    </jxb:bindings>
+</jxb:bindings>

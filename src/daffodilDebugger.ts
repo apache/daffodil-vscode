@@ -109,30 +109,76 @@ export async function getDebugger(
 
       await stopDebugger()
 
-      // Get program file before debugger starts to avoid timeout
-      if (config.program.includes('${command:AskForProgramName}')) {
-        config.program = await vscode.commands.executeCommand(
-          'extension.dfdl-debug.getProgramName'
-        )
-      }
-
-      if (config.program === '') {
-        // need to invalidate a variable data file so the DebugConfigurationProvider doesn't try to resolve it after we return
-        if (config.data.includes('${command:AskForDataName}')) {
-          config.data = ''
+      // If we are doing a TDML execute, these fields will be replaced,
+      //   so we don't need to prompt for them now.
+      if (config?.tdmlConfig?.action === 'execute') {
+        // Erase the value of `data` so that we aren't prompted for it later
+        // Might need to add `program` here if we move the `Execute TDML` command
+        //   away from the detected dfdl language in VSCode.
+        config.data = ''
+      } else {
+        // Get program file before debugger starts to avoid timeout
+        if (config.program.includes('${command:AskForProgramName}')) {
+          config.program = await vscode.commands.executeCommand(
+            'extension.dfdl-debug.getProgramName'
+          )
         }
 
-        return await stopDebugging()
+        if (config.program === '') {
+          // need to invalidate a variable data file so the DebugConfigurationProvider doesn't try to resolve it after we return
+          if (config.data.includes('${command:AskForDataName}')) {
+            config.data = ''
+          }
+
+          return await stopDebugging()
+        }
+
+        // Get data file before debugger starts to avoid timeout
+        if (config.data.includes('${command:AskForDataName}')) {
+          config.data = await vscode.commands.executeCommand(
+            'extension.dfdl-debug.getDataName'
+          )
+        }
       }
 
-      // Get data file before debugger starts to avoid timeout
-      if (config.data.includes('${command:AskForDataName}')) {
-        config.data = await vscode.commands.executeCommand(
-          'extension.dfdl-debug.getDataName'
+      if (
+        config?.tdmlConfig?.action === 'generate' ||
+        config?.tdmlConfig?.action === 'append' ||
+        config?.tdmlConfig?.action === 'execute'
+      ) {
+        if (
+          config?.tdmlConfig?.name === undefined ||
+          config?.tdmlConfig?.name.includes('${command:AskForTDMLName}')
         )
+          config.tdmlConfig.name = await vscode.commands.executeCommand(
+            'extension.dfdl-debug.getTDMLName'
+          )
+
+        if (
+          config?.tdmlConfig?.description === undefined ||
+          config?.tdmlConfig?.description.includes(
+            '${command:AskForTDMLDescription}'
+          )
+        )
+          config.tdmlConfig.description = await vscode.commands.executeCommand(
+            'extension.dfdl-debug.getTDMLDescription'
+          )
+
+        if (
+          config?.tdmlConfig?.path === undefined ||
+          config?.tdmlConfig?.path.includes('${command:AskForTDMLPath}')
+        )
+          if (config?.tdmlConfig?.action === 'generate')
+            config.tdmlConfig.path = await vscode.commands.executeCommand(
+              'extension.dfdl-debug.getTDMLPath'
+            )
+          else
+            config.tdmlConfig.path = await vscode.commands.executeCommand(
+              'extension.dfdl-debug.getValidatedTDMLPath'
+            )
       }
 
-      if (config.data === '') {
+      if (config?.tdmlConfig?.action !== 'execute' && config.data === '') {
         return await stopDebugging()
       }
 
