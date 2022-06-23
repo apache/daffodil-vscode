@@ -37,7 +37,12 @@ object Rat {
     file("package-lock.json"),
     // files listing packages with no license or notice
     file("build/package/NOLICENSE"),
-    file("build/package/NONOTICE")
+    file("build/package/NONOTICE"),
+    file("src/tests/data/test.txt"),
+    file("server/core/src/test/data/emptyData.xml"),
+    file("server/core/src/test/data/emptyInfoset.xml"),
+    file("server/core/src/test/data/notInfoset.xml"),
+    file("server/core/src/test/data/emptySchema.dfdl.xsd")
   )
 
   lazy val MIT_LICENSE_NAME = "MIT License"

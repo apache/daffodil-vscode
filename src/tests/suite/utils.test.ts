@@ -35,6 +35,12 @@ suite('Utils Test Suite', () => {
       type: 'none',
       path: '${workspaceFolder}/infoset.xml',
     },
+    tdmlConfig: {
+      action: 'none',
+      name: '${command:AskForTDMLName}',
+      description: '${command:AskForTDMLDescription}',
+      path: '${command:AskForTDMLPath}',
+    },
     stopOnEntry: true,
     useExistingServer: false,
     trace: true,

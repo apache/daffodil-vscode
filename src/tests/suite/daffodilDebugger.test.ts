@@ -42,8 +42,9 @@ suite('Daffodil Debugger', () => {
   const EXTRACTED_FOLDER = path.join(PROJECT_ROOT, artifact.name)
 
   // debugger options
-  const DATA = path.join(PROJECT_ROOT, 'images/daffodil.ico')
+  const DATA = path.join(PROJECT_ROOT, 'src/tests/data/test.txt')
   const XML_INFOSET_PATH = path.join(PROJECT_ROOT, 'testinfoset.xml')
+  const TDML_PATH = path.join(PROJECT_ROOT, 'tdmltest.tdml')
   const JSON_INFOSET_PATH = path.join(PROJECT_ROOT, 'testinfoset.json')
   const debuggers: vscode.Terminal[] = []
 
@@ -62,14 +63,29 @@ suite('Daffodil Debugger', () => {
     if (fs.existsSync(XML_INFOSET_PATH)) fs.rmSync(XML_INFOSET_PATH)
     if (fs.existsSync(JSON_INFOSET_PATH)) fs.rmSync(JSON_INFOSET_PATH)
   })
-
+  const tdmlConf = {
+    action: 'none',
+    name: 'tdmlConf',
+    description: 'testtdml',
+    path: TDML_PATH,
+  }
   test('should output xml infoset', async () => {
     await vscode.debug.startDebugging(
       undefined,
-      getConfig('Run', 'launch', 'dfdl', TEST_SCHEMA, DATA, 4711, 'xml', {
-        type: 'file',
-        path: XML_INFOSET_PATH,
-      }),
+      getConfig(
+        'Run',
+        'launch',
+        'dfdl',
+        TEST_SCHEMA,
+        DATA,
+        4711,
+        'xml',
+        {
+          type: 'file',
+          path: XML_INFOSET_PATH,
+        },
+        tdmlConf
+      ),
       { noDebug: true }
     )
 
@@ -79,10 +95,20 @@ suite('Daffodil Debugger', () => {
   test('should output json infoset', async () => {
     await vscode.debug.startDebugging(
       undefined,
-      getConfig('Run', 'launch', 'dfdl', TEST_SCHEMA, DATA, 4712, 'json', {
-        type: 'file',
-        path: JSON_INFOSET_PATH,
-      }),
+      getConfig(
+        'Run',
+        'launch',
+        'dfdl',
+        TEST_SCHEMA,
+        DATA,
+        4712,
+        'json',
+        {
+          type: 'file',
+          path: JSON_INFOSET_PATH,
+        },
+        tdmlConf
+      ),
       { noDebug: true }
     )
 

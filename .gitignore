@@ -57,3 +57,6 @@ omega-edit-grpc-server*
 
 # ignore tests unzip daffodil-debugger
 daffodil-debugger-*
+
+# ignore generated schema files
+server/sbtXjc/resources/xsd/*.xsd

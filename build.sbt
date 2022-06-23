@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import com.github.retronym.sbtxjc.SbtXjcPlugin
+import Classpaths.managedJars
+
 val packageJsonStr = scala.io.Source.fromFile("package.json").mkString
 
 val daffodilVer = {
@@ -75,7 +78,9 @@ lazy val `daffodil-debugger` = project
 
 lazy val core = project
   .in(file("server/core"))
+  .enablePlugins(BuildInfoPlugin, JavaAppPackaging, UniversalPlugin, ClasspathJarPlugin, SbtXjcPlugin)
   .settings(commonSettings)
+  .settings(xjcSettings)
   .settings(
     name := "daffodil-debugger",
     libraryDependencies ++= Seq(
@@ -89,10 +94,86 @@ lazy val core = project
       // scala-steward:on
       "co.fs2" %% "fs2-io" % "3.2.14",
       "com.monovore" %% "decline-effect" % "2.3.1",
-      "org.typelevel" %% "log4cats-slf4j" % "2.5.0"
+      "org.typelevel" %% "log4cats-slf4j" % "2.5.0",
+      "org.scalameta" %% "munit" % "0.7.29" % Test
     ),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer),
     buildInfoPackage := "org.apache.daffodil.debugger.dap",
     packageName := s"${name.value}-$daffodilVer"
   )
-  .enablePlugins(BuildInfoPlugin, JavaAppPackaging, UniversalPlugin, ClasspathJarPlugin)
+
+lazy val xjcSettings =
+  Seq(
+    libraryDependencies ++= Seq(
+      "com.sun.xml.bind" % "jaxb-impl" % "2.2.11",
+      "javax.activation" % "activation" % "1.1.1",
+      "org.apache.daffodil" %% "daffodil-lib" % daffodilVer % Test,
+      "org.glassfish.jaxb" % "jaxb-xjc" % "2.2.11"
+    ),
+    xjcCommandLine += "-nv",
+    xjcCommandLine += "-p",
+    xjcCommandLine += "org.apache.daffodil.tdml",
+    xjcBindings += "server/core/src/main/resources/bindings.xjb",
+    xjcLibs := Seq(
+      "org.glassfish.jaxb" % "jaxb-xjc" % "2.2.11",
+      "com.sun.xml.bind" % "jaxb-impl" % "2.2.11",
+      "javax.activation" % "activation" % "1.1.1"
+    ),
+    Compile / xjc / sources := Seq(
+      file(
+        Seq(resourceManaged.value, "xsd")
+          .mkString(java.io.File.separator)
+      )
+    ),
+    Compile / doc / sources := Seq(file("")),
+    Compile / resourceGenerators += Def.task {
+      // This is going to be the directory that contains the DFDL schema files. We extract the files from the jar to this directory,
+      //   but the directory structure is maintained. The directory structure will be flattened so that the DFDL schema files are
+      //   directly contained by this directory.
+      //
+      // Note that baseDirectory is ${workspaceDir}/server/sbtXjc/
+      lazy val xsdDir = Seq(resourceManaged.value, "xsd").mkString(java.io.File.separator)
+
+      // Get the daffodil-lib jar from the dependencies.
+      val jarsToExtract: Seq[File] =
+        managedJars(Test, Set[String]("jar"), update.value) map { _.data } filter { _.getName.contains("daffodil-lib") }
+
+      // Extract the DFDL schema files from the daffodil-lib jar. We ignore the XMLSchema.xsd file because it contains a DTD, and
+      //   the JAXB process is not happy with DTDs without a particular setting being set. Consequently, this file is not strictly
+      //   necessary for the generation of Java classes.
+      jarsToExtract foreach { jar =>
+        IO.unzip(
+          jar,
+          new File(xsdDir),
+          NameFilter.fnToNameFilter(f =>
+            !f.endsWith("XMLSchema.xsd") && f.endsWith(".xsd") && f.startsWith(
+              Seq("org", "apache", "daffodil", "xsd").mkString("/")
+            )
+          )
+        )
+      }
+
+      // Get File objects for each DFDL schema file that was extracted.
+      val resources =
+        new File(Seq(xsdDir, "org", "apache", "daffodil", "xsd").mkString("/")).listFiles()
+
+      // Flatten the extracted files so that the directory structure created by the extraction process is deleted
+      resources.foreach { f: File => IO.move(f, new File(Seq(xsdDir, f.getName).mkString(java.io.File.separator))) }
+
+      // Delete the directory structure created during extraction
+      IO.delete(new File(Seq(xsdDir, "org").mkString(java.io.File.separator)))
+
+      // The files have been moved, but the paths have not been updated. We need to point the File objects
+      //   to the new file locations
+      val moved_resources = resources map { f: File =>
+        new File(Seq(xsdDir, f.getName).mkString(java.io.File.separator))
+      }
+
+      // Return a Seq[File] containing the created resources. This cast can't happen before this point because the
+      //   foreach throws an error when the type of resources is a Seq[File] rather than an Array[File]
+      moved_resources toSeq
+    }.taskValue,
+    Test / xjc / sources := (Compile / xjc / sources).value,
+    Test / doc / sources := (Compile / doc / sources).value,
+    Test / sourceGenerators := (Compile / sourceGenerators).value
+  )

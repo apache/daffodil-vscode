@@ -153,9 +153,10 @@ class DAPodil(
   def handle(request: Request): IO[Unit] =
     // TODO: java-debug doesn't seem to support the Restart request
     request match {
-      case extract(Command.INITIALIZE, _)        => initialize(request)
-      case extract(Command.CONFIGURATIONDONE, _) => session.sendResponse(request.respondSuccess())
-      case extract(Command.LAUNCH, _)            =>
+      case extract(Command.INITIALIZE, _) => initialize(request)
+      case extract(Command.CONFIGURATIONDONE, _) =>
+        session.sendResponse(request.respondSuccess())
+      case extract(Command.LAUNCH, _) =>
         // We ignore the java-debug LaunchArguments because it is overspecialized for JVM debugging, and parse our own.
         launch(request)
       case _ if request.command == "loadedSources" =>
@@ -163,17 +164,24 @@ class DAPodil(
         loadedSources(request)
       case extract(Command.SOURCE, args: SourceArguments) =>
         source(request, args)
-      case extract(Command.SETBREAKPOINTS, args: SetBreakpointArguments) => setBreakpoints(request, args)
-      case extract(Command.THREADS, _)                                   => threads(request)
-      case extract(Command.STACKTRACE, _)                                => stackTrace(request)
-      case extract(Command.SCOPES, args: ScopesArguments)                => scopes(request, args)
-      case extract(Command.VARIABLES, args: VariablesArguments)          => variables(request, args)
-      case extract(Command.NEXT, _)                                      => next(request)
-      case extract(Command.CONTINUE, _)                                  => continue(request)
-      case extract(Command.PAUSE, _)                                     => pause(request)
-      case extract(Command.DISCONNECT, args: DisconnectArguments)        => disconnect(request, args)
-      case extract(Command.EVALUATE, args: EvaluateArguments)            => eval(request, args)
-      case _ => Logger[IO].warn(show"unhandled request $request") *> session.sendResponse(request.respondFailure())
+      case extract(Command.SETBREAKPOINTS, args: SetBreakpointArguments) =>
+        setBreakpoints(request, args)
+      case extract(Command.THREADS, _)    => threads(request)
+      case extract(Command.STACKTRACE, _) => stackTrace(request)
+      case extract(Command.SCOPES, args: ScopesArguments) =>
+        scopes(request, args)
+      case extract(Command.VARIABLES, args: VariablesArguments) =>
+        variables(request, args)
+      case extract(Command.NEXT, _)     => next(request)
+      case extract(Command.CONTINUE, _) => continue(request)
+      case extract(Command.PAUSE, _)    => pause(request)
+      case extract(Command.DISCONNECT, args: DisconnectArguments) =>
+        disconnect(request, args)
+      case extract(Command.EVALUATE, args: EvaluateArguments) =>
+        eval(request, args)
+      case _ =>
+        Logger[IO].warn(show"unhandled request $request") *> session
+          .sendResponse(request.respondFailure())
     }
 
   /** State.Uninitialized -> State.Initialized */
@@ -181,10 +189,12 @@ class DAPodil(
     state.modify {
       case DAPodil.State.Uninitialized =>
         val response = request.respondSuccess(DAPodil.Caps())
-        DAPodil.State.Initialized -> (session.sendResponse(response) *> session.sendEvent(
-          new Events.InitializedEvent()
-        ))
-      case s => s -> IO.raiseError(new RuntimeException("can only initialize when uninitialized"))
+        DAPodil.State.Initialized -> (session.sendResponse(response) *> session
+          .sendEvent(
+            new Events.InitializedEvent()
+          ))
+      case s =>
+        s -> IO.raiseError(new RuntimeException("can only initialize when uninitialized"))
     }.flatten
 
   /** State.Initialized -> State.Launched */
@@ -238,12 +248,14 @@ class DAPodil(
   def source(request: Request, args: SourceArguments): IO[Unit] =
     state.get.flatMap {
       case DAPodil.State.Launched(debugee) =>
-        debugee.sourceContent(DAPodil.Source.Ref(args.sourceReference)).flatMap {
-          case None =>
-            session.sendResponse(request.respondFailure(Some(s"unknown source ref ${args.sourceReference}")))
-          case Some(content) =>
-            session.sendResponse(request.respondSuccess(new SourceResponseBody(content.value, "text/xml")))
-        }
+        debugee
+          .sourceContent(DAPodil.Source.Ref(args.sourceReference))
+          .flatMap {
+            case None =>
+              session.sendResponse(request.respondFailure(Some(s"unknown source ref ${args.sourceReference}")))
+            case Some(content) =>
+              session.sendResponse(request.respondSuccess(new SourceResponseBody(content.value, "text/xml")))
+          }
       case _ => session.sendResponse(request.respondFailure())
     }
 
@@ -347,7 +359,8 @@ class DAPodil(
             .findFrame(DAPodil.Frame.Id(args.frameId))
             .fold(
               Logger[IO].warn(
-                s"couldn't find scopes for frame ${args.frameId}: ${data.stack.frames.map(f => f.id -> f.stackFrame.name)}"
+                s"couldn't find scopes for frame ${args.frameId}: ${data.stack.frames
+                    .map(f => f.id -> f.stackFrame.name)}"
               ) *>
                 session.sendResponse(request.respondFailure(Some(s"couldn't find scopes for frame ${args.frameId}")))
             ) { frame =>
@@ -484,7 +497,9 @@ object DAPodil extends IOApp {
   ): Resource[IO, IO[Done]] =
     for {
       state <- Resource.eval(Ref[IO].of[State](State.Uninitialized))
-      hotswap <- Hotswap.create[IO, State].onFinalizeCase(ec => Logger[IO].debug(s"hotswap: $ec"))
+      hotswap <- Hotswap
+        .create[IO, State]
+        .onFinalizeCase(ec => Logger[IO].debug(s"hotswap: $ec"))
       whenDone <- Resource.eval(Deferred[IO, Done])
       dapodil = new DAPodil(
         session,
@@ -494,7 +509,10 @@ object DAPodil extends IOApp {
         whenDone
       )
       _ <- dapodil.handleRequests.compile.lastOrError
-        .onError(Logger[IO].error(_)("unhandled error") *> whenDone.complete(Done(false)).void)
+        .onError(
+          Logger[IO]
+            .error(_)("unhandled error") *> whenDone.complete(Done(false)).void
+        )
         .background
 
     } yield whenDone.get
@@ -696,7 +714,10 @@ object DAPodil extends IOApp {
     val empty: StackTrace = StackTrace(List.empty)
 
     implicit val show: Show[StackTrace] =
-      st => st.frames.map(f => s"${f.stackFrame.line}:${f.stackFrame.column}").mkString("; ")
+      st =>
+        st.frames
+          .map(f => s"${f.stackFrame.line}:${f.stackFrame.column}")
+          .mkString("; ")
   }
 
   case class Line(value: Int) extends AnyVal

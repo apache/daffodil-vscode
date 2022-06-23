@@ -35,7 +35,7 @@
     "package-setup": "node -e \"require('./build/scripts/package.ts').setup()\"",
     "package-create": "node -e \"require('./build/scripts/package.ts').create()\"",
     "pretest": "yarn compile && yarn webpack",
-    "test": "node ./out/tests/runTest.js",
+    "test": "node ./out/tests/runTest.js && sbt test",
     "sbt": "sbt universal:packageBin"
   },
   "dependencies": {
@@ -77,6 +77,13 @@
     "onCommand:extension.dfdl-debug.getDataName",
     "onCommand:extension.dfdl-debug.runEditorContents",
     "onCommand:extension.dfdl-debug.debugEditorContents",
+    "onCommand:extension.dfdl-debug.generateTDML",
+    "onCommand:extension.dfdl-debug.appendTDML",
+    "onCommand:extension.dfdl-debug.executeTDML",
+    "onCommand:extension.dfdl-debug.getTDMLName",
+    "onCommand:extension.dfdl-debug.getTDMLDescription",
+    "onCommand:extension.dfdl-debug.getTDMLPath",
+    "onCommand:extension.dfdl-debug.getValidatedTDMLPath",
     "onCommand:launch.config",
     "onCommand:data.edit",
     "onCommand:omega_edit.version",
@@ -140,6 +147,18 @@
         {
           "command": "extension.dfdl-debug.debugLastEditorContents",
           "when": "resourceLangId == dfdl"
+        },
+        {
+          "command": "extension.dfdl-debug.generateTDML",
+          "when": "resourceLangId == dfdl"
+        },
+        {
+          "command": "extension.dfdl-debug.appendTDML",
+          "when": "resourceLangId == dfdl"
+        },
+        {
+          "command": "extension.dfdl-debug.executeTDML",
+          "when": "resourceLangId == dfdl"
         }
       ],
       "commandPalette": [
@@ -149,6 +168,18 @@
         },
         {
           "command": "extension.dfdl-debug.runEditorContents",
+          "when": "resourceLangId == dfdl"
+        },
+        {
+          "command": "extension.dfdl-debug.generateTDML",
+          "when": "resourceLangId == dfdl"
+        },
+        {
+          "command": "extension.dfdl-debug.appendTDML",
+          "when": "resourceLangId == dfdl"
+        },
+        {
+          "command": "extension.dfdl-debug.executeTDML",
           "when": "resourceLangId == dfdl"
         },
         {
@@ -195,6 +226,24 @@
         "category": "Daffodil Debug",
         "enablement": "!inDebugMode",
         "icon": "$(debug-alt)"
+      },
+      {
+        "command": "extension.dfdl-debug.generateTDML",
+        "title": "Generate TDML",
+        "category": "Daffodil Debug",
+        "enablement": "!inDebugMode"
+      },
+      {
+        "command": "extension.dfdl-debug.appendTDML",
+        "title": "Append TDML",
+        "category": "Daffodil Debug",
+        "enablement": "!inDebugMode"
+      },
+      {
+        "command": "extension.dfdl-debug.executeTDML",
+        "title": "Execute TDML",
+        "category": "Daffodil Debug",
+        "enablement": "!inDebugMode"
       },
       {
         "command": "extension.dfdl-debug.toggleFormatting",
@@ -312,6 +361,16 @@
                   "path": "${workspaceFolder}/infoset.xml"
                 }
               },
+              "tdmlConfig": {
+                "type": "object",
+                "description": "Configuration for TDML Actions",
+                "default": {
+                  "action": "none",
+                  "name": "${command:AskForTDMLName}",
+                  "description": "${command:AskForTDMLDescription}",
+                  "path": "${command:AskForTDMLPath}"
+                }
+              },
               "stopOnEntry": {
                 "type": "boolean",
                 "description": "Automatically stop after launch.",
@@ -382,6 +441,12 @@
               "type": "file",
               "path": "${workspaceFolder}/infoset.xml"
             },
+            "tdmlConfig": {
+              "action": "none",
+              "name": "${command:AskForTDMLName}",
+              "description": "${command:AskForTDMLDescription}",
+              "path": "${command:AskForTDMLPath}"
+            },
             "debugServer": 4711,
             "openHexView": false,
             "openInfosetView": false,
@@ -407,6 +472,12 @@
                 "type": "file",
                 "path": "${workspaceFolder}/infoset.xml"
               },
+              "tdmlConfig": {
+                "action": "none",
+                "name": "^\"\\${command:AskForTDMLName}\"",
+                "description": "^\"\\${command:AskForTDMLDescription}\"",
+                "path": "^\"\\${command:AskForTDMLPath}\""
+              },
               "debugServer": 4711,
               "openHexView": false,
               "openInfosetView": false,
@@ -419,7 +490,11 @@
         ],
         "variables": {
           "AskForProgramName": "extension.dfdl-debug.getProgramName",
-          "AskForDataName": "extension.dfdl-debug.getDataName"
+          "AskForDataName": "extension.dfdl-debug.getDataName",
+          "AskForTDMLName": "extension.dfdl-debug.getTDMLName",
+          "AskForTDMLDescription": "extension.dfdl-debug.getTDMLDescription",
+          "AskForTDMLPath": "extension.dfdl-debug.getTDMLPath",
+          "AskForValidatedTDMLPath": "extension.dfdl-debug.getValidatedTDMLPath"
         }
       }
     ],
@@ -440,6 +515,32 @@
             "type": "string",
             "description": "Absolute path to the input data file.",
             "default": "${command:AskForDataName}"
+          },
+          "tdmlAction": {
+            "type": "string",
+            "description": "TDML Action to take (generate | append | execute | none)",
+            "enum": [
+              "generate",
+              "append",
+              "execute",
+              "none"
+            ],
+            "default": "none"
+          },
+          "tdmlName": {
+            "type": "string",
+            "description": "Name of the TDML Test Case",
+            "default": "${command:AskForTDMLName}"
+          },
+          "tdmlDescription": {
+            "type": "string",
+            "description": "Description of the TDML Test Case",
+            "default": "${command:AskForTDMLDescription}"
+          },
+          "tdmlPath": {
+            "type": "string",
+            "description": "Path to output for TDML file (req: tdmlAction=generate)",
+            "default": "${command:AskForTDMLPath}"
           },
           "infosetOutputType": {
             "type": "string",
