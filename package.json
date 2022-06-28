@@ -24,7 +24,7 @@
     "url": "https://github.com/apache/daffodil-vscode/issues"
   },
   "scripts": {
-    "omega-edit-download": "tsc -p ./ && node -e \"require('./out/omega_edit/download.js').downloadServer()\"",
+    "omega-edit-download": "node -e \"require('./build/scripts/omega_edit_download.ts').downloadServer()\"",
     "vscode:prepublish": "yarn run package-ext",
     "precompile": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
     "compile": "tsc -p ./ && yarn omega-edit-download",
@@ -37,13 +37,9 @@
     "pretest": "yarn run compile",
     "test": "node node_modules/mocha/bin/_mocha -u tdd --timeout 999999 --colors ./out/tests",
     "sbt": "sbt universal:packageBin",
-    "pre-build": "run-script-os",
-    "pre-build:default": "mv LICENSE tmp.LICENSE && mv NOTICE tmp.NOTICE && cp build/bin.LICENSE LICENSE && cp build/bin.NOTICE NOTICE",
-    "pre-build:windows": "move LICENSE tmp.LICENSE && move NOTICE tmp.NOTICE && copy build/bin.LICENSE LICENSE && copy build/bin.NOTICE NOTICE",
-    "build": "yarn pre-build && yarn sbt && yarn install && yarn compile && yarn package && yarn post-build",
-    "post-build": "run-script-os",
-    "post-build:default": "rm NOTICE && rm LICENSE && mv tmp.LICENSE LICENSE && mv tmp.NOTICE NOTICE",
-    "post-build:windows": "del /q NOTICE && del /q LICENSE && move tmp.LICENSE LICENSE && move tmp.NOTICE NOTICE"
+    "prebuild": "node -e \"require('./build/scripts/process_build.ts').prebuild()\"",
+    "build": "yarn sbt && yarn install && yarn compile && yarn package",
+    "postbuild": "node -e \"require('./build/scripts/process_build.ts').postbuild()\""
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.5.4",
@@ -54,7 +50,6 @@
     "hexy": "0.3.4",
     "moo": "0.5.1",
     "omega-edit": "0.9.8",
-    "run-script-os": "1.1.6",
     "unzip-stream": "0.3.1",
     "vscode-debugadapter": "1.51.0",
     "xdg-app-paths": "7.3.0"
