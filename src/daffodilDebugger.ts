@@ -26,21 +26,9 @@ import XDGAppPaths from 'xdg-app-paths'
 import * as path from 'path'
 import { regexp } from './utils'
 import { getDaffodilVersion } from './daffodil'
+import { Artifact } from './classes/artifact'
 
 const xdgAppPaths = XDGAppPaths({ name: 'daffodil-dap' })
-
-class Artifact {
-  constructor(
-    readonly daffodilVersion: string,
-    readonly version: string = LIB_VERSION
-  ) {}
-
-  name = `daffodil-debugger-${this.daffodilVersion}-${this.version}`
-  archive = `${this.name}.zip`
-
-  scriptName =
-    os.platform() === 'win32' ? 'daffodil-debugger.bat' : './daffodil-debugger'
-}
 
 // Class for getting release data
 export class Release {
@@ -91,7 +79,11 @@ export async function getDebugger(
   const daffodilVersion = getDaffodilVersion(
     context.asAbsolutePath('./package.json')
   )
-  const artifact = new Artifact(daffodilVersion)
+  const artifact = new Artifact(
+    'daffodil-debugger',
+    daffodilVersion,
+    'daffodil-debugger'
+  )
 
   // If useExistingServer var set to false make sure version of debugger entered is downloaded then ran
   if (!config.useExistingServer) {
@@ -119,9 +111,11 @@ export async function getDebugger(
         if (!filePath.includes('.vscode/extension')) {
           if (!fs.existsSync(filePath)) {
             let baseFolder = context.asAbsolutePath('.')
-            child_process.execSync(
-              `cd ${baseFolder} && sbt universal:packageBin`
-            )
+            let command =
+              os.platform() === 'win32'
+                ? 'sbt universal:packageBin'
+                : '/bin/bash --login -c "sbt universal:packageBin"' // Needed --login so it could resolve sbt command
+            child_process.execSync(command, { cwd: baseFolder })
           }
         }
 
@@ -200,11 +194,24 @@ export async function getDebugger(
         : config.daffodilDebugClasspath
 
       // Start debugger in terminal based on scriptName
+
+      /*
+       * For Mac if /bin/bash --login -c not used errors about compiled version versus
+       * currently being used java version. Not sure if its needed for linux but it
+       * being there will cause no issues.
+       */
+
+      let shellPath =
+        os.platform() === 'win32' ? artifact.scriptName : '/bin/bash'
+      let shellArgs =
+        os.platform() === 'win32' ? [] : ['--login', '-c', artifact.scriptName]
+
       let terminal = vscode.window.createTerminal({
         name: artifact.scriptName,
         cwd: `${rootPath}/daffodil-debugger-${daffodilVersion}-${LIB_VERSION}/bin/`,
         hideFromUser: false,
-        shellPath: artifact.scriptName,
+        shellPath: shellPath,
+        shellArgs: shellArgs,
         env: {
           DAFFODIL_DEBUG_CLASSPATH: daffodilDebugClasspath,
         },

@@ -15,40 +15,38 @@
  * limitations under the License.
  */
 
-import * as fs from 'fs'
-import * as path from 'path'
-import * as os from 'os'
-import { HttpClient } from 'typed-rest-client/HttpClient'
-import * as crypto from 'crypto'
+// @ts-nocheck <-- This is needed as this file is basically a JavaScript script
+//                 but with some TypeScript niceness baked in
+const fs = require('fs')
+const os = require('os')
+const path = require('path')
+const HttpClient = require('typed-rest-client/HttpClient').HttpClient
+const crypto = require('crypto')
 const hashSum = crypto.createHash('sha512')
 
-// Method to get omega-edit version from a JSON file
-export function getOmegaEditPackageVersion(filePath: fs.PathLike) {
-  return JSON.parse(fs.readFileSync(filePath).toString())['dependencies'][
-    'omega-edit'
-  ]
+/**
+ * The below classes (Backend, Artifact) are defined similarly in src/classes/artifact.ts.
+ * However for this script to work properly they needed to be redefined in a more JS style.
+ */
+
+class Backend {
+  constructor(owner, repo) {
+    this.owner = owner
+    this.repo = repo
+  }
 }
 
-// Method to get omegaEditServerHash from a JSON file
-export function getOmegaEditServerHash(filePath: fs.PathLike) {
-  return JSON.parse(fs.readFileSync(filePath).toString())['omegaEditServerHash']
-}
-
-export class Backend {
-  constructor(readonly owner: string, readonly repo: string) {}
-}
-
-export class Artifact {
-  constructor(readonly omegaEditVersion: string) {}
-
-  name = `omega-edit-scala-server-${this.omegaEditVersion}`
-  archive = `${this.name}.zip`
-  archiveUrl = (backend: Backend) =>
-    `https://github.com/${backend.owner}/${backend.repo}/releases/download/v${this.omegaEditVersion}/${this.archive}`
-
-  scriptName = os.platform().toLowerCase().startsWith('win32')
-    ? 'example-grpc-server.bat'
-    : './example-grpc-server'
+class Artifact {
+  constructor(omegaEditVersion) {
+    this.omegaEditVersion = omegaEditVersion
+    this.name = `omega-edit-scala-server-${this.omegaEditVersion}`
+    this.archive = `${this.name}.zip`
+    this.archiveUrl = (backend) =>
+      `https://github.com/${backend.owner}/${backend.repo}/releases/download/v${this.omegaEditVersion}/${this.archive}`
+    this.scriptName = os.platform().toLowerCase().startsWith('win32')
+      ? 'example-grpc-server.bat'
+      : './example-grpc-server'
+  }
 
   getOsFolder() {
     if (os.platform().toLowerCase().startsWith('win')) {
@@ -61,7 +59,19 @@ export class Artifact {
   }
 }
 
-export async function downloadServer() {
+// Method to get omega-edit version from a JSON file
+function getOmegaEditPackageVersion(filePath) {
+  return JSON.parse(fs.readFileSync(filePath).toString())['dependencies'][
+    'omega-edit'
+  ]
+}
+
+// Method to get omegaEditServerHash from a JSON file
+function getOmegaEditServerHash(filePath) {
+  return JSON.parse(fs.readFileSync(filePath).toString())['omegaEditServerHash']
+}
+
+async function downloadServer() {
   // Get omegaEditVersion
   const omegaEditVersion = getOmegaEditPackageVersion('./package.json')
   const artifact = new Artifact(omegaEditVersion)
@@ -77,7 +87,7 @@ export async function downloadServer() {
     const response = await client.get(artifactUrl)
 
     if (response.message.statusCode !== 200) {
-      const err: Error = new Error(
+      const err = new Error(
         `Couldn't download the Ωedit sever backend from ${artifactUrl}.`
       )
       err['httpStatusCode'] = response.message.statusCode
@@ -115,4 +125,8 @@ export async function downloadServer() {
       throw new Error("[ERROR] omega-edit Scala server hashes didn't match")
     }
   }
+}
+
+module.exports = {
+  downloadServer: downloadServer,
 }

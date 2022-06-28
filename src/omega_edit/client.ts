@@ -23,9 +23,15 @@ import * as omegaEditVersion from 'omega-edit/version'
 import { startServer, stopServer } from './server'
 import { randomId, viewportSubscribe } from './utils'
 import { OmegaEdit } from './omega_edit'
-import { getOmegaEditPackageVersion } from './download'
 
 let serverRunning = false
+
+// Method to get omega-edit version from a JSON file
+export function getOmegaEditPackageVersion(filePath: fs.PathLike) {
+  return JSON.parse(fs.readFileSync(filePath).toString())['dependencies'][
+    'omega-edit'
+  ]
+}
 
 async function cleanupViewportSession(
   sessionId: string,
