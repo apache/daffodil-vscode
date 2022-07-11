@@ -39,7 +39,7 @@ lazy val commonSettings = {
     ),
     licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
     organization := "org.apache.daffodil",
-    scalaVersion := "2.12.15",
+    scalaVersion := "2.12.16",
     scalacOptions ++= Seq("-Ypartial-unification"),
     // remove the -Xcheckinit option added by the sbt tpoletcat plugin. This
     // option leads to non-reproducible builds
