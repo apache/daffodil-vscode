@@ -77,7 +77,7 @@ object Parse {
               pleaseStop.get *> IO.canceled // will cancel the concurrent parse effect
 
             val parse =
-              IO.interruptible(true) {
+              IO.interruptibleMany {
                   dp.parse(new InputSourceDataInputStream(data), new XMLTextInfosetOutputter(os, true)) // WARNING: parse doesn't close the OutputStream, so closed below
                 }
                 .guaranteeCase(outcome => Logger[IO].debug(s"parse finished: $outcome"))
@@ -265,13 +265,13 @@ object Parse {
         case Debugee.LaunchArgs.InfosetOutput.Console =>
           parse
             .run()
-            .through(text.utf8Decode)
+            .through(text.utf8.decode)
             .foldMonoid
             .evalTap(_ => Logger[IO].debug("done collecting infoset XML output"))
             .map(infosetXML => Some(Events.OutputEvent.createConsoleOutput(infosetXML)))
             .enqueueUnterminated(dapEvents) // later handling will terminate dapEvents
         case Debugee.LaunchArgs.InfosetOutput.File(path) =>
-          parse.run().through(Files[IO].writeAll(path))
+          parse.run().through(Files[IO].writeAll(fs2.io.file.Path.fromNioPath(path)))
       }
 
       nextFrameId <- Resource.eval(Next.int.map(_.map(DAPodil.Frame.Id.apply)).flatTap(_.next())) // `.flatTap(_.next())`: ids start at 1
