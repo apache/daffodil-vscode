@@ -80,7 +80,7 @@ lazy val core = project
       "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.35.0",
       "co.fs2" %% "fs2-io" % "3.0.6",
       "com.monovore" %% "decline-effect" % "2.2.0",
-      "org.typelevel" %% "log4cats-slf4j" % "2.1.1"
+      "org.typelevel" %% "log4cats-slf4j" % "2.3.2"
     ),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer),
     buildInfoPackage := "org.apache.daffodil.debugger.dap",
