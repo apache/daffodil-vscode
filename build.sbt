@@ -20,7 +20,7 @@ import play.api.libs.json._
 lazy val packageData = Json.parse(scala.io.Source.fromFile("./package.json").mkString).as[JsObject]
 lazy val daffodilVer = packageData("daffodilVersion").as[String]
 
-lazy val commonSettings = {
+lazy val commonSettings =
   Seq(
     version := {
       val versionRegex = raw"""  "version": "(.*)",""".r
@@ -46,7 +46,6 @@ lazy val commonSettings = {
     scalacOptions --= Seq("-Xcheckinit"),
     startYear := Some(2021)
   )
-}
 
 lazy val ratSettings = Seq(
   ratLicenses := Seq(
