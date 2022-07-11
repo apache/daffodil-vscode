@@ -85,7 +85,9 @@ object DAPSession {
         for {
           _ <- Logger[IO].info(show"R> $request")
           _ <- requests.offer(Some(request)).recoverWith {
+            // format: off
             case t => Logger[IO].error(t)(show"error during handling of request $request")
+            // format: on
           }
         } yield ()
       }
@@ -194,7 +196,7 @@ class DAPodil(
           case Left(errors) =>
             state.set(DAPodil.State.FailedToLaunch(request, errors, None)) *>
               Logger[IO].warn(show"error parsing launch args: ${errors.mkString_(", ")}") *> session
-              .sendResponse(request.respondFailure(Some(show"error parsing launch args: ${errors.mkString_(", ")}")))
+                .sendResponse(request.respondFailure(Some(show"error parsing launch args: ${errors.mkString_(", ")}")))
           case Right(dbgee) =>
             for {
               launched <- hotswap.swap {
@@ -254,7 +256,9 @@ class DAPodil(
             args.breakpoints.toList.map(bp => DAPodil.Line(bp.line))
           )
           breakpoints = args.breakpoints.toList.zipWithIndex.map {
+            // format: off
             case (bp, i) => new Types.Breakpoint(i, true, bp.line, "")
+            // format: on
           }
           response = request.respondSuccess(
             new Responses.SetBreakpointsResponseBody(breakpoints.asJava)
@@ -365,7 +369,9 @@ class DAPodil(
             .variables(DAPodil.VariablesReference(args.variablesReference))
             .fold(
               Logger[IO]
-                .warn(show"couldn't find variablesReference ${args.variablesReference} in stack ${data}") *> // TODO: handle better
+                .warn(
+                  show"couldn't find variablesReference ${args.variablesReference} in stack ${data}"
+                ) *> // TODO: handle better
                 session.sendResponse(request.respondFailure())
             )(variables =>
               session.sendResponse(request.respondSuccess(new Responses.VariablesResponseBody(variables.asJava)))
@@ -447,8 +453,10 @@ object DAPodil extends IOApp {
         .iterateWhile(_.restart)
         .as(ExitCode.Success)
         .recoverWith {
-          case _: SocketTimeoutException =>
+          // format: off
+          case _: SocketTimeoutException => 
             Logger[IO].warn(s"timed out listening for connection on $uri, exiting").as(ExitCode.Error)
+          // format: on
         }
 
     } yield code
@@ -700,8 +708,10 @@ object DAPodil extends IOApp {
 
     def contains(location: Location): Boolean =
       value.exists {
+        // format: off
         case (uri, lines) =>
           uri == location.uri && lines.exists(_ == location.line)
+        // format: on
       }
   }
 
