@@ -35,6 +35,9 @@ src/version.ts
 # unknown
 .vscode-test/
 
+# scala metals vscode extension compiled folder
+.metals
+
 # application build
 # todo;; the build logic needs refactored to write these elsewhere
 #        either target/ or /tmp or ...

@@ -20,7 +20,7 @@ import play.api.libs.json._
 lazy val packageData = Json.parse(scala.io.Source.fromFile("./package.json").mkString).as[JsObject]
 lazy val daffodilVer = packageData("daffodilVersion").as[String]
 
-lazy val commonSettings = {
+lazy val commonSettings =
   Seq(
     version := {
       val versionRegex = raw"""  "version": "(.*)",""".r
@@ -39,14 +39,15 @@ lazy val commonSettings = {
     ),
     licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
     organization := "org.apache.daffodil",
+    // scala-steward:off
     scalaVersion := "2.12.15",
+    // scala-steward:on
     scalacOptions ++= Seq("-Ypartial-unification"),
     // remove the -Xcheckinit option added by the sbt tpoletcat plugin. This
     // option leads to non-reproducible builds
     scalacOptions --= Seq("-Xcheckinit"),
     startYear := Some(2021)
   )
-}
 
 lazy val ratSettings = Seq(
   ratLicenses := Seq(
@@ -77,10 +78,10 @@ lazy val core = project
     name := "daffodil-debugger",
     libraryDependencies ++= Seq(
       "ch.qos.logback" % "logback-classic" % "1.2.11",
-      "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.35.0",
+      "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.38.0",
       "co.fs2" %% "fs2-io" % "3.2.10",
-      "com.monovore" %% "decline-effect" % "2.2.0",
-      "org.typelevel" %% "log4cats-slf4j" % "2.1.1"
+      "com.monovore" %% "decline-effect" % "2.3.0",
+      "org.typelevel" %% "log4cats-slf4j" % "2.3.2"
     ),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer),
     buildInfoPackage := "org.apache.daffodil.debugger.dap",
