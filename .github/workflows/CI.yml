@@ -52,7 +52,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3.0.2
       - name: Setup Node
-        uses: actions/setup-node@v3.3.0
+        uses: actions/setup-node@v3.4.0
         with:
           node-version: '16'
       - name: Setup Java
@@ -104,7 +104,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3.0.2
       - name: Install Node.js
-        uses: actions/setup-node@v3.3.0
+        uses: actions/setup-node@v3.4.0
         with:
           node-version: ${{ matrix.node}}
       - run: $SBT compile # used to initialize sbt, if not done sbt universal:packageBin ran by yarn build times out -- windows only
