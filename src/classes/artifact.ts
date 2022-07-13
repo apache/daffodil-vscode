@@ -43,7 +43,7 @@ export class Artifact {
   }
 
   archiveUrl = (backend: Backend) => {
-    if (this.type === 'omega-edit') {
+    if (this.type.includes('omega-edit')) {
       return `https://github.com/${backend.owner}/${backend.repo}/releases/download/v${this.version}/${this.archive}`
     } else {
       return ''
