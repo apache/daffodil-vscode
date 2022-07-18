@@ -107,9 +107,9 @@ jobs:
         uses: actions/setup-node@v3.3.0
         with:
           node-version: ${{ matrix.node}}
-      - run: $SBT compile # used to initialize sbt, if not done sbt universal:packageBin ran by yarn build times out -- windows only
+      - run: $SBT compile # used to initialize sbt, if not done sbt universal:packageBin ran by yarn package times out -- windows only
         if: runner.os == 'Windows'
       - run: yarn install
-      - run: yarn build
+      - run: yarn package
       - run: yarn test
       - run: $SBT test

@@ -25,21 +25,19 @@
   },
   "scripts": {
     "omega-edit-download": "node -e \"require('./build/scripts/omega_edit_download.ts').downloadServer()\"",
-    "vscode:prepublish": "yarn run package-ext",
     "precompile": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
     "compile": "tsc -p ./ && yarn omega-edit-download",
     "lint": "yarn run prettier src -c",
     "watch": "yarn omega-edit-download && webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js",
     "watch2": "tsc -watch -p ./",
-    "package": "vsce package",
-    "publish": "vsce publish",
-    "package-ext": "webpack --mode production --config ./build/extension.webpack.config.js",
+		"webpack": "webpack --mode production --config ./build/extension.webpack.config.js",
+		"prepackage": "yarn sbt && yarn install && yarn compile && yarn webpack",
+		"package": "yarn package-setup && yarn package-create",
+		"package-setup": "node -e \"require('./build/scripts/package.ts').setup()\"",
+		"package-create": "node -e \"require('./build/scripts/package.ts').create()\"",
     "pretest": "yarn run compile",
     "test": "node node_modules/mocha/bin/_mocha -u tdd --timeout 999999 --colors ./out/tests",
-    "sbt": "sbt universal:packageBin",
-    "prebuild": "node -e \"require('./build/scripts/process_build.ts').prebuild()\"",
-    "build": "yarn sbt && yarn install && yarn compile && yarn package",
-    "postbuild": "node -e \"require('./build/scripts/process_build.ts').postbuild()\""
+    "sbt": "sbt universal:packageBin"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.5.4",
