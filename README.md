@@ -39,14 +39,14 @@ This is a VS Code extension which enables the interactive debugging of DFDL sche
 Until the extension is available in the [VS Code Extension Marketplace](https://marketplace.visualstudio.com/vscode), please download the latest `.vsix` file from the [releases page](https://github.com/apache/daffodil-vscode/releases).
 
 
-## Build VSIX and Debugger
+## Package VSIX and Debugger
 :exclamation:**NOT necessary if using prebuilt VSIX**:exclamation:
 
 :exclamation:**NOT necessary if running extension via VS Code without VSIX but a `yarn install` will be required**:exclamation:
 
-Run full build
+Run full package
   ```bash
-  yarn build
+  yarn package
   ```
 
 * This command performs the following tasks:
