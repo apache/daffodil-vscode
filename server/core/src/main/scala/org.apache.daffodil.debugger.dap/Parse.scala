@@ -77,10 +77,12 @@ object Parse {
               pleaseStop.get *> IO.canceled // will cancel the concurrent parse effect
 
             val parse =
-              IO.interruptible(true) {
-                  dp.parse(new InputSourceDataInputStream(data), new XMLTextInfosetOutputter(os, true)) // WARNING: parse doesn't close the OutputStream, so closed below
-                }
-                .guaranteeCase(outcome => Logger[IO].debug(s"parse finished: $outcome"))
+              IO.interruptibleMany {
+                dp.parse(
+                  new InputSourceDataInputStream(data),
+                  new XMLTextInfosetOutputter(os, true)
+                ) // WARNING: parse doesn't close the OutputStream, so closed below
+              }.guaranteeCase(outcome => Logger[IO].debug(s"parse finished: $outcome"))
                 .void
 
             stopper &> parse.guarantee(IO(os.close) *> done.set(true))
@@ -222,7 +224,9 @@ object Parse {
                         )
                         .toEitherNel
                     case invalidType =>
-                      Left(s"invalid 'infosetOutput.type': '$invalidType', must be 'none', 'console', or 'file'").toEitherNel
+                      Left(
+                        s"invalid 'infosetOutput.type': '$invalidType', must be 'none', 'console', or 'file'"
+                      ).toEitherNel
                   }
               }
           }
@@ -242,7 +246,9 @@ object Parse {
       state <- Resource.eval(Queue.bounded[IO, Option[DAPodil.Debugee.State]](10))
       dapEvents <- Resource.eval(Queue.bounded[IO, Option[Events.DebugEvent]](10))
       breakpoints <- Resource.eval(Breakpoints())
-      infoset <- Resource.eval(Queue.bounded[IO, Option[String]](10)) // TODO: it's a bit incongruous to have a separate channel for infoset changes, vs. streaming Parse.Event values
+      infoset <- Resource.eval(
+        Queue.bounded[IO, Option[String]](10)
+      ) // TODO: it's a bit incongruous to have a separate channel for infoset changes, vs. streaming Parse.Event values
       control <- Resource.eval(Control.stopped())
 
       latestData <- Stream.fromQueueNoneTerminated(data).holdResource(DAPodil.Data.empty)
@@ -265,17 +271,21 @@ object Parse {
         case Debugee.LaunchArgs.InfosetOutput.Console =>
           parse
             .run()
-            .through(text.utf8Decode)
+            .through(text.utf8.decode)
             .foldMonoid
             .evalTap(_ => Logger[IO].debug("done collecting infoset XML output"))
             .map(infosetXML => Some(Events.OutputEvent.createConsoleOutput(infosetXML)))
             .enqueueUnterminated(dapEvents) // later handling will terminate dapEvents
         case Debugee.LaunchArgs.InfosetOutput.File(path) =>
-          parse.run().through(Files[IO].writeAll(path))
+          parse.run().through(Files[IO].writeAll(fs2.io.file.Path.fromNioPath(path)))
       }
 
-      nextFrameId <- Resource.eval(Next.int.map(_.map(DAPodil.Frame.Id.apply)).flatTap(_.next())) // `.flatTap(_.next())`: ids start at 1
-      nextRef <- Resource.eval(Next.int.map(_.map(DAPodil.VariablesReference.apply)).flatTap(_.next())) // `.flatTap(_.next())`: ids start at 1
+      nextFrameId <- Resource.eval(
+        Next.int.map(_.map(DAPodil.Frame.Id.apply)).flatTap(_.next())
+      ) // `.flatTap(_.next())`: ids start at 1
+      nextRef <- Resource.eval(
+        Next.int.map(_.map(DAPodil.VariablesReference.apply)).flatTap(_.next())
+      ) // `.flatTap(_.next())`: ids start at 1
 
       // convert Parse.Event values to DAPodil.Data values
       deliverParseData = Stream
@@ -366,13 +376,18 @@ object Parse {
         Try(Paths.get(URI.create(startElement.schemaLocation.uriString)).toString())
           .fold(
             _ =>
-              new Types.Source(startElement.schemaLocation.uriString, null, 0), // there is no valid path if the location is a schema contained in a jar file; see #76.
+              new Types.Source(
+                startElement.schemaLocation.uriString,
+                null,
+                0
+              ), // there is no valid path if the location is a schema contained in a jar file; see #76.
             path => new Types.Source(path, 0)
           ),
         startElement.schemaLocation.lineNumber
           .map(_.toInt)
           .getOrElse(1), // line numbers start at 1 according to InitializeRequest
-        0 // column numbers start at 1 according to InitializeRequest, but set to 0 to ignore it; column calculation by Daffodil uses 1 tab = 2 spaces(?), but breakpoints use 1 character per tab
+        0, // column numbers start at 1 according to InitializeRequest, but set to 0 to ignore it; column calculation by Daffodil uses 1 tab = 2 spaces(?), but breakpoints use 1 character per tab
+        null
       )
 
       schemaScope <- schemaScope(schemaScopeId, startElement.state, variableRefs)
@@ -454,38 +469,36 @@ object Parse {
     state.variableMapForDebugger.qnames.toList
       .groupBy(_.namespace) // TODO: handle NoNamespace or UnspecifiedNamespace as top-level?
       .toList
-      .flatTraverse {
-        case (ns, vs) =>
-          // every namespace is a DAP variable in the current scope, and links to its set of Daffodil-as-DAP variables
-          refs.next.map { ref =>
-            List(scopeRef -> List(new Types.Variable(ns.toString(), "", null, ref.value, null))) ++
-              List(
-                ref -> vs
-                  .sortBy(_.toPrettyString)
-                  .fproduct(state.variableMapForDebugger.find)
-                  .map {
-                    case (name, value) =>
-                      new Types.Variable(
-                        name.toQNameString,
-                        value
-                          .flatMap(v => Option(v.value.value).map(_.toString) orElse Some("null"))
-                          .getOrElse("???"),
-                        value
-                          .map(_.state match {
-                            case VariableDefined      => "default"
-                            case VariableRead         => "read"
-                            case VariableSet          => "set"
-                            case VariableUndefined    => "undefined"
-                            case VariableBeingDefined => "being defined"
-                            case VariableInProcess    => "in process"
-                          })
-                          .getOrElse("???"),
-                        0,
-                        null
-                      )
-                  }
-              )
-          }
+      .flatTraverse { case (ns, vs) =>
+        // every namespace is a DAP variable in the current scope, and links to its set of Daffodil-as-DAP variables
+        refs.next.map { ref =>
+          List(scopeRef -> List(new Types.Variable(ns.toString(), "", null, ref.value, null))) ++
+            List(
+              ref -> vs
+                .sortBy(_.toPrettyString)
+                .fproduct(state.variableMapForDebugger.find)
+                .map { case (name, value) =>
+                  new Types.Variable(
+                    name.toQNameString,
+                    value
+                      .flatMap(v => Option(v.value.value).map(_.toString) orElse Some("null"))
+                      .getOrElse("???"),
+                    value
+                      .map(_.state match {
+                        case VariableDefined      => "default"
+                        case VariableRead         => "read"
+                        case VariableSet          => "set"
+                        case VariableUndefined    => "undefined"
+                        case VariableBeingDefined => "being defined"
+                        case VariableInProcess    => "in process"
+                      })
+                      .getOrElse("???"),
+                    0,
+                    null
+                  )
+                }
+            )
+        }
       }
       .map { refVars =>
         val sv = refVars.foldMap(Map(_)) // combine values of map to accumulate namespaces
@@ -536,9 +549,8 @@ object Parse {
               mark.context.toString()
             )
           ),
-          pstate.mpstate.delimiters.toList.zipWithIndex.map {
-            case (delimiter, i) =>
-              Delimiter(if (i < pstate.mpstate.delimitersLocalIndexStack.top) "remote" else "local", delimiter)
+          pstate.mpstate.delimiters.toList.zipWithIndex.map { case (delimiter, i) =>
+            Delimiter(if (i < pstate.mpstate.delimitersLocalIndexStack.top) "remote" else "local", delimiter)
           }
         )
     }

@@ -13,44 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# Platform and environment specific entries should be placed in .git/info/exclude
-#
+# This workflow will launch at 00:00 every Sunday
+# This file is based on docs from https://github.com/scala-steward-org/scala-steward-action
+on:
+  schedule:
+    - cron: "0 0 * * 0"
 
-# js/ts build
-out
-dist
-node_modules
+name: Scala Steward CI
 
-# sbt
-target
-.bsp
-
-# npm install file
-package-lock.json
-
-# build
-src/version.ts
-
-# unknown
-.vscode-test/
-
-# scala metals vscode extension compiled folder
-.metals
-
-# application build
-# todo;; the build logic needs refactored to write these elsewhere
-#        either target/ or /tmp or ...
-*.vsix
-
-# application runtime
-# todo;; the app logic needs refactored to write these elsewhere
-#        either /tmp or XDG or ...
-datafile-hex
-npm-debug.log
-
-# tmp files
-tmp.*
-
-# ignore omega-edit scala server package file
-src/omega_edit/omega-edit-scala-server*
+jobs:
+  scala-steward:
+    if: github.repository == 'apache/daffodil-vscode'
+    runs-on: ubuntu-20.04
+    name: Launch Scala Steward
+    steps:
+      - name: Launch Scala Steward
+        uses: scala-steward-org/scala-steward-action@v2.20.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-repository: apache/daffodil-vscode

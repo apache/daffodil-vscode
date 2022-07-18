@@ -39,9 +39,11 @@
 		"inlineSourceMap": false,
 		"preserveConstEnums": true,
 		"strictNullChecks": true,
-		"noUnusedParameters": false
+		"noUnusedParameters": false,
+		"esModuleInterop": true
 	},
 	"exclude": [
-		"node_modules"
+		"node_modules",
+		"build/scripts"
 	]
 }

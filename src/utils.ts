@@ -18,6 +18,7 @@
 import * as vscode from 'vscode'
 
 const defaultConf = vscode.workspace.getConfiguration()
+// const
 let currentConfig: vscode.ProviderResult<vscode.DebugConfiguration>
 
 export const regexp = {

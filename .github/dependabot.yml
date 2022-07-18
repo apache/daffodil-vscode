@@ -23,7 +23,12 @@ updates:
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    # Upgrading these items currently cause issues
+    ignore:
+      - dependency-name: "typescript"
+      - dependency-name: "ts-loader"
+      - dependency-name: "@types/vscode"
   - package-ecosystem: "github-actions" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:

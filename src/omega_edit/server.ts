@@ -21,7 +21,7 @@ import * as unzip from 'unzip-stream'
 import * as child_process from 'child_process'
 import * as path from 'path'
 import * as os from 'os'
-import { Artifact } from './download'
+import { Artifact } from '../classes/artifact'
 import XDGAppPaths from 'xdg-app-paths'
 
 const xdgAppPaths = XDGAppPaths({ name: 'omega_edit' })
@@ -31,7 +31,11 @@ export async function startServer(
   omegaEditVersion: string
 ) {
   // Get omegaEditVersion
-  const artifact = new Artifact(omegaEditVersion)
+  const artifact = new Artifact(
+    'omega-edit-scala-server',
+    omegaEditVersion,
+    'example-grpc-server'
+  )
   const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
 
   if (vscode.workspace.workspaceFolders) {
