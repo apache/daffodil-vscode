@@ -57,20 +57,18 @@ Run full build
   * Creates Files
     ```
     server/core/target/universal/daffodil-debugger-*.zip
-    daffodil-debugger-*.vsix
+    apache-daffodil-vscode-*.vsix
     ```
 
 ## Running Debug Server
 
-The debug server will automatically be ran by the extension unless `useExistingServer` is to set to `true` inside of `.vscode/launch.json`
+The debug server will automatically be run by the extension unless `useExistingServer` is to set to `true` inside of `.vscode/launch.json`
 
-If you wish to ran the debug server manually the scripts to do so are at the following locations:
+If you wish to run the debug server manually the scripts to do so are at the following locations:
 * Debugging through VS Code with or without VSIX:
   * Linux = `/home/USERNAME/.local/share/daffodil-dap`
   * Mac = `/Users/USERNAME/Library/Application\ Support/daffodil-dap`
   * Windows = `C:\\Users\\USERNAME\\AppData\\Roaming\\daffodil-dap`
-  
-
 
 ## Installation
 
@@ -82,7 +80,7 @@ Once you have either downloaded the VSIX file or created it you can now install 
 
 * Via command line
   ```bash
-  code --install-extension daffodil-debugger-*.vsix
+  code --install-extension apache-daffodil-vscode-*.vsix
   ```
 
 ## Usage
