@@ -49,14 +49,4 @@ export class Artifact {
       return ''
     }
   }
-
-  getOsFolder() {
-    if (os.platform().toLowerCase().startsWith('win')) {
-      return 'windows'
-    } else if (os.platform().toLowerCase().startsWith('darwin')) {
-      return 'macos'
-    } else {
-      return 'linux'
-    }
-  }
 }

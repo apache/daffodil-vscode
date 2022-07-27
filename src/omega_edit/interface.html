@@ -21,8 +21,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Data Editor</title>
-    <link rel="stylesheet" href="edit.css" />
-    <!--<link rel="stylesheet" href="../styles/omega_edit.css">-->
     <style>
       .container {
         display: block;
@@ -42,10 +40,7 @@
   </head>
   <body>
     <div>
-      <!-- <div id="server">uri</div> -->
-      <!-- <div id="session">?</div> -->
       <div style="display: none" id="sessionFile"></div>
-      <div style="display: none" id="lastChange"></div>
       <div style="display: none" id="changeCount"></div>
       <div class="offset-div">
         <p class="offset-text">Offset</p>
@@ -90,26 +85,6 @@
         >
         <div class="stats-area">File Size:<br /></div>
       </div>
-
-      <!--<br />
-
-      <div class="viewport-div">
-        <p class="viewport-text">Viewports</p>
-        <label style="margin-top: 5px; padding-left: 0px; width: 100px;" class="container">Offset
-          <div style="position: absolute; top: 0; margin-left: 45px; height: 10px; width: 35px; border: 2px solid;"></div>
-        </label>
-        <div class="viewport-area" id="viewport1"></div>
-    
-        <label style="margin-top: -128px; padding-left: 290px; width: 100px;" class="container">Offset
-          <div style="position: absolute; top: 0; margin-left: 45px; height: 10px; width: 35px; border: 2px solid;"></div>
-        </label>
-        <div style="margin-left: 290px;" class="viewport-area" id="viewport2"></div>
-
-        <label style="margin-top: -128px; padding-left: 580px; width: 100px;" class="container">Offset
-          <div style="position: absolute; top: 0; margin-left: 45px; height: 10px; width: 35px; border: 2px solid;"></div>
-        </label>
-        <div style="margin-left: 580px;" class="viewport-area" id="viewport3"></div>
-      </div>-->
 
       <div style="padding-top: 0px; padding-left: 5px" class="viewport-div">
         <p style="margin-top: 10px" class="viewport-text">Viewports</p>
@@ -169,6 +144,43 @@
       <br />
 
       <div style="padding-top: 35%; width: max-content">
+        <div class="setting-div">
+          <p>
+            Search: <input style="margin-left: 10px" id="searchInput" />
+            <label
+              style="margin-left: 102%; margin-top: -20px"
+              class="container"
+              >Replace?
+              <input
+                type="checkbox"
+                id="replaceText"
+                onClick="replaceCkBoxClicked()"
+              />
+              <span style="margin-left: 0px" class="checkmark"></span>
+            </label>
+            <label
+              style="margin-left: 142%; margin-top: -16px; width: 105px"
+              class="container"
+              >Case Insensitive?
+              <input type="checkbox" id="caseInsensitive" />
+              <span style="margin-left: 0px" class="checkmark"></span>
+            </label>
+            <button
+              style="margin-left: 102%; margin-top: 20px"
+              id="searchReplaceButton"
+              onClick="executeSearchOrReplace()"
+            >
+              Search
+            </button>
+          </p>
+
+          <p id="replaceLabel" style="margin-top: -38px; visibility: hidden">
+            Replace: <input style="margin-left: 3px" id="replaceInput" />
+          </p>
+        </div>
+
+        <br />
+
         <div class="setting-div" onclick="check('overwriteSessionFile')">
           <label class="container"
             >Overwrite File

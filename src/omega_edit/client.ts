@@ -21,7 +21,7 @@ import * as omegaEditSession from 'omega-edit/session'
 import * as omegaEditViewport from 'omega-edit/viewport'
 import * as omegaEditVersion from 'omega-edit/version'
 import { startServer, stopServer } from './server'
-import { randomId, viewportSubscribe } from './utils'
+import { viewportSubscribe } from './utils'
 import { OmegaEdit } from './omega_edit'
 
 let serverRunning = false
@@ -93,30 +93,19 @@ export function activate(ctx: vscode.ExtensionContext) {
         filePath: fileToEdit,
       })
 
+      let fileSize = await omegaEditSession.getComputedFileSize(s)
+
       let vpAll = await omegaEditViewport.createViewport(
-        randomId().toString(),
+        '',
         s,
         0,
-        1000
+        fileSize,
+        false
       )
-      let vp1 = await omegaEditViewport.createViewport(
-        randomId().toString(),
-        s,
-        0,
-        64
-      )
-      let vp2 = await omegaEditViewport.createViewport(
-        randomId().toString(),
-        s,
-        64,
-        64
-      )
-      let vp3 = await omegaEditViewport.createViewport(
-        randomId().toString(),
-        s,
-        128,
-        64
-      )
+
+      let vp1 = await omegaEditViewport.createViewport('', s, 0, 64, false)
+      let vp2 = await omegaEditViewport.createViewport('', s, 64, 64, false)
+      let vp3 = await omegaEditViewport.createViewport('', s, 128, 64, false)
 
       await viewportSubscribe(panel, vpAll, vpAll, 'vpAll', 'hexAll')
       await viewportSubscribe(panel, vpAll, vp1, 'viewport1', null)
@@ -125,24 +114,34 @@ export function activate(ctx: vscode.ExtensionContext) {
 
       panel.webview.onDidReceiveMessage(
         async (message) => {
-          if (message.command === 'printChangeCount') {
-            vscode.window.showInformationMessage(message.changeCount)
-            return
-          }
           var omegaEdit = new OmegaEdit(
             s,
             message.offset,
-            message.command === 'overwriteByte'
-              ? `${message.deleteValue},${message.addValue}`
-              : message.data,
+            message.data,
             message.len,
             panel
           )
+
+          var fileSize = await omegaEditSession.getComputedFileSize(s)
+          var searchPattern = message.searchPattern ? message.searchPattern : ''
+
+          // If the search pattern exceeds the length of the file, matches are
+          // not possible.  Ωedit (as implemented currently) considers
+          // patterns that are longer than the length of the file to be an
+          // error (it will return a null pointer instead of an empty list).
+          if (searchPattern !== '' && fileSize < searchPattern.length) {
+            throw new Error("Search pattern can't be larger than file")
+          }
+
           omegaEdit.execute(
             message.command,
             message.sessionFile ? message.sessionFile : '',
             message.overwrite ? message.overwrite : false,
-            message.newFile ? message.newFile : false
+            message.newFile ? message.newFile : false,
+            fileSize,
+            searchPattern,
+            message.replaceText ? message.replaceText : '',
+            message.caseInsensitive ? message.caseInsensitive : false
           )
         },
         undefined,

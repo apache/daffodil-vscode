@@ -20,7 +20,7 @@ const vscode = acquireVsCodeApi()
 // Function for checking/unchecking a checkbox element
 function check(elementId) {
   const element = document.getElementById(elementId)
-  element.checked = element.checked ? false : true
+  element.checked = !element.checked
 
   if (elementId == 'overwriteSessionFile') {
     const newFileElement = document.getElementById('saveNewSessionFile')
@@ -55,27 +55,24 @@ function insertByte(value, offset, len) {
   })
 }
 
-function overwriteByte(addValue, deleteValue, offset, len) {
+function overwriteByte(data, offset, len) {
   vscode.postMessage({
     command: 'overwriteByte',
-    addValue: addValue,
-    deleteValue: deleteValue,
+    data: data,
     offset: offset,
     len: len,
   })
 }
 
-function undoChange(data) {
+function undoChange() {
   vscode.postMessage({
     command: 'undoChange',
-    data: data,
   })
 }
 
-function redoChange(data) {
+function redoChange() {
   vscode.postMessage({
     command: 'redoChange',
-    data: data,
   })
 }
 
@@ -85,6 +82,32 @@ function saveSession() {
     sessionFile: document.getElementById('sessionFile').value,
     overwrite: document.getElementById('overwriteSessionFile').checked,
     newFile: document.getElementById('saveNewSessionFile').checked,
+  })
+}
+
+function replace(data, offset, len) {
+  vscode.postMessage({
+    command: 'replace',
+    data: data,
+    offset: offset,
+    len: len,
+  })
+}
+
+function search(searchPattern, caseInsensitive) {
+  vscode.postMessage({
+    command: 'search',
+    searchPattern: searchPattern,
+    caseInsensitive: caseInsensitive,
+  })
+}
+
+function searchAndReplace(searchPattern, replaceText, caseInsensitive) {
+  vscode.postMessage({
+    command: 'searchAndReplace',
+    searchPattern: searchPattern,
+    replaceText: replaceText,
+    caseInsensitive: caseInsensitive,
   })
 }
 
@@ -132,29 +155,15 @@ function setupViewport(viewportId) {
       }
       insertByte('clipboard', viewportElement.selectionStart, 0)
     } else if ((event.ctrlKey || event.metaKey) && keyLower === 'z') {
-      var lastChangeElement = document.getElementById('lastChange')
-      var changeCount = document.getElementById('changeCount').value
-
-      if (lastChangeElement.value === '') {
-        return
-      }
-
       if (event.shiftKey) {
-        redoChange(lastChangeElement.value)
+        redoChange()
       } else {
-        if (changeCount > 0) {
-          undoChange(lastChangeElement.value)
-        }
+        undoChange()
       }
     } else if (!event.ctrlKey && !event.metaKey) {
       if (viewportElement.selectionStart !== viewportElement.selectionEnd) {
-        var deleteText = viewportElement.value.substring(
-          viewportElement.selectionStart,
-          viewportElement.selectionEnd
-        )
-        overwriteByte(
+        replace(
           key,
-          deleteText,
           viewportElement.selectionStart,
           viewportElement.selectionEnd - viewportElement.selectionStart
         )
@@ -165,6 +174,35 @@ function setupViewport(viewportId) {
   })
 }
 
+function replaceCkBoxClicked() {
+  var isChecked = document.getElementById('replaceText').checked
+
+  if (isChecked) {
+    document.getElementById('replaceLabel').style.visibility = 'visible'
+    document.getElementById('searchReplaceButton').textContent = 'Replace'
+  } else {
+    document.getElementById('replaceLabel').style.visibility = 'hidden'
+    document.getElementById('searchReplaceButton').textContent = 'Search'
+  }
+}
+
+function executeSearchOrReplace() {
+  var isReplace = document.getElementById('replaceText').checked
+
+  if (isReplace) {
+    searchAndReplace(
+      document.getElementById('searchInput').value,
+      document.getElementById('replaceInput').value,
+      document.getElementById('caseInsensitive').checked
+    )
+  } else {
+    search(
+      document.getElementById('searchInput').value,
+      document.getElementById('caseInsensitive').checked
+    )
+  }
+}
+
 ;(function main() {
   window.addEventListener('message', (event) => {
     const message = event.data
@@ -172,19 +210,6 @@ function setupViewport(viewportId) {
     switch (message.command) {
       case 'setSessionFile':
         document.getElementById('sessionFile').value = message.filePath
-        break
-      case 'updateLastChange':
-        var changeCount = document.getElementById('changeCount').value
-
-        if (!changeCount) {
-          document.getElementById('changeCount').value = 1
-        } else if (message.actionPerformed === 'undo') {
-          document.getElementById('changeCount').value = changeCount - 1
-        } else {
-          document.getElementById('changeCount').value = changeCount + 1
-        }
-
-        document.getElementById('lastChange').value = message.data
         break
       default:
         document.getElementById(message.command).innerHTML = message.text
