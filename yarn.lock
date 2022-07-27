@@ -1499,10 +1499,10 @@ object-inspect@^1.9.0:
   resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.12.2.tgz#c0641f26394532f28ab8d796ab954e43c009a8ea"
   integrity sha512-z+cPxW0QGUp0mcqcsgQyLVRDoXFQbXOwBaqyF7VIgI4TWNQsDHrBpUQslRmIfAoYWdYzs6UlKJtB2XJpTaNSpQ==
 
-omega-edit@0.9.8:
-  version "0.9.8"
-  resolved "https://registry.yarnpkg.com/omega-edit/-/omega-edit-0.9.8.tgz#d9d3101ebc55f57ba8ef43fa1d39d7d4553048ef"
-  integrity sha512-AXxboBDAjFNdusn2X3tscHCJz0K9BShVSRoYQOrb/NfshvGY1tRf8Oxn/l4/XKnl5XF2B/mD9QoidVchM4W9Lw==
+omega-edit@0.9.20:
+  version "0.9.20"
+  resolved "https://registry.yarnpkg.com/omega-edit/-/omega-edit-0.9.20.tgz#426f1312f50841838cbfe34788d9633e6ea37b0d"
+  integrity sha512-UTLMTTBl5awlc3hwAcsHOs6I7kyNh+OPjvrtGvQ8qsFUTPQaMtOt4KULF6i1l0WwsN5MzjM1Fs9VeXIweZQtjQ==
   dependencies:
     prettier "^2.6.2"
     run-script-os "^1.1.6"

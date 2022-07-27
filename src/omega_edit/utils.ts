@@ -19,7 +19,6 @@ import * as vscode from 'vscode'
 import * as hexy from 'hexy'
 import { ObjectId, ViewportDataRequest } from 'omega-edit/omega_edit_pb'
 import { getClient } from 'omega-edit/settings'
-import { insert, del } from 'omega-edit/change'
 
 const client = getClient()
 
@@ -60,7 +59,8 @@ export function viewportSubscribe(
   commandViewport: string,
   commandHex: string | null
 ) {
-  client.subscribeToViewportEvents(new ObjectId().setId(vp1)).on('data', () => {
+  var objId = new ObjectId().setId(vp1)
+  client.subscribeToViewportEvents(objId).on('data', (ve) => {
     client.getViewportData(
       new ViewportDataRequest().setViewportId(vp2),
       (err, r) => {
@@ -112,19 +112,4 @@ export function viewportSubscribe(
       }
     )
   })
-}
-
-export async function undoRedo(s: string, dataIn: string): Promise<string> {
-  var change = dataIn.split(',')[0]
-  var offset = +dataIn.split(',')[1]
-  var data = dataIn.split(',')[2]
-  var len = +dataIn.split(',')[3]
-
-  if (change === 'insert' || change === 'overwrite') {
-    await del(s, offset, data, len)
-    return `del,${offset},${data},${len}`
-  } else {
-    await insert(s, offset, data)
-    return `insert,${offset},${data},${len}`
-  }
 }

@@ -17,7 +17,7 @@
 
 import * as vscode from 'vscode'
 import * as omegaEditChange from 'omega-edit/change'
-import { getFilePath, undoRedo } from './utils'
+import { getFilePath } from './utils'
 import * as omegaEditSession from 'omega-edit/session'
 
 export class OmegaEdit {
@@ -48,65 +48,22 @@ export class OmegaEdit {
     }
 
     await omegaEditChange.insert(this.sessionId, this.offset, this.data)
-    this.panel.webview.postMessage({
-      command: 'updateLastChange',
-      actionPerformed: 'insert',
-      data: `insert,${this.offset},${this.data},${this.len}`,
-    })
   }
 
   async del() {
-    await omegaEditChange.del(this.sessionId, this.offset, this.data, this.len)
-    this.panel.webview.postMessage({
-      command: 'updateLastChange',
-      actionPerformed: 'del',
-      data: `del,${this.offset},${this.data.substring(
-        this.offset,
-        this.offset + this.len
-      )},${this.len}`,
-    })
+    await omegaEditChange.del(this.sessionId, this.offset, this.len)
   }
 
   async overwrite() {
-    var [deleteValue, addValue] = this.data.split(',')
-    await omegaEditChange.del(
-      this.sessionId,
-      this.offset,
-      deleteValue,
-      this.len
-    )
-    await omegaEditChange.insert(this.sessionId, this.offset, addValue)
-    this.panel.webview.postMessage({
-      command: 'updateLastChange',
-      actionPerformed: 'overwrite',
-      data: `overwrite,${this.offset},${addValue},1`,
-    })
-    // await overwrite(
-    //   s,
-    //   message.offset,
-    //   message.deleteValue,
-    //   message.len
-    // )  <-- Currently not functioning properly
+    await omegaEditChange.overwrite(this.sessionId, this.offset, this.data)
   }
 
   async undo() {
-    // await undo(this.sessionId) <-- not implemented in Scala server
-    var returnVal = await undoRedo(this.sessionId, this.data)
-    this.panel.webview.postMessage({
-      command: 'updateLastChange',
-      actionPerformed: 'undo',
-      data: returnVal,
-    })
+    await omegaEditChange.undo(this.sessionId)
   }
 
   async redo() {
-    // await redo(this.sessionId) <-- not implemented in Scala server
-    var returnVal = await undoRedo(this.sessionId, this.data)
-    this.panel.webview.postMessage({
-      command: 'updateLastChange',
-      actionPerformed: 'redo',
-      data: returnVal,
-    })
+    await omegaEditChange.redo(this.sessionId)
   }
 
   async save(sessionFile: string, overwrite: boolean, newFile: boolean) {
@@ -127,11 +84,81 @@ export class OmegaEdit {
     }
   }
 
+  async search(
+    fileSize: number,
+    searchPattern: string,
+    caseInsensitive: boolean,
+    limit: number = 0 // unlimited for omega-edit is 0
+  ): Promise<Array<number>> {
+    return await omegaEditSession.searchSession(
+      this.sessionId,
+      Buffer.from(searchPattern),
+      caseInsensitive,
+      0,
+      fileSize,
+      limit
+    )
+  }
+
+  async replace(
+    sessionId: string,
+    offset: number,
+    len: number,
+    data: string = ''
+  ) {
+    await omegaEditChange.del(sessionId, offset, len)
+
+    // if no data sent don't insert
+    if (data !== '') {
+      await omegaEditChange.insert(sessionId, offset, data)
+    }
+  }
+
+  // Perform search on a single result
+  async singleSearch(
+    fileSize: number,
+    searchPattern: string,
+    caseInsensitive
+  ): Promise<number> {
+    var result = await this.search(fileSize, searchPattern, caseInsensitive, 1)
+    return result[0]
+  }
+
+  async searchAndReplace(
+    fileSize: number,
+    searchPattern: string,
+    replaceText: string,
+    caseInsensitive: boolean
+  ) {
+    var index = await this.singleSearch(
+      fileSize,
+      searchPattern,
+      caseInsensitive
+    )
+
+    // Loop only gets one result per loop as trying to replace all
+    // instances at one time causes wrong things to be replaced.
+    while (index >= 0) {
+      await this.replace(
+        this.sessionId,
+        index,
+        searchPattern.length,
+        replaceText
+      )
+
+      index = await this.singleSearch(fileSize, searchPattern, caseInsensitive)
+    }
+  }
+
   async execute(
     action: string,
     sessionFile: string,
     overwrite: boolean,
-    newFile: boolean
+    newFile: boolean,
+    fileSize: number,
+    searchPattern: string,
+    replaceText: string,
+    caseInsensitive: boolean
   ) {
     switch (action) {
       case 'overwriteByte':
@@ -151,6 +178,26 @@ export class OmegaEdit {
         break
       case 'save':
         await this.save(sessionFile, overwrite, newFile)
+        break
+      case 'replace':
+        await this.replace(this.sessionId, this.offset, this.len, this.data)
+        break
+      case 'search':
+        var searchResults = await this.search(
+          fileSize,
+          searchPattern,
+          caseInsensitive
+        )
+        if (searchResults)
+          vscode.window.showInformationMessage(searchResults.toString())
+        break
+      case 'searchAndReplace':
+        await this.searchAndReplace(
+          fileSize,
+          searchPattern,
+          replaceText,
+          caseInsensitive
+        )
         break
     }
   }
