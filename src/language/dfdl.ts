@@ -27,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
   let dfdlFormat = fs
     .readFileSync(
       context.asAbsolutePath(
-        './src/language/providers/intellisense/DFDLGeneralFormat.dfdl.xsdf'
+        './src/language/providers/intellisense/DFDLGeneralFormat.dfdl.xsd'
       )
     )
     .toLocaleString()
