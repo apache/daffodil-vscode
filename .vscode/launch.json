@@ -33,20 +33,31 @@
 		},
 		{
 			"name": "Tests",
-			"type": "node",
+			// "name": "Extension Tests",
+			"type": "extensionHost",
 			"request": "launch",
-			"cwd": "${workspaceFolder}",
-			"program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+			"runtimeExecutable": "${execPath}",
 			"args": [
-				"-u", "tdd",
-				"--timeout", "999999",
-				"--colors",
-				"./out/tests/"
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"--extensionTestsPath=${workspaceFolder}/out/tests/suite"
 			],
 			"outFiles": [
-				"${workspaceFolder}/out/**/*.js"
+				"${workspaceFolder}/out/tests/**/*.js",
 			],
-			"internalConsoleOptions": "openOnSessionStart",
+			// "type": "node",
+			// "request": "launch",
+			// "cwd": "${workspaceFolder}",
+			// "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+			// "args": [
+			// 	"-u", "tdd",
+			// 	"--timeout", "999999",
+			// 	"--colors",
+			// 	"./out/tests/"
+			// ],
+			// "outFiles": [
+			// 	"${workspaceFolder}/out/**/*.js"
+			// ],
+			// "internalConsoleOptions": "openOnSessionStart",
 			"preLaunchTask": "npm: compile"
 		}
 	]

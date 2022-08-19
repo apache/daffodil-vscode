@@ -17,16 +17,14 @@
 
 import * as vscode from 'vscode'
 import * as fs from 'fs'
-import * as unzip from 'unzip-stream'
-import * as child_process from 'child_process'
 import * as path from 'path'
-import * as os from 'os'
 import { Artifact } from '../classes/artifact'
 import XDGAppPaths from 'xdg-app-paths'
+import { runScript, unzipFile, killProcess } from '../utils'
 
 const xdgAppPaths = XDGAppPaths({ name: 'omega_edit' })
 
-export async function startServer(
+export async function getServer(
   ctx: vscode.ExtensionContext,
   omegaEditVersion: string
 ) {
@@ -36,7 +34,6 @@ export async function startServer(
     omegaEditVersion,
     'example-grpc-server'
   )
-  const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
 
   if (vscode.workspace.workspaceFolders) {
     let rootPath = xdgAppPaths.data()
@@ -54,67 +51,37 @@ export async function startServer(
       )
 
       // Unzip file and remove zip
-      await new Promise((resolve, reject) => {
-        let stream = fs
-          .createReadStream(filePath)
-          .pipe(unzip.Extract({ path: `${rootPath}` }))
-        stream.on('close', () => {
-          try {
-            resolve(filePath)
-          } catch (err) {
-            reject(err)
-          }
-        })
-      })
-      fs.unlinkSync(filePath)
+      await unzipFile(filePath, rootPath)
     }
-
-    let scriptPath = `${artifact.name}/${artifact.getOsFolder()}`
-
-    if (!os.platform().toLowerCase().startsWith('win')) {
-      child_process.execSync(
-        `chmod +x ${rootPath.replace(
-          ' ',
-          '\\ '
-        )}/${scriptPath}/bin/${artifact.scriptName.replace('./', '')}`
-      )
-    }
-
-    // Start server in terminal based on scriptName
-    let terminal = vscode.window.createTerminal({
-      name: artifact.scriptName,
-      cwd: `${rootPath}/${scriptPath}/bin`,
-      hideFromUser: false,
-      shellPath: artifact.scriptName,
-    })
-    terminal.show()
-
-    // Wait for 5000ms to make sure server is running before client tries to connect
-    await delay(5000)
   }
+
+  await runScript(
+    `${ctx.asAbsolutePath('./src/omega_edit')}/${
+      artifact.name
+    }/${artifact.getOsFolder()}`,
+    artifact
+  )
 }
 
 // Function for stopping debugging
-export async function stopServer() {
-  const action = await vscode.window.showInformationMessage(
-    'Stop Ωedit server?',
-    'Yes',
-    'No'
-  )
-
-  if (action === 'Yes') {
-    vscode.window.activeTerminal?.processId.then((id) => {
-      if (id) {
-        if (os.platform() === 'win32') {
-          child_process.exec(`taskkill /F /PID ${id}`)
-        } else {
-          child_process.exec(`kill -9 ${id}`)
-        }
-      }
-    })
-
+export async function stopServer(terminal: vscode.Terminal | null = null) {
+  if (terminal !== null) {
+    terminal.processId.then(async (id) => await killProcess(id))
     return true
-  }
+  } else {
+    const action = await vscode.window.showInformationMessage(
+      'Stop Ωedit server?',
+      'Yes',
+      'No'
+    )
 
-  return false
+    if (action === 'Yes') {
+      vscode.window.activeTerminal?.processId.then(
+        async (id) => await killProcess(id)
+      )
+      return true
+    }
+
+    return false
+  }
 }

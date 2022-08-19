@@ -298,3 +298,61 @@ export function checkBraceOpen(
   }
   return false
 }
+
+import { commonCompletion } from './intellisense/commonItems'
+
+export const noPreVals: string[] = [
+  'dfdl:choiceBranchKey=',
+  'dfdl:representation',
+  'dfdl:choiceDispatchKey=',
+  'dfdl:simpleType',
+  'xs:restriction',
+]
+
+export function createCompletionItem(
+  e:
+    | {
+        item: string
+        snippetString: string
+        markdownString: string
+      }
+    | {
+        item: string
+        snippetString: string
+        markdownString?: undefined
+      },
+  preVal: string
+) {
+  const completionItem = new vscode.CompletionItem(e.item)
+
+  if (preVal !== '' && !noPreVals.includes(e.item)) {
+    completionItem.insertText = new vscode.SnippetString(
+      preVal + e.snippetString
+    )
+  } else {
+    completionItem.insertText = new vscode.SnippetString(e.snippetString)
+  }
+
+  if (e.markdownString) {
+    completionItem.documentation = new vscode.MarkdownString(e.markdownString)
+  }
+
+  return completionItem
+}
+
+export function getCommonItems(
+  itemsToUse: string[],
+  preVal: string = '',
+  additionalItems: string = ''
+) {
+  let compItems: vscode.CompletionItem[] = []
+
+  commonCompletion(additionalItems).items.forEach((e) => {
+    if (itemsToUse.includes(e.item)) {
+      const completionItem = createCompletionItem(e, preVal)
+      compItems.push(completionItem)
+    }
+  })
+
+  return compItems
+}
