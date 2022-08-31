@@ -101,11 +101,7 @@ export class DebuggerHexView {
   // Overriden onTerminatedDebugSession method
   onTerminatedDebugSession(session: vscode.DebugSession) {
     if (session.type === 'dfdl') {
-      vscode.window.visibleTextEditors.forEach((editior) => {
-        if (editior.document.fileName === this.hexFile) {
-          editior.hide() // method is deprecated but is only way to close specific editor not just the active one
-        }
-      })
+      this.decorator.dispose()
       this.dataFile = ''
       this.bytePos1b = -1
     }
