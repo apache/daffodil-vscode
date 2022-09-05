@@ -40,7 +40,7 @@
     "sbt": "sbt universal:packageBin"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.5.4",
+    "@grpc/grpc-js": "^1.6.12",
     "@types/moo": "^0.5.5",
     "await-notify": "1.0.1",
     "child_process": "1.0.2",
