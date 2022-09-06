@@ -24,6 +24,7 @@ import { FileAccessor } from './daffodilRuntime'
 import { TDMLConfig } from '../classes/tdmlConfig'
 import { handleDebugEvent } from './daffodilEvent'
 import { InlineDebugAdapterFactory } from './extension'
+import * as dfdlExt from '../language/semantics/dfdlExt'
 
 /** Method to file path for program and data
  * Details:
@@ -404,6 +405,7 @@ export function activateDaffodilDebug(
   )
 
   dfdlLang.activate(context)
+  dfdlExt.activate(context)
   infoset.activate(context)
   dataEditClient.activate(context)
   launchWizard.activate(context)

@@ -424,3 +424,35 @@ conditions of the following licenses.
     software is granted. This software is provided "as is" without
     express or implied warranty, and with no claim as to its
     suitability for any purpose.
+
+- src/language/semantics/dfdlExt.ts
+- src/language/semantics/documentChangeHandler.ts
+- src/language/semantics/functionData.ts
+- src/language/semantics/xPathDocumentChangeHandler.ts
+- src/language/semantics/xpLexer.ts
+- src/language/semantics/xslLexer.ts
+- src/language/semantics/xsltTokenDiagnostics.ts
+  This product modifies and bundles the above files from the 'XSLT/XPath for Visual Studio Code' extension. (https://github.com/DeltaXML/vscode-xslt-tokenizer)
+  These files are available under the MIT License:
+
+    MIT License
+
+    Copyright (c) 2020 DeltaXML Ltd
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
