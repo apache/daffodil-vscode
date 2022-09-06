@@ -23,6 +23,7 @@ import * as dataEditClient from '../dataEdit/client'
 import { getConfig, getCurrentConfig, setCurrentConfig } from '../utils'
 import { DaffodilDebugSession } from './daffodilDebug'
 import { FileAccessor } from './daffodilRuntime'
+import * as dfdlExt from '../language/semantics/dfdlExt'
 
 /** Method to file path for program and data
  * Details:
@@ -378,6 +379,7 @@ export function activateDaffodilDebug(
   )
 
   dfdlLang.activate(context)
+  dfdlExt.activate(context)
   infoset.activate(context)
   dataEditClient.activate(context)
   launchWizard.activate(context)
