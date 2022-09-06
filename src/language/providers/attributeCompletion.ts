@@ -20,6 +20,7 @@ import * as vscode from 'vscode'
 import {
   nearestOpen,
   checkBraceOpen,
+  isInXPath,
   lineCount,
   createCompletionItem,
   getCommonItems,
@@ -72,6 +73,8 @@ export function getAttributeCompletionProvider() {
         let itemsOnLine = getItemsOnLineCount(triggerText)
         const nsPrefix = getXsdNsPrefix(document, position)
         let additionalItems = getDefinedTypes(document, nsPrefix)
+
+        if (isInXPath(document, position)) return undefined
 
         if (
           checkBraceOpen(document, position) ||

@@ -17,6 +17,7 @@
 
 import * as vscode from 'vscode'
 import { commonCompletion } from './intellisense/commonItems'
+import { isXPath } from '../semantics/dfdlExt'
 
 const schemaPrefixRegEx = new RegExp('</?(|[^ ]+:)schema')
 
@@ -395,6 +396,14 @@ export function getItemsOnLineCount(triggerText: String) {
     }
   }
   return itemsOnLine
+}
+
+//Determines if the current curser is in XPath and dfdl intellisense should be turned off
+export function isInXPath(
+  document: vscode.TextDocument,
+  position: vscode.Position
+): boolean {
+  return isXPath(position)
 }
 
 export function cursorAfterEquals(

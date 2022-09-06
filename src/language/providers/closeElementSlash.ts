@@ -20,6 +20,7 @@ import { checkMissingCloseTag } from './closeUtils'
 import {
   insertSnippet,
   checkBraceOpen,
+  isInXPath,
   getXsdNsPrefix,
   getItemPrefix,
   getItemsOnLineCount,
@@ -52,7 +53,8 @@ export function getCloseElementSlashProvider() {
           checkBraceOpen(document, position) ||
           cursorWithinBraces(document, position) ||
           cursorWithinQuotes(document, position) ||
-          cursorAfterEquals(document, position)
+          cursorAfterEquals(document, position) ||
+          isInXPath(document, position)
         ) {
           return undefined
         }
