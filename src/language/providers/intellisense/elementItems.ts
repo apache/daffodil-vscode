@@ -98,7 +98,7 @@ export const elementCompletion = (definedVariables, dfdlFormatString) => {
       },
       {
         item: 'xs:choice',
-        snippetString: '<xs:choice$1>\n\t$0\n</xs:choice>',
+        snippetString: '<xs:choice',
       },
       {
         item: 'dfdl:defineVariable',

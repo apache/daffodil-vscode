@@ -42,6 +42,8 @@ export function getCloseElementProvider() {
             nearestOpenItem.includes('sequence') ||
             wholeLine.includes('xs:simpleType') ||
             nearestOpenItem.includes('simpleType') ||
+            wholeLine.includes('xs:choice') ||
+            nearestOpenItem.includes('choice') ||
             wholeLine.includes('dfdl:defineVariable') ||
             nearestOpenItem.includes('Variable'))
         ) {
@@ -72,6 +74,11 @@ export function getCloseElementProvider() {
             nearestOpenItem.includes('sequence')
           ) {
             insertSnippet('>\n\t$0\n</xs:sequence>', backpos)
+          } else if (
+            (wholeLine.endsWith('>') && wholeLine.includes('xs:choice')) ||
+            nearestOpenItem.includes('choice')
+          ) {
+            insertSnippet('>\n\t$0\n</xs:choice>', backpos)
           } else if (
             (wholeLine.endsWith('>') && wholeLine.includes('xs:simpleType')) ||
             nearestOpenItem.includes('simpleType')
