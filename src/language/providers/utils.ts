@@ -45,6 +45,7 @@ export function checkLastItemOpen(
     previousLine.includes('/>') ||
     ((wholeLine.includes('element') ||
       wholeLine.includes('sequence') ||
+      wholeLine.includes('choice') ||
       wholeLine.includes('group') ||
       wholeLine.includes('Variable')) &&
       (wholeLine.includes('</') || wholeLine.includes('/>')))
@@ -93,6 +94,10 @@ export function nearestOpen(
     } else if (wholeLine.includes('sequence') && !wholeLine.includes('/>')) {
       if (checkSequenceOpen(document, position)) {
         return 'sequence'
+      }
+    } else if (wholeLine.includes('choice') && !wholeLine.includes('/>')) {
+      if (checkChoiceOpen(document, position)) {
+        return 'choice'
       }
     } else if (wholeLine.includes('group')) {
       if (
@@ -187,6 +192,33 @@ export function checkSequenceOpen(
   return false
 }
 
+export function checkChoiceOpen(
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
+  var lineNum = position.line
+  while (lineNum !== 0) {
+    const wholeLine = document
+      .lineAt(lineNum)
+      .text.substr(0, document.lineAt(lineNum).range.end.character)
+    if (
+      (wholeLine.includes('<xs:choice') &&
+        (wholeLine.includes('</xs:choice') || wholeLine.includes('/>'))) ||
+      wholeLine.includes('</xs:choice>')
+    ) {
+      return false
+    }
+    if (
+      wholeLine.includes('<xs:choice') &&
+      !wholeLine.includes('</xs:choice') &&
+      !wholeLine.includes('/>')
+    ) {
+      return true
+    }
+    --lineNum
+  }
+  return false
+}
 export function checkSimpleTypeOpen(
   document: vscode.TextDocument,
   position: vscode.Position
