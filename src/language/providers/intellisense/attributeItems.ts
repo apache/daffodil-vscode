@@ -160,7 +160,7 @@ export const attributeCompletion = (additionalItems) => {
       },
       {
         item: 'dfdl:choiceDispatchKey=',
-        snippetString: 'dfdl:choiceBranchKey="$1"$0',
+        snippetString: 'dfdl:choiceDispatchKey="$1"$0',
         markdownString: 'The expression must evaluate to a string',
       },
       {
