@@ -44,18 +44,8 @@ class Artifact {
     this.archiveUrl = (backend) =>
       `https://github.com/${backend.owner}/${backend.repo}/releases/download/v${this.omegaEditVersion}/${this.archive}`
     this.scriptName = os.platform().toLowerCase().startsWith('win32')
-      ? 'example-grpc-server.bat'
-      : './example-grpc-server'
-  }
-
-  getOsFolder() {
-    if (os.platform().toLowerCase().startsWith('win')) {
-      return 'windows'
-    } else if (os.platform().toLowerCase().startsWith('darwin')) {
-      return 'macos'
-    } else {
-      return 'linux'
-    }
+      ? 'omega-edit-grpc-server.bat'
+      : './omega-edit-grpc-server'
   }
 }
 

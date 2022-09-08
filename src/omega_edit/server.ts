@@ -34,7 +34,7 @@ export async function startServer(
   const artifact = new Artifact(
     'omega-edit-scala-server',
     omegaEditVersion,
-    'example-grpc-server'
+    'omega-edit-grpc-server'
   )
   const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
 
@@ -69,7 +69,7 @@ export async function startServer(
       fs.unlinkSync(filePath)
     }
 
-    let scriptPath = `${artifact.name}/${artifact.getOsFolder()}`
+    let scriptPath = artifact.name
 
     if (!os.platform().toLowerCase().startsWith('win')) {
       child_process.execSync(

@@ -385,7 +385,7 @@ class LaunchWizard {
       <script nonce="${nonce}">
         ${scriptData}
       </script>
-      <h2 style="color: white;">Daffodil Debugger Config Settings</h2>
+      <h2 style="color: inherit;">Daffodil Debugger Config Settings</h2>
 
       <div id="configSelectionDropDown" class="setting-div">
         <p>Launch Config:</p>
