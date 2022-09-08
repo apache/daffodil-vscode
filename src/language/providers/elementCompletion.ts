@@ -63,13 +63,13 @@ function getDefinedVariables(document: vscode.TextDocument) {
   var itemCnt = 0
   const lineCount = document.lineCount
   while (lineNum !== lineCount) {
-    const wholeLine = document
+    const triggerText = document
       .lineAt(lineNum)
       .text.substring(0, document.lineAt(lineNum).range.end.character)
-    if (wholeLine.includes('dfdl:defineVariable name=')) {
-      var startPos = wholeLine.indexOf('"', 0)
-      var endPos = wholeLine.indexOf('"', startPos + 1)
-      var newType = wholeLine.substring(startPos + 1, endPos)
+    if (triggerText.includes('dfdl:defineVariable name=')) {
+      var startPos = triggerText.indexOf('"', 0)
+      var endPos = triggerText.indexOf('"', startPos + 1)
+      var newType = triggerText.substring(startPos + 1, endPos)
       if (itemCnt === 0) {
         additionalTypes = newType
         ++itemCnt
