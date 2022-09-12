@@ -16,7 +16,12 @@
  */
 
 import * as vscode from 'vscode'
-import { insertSnippet, nearestOpen, checkBraceOpen } from './utils'
+import {
+  insertSnippet,
+  nearestOpen,
+  checkBraceOpen,
+  getNsPrefix,
+} from './utils'
 
 export function getCloseElementSlashProvider() {
   return vscode.languages.registerCompletionItemProvider(
@@ -27,7 +32,8 @@ export function getCloseElementSlashProvider() {
         position: vscode.Position
       ) {
         var backpos = position.with(position.line, position.character - 1)
-        const wholeLine = document
+        const nsPrefix = getNsPrefix(document, position)
+        const triggerText = document
           .lineAt(position)
           .text.substr(0, position.character)
         const nearestOpenItem = nearestOpen(document, position)
@@ -35,12 +41,12 @@ export function getCloseElementSlashProvider() {
           return undefined
         }
         if (
-          wholeLine.endsWith('/') &&
-          (wholeLine.includes('xs:element') ||
+          triggerText.endsWith('/') &&
+          (triggerText.includes('<' + nsPrefix + 'element') ||
             nearestOpenItem.includes('element') ||
-            wholeLine.includes('xs:group') ||
+            triggerText.includes('<' + nsPrefix + 'group') ||
             nearestOpenItem.includes('group') ||
-            wholeLine.includes('xs:sequence') ||
+            triggerText.includes('<' + nsPrefix + 'sequence') ||
             nearestOpenItem.includes('sequence'))
         ) {
           var range = new vscode.Range(backpos, position)
@@ -50,9 +56,9 @@ export function getCloseElementSlashProvider() {
           insertSnippet(' />$0', backpos)
         }
         if (
-          wholeLine.endsWith('/') &&
-          (wholeLine.includes('dfdl:defineVariable') ||
-            wholeLine.includes('dfdl:setVariable') ||
+          triggerText.endsWith('/') &&
+          (triggerText.includes('dfdl:defineVariable') ||
+            triggerText.includes('dfdl:setVariable') ||
             nearestOpenItem.includes('defineVariable') ||
             nearestOpenItem.includes('setVariable'))
         ) {
@@ -63,9 +69,9 @@ export function getCloseElementSlashProvider() {
           })
           insertSnippet('/>\n', backpos)
           var backpos2 = position.with(position.line + 1, startPos - 2)
-          insertSnippet('</xs:appinfo>\n', backpos2)
+          insertSnippet('</<' + nsPrefix + 'appinfo>\n', backpos2)
           var backpos3 = position.with(position.line + 2, startPos - 4)
-          insertSnippet('</xs:annotation>$0', backpos3)
+          insertSnippet('</<' + nsPrefix + 'annotation>$0', backpos3)
         }
         return undefined
       },

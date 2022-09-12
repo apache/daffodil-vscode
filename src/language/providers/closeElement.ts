@@ -16,7 +16,7 @@
  */
 
 import * as vscode from 'vscode'
-import { insertSnippet, nearestOpen } from './utils'
+import { getNsPrefix, insertSnippet, nearestOpen } from './utils'
 
 export function getCloseElementProvider() {
   return vscode.languages.registerCompletionItemProvider(
@@ -27,22 +27,26 @@ export function getCloseElementProvider() {
         position: vscode.Position
       ) {
         var backpos = position.with(position.line, position.character - 1)
+        const nsPrefix = getNsPrefix(document, position)
         const nearestOpenItem = nearestOpen(document, position)
-        const wholeLine = document
+        const triggerText = document
           .lineAt(position)
           .text.substr(0, position.character)
 
         if (
-          wholeLine.endsWith('>') &&
-          (wholeLine.includes('xs:element') ||
+          !triggerText.includes('</') &&
+          triggerText.endsWith('>') &&
+          (triggerText.includes('<' + nsPrefix + 'element') ||
             nearestOpenItem.includes('element') ||
-            wholeLine.includes('xs:group') ||
+            triggerText.includes('<' + nsPrefix + 'group') ||
             nearestOpenItem.includes('group') ||
-            wholeLine.includes('xs:sequence') ||
+            triggerText.includes('<' + nsPrefix + 'sequence') ||
             nearestOpenItem.includes('sequence') ||
-            wholeLine.includes('xs:simpleType') ||
+            triggerText.includes('<' + nsPrefix + 'simpleType') ||
             nearestOpenItem.includes('simpleType') ||
-            wholeLine.includes('dfdl:defineVariable') ||
+            triggerText.includes('<' + nsPrefix + 'choice') ||
+            nearestOpenItem.includes('choice') ||
+            triggerText.includes('dfdl:defineVariable') ||
             nearestOpenItem.includes('Variable'))
         ) {
           var range = new vscode.Range(backpos, position)
@@ -50,36 +54,44 @@ export function getCloseElementProvider() {
             editBuilder.replace(range, '')
           })
           if (
-            wholeLine.endsWith('>') &&
-            (wholeLine.includes('xs:element ref') ||
-              wholeLine.includes('xs:group ref'))
+            triggerText.endsWith('>') &&
+            (triggerText.includes('<' + nsPrefix + 'element ref') ||
+              triggerText.includes('<' + nsPrefix + 'group ref'))
           ) {
             insertSnippet(' />\n$0', backpos)
           } else if (
-            wholeLine.endsWith('>') &&
-            (wholeLine.includes('xs:element') ||
+            triggerText.endsWith('>') &&
+            (triggerText.includes('<' + nsPrefix + 'element') ||
               nearestOpenItem.includes('element'))
           ) {
-            insertSnippet('>\n\t$0\n</xs:element>', backpos)
+            insertSnippet('>\n\t$0\n</' + nsPrefix + 'element>', backpos)
           } else if (
-            wholeLine.endsWith('>') &&
-            (wholeLine.includes('xs:group') ||
+            triggerText.endsWith('>') &&
+            (triggerText.includes('<' + nsPrefix + 'group') ||
               nearestOpenItem.includes('group'))
           ) {
-            insertSnippet('>\n\t$0\n</xs:group>', backpos)
+            insertSnippet('>\n\t$0\n</' + nsPrefix + 'group>', backpos)
           } else if (
-            (wholeLine.endsWith('>') && wholeLine.includes('xs:sequence')) ||
+            (triggerText.endsWith('>') &&
+              triggerText.includes('<' + nsPrefix + 'sequence')) ||
             nearestOpenItem.includes('sequence')
           ) {
-            insertSnippet('>\n\t$0\n</xs:sequence>', backpos)
+            insertSnippet('>\n\t$0\n</' + nsPrefix + 'sequence>', backpos)
           } else if (
-            (wholeLine.endsWith('>') && wholeLine.includes('xs:simpleType')) ||
+            (triggerText.endsWith('>') &&
+              triggerText.includes('<' + nsPrefix + 'choice')) ||
+            nearestOpenItem.includes('choice')
+          ) {
+            insertSnippet('>\n\t$0\n</' + nsPrefix + 'choice>', backpos)
+          } else if (
+            (triggerText.endsWith('>') &&
+              triggerText.includes('<' + nsPrefix + 'simpleType')) ||
             nearestOpenItem.includes('simpleType')
           ) {
-            insertSnippet('>\n\t$0\n</xs:simpleType>', backpos)
+            insertSnippet('>\n\t$0\n</' + nsPrefix + 'simpleType>', backpos)
           } else if (
-            (wholeLine.endsWith('>') &&
-              wholeLine.includes('dfdl:defineVariable')) ||
+            (triggerText.endsWith('>') &&
+              triggerText.includes('dfdl:defineVariable')) ||
             nearestOpenItem.includes('defineVariable')
           ) {
             var startPos = document.lineAt(position).text.indexOf('<', 0)
@@ -89,12 +101,12 @@ export function getCloseElementProvider() {
             })
             insertSnippet('>\n</dfdl:defineVariable>\n', backpos)
             var backpos2 = position.with(position.line + 2, startPos - 2)
-            insertSnippet('</xs:appinfo>\n', backpos2)
+            insertSnippet('</<' + nsPrefix + 'appinfo>\n', backpos2)
             var backpos3 = position.with(position.line + 3, startPos - 4)
-            insertSnippet('</xs:annotation>$0', backpos3)
+            insertSnippet('</<' + nsPrefix + 'annotation>$0', backpos3)
           } else if (
-            (wholeLine.endsWith('>') &&
-              wholeLine.includes('dfdl:setVariable')) ||
+            (triggerText.endsWith('>') &&
+              triggerText.includes('dfdl:setVariable')) ||
             nearestOpenItem.includes('setVariable')
           ) {
             var startPos = document.lineAt(position).text.indexOf('<', 0)
@@ -104,9 +116,9 @@ export function getCloseElementProvider() {
             })
             insertSnippet('>\n</dfdl:setVariable>\n', backpos)
             var backpos2 = position.with(position.line + 2, startPos - 2)
-            insertSnippet('</xs:appinfo>\n', backpos2)
+            insertSnippet('</' + nsPrefix + 'appinfo>\n', backpos2)
             var backpos3 = position.with(position.line + 3, startPos - 4)
-            insertSnippet('</xs:annotation>$0', backpos3)
+            insertSnippet('</' + nsPrefix + 'annotation>$0', backpos3)
           }
         }
         return undefined

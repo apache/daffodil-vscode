@@ -16,7 +16,7 @@
  */
 
 import * as vscode from 'vscode'
-import { checkBraceOpen } from './utils'
+import { checkBraceOpen, getNsPrefix } from './utils'
 import { elementCompletion } from './intellisense/elementItems'
 
 export function getElementCompletionProvider(dfdlFormatString: string) {
@@ -31,6 +31,7 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
         console.log('in elementCompletionProvider - brace is showing open')
         return undefined
       }
+      var nsPrefix = getNsPrefix(document, position)
       var definedVariables = getDefinedVariables(document)
 
       // a completion item that inserts its text as snippet,
@@ -38,19 +39,21 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
       // honored by the editor.
       let compItems: vscode.CompletionItem[] = []
 
-      elementCompletion(definedVariables, dfdlFormatString).items.forEach(
-        (e) => {
-          const completionItem = new vscode.CompletionItem(e.item)
-          completionItem.insertText = new vscode.SnippetString(e.snippetString)
+      elementCompletion(
+        definedVariables,
+        dfdlFormatString,
+        nsPrefix
+      ).items.forEach((e) => {
+        const completionItem = new vscode.CompletionItem(e.item)
+        completionItem.insertText = new vscode.SnippetString(e.snippetString)
 
-          if (e.markdownString) {
-            completionItem.documentation = new vscode.MarkdownString(
-              e.markdownString
-            )
-          }
-          compItems.push(completionItem)
+        if (e.markdownString) {
+          completionItem.documentation = new vscode.MarkdownString(
+            e.markdownString
+          )
         }
-      )
+        compItems.push(completionItem)
+      })
 
       return compItems
     },
@@ -63,13 +66,13 @@ function getDefinedVariables(document: vscode.TextDocument) {
   var itemCnt = 0
   const lineCount = document.lineCount
   while (lineNum !== lineCount) {
-    const wholeLine = document
+    const triggerText = document
       .lineAt(lineNum)
       .text.substring(0, document.lineAt(lineNum).range.end.character)
-    if (wholeLine.includes('dfdl:defineVariable name=')) {
-      var startPos = wholeLine.indexOf('"', 0)
-      var endPos = wholeLine.indexOf('"', startPos + 1)
-      var newType = wholeLine.substring(startPos + 1, endPos)
+    if (triggerText.includes('dfdl:defineVariable name=')) {
+      var startPos = triggerText.indexOf('"', 0)
+      var endPos = triggerText.indexOf('"', startPos + 1)
+      var newType = triggerText.substring(startPos + 1, endPos)
       if (itemCnt === 0) {
         additionalTypes = newType
         ++itemCnt
