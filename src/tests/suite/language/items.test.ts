@@ -85,7 +85,7 @@ suite('Items Test Suite', () => {
   })
 
   test('all elementItems available', async () => {
-    elementCompletion('', '').items.forEach((item) => {
+    elementCompletion('', '', '').items.forEach((item) => {
       assert.strictEqual(expectedElementItems.includes(item.item), true)
     })
   })
