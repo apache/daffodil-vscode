@@ -16,7 +16,7 @@
  */
 
 import * as vscode from 'vscode'
-import { checkBraceOpen } from './utils'
+import { checkBraceOpen, getXsdNsPrefix } from './utils'
 import { elementCompletion } from './intellisense/elementItems'
 import { createCompletionItem } from './utils'
 
@@ -32,6 +32,7 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
         console.log('in elementCompletionProvider - brace is showing open')
         return undefined
       }
+      var nsPrefix = getXsdNsPrefix(document, position)
       var definedVariables = getDefinedVariables(document)
 
       // a completion item that inserts its text as snippet,
@@ -39,12 +40,14 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
       // honored by the editor.
       let compItems: vscode.CompletionItem[] = []
 
-      elementCompletion(definedVariables, dfdlFormatString).items.forEach(
-        (e) => {
-          const completionItem = createCompletionItem(e, '')
-          compItems.push(completionItem)
-        }
-      )
+      elementCompletion(
+        definedVariables,
+        dfdlFormatString,
+        nsPrefix
+      ).items.forEach((e) => {
+        const completionItem = createCompletionItem(e, '')
+        compItems.push(completionItem)
+      })
 
       return compItems
     },
