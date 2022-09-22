@@ -33,22 +33,49 @@ export function checkLastItemOpen(
   position: vscode.Position
 ) {
   var lineNum = position.line
-  const wholeLine = document.lineAt(lineNum).text
+  const nsPrefix = getXsdNsPrefix(document, position)
+  const wholeLine = document.lineAt(lineNum).text.trim()
   while (wholeLine.length === 0) {
     --lineNum
   }
-  const previousLine = document.lineAt(lineNum).text
+  if (lineNum > 0 && wholeLine.lastIndexOf('<') == 0) {
+    const previousLine = document
+      .lineAt(lineNum)
+      .text.substr(0, document.lineAt(lineNum - 1).range.end.character)
+    if (
+      (previousLine.includes('</') ||
+        previousLine.includes('/>') ||
+        wholeLine.includes('element') ||
+        wholeLine.includes('sequence') ||
+        wholeLine.includes('choice') ||
+        wholeLine.includes('group') ||
+        wholeLine.includes('Variable')) &&
+      (wholeLine.includes('</') || wholeLine.includes('/>'))
+    ) {
+      return false
+    }
+  }
   if (
-    previousLine.includes('</') ||
-    previousLine.includes('/>') ||
-    ((wholeLine.includes('element') ||
-      wholeLine.includes('sequence') ||
-      wholeLine.includes('choice') ||
-      wholeLine.includes('group') ||
-      wholeLine.includes('Variable')) &&
-      (wholeLine.includes('</') || wholeLine.includes('/>')))
+    wholeLine.lastIndexOf('<') > 0 &&
+    wholeLine.lastIndexOf('>') < wholeLine.lastIndexOf('<')
   ) {
-    return false
+    const lastOpenItem = wholeLine.substring(
+      wholeLine.indexOf('<'),
+      wholeLine.length - wholeLine.lastIndexOf('<')
+    )
+    if (
+      (lastOpenItem.includes('<' + nsPrefix + 'group') &&
+        !wholeLine.includes('</' + nsPrefix + 'group')) ||
+      (lastOpenItem.includes('<' + nsPrefix + 'sequence') &&
+        !wholeLine.includes('</' + nsPrefix + 'sequence')) ||
+      (lastOpenItem.includes('<' + nsPrefix + 'choice') &&
+        !wholeLine.includes('</' + nsPrefix + 'choice')) ||
+      (lastOpenItem.includes('<' + nsPrefix + 'element') &&
+        !wholeLine.includes('</' + nsPrefix + 'element')) ||
+      lastOpenItem.includes('Variable')
+    ) {
+      return true
+    }
   }
   return true
 }
@@ -80,18 +107,25 @@ export function nearestOpen(
   position: vscode.Position
 ) {
   var lineNum = position.line
+  const itemsOnLine = getItemsOnLineCount(document.lineAt(lineNum).text)
   const nsPrefix = getXsdNsPrefix(document, position)
-  while (lineNum !== -1) {
-    const wholeLine = document.lineAt(lineNum).text
-    if (wholeLine.includes('element') && !wholeLine.includes('/>')) {
+  while (lineNum !== -1 && itemsOnLine == 1) {
+    var wholeLine = document.lineAt(lineNum).text
+    if (
+      wholeLine.includes('element') //&& !wholeLine.includes('/>')
+    ) {
       if (checkElementOpen(document, position)) {
         return 'element'
       }
-    } else if (wholeLine.includes('sequence') && !wholeLine.includes('/>')) {
+    } else if (
+      wholeLine.includes('sequence') //&& !wholeLine.includes('/>')
+    ) {
       if (checkSequenceOpen(document, position)) {
         return 'sequence'
       }
-    } else if (wholeLine.includes('choice') && !wholeLine.includes('/>')) {
+    } else if (
+      wholeLine.includes('choice') //&& !wholeLine.includes('/>')
+    ) {
       if (checkChoiceOpen(document, position)) {
         return 'choice'
       }
@@ -104,7 +138,9 @@ export function nearestOpen(
       ) {
         return 'group'
       }
-    } else if (wholeLine.includes('simpleType') && !wholeLine.includes('/>')) {
+    } else if (
+      wholeLine.includes('simpleType') //&& !wholeLine.includes('/>')
+    ) {
       if (checkSimpleTypeOpen(document, position)) {
         return 'simpleType'
       }
@@ -115,7 +151,9 @@ export function nearestOpen(
       if (checkDefineVariableOpen(document, position)) {
         return 'defineVariable'
       }
-    } else if (wholeLine.includes('setVariable') && !wholeLine.includes('/>')) {
+    } else if (
+      wholeLine.includes('setVariable') //&& !wholeLine.includes('/>')
+    ) {
       if (checkSetVariableOpen(document, position)) {
         return 'setVariable'
       }
@@ -123,6 +161,69 @@ export function nearestOpen(
       return 'none'
     }
     --lineNum
+  }
+  if (itemsOnLine > 1) {
+    const wholeLine = document.lineAt(lineNum).text
+    if (wholeLine.includes('<' + nsPrefix + 'element')) {
+      const tagPos = wholeLine.lastIndexOf('<' + nsPrefix + 'element')
+      const tagEndPos = wholeLine.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          !wholeLine.substr(tagEndPos - 1, 2).includes('/>') &&
+          !wholeLine.includes('</' + nsPrefix + 'element')
+        ) {
+          return 'element'
+        }
+      }
+    }
+    if (wholeLine.includes('<' + nsPrefix + 'sequence')) {
+      const tagPos = wholeLine.lastIndexOf('<' + nsPrefix + 'sequence')
+      const tagEndPos = wholeLine.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          !wholeLine.substr(tagEndPos - 1, 2).includes('/>') &&
+          !wholeLine.includes('</' + nsPrefix + 'sequence')
+        ) {
+          return 'sequence'
+        }
+      }
+    }
+    if (wholeLine.includes('<' + nsPrefix + 'choice')) {
+      const tagPos = wholeLine.lastIndexOf('<' + nsPrefix + 'choice')
+      const tagEndPos = wholeLine.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          !wholeLine.substr(tagEndPos - 1, 2).includes('/>') &&
+          !wholeLine.includes('</' + nsPrefix + 'choice')
+        ) {
+          return 'choice'
+        }
+      }
+    }
+    if (wholeLine.includes('<' + nsPrefix + 'group')) {
+      const tagPos = wholeLine.lastIndexOf('<' + nsPrefix + 'group')
+      const tagEndPos = wholeLine.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          !wholeLine.substr(tagEndPos - 1, 2).includes('/>') &&
+          !wholeLine.includes('</' + nsPrefix + 'group')
+        ) {
+          return 'group'
+        }
+      }
+    }
+    if (wholeLine.includes('<' + nsPrefix + 'simpleType')) {
+      const tagPos = wholeLine.lastIndexOf('<' + nsPrefix + 'simpleType')
+      const tagEndPos = wholeLine.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          !wholeLine.substr(tagEndPos - 1, 2).includes('/>') &&
+          !wholeLine.includes('</' + nsPrefix + 'simpleType')
+        ) {
+          return 'simpleType'
+        }
+      }
+    }
   }
   return 'none'
 }
@@ -133,8 +234,18 @@ export function checkElementOpen(
 ) {
   const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
-  while (lineNum !== -1) {
-    const wholeLine = document.lineAt(lineNum).text
+  const itemsOnLine = getItemsOnLineCount(document.lineAt(lineNum).text)
+
+  while (lineNum !== -1 && itemsOnLine == 1) {
+    var wholeLine = document.lineAt(lineNum).text
+    if (
+      wholeLine.includes('<' + nsPrefix + 'element') &&
+      wholeLine.indexOf('<' + nsPrefix + 'element') ==
+        wholeLine.lastIndexOf('<') &&
+      wholeLine.lastIndexOf('>') > wholeLine.lastIndexOf('<')
+    ) {
+      return true
+    }
     if (
       wholeLine.includes('<' + nsPrefix + 'element') &&
       (wholeLine.includes('>') ||
@@ -156,6 +267,25 @@ export function checkElementOpen(
     }
     --lineNum
   }
+  if (itemsOnLine > 1) {
+    const wholeLine = document.lineAt(lineNum).text
+    if (wholeLine.includes('<' + nsPrefix + 'element')) {
+      const tagPos = wholeLine.indexOf('<' + nsPrefix + 'element')
+      const tagEndPos = wholeLine.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          wholeLine.substring(tagEndPos - 1, 2).includes('/>') ||
+          wholeLine
+            .substring(tagEndPos + 1, wholeLine.length - (tagEndPos + 1))
+            .includes('<' + nsPrefix + 'element')
+        ) {
+          return false
+        } else {
+          return true
+        }
+      }
+    }
+  }
   return false
 }
 
@@ -165,8 +295,18 @@ export function checkSequenceOpen(
 ) {
   const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
-  while (lineNum !== 0) {
+  const itemsOnLine = getItemsOnLineCount(document.lineAt(lineNum).text)
+
+  while (lineNum !== -1 && itemsOnLine == 1) {
     const wholeLine = document.lineAt(lineNum).text
+    if (
+      wholeLine.includes('<' + nsPrefix + 'sequence') &&
+      wholeLine.indexOf('<' + nsPrefix + 'sequence') ==
+        wholeLine.lastIndexOf('<') &&
+      wholeLine.lastIndexOf('>') < wholeLine.lastIndexOf('<')
+    ) {
+      return true
+    }
     if (
       (wholeLine.includes('<' + nsPrefix + 'sequence') &&
         (wholeLine.includes('</' + nsPrefix + 'sequence') ||
@@ -184,6 +324,25 @@ export function checkSequenceOpen(
     }
     --lineNum
   }
+  if (itemsOnLine > 1) {
+    const wholeLine = document.lineAt(lineNum).text
+    if (wholeLine.includes('<' + nsPrefix + 'sequence')) {
+      const tagPos = wholeLine.indexOf('<' + nsPrefix + 'sequence')
+      const tagEndPos = wholeLine.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          wholeLine.substring(tagEndPos - 1, 2).includes('/>') ||
+          wholeLine
+            .substring(tagEndPos + 1, wholeLine.length - (tagEndPos + 1))
+            .includes('<' + nsPrefix + 'sequence')
+        ) {
+          return false
+        } else {
+          return true
+        }
+      }
+    }
+  }
   return false
 }
 
@@ -193,8 +352,18 @@ export function checkChoiceOpen(
 ) {
   const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
-  while (lineNum !== 0) {
+  const itemsOnLine = getItemsOnLineCount(document.lineAt(lineNum).text)
+
+  while (lineNum !== -1 && itemsOnLine == 1) {
     const wholeLine = document.lineAt(lineNum).text
+    if (
+      wholeLine.includes('<' + nsPrefix + 'choice') &&
+      wholeLine.indexOf('<' + nsPrefix + 'choice') ==
+        wholeLine.lastIndexOf('<') &&
+      wholeLine.lastIndexOf('>') < wholeLine.lastIndexOf('<')
+    ) {
+      return true
+    }
     if (
       (wholeLine.includes('<' + nsPrefix + 'choice') &&
         (wholeLine.includes('</' + nsPrefix + 'choice') ||
@@ -212,6 +381,25 @@ export function checkChoiceOpen(
     }
     --lineNum
   }
+  if (itemsOnLine > 1) {
+    const wholeLine = document.lineAt(lineNum).text
+    if (wholeLine.includes('<' + nsPrefix + 'choice')) {
+      const tagPos = wholeLine.indexOf('<' + nsPrefix + 'choice')
+      const tagEndPos = wholeLine.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          wholeLine.substring(tagEndPos - 1, 2).includes('/>') ||
+          wholeLine
+            .substring(tagEndPos + 1, wholeLine.length - (tagEndPos + 1))
+            .includes('<' + nsPrefix + 'choice')
+        ) {
+          return false
+        } else {
+          return true
+        }
+      }
+    }
+  }
   return false
 }
 export function checkSimpleTypeOpen(
@@ -220,8 +408,18 @@ export function checkSimpleTypeOpen(
 ) {
   const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
-  while (lineNum !== 0) {
+  const itemsOnLine = getItemsOnLineCount(document.lineAt(lineNum).text)
+
+  while (lineNum !== -1 && itemsOnLine == 1) {
     const wholeLine = document.lineAt(lineNum).text
+    if (
+      wholeLine.includes('<' + nsPrefix + 'simpletype') &&
+      wholeLine.indexOf('<' + nsPrefix + 'simpleType') ==
+        wholeLine.lastIndexOf('<') &&
+      wholeLine.lastIndexOf('>') < wholeLine.lastIndexOf('<')
+    ) {
+      return true
+    }
     if (
       wholeLine.includes('<' + nsPrefix + 'simpleType') &&
       !wholeLine.includes('</' + nsPrefix + 'simpleType') &&
@@ -230,6 +428,25 @@ export function checkSimpleTypeOpen(
       return true
     }
     --lineNum
+  }
+  if (itemsOnLine > 1) {
+    const wholeLine = document.lineAt(lineNum).text
+    if (wholeLine.includes('<' + nsPrefix + 'simpleType')) {
+      const tagPos = wholeLine.indexOf('<' + nsPrefix + 'simpleType')
+      const tagEndPos = wholeLine.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          wholeLine.substring(tagEndPos - 1, 2).includes('/>') ||
+          wholeLine
+            .substring(tagEndPos + 1, wholeLine.length - (tagEndPos + 1))
+            .includes('<' + nsPrefix + 'simpleType')
+        ) {
+          return false
+        } else {
+          return true
+        }
+      }
+    }
   }
   return false
 }
@@ -292,6 +509,20 @@ export function getXsdNsPrefix(
   return 'xs:'
 }
 
+export function getItemsOnLineCount(wholeLine: String) {
+  var itemsOnLine = 0
+  var nextPos = 0
+  var result = 0
+  while (result != -1) {
+    result = wholeLine.indexOf('<', nextPos)
+    nextPos = result + 1
+    if (result != -1) {
+      ++itemsOnLine
+    }
+  }
+  return itemsOnLine
+}
+
 export function checkBraceOpen(
   document: vscode.TextDocument,
   position: vscode.Position
@@ -305,7 +536,7 @@ export function checkBraceOpen(
     if (
       wholeLine.includes('"{') &&
       wholeLine.includes('}"') &&
-      wholeLine.includes('..') &&
+      (wholeLine.includes('..') || wholeLine.includes('.')) &&
       !wholeLine.includes('}"/') &&
       !wholeLine.includes('>')
     ) {
@@ -323,6 +554,16 @@ export function checkBraceOpen(
       wholeLine.includes('}"') &&
       !wholeLine.includes('}"/') &&
       !wholeLine.includes('>')
+    ) {
+      return true
+    }
+    if (
+      wholeLine
+        .substr(
+          wholeLine.lastIndexOf('{'),
+          wholeLine.indexOf('}', wholeLine.lastIndexOf('{'))
+        )
+        .includes('/')
     ) {
       return true
     }

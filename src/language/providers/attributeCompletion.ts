@@ -16,6 +16,7 @@
  */
 
 import * as vscode from 'vscode'
+import { getXsdNsPrefix } from './utils'
 
 import {
   nearestOpen,
@@ -59,6 +60,7 @@ export function getAttributeCompletionProvider() {
         document: vscode.TextDocument,
         position: vscode.Position
       ) {
+        const nsPrefix = getXsdNsPrefix(document, position)
         const wholeLine = document
           .lineAt(position)
           .text.substr(0, position.character)
@@ -71,19 +73,19 @@ export function getAttributeCompletionProvider() {
         ) {
           if (nearestOpenItem.includes('element')) {
             var preVal = ''
-            if (!wholeLine.includes('xs:element')) {
+            if (!wholeLine.includes(nsPrefix + 'element')) {
               if (lineCount(document, position) === 1) {
                 preVal = '\t'
               } else {
                 preVal = ''
               }
             }
-            var additionalItems = getDefinedTypes(document)
+            var additionalItems = getDefinedTypes(document, position)
 
             if (
               checkLastItemOpen(document, position) &&
-              (wholeLine.includes('<xs:element name="') ||
-                wholeLine.includes('<xs:element ref="') ||
+              (wholeLine.includes('<' + nsPrefix + 'element name=') ||
+                wholeLine.includes('<' + nsPrefix + 'element ref="') ||
                 checkElementOpen(document, position))
             ) {
               return getCompletionItems(
@@ -118,7 +120,7 @@ export function getAttributeCompletionProvider() {
 
           if (nearestOpenItem.includes('sequence')) {
             var preVal = ''
-            if (!wholeLine.includes('xs:sequence')) {
+            if (!wholeLine.includes(nsPrefix + 'sequence')) {
               if (lineCount(document, position) === 1) {
                 preVal = '\t'
               } else {
@@ -128,7 +130,7 @@ export function getAttributeCompletionProvider() {
 
             if (
               checkLastItemOpen(document, position) &&
-              (wholeLine.includes('<xs:sequence') ||
+              (wholeLine.includes('<' + nsPrefix + 'sequence') ||
                 checkSequenceOpen(document, position))
             ) {
               return getCompletionItems(
@@ -180,7 +182,7 @@ export function getAttributeCompletionProvider() {
                 preVal = ''
               }
             }
-            var additionalItems = getDefinedTypes(document)
+            var additionalItems = getDefinedTypes(document, position)
 
             var xmlItems = [
               {
@@ -239,17 +241,21 @@ export function getAttributeCompletionProvider() {
   )
 }
 
-function getDefinedTypes(document: vscode.TextDocument) {
+function getDefinedTypes(
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
   var additionalTypes = ''
   var lineNum = 0
   const lineCount = document.lineCount
+  const nsPrefix = getXsdNsPrefix(document, position)
   while (lineNum !== lineCount) {
     const wholeLine = document
       .lineAt(lineNum)
       .text.substring(0, document.lineAt(lineNum).range.end.character)
     if (
-      wholeLine.includes('xs:simpleType Name=') ||
-      wholeLine.includes('xs:complexType Name=')
+      wholeLine.includes(nsPrefix + 'simpleType Name=') ||
+      wholeLine.includes(nsPrefix + 'complexType Name=')
     ) {
       var startPos = wholeLine.indexOf('"', 0)
       var endPos = wholeLine.indexOf('"', startPos + 1)

@@ -21,6 +21,7 @@ import {
   nearestOpen,
   checkBraceOpen,
   getXsdNsPrefix,
+  getItemsOnLineCount,
 } from './utils'
 
 export function getCloseElementSlashProvider() {
@@ -37,41 +38,80 @@ export function getCloseElementSlashProvider() {
           .lineAt(position)
           .text.substr(0, position.character)
         const nearestOpenItem = nearestOpen(document, position)
+        const itemsOnLine = getItemsOnLineCount(wholeLine)
         if (checkBraceOpen(document, position)) {
           return undefined
         }
-        if (
-          wholeLine.endsWith('/') &&
-          (wholeLine.includes('<' + nsPrefix + 'element') ||
-            nearestOpenItem.includes('element') ||
-            wholeLine.includes('<' + nsPrefix + 'group') ||
-            nearestOpenItem.includes('group') ||
-            wholeLine.includes('<' + nsPrefix + 'sequence') ||
-            nearestOpenItem.includes('sequence'))
-        ) {
+        if (wholeLine.endsWith('/')) {
           var range = new vscode.Range(backpos, position)
           vscode.window.activeTextEditor?.edit((editBuilder) => {
             editBuilder.replace(range, '')
           })
-          insertSnippet(' />$0', backpos)
-        }
-        if (
-          wholeLine.endsWith('/') &&
-          (wholeLine.includes('dfdl:defineVariable') ||
-            wholeLine.includes('dfdl:setVariable') ||
-            nearestOpenItem.includes('defineVariable') ||
-            nearestOpenItem.includes('setVariable'))
-        ) {
-          var startPos = document.lineAt(position).text.indexOf('<', 0)
-          var range = new vscode.Range(backpos, position)
-          vscode.window.activeTextEditor?.edit((editBuilder) => {
-            editBuilder.replace(range, '')
-          })
-          insertSnippet('/>\n', backpos)
-          var backpos2 = position.with(position.line + 1, startPos - 2)
-          insertSnippet('</<' + nsPrefix + 'appinfo>\n', backpos2)
-          var backpos3 = position.with(position.line + 2, startPos - 4)
-          insertSnippet('</<' + nsPrefix + 'annotation>$0', backpos3)
+          if (itemsOnLine == 1) {
+            if (
+              wholeLine.includes('<' + nsPrefix + 'element') ||
+              nearestOpenItem.includes('element') ||
+              wholeLine.includes('<' + nsPrefix + 'group') ||
+              nearestOpenItem.includes('group') ||
+              wholeLine.includes('<' + nsPrefix + 'sequence') ||
+              nearestOpenItem.includes('sequence')
+            ) {
+              insertSnippet(' />$0', backpos)
+            }
+            if (
+              wholeLine.includes('dfdl:defineVariable') ||
+              wholeLine.includes('dfdl:setVariable') ||
+              nearestOpenItem.includes('defineVariable') ||
+              nearestOpenItem.includes('setVariable')
+            ) {
+              var startPos = document.lineAt(position).text.indexOf('<', 0)
+              var range = new vscode.Range(backpos, position)
+              vscode.window.activeTextEditor?.edit((editBuilder) => {
+                editBuilder.replace(range, '')
+              })
+              insertSnippet('/>\n', backpos)
+              var backpos2 = position.with(position.line + 1, startPos - 2)
+              insertSnippet('</<' + nsPrefix + 'appinfo>\n', backpos2)
+              var backpos3 = position.with(position.line + 2, startPos - 4)
+              insertSnippet('</<' + nsPrefix + 'annotation>$0', backpos3)
+            }
+          }
+          if (itemsOnLine > 1) {
+            if (
+              wholeLine.includes('<' + nsPrefix + 'element') &&
+              nearestOpenItem.includes('element')
+            ) {
+              insertSnippet(' />$0', backpos)
+            } else if (
+              wholeLine.includes('<' + nsPrefix + 'sequence') &&
+              nearestOpenItem.includes('sequence')
+            ) {
+              if (
+                wholeLine
+                  .substring(wholeLine.lastIndexOf('<' + nsPrefix + 'sequence'))
+                  .includes('sequence>') ||
+                wholeLine.includes('</' + nsPrefix + 'sequence>')
+              ) {
+                insertSnippet('</' + nsPrefix + 'sequence>$0', backpos)
+              } else {
+                insertSnippet(' />$0', backpos)
+              }
+            } else if (
+              wholeLine.includes('<' + nsPrefix + 'group') &&
+              nearestOpenItem.includes('group')
+            ) {
+              const tagPos = wholeLine.lastIndexOf('<' + nsPrefix + 'group')
+              const nextTagPos = wholeLine.indexOf('<', tagPos + 1)
+              if (
+                wholeLine.substr(tagPos, nextTagPos).includes('>') ||
+                wholeLine.includes('</' + nsPrefix + 'group')
+              ) {
+                insertSnippet('</' + nsPrefix + 'group>$0', backpos)
+              } else {
+                insertSnippet(' />$0', backpos)
+              }
+            }
+          }
         }
         return undefined
       },

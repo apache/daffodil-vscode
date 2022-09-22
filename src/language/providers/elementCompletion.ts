@@ -18,7 +18,7 @@
 import * as vscode from 'vscode'
 import { checkBraceOpen, getXsdNsPrefix } from './utils'
 import { elementCompletion } from './intellisense/elementItems'
-import { createCompletionItem } from './utils'
+//import { createCompletionItem } from './utils'
 
 export function getElementCompletionProvider(dfdlFormatString: string) {
   return vscode.languages.registerCompletionItemProvider('dfdl', {
