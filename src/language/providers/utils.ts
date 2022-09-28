@@ -16,8 +16,12 @@
  */
 
 import * as vscode from 'vscode'
+import { commonCompletion } from './intellisense/commonItems'
 
 const schemaPrefixRegEx = new RegExp('</?(|[^ ]+:)schema')
+
+// default namespace in the event that a namespace was not found
+const defaultXsdNsPrefix = 'xs'
 
 // Function to insert snippet to active editor
 export function insertSnippet(snippetString: string, backpos: vscode.Position) {
@@ -38,7 +42,7 @@ export function checkLastItemOpen(
     --lineNum
   }
   const previousLine = document.lineAt(lineNum).text
-  if (
+  return !(
     previousLine.includes('</') ||
     previousLine.includes('/>') ||
     ((wholeLine.includes('element') ||
@@ -47,10 +51,7 @@ export function checkLastItemOpen(
       wholeLine.includes('group') ||
       wholeLine.includes('Variable')) &&
       (wholeLine.includes('</') || wholeLine.includes('/>')))
-  ) {
-    return false
-  }
-  return true
+  )
 }
 
 export function lineCount(
@@ -289,7 +290,7 @@ export function getXsdNsPrefix(
     ++lineNum
   }
   //returns the standard prefix plus a colon in the case of missing schema tag
-  return 'xs:'
+  return defaultXsdNsPrefix + ':'
 }
 
 export function checkBraceOpen(
@@ -339,16 +340,6 @@ export function checkBraceOpen(
   return false
 }
 
-import { commonCompletion } from './intellisense/commonItems'
-
-export const noPreVals: string[] = [
-  'dfdl:choiceBranchKey=',
-  'dfdl:representation',
-  'dfdl:choiceDispatchKey=',
-  'dfdl:simpleType',
-  'xs:restriction',
-]
-
 export function createCompletionItem(
   e:
     | {
@@ -359,11 +350,20 @@ export function createCompletionItem(
     | {
         item: string
         snippetString: string
-        markdownString?: undefined
+        markdownString: undefined
       },
-  preVal: string
+  preVal: string,
+  nsPrefix: string
 ) {
   const completionItem = new vscode.CompletionItem(e.item)
+
+  const noPreVals = [
+    'dfdl:choiceBranchKey=',
+    'dfdl:representation',
+    'dfdl:choiceDispatchKey=',
+    'dfdl:simpleType',
+    nsPrefix + 'restriction',
+  ]
 
   if (preVal !== '' && !noPreVals.includes(e.item)) {
     completionItem.insertText = new vscode.SnippetString(
@@ -383,13 +383,14 @@ export function createCompletionItem(
 export function getCommonItems(
   itemsToUse: string[],
   preVal: string = '',
-  additionalItems: string = ''
+  additionalItems: string = '',
+  nsPrefix: string
 ) {
   let compItems: vscode.CompletionItem[] = []
 
-  commonCompletion(additionalItems).items.forEach((e) => {
+  commonCompletion(additionalItems, nsPrefix).items.forEach((e) => {
     if (itemsToUse.includes(e.item)) {
-      const completionItem = createCompletionItem(e, preVal)
+      const completionItem = createCompletionItem(e, preVal, nsPrefix)
       compItems.push(completionItem)
     }
   })

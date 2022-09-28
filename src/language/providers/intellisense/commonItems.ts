@@ -16,11 +16,12 @@
  */
 
 // prettier-ignore
-export const commonCompletion = (additionalItems) => {
+export const commonCompletion = (additionalItems, nsPrefix: string) => {
   return {
     items: [
       {
         item: 'type=',
+        // use the "xs:" prefix for primitive types to differentiate them from custom simple types
         snippetString: 'type="${1|xs:string,xs:decimal,xs:float,xs:double,xs:integer,xs:nonNegativeInteger,xs:int,xs:unsignedInt,xs:short,xs:unsignedShort,xs:long,xs:unsignedLong,xs:byte,xs:unsignedByte,xs:hexBinary,xs:boolean' + additionalItems + '|}"$0',
         markdownString: 'an attribute which specifies the type of a simply-typed element',
       },

@@ -24,25 +24,25 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
         snippetString: '<?xml version="1.0" encoding="UTF-8"?>\n$0',
       },
       {
-        item: 'xs:schema',
-        snippetString: '<xs:schema xmlns:xs="http://www.w3.org/2001/xmlSchema"\n\t\txmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"\n\t\txmlns:daf="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext"\n\t\txmlns:fn="http:/www.w3.org/2005/xpath-functions"\n\t\txmlns:math="www.w3.org/2005/xpath-functions/math" elementFormDefault="qualified">\n$0\n</xs:schema>',
+        item: nsPrefix + 'schema',
+        snippetString: '<' + nsPrefix + 'schema xmlns:xs="http://www.w3.org/2001/xmlSchema"\n\t\txmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"\n\t\txmlns:daf="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext"\n\t\txmlns:fn="http:/www.w3.org/2005/xpath-functions"\n\t\txmlns:math="www.w3.org/2005/xpath-functions/math" elementFormDefault="qualified">\n$0\n</' + nsPrefix + 'schema>',
       },
       {
-        item: 'xs:element name',
+        item: nsPrefix + 'element name',
         snippetString: '<' + nsPrefix + 'element name="$1"$0',
         markdownString: 'A new xs element',
       },
       {
-        item: 'xs:element ref',
+        item: nsPrefix + 'element ref',
         snippetString: '<' + nsPrefix + 'element ref="$1"$0',
         markdownString: 'A new dfdl reference to an item',
       },
       {
-        item: 'xs:group name',
+        item: nsPrefix + 'group name',
         snippetString: '<' + nsPrefix + 'group name = "$1">\n\t$0\n</' + nsPrefix + 'group>',
       },
       {
-        item: 'xs:group ref',
+        item: nsPrefix + 'group ref',
         snippetString: '<' + nsPrefix + 'group ref="$1"$0',
         markdownString: 'A new dfdl reference to an item',
       },
@@ -65,39 +65,39 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
         snippetString: dfdlFormatString,
       },
       {
-        item: 'xs:annotation',
+        item: nsPrefix + 'annotation',
         snippetString: '<' + nsPrefix + 'annotation>\n\t<' + nsPrefix + 'appinfo source="http://www.ogf.org/dfdl/">\n\t\t$0\n\t</' + nsPrefix + 'appinfo>\n</' + nsPrefix + 'annotation>',
       },
       {
-        item: 'xs:appinfo',
+        item: nsPrefix + 'appinfo',
         snippetString: '<' + nsPrefix + 'annotation>\n\t<' + nsPrefix + 'appinfo source="http://www.ogf.org/dfdl/">\n\t\t$0\n\t</' + nsPrefix + 'appinfo>\n</' + nsPrefix + 'annotation>',
       },
       {
-        item: 'xs:complexType',
+        item: nsPrefix + 'complexType',
         snippetString: '<' + nsPrefix + 'complexType>\n\t$0\n</' + nsPrefix + 'complexType>',
         markdownString: 'Starts a complex type definition',
       },
       {
-        item: 'xs:complexType name=',
+        item: nsPrefix + 'complexType name=',
         snippetString: '<' + nsPrefix + 'complexType Name="$1">\n\t$0\n</' + nsPrefix + 'complexType>',
         markdownString: 'Starts a complex type definition',
       },
       {
-        item: 'xs:simpleType',
+        item: nsPrefix + 'simpleType',
         snippetString: '<' + nsPrefix + 'simpleType>\n\t$0\n</' + nsPrefix + 'simpleType>',
         markdownString: 'Starts a simple type definition',
       },
       {
-        item: 'xs:simpleType name=',
+        item: nsPrefix + 'simpleType name=',
         snippetString: '<' + nsPrefix + 'simpleType Name="$1"$0',
         markdownString: 'Starts a simple type definition',
       },
       {
-        item: 'xs:sequence',
+        item: nsPrefix + 'sequence',
         snippetString: '<' + nsPrefix + 'sequence',
       },
       {
-        item: 'xs:choice',
+        item: nsPrefix + 'choice',
         snippetString: '<' + nsPrefix + 'choice',
       },
       {
