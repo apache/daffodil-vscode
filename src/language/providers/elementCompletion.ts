@@ -45,7 +45,7 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
         dfdlFormatString,
         nsPrefix
       ).items.forEach((e) => {
-        const completionItem = createCompletionItem(e, '')
+        const completionItem = createCompletionItem(e, '', nsPrefix)
         compItems.push(completionItem)
       })
 
