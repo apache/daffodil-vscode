@@ -20,8 +20,11 @@ import * as path from 'path'
 import { DebugClient } from 'vscode-debugadapter-testsupport'
 
 suite('Daffodil Debug Adapter', () => {
-  const DEBUG_ADAPTER = './out/adapter/debugAdapter.js'
-  const PROJECT_ROOT = path.join(__dirname, '../../')
+  const DEBUG_ADAPTER = path.join(
+    __dirname,
+    '../../../out/adapter/debugAdapter.js'
+  )
+  const PROJECT_ROOT = path.join(__dirname, '../../../')
   const DATA_ROOT = path.join(PROJECT_ROOT, 'src/tests/data/')
 
   let client: DebugClient

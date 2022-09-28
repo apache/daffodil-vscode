@@ -17,6 +17,8 @@
 
 import * as vscode from 'vscode'
 
+const schemaPrefixRegEx = new RegExp('</?(|[^ ]+:)schema')
+
 // Function to insert snippet to active editor
 export function insertSnippet(snippetString: string, backpos: vscode.Position) {
   vscode.window.activeTextEditor?.insertSnippet(
@@ -31,20 +33,17 @@ export function checkLastItemOpen(
   position: vscode.Position
 ) {
   var lineNum = position.line
-  const wholeLine = document
-    .lineAt(lineNum)
-    .text.substr(0, document.lineAt(lineNum).range.end.character)
+  const wholeLine = document.lineAt(lineNum).text
   while (wholeLine.length === 0) {
     --lineNum
   }
-  const previousLine = document
-    .lineAt(lineNum)
-    .text.substr(0, document.lineAt(lineNum - 1).range.end.character)
+  const previousLine = document.lineAt(lineNum).text
   if (
     previousLine.includes('</') ||
     previousLine.includes('/>') ||
     ((wholeLine.includes('element') ||
       wholeLine.includes('sequence') ||
+      wholeLine.includes('choice') ||
       wholeLine.includes('group') ||
       wholeLine.includes('Variable')) &&
       (wholeLine.includes('</') || wholeLine.includes('/>')))
@@ -60,15 +59,14 @@ export function lineCount(
 ) {
   var lineNum = position.line
   var lineCount = 0
+  const nsPrefix = getXsdNsPrefix(document, position)
   while (lineNum !== 0) {
     --lineNum
     ++lineCount
-    const wholeLine = document
-      .lineAt(lineNum)
-      .text.substr(0, document.lineAt(lineNum).range.end.character)
+    const wholeLine = document.lineAt(lineNum).text
     if (
-      wholeLine.includes('<xs:element') &&
-      !wholeLine.includes('</xs:element') &&
+      wholeLine.includes('<' + nsPrefix + 'element') &&
+      !wholeLine.includes('</' + nsPrefix + 'element') &&
       !wholeLine.includes('/>')
     ) {
       return lineCount
@@ -82,10 +80,9 @@ export function nearestOpen(
   position: vscode.Position
 ) {
   var lineNum = position.line
+  const nsPrefix = getXsdNsPrefix(document, position)
   while (lineNum !== -1) {
-    const wholeLine = document
-      .lineAt(lineNum)
-      .text.substring(0, document.lineAt(lineNum).range.end.character)
+    const wholeLine = document.lineAt(lineNum).text
     if (wholeLine.includes('element') && !wholeLine.includes('/>')) {
       if (checkElementOpen(document, position)) {
         return 'element'
@@ -94,10 +91,14 @@ export function nearestOpen(
       if (checkSequenceOpen(document, position)) {
         return 'sequence'
       }
+    } else if (wholeLine.includes('choice') && !wholeLine.includes('/>')) {
+      if (checkChoiceOpen(document, position)) {
+        return 'choice'
+      }
     } else if (wholeLine.includes('group')) {
       if (
-        wholeLine.includes('<xs:group') &&
-        !wholeLine.includes('</xs:group') &&
+        wholeLine.includes('<' + nsPrefix + 'group') &&
+        !wholeLine.includes('</' + nsPrefix + 'group') &&
         !wholeLine.includes('/>') &&
         !wholeLine.includes('/')
       ) {
@@ -130,25 +131,24 @@ export function checkElementOpen(
   document: vscode.TextDocument,
   position: vscode.Position
 ) {
+  const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
   while (lineNum !== -1) {
-    const wholeLine = document
-      .lineAt(lineNum)
-      .text.substr(0, document.lineAt(lineNum).range.end.character)
+    const wholeLine = document.lineAt(lineNum).text
     if (
-      wholeLine.includes('<xs:element') &&
+      wholeLine.includes('<' + nsPrefix + 'element') &&
       (wholeLine.includes('>') ||
-        wholeLine.includes('</xs:element') ||
+        wholeLine.includes('</' + nsPrefix + 'element') ||
         wholeLine.includes('/>'))
     ) {
       return false
     }
-    if (wholeLine.includes('</xs:element>')) {
+    if (wholeLine.includes('</' + nsPrefix + 'element')) {
       return false
     }
     if (
-      wholeLine.includes('<xs:element') &&
-      !wholeLine.includes('</xs:element') &&
+      wholeLine.includes('<' + nsPrefix + 'element') &&
+      !wholeLine.includes('</' + nsPrefix + 'element') &&
       !wholeLine.includes('/>') &&
       !wholeLine.includes('>')
     ) {
@@ -163,21 +163,21 @@ export function checkSequenceOpen(
   document: vscode.TextDocument,
   position: vscode.Position
 ) {
+  const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
   while (lineNum !== 0) {
-    const wholeLine = document
-      .lineAt(lineNum)
-      .text.substr(0, document.lineAt(lineNum).range.end.character)
+    const wholeLine = document.lineAt(lineNum).text
     if (
-      (wholeLine.includes('<xs:sequence') &&
-        (wholeLine.includes('</xs:sequence') || wholeLine.includes('/>'))) ||
-      wholeLine.includes('</xs:sequence>')
+      (wholeLine.includes('<' + nsPrefix + 'sequence') &&
+        (wholeLine.includes('</' + nsPrefix + 'sequence') ||
+          wholeLine.includes('/>'))) ||
+      wholeLine.includes('</' + nsPrefix + 'sequence>')
     ) {
       return false
     }
     if (
-      wholeLine.includes('<xs:sequence') &&
-      !wholeLine.includes('</xs:sequence') &&
+      wholeLine.includes('<' + nsPrefix + 'sequence') &&
+      !wholeLine.includes('</' + nsPrefix + 'sequence') &&
       !wholeLine.includes('/>')
     ) {
       return true
@@ -187,19 +187,44 @@ export function checkSequenceOpen(
   return false
 }
 
+export function checkChoiceOpen(
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
+  const nsPrefix = getXsdNsPrefix(document, position)
+  var lineNum = position.line
+  while (lineNum !== 0) {
+    const wholeLine = document.lineAt(lineNum).text
+    if (
+      (wholeLine.includes('<' + nsPrefix + 'choice') &&
+        (wholeLine.includes('</' + nsPrefix + 'choice') ||
+          wholeLine.includes('/>'))) ||
+      wholeLine.includes('</' + nsPrefix + 'choice>')
+    ) {
+      return false
+    }
+    if (
+      wholeLine.includes('<' + nsPrefix + 'choice') &&
+      !wholeLine.includes('</' + nsPrefix + 'choice') &&
+      !wholeLine.includes('/>')
+    ) {
+      return true
+    }
+    --lineNum
+  }
+  return false
+}
 export function checkSimpleTypeOpen(
   document: vscode.TextDocument,
   position: vscode.Position
 ) {
+  const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
   while (lineNum !== 0) {
-    const wholeLine = document
-      .lineAt(lineNum)
-      .text.substr(0, document.lineAt(lineNum).range.end.character)
-
+    const wholeLine = document.lineAt(lineNum).text
     if (
-      wholeLine.includes('<xs:simpleType') &&
-      !wholeLine.includes('</xs:simpleType') &&
+      wholeLine.includes('<' + nsPrefix + 'simpleType') &&
+      !wholeLine.includes('</' + nsPrefix + 'simpleType') &&
       !wholeLine.includes('/>')
     ) {
       return true
@@ -215,9 +240,7 @@ export function checkDefineVariableOpen(
 ) {
   var lineNum = position.line
   while (lineNum !== 0) {
-    const wholeLine = document
-      .lineAt(lineNum)
-      .text.substr(0, document.lineAt(lineNum).range.end.character)
+    const wholeLine = document.lineAt(lineNum).text
     if (
       wholeLine.includes('<dfdl:defineVariable') &&
       !wholeLine.includes('</dfdl:defineVariable') &&
@@ -236,9 +259,7 @@ export function checkSetVariableOpen(
 ) {
   var lineNum = position.line
   while (lineNum !== 0) {
-    const wholeLine = document
-      .lineAt(lineNum)
-      .text.substr(0, document.lineAt(lineNum).range.end.character)
+    const wholeLine = document.lineAt(lineNum).text
     if (
       wholeLine.includes('<dfdl:setVariable') &&
       !wholeLine.includes('</dfdl:setVariable') &&
@@ -251,6 +272,26 @@ export function checkSetVariableOpen(
   return false
 }
 
+//returns an empty value or a prefix plus a colon
+export function getXsdNsPrefix(
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
+  var initialLineNum = position.line
+  var lineNum = 0
+  while (initialLineNum !== 0 && lineNum <= initialLineNum) {
+    const lineText = document.lineAt(lineNum).text
+    // returns either empty prefix value or a prefix plus a colon
+    let text = lineText.match(schemaPrefixRegEx)
+    if (text != null) {
+      return text[1]
+    }
+    ++lineNum
+  }
+  //returns the standard prefix plus a colon in the case of missing schema tag
+  return 'xs:'
+}
+
 export function checkBraceOpen(
   document: vscode.TextDocument,
   position: vscode.Position
@@ -258,9 +299,8 @@ export function checkBraceOpen(
   var lineNum = position.line
 
   while (lineNum !== 0) {
-    const wholeLine = document
-      .lineAt(lineNum)
-      .text.substring(0, document.lineAt(lineNum).range.end.character)
+    const wholeLine = document.lineAt(lineNum).text
+    //.text.substring(0, document.lineAt(lineNum).range.end.character)
 
     if (
       wholeLine.includes('"{') &&
@@ -297,4 +337,62 @@ export function checkBraceOpen(
     --lineNum
   }
   return false
+}
+
+import { commonCompletion } from './intellisense/commonItems'
+
+export const noPreVals: string[] = [
+  'dfdl:choiceBranchKey=',
+  'dfdl:representation',
+  'dfdl:choiceDispatchKey=',
+  'dfdl:simpleType',
+  'xs:restriction',
+]
+
+export function createCompletionItem(
+  e:
+    | {
+        item: string
+        snippetString: string
+        markdownString: string
+      }
+    | {
+        item: string
+        snippetString: string
+        markdownString?: undefined
+      },
+  preVal: string
+) {
+  const completionItem = new vscode.CompletionItem(e.item)
+
+  if (preVal !== '' && !noPreVals.includes(e.item)) {
+    completionItem.insertText = new vscode.SnippetString(
+      preVal + e.snippetString
+    )
+  } else {
+    completionItem.insertText = new vscode.SnippetString(e.snippetString)
+  }
+
+  if (e.markdownString) {
+    completionItem.documentation = new vscode.MarkdownString(e.markdownString)
+  }
+
+  return completionItem
+}
+
+export function getCommonItems(
+  itemsToUse: string[],
+  preVal: string = '',
+  additionalItems: string = ''
+) {
+  let compItems: vscode.CompletionItem[] = []
+
+  commonCompletion(additionalItems).items.forEach((e) => {
+    if (itemsToUse.includes(e.item)) {
+      const completionItem = createCompletionItem(e, preVal)
+      compItems.push(completionItem)
+    }
+  })
+
+  return compItems
 }
