@@ -158,7 +158,7 @@ export function getAttributeCompletionProvider() {
                 [
                   'dfdl:choiceLengthKind=',
                   'dfdl:choiceLength=',
-                  'dfdl:intiatedContent=',
+                  'dfdl:initiatedContent=',
                   'dfdl:choiceDispatchKey=',
                   'dfdl:choiceBranchKey=',
                 ],

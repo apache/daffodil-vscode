@@ -149,8 +149,8 @@ export const attributeCompletion = (additionalItems, nsPrefix: string) => {
         markdownString: 'Only used when dfdl:choiceLengthKind is explicit',
       },
       {
-        item: 'dfdl:intiatedContent=',
-        snippetString: 'dfdl:intiatedContent="${1|yes,no}"$0',
+        item: 'dfdl:initiatedContent=',
+        snippetString: 'dfdl:initiatedContent="${1|yes,no}"$0',
         markdownString: 'yes indicates all branches of a choice are initiated\no indicates the branch dfdl:initator property may be ste to empty string',
       },
       {

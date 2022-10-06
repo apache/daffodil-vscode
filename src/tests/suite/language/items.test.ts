@@ -72,14 +72,14 @@ suite('Items Test Suite', () => {
     'dfdl:separatorSuppressionPolicy',
     'dfdl:choiceLengthKind=',
     'dfdl:choiceLength=',
-    'dfdl:intiatedContent=',
+    'dfdl:initiatedContent=',
     'dfdl:choiceDispatchKey=',
     'dfdl:simpleType',
     'xs:restriction',
   ]
 
   test('all commonItems available', async () => {
-    var itemNames: string[] = []
+    let itemNames: string[] = []
     commonCompletion('', 'xs:').items.forEach((r) => itemNames.push(r.item))
     assert.strictEqual(itemNames.includes('type='), true)
   })
