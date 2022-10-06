@@ -16,7 +16,6 @@
  */
 
 import * as vscode from 'vscode'
-
 import {
   nearestOpen,
   checkBraceOpen,
@@ -29,7 +28,6 @@ import {
   getCommonItems,
   getXsdNsPrefix,
 } from './utils'
-
 import { attributeCompletion } from './intellisense/attributeItems'
 
 function getCompletionItems(
@@ -63,11 +61,11 @@ export function getAttributeCompletionProvider() {
         document: vscode.TextDocument,
         position: vscode.Position
       ) {
+        const nsPrefix = getXsdNsPrefix(document, position)
         const wholeLine = document
           .lineAt(position)
           .text.substr(0, position.character)
         var nearestOpenItem = nearestOpen(document, position)
-        const nsPrefix = getXsdNsPrefix(document, position)
 
         if (
           !checkBraceOpen(document, position) &&
@@ -84,7 +82,6 @@ export function getAttributeCompletionProvider() {
               }
             }
             var additionalItems = getDefinedTypes(document, nsPrefix)
-
             if (
               checkLastItemOpen(document, position) &&
               (wholeLine.includes('<' + nsPrefix + 'element name="') ||
@@ -199,7 +196,6 @@ export function getAttributeCompletionProvider() {
               }
             }
             var additionalItems = getDefinedTypes(document, nsPrefix)
-
             var xmlItems = [
               {
                 item: 'external=',
