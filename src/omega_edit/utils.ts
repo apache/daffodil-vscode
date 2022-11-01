@@ -17,8 +17,12 @@
 
 import * as vscode from 'vscode'
 import * as hexy from 'hexy'
-import { ObjectId, ViewportDataRequest } from 'omega-edit/omega_edit_pb'
-import { getClient } from 'omega-edit/settings'
+import {
+  EventSubscriptionRequest,
+  // ObjectId,
+  ViewportDataRequest,
+} from 'omega-edit/omega_edit_pb'
+import { getClient, ALL_EVENTS } from 'omega-edit/settings'
 
 const client = getClient()
 
@@ -52,64 +56,79 @@ export async function getFilePath(
   return filePath
 }
 
-export function viewportSubscribe(
+export async function setViewportDataForPanel(
+  panel: vscode.WebviewPanel,
+  vp: string,
+  commandViewport: string,
+  commandHex: string | null
+) {
+  client.getViewportData(
+    new ViewportDataRequest().setViewportId(vp),
+    (err, r) => {
+      let data = r?.getData_asB64()
+
+      if (data) {
+        let txt = Buffer.from(data, 'base64').toString('binary')
+        panel.webview.postMessage({ command: commandViewport, text: txt })
+
+        if (commandHex === 'hexAll') {
+          let hex = hexy.hexy(txt)
+          let offsetLines = ''
+          let encodedData = ''
+
+          let hexLines = hex.split('\n')
+
+          // Format hex code to make the file look nicer
+          hexLines.forEach((h) => {
+            if (h) {
+              let splitHex = h.split(':')
+              let dataLocations = splitHex[1].split(' ')
+
+              offsetLines += splitHex[0] + '<br/>'
+              if (dataLocations.length > 9) {
+                for (var i = 1; i < 9; i++) {
+                  let middle = Math.floor(dataLocations[i].length / 2)
+                  encodedData +=
+                    dataLocations[i].substr(0, middle).toUpperCase() +
+                    '' +
+                    dataLocations[i].substr(middle).toUpperCase() +
+                    ' '
+                }
+              }
+
+              encodedData += '<br/>'
+            }
+          })
+
+          panel.webview.postMessage({
+            command: commandHex,
+            text: encodedData,
+            offsetText: offsetLines,
+          })
+        } else if (commandHex) {
+          let hxt = hexy.hexy(txt)
+          panel.webview.postMessage({ command: commandHex, text: hxt })
+        }
+      }
+    }
+  )
+}
+
+export async function viewportSubscribe(
   panel: vscode.WebviewPanel,
   vp1: string,
   vp2: string,
   commandViewport: string,
   commandHex: string | null
 ) {
-  var objId = new ObjectId().setId(vp1)
-  client.subscribeToViewportEvents(objId).on('data', (ve) => {
-    client.getViewportData(
-      new ViewportDataRequest().setViewportId(vp2),
-      (err, r) => {
-        let data = r?.getData_asB64()
+  var request = new EventSubscriptionRequest()
+    .setId(vp1)
+    .setInterest(ALL_EVENTS)
 
-        if (data) {
-          let txt = Buffer.from(data, 'base64').toString('binary')
-          panel.webview.postMessage({ command: commandViewport, text: txt })
-
-          if (commandHex === 'hexAll') {
-            let hex = hexy.hexy(txt)
-            let offsetLines = ''
-            let encodedData = ''
-
-            let hexLines = hex.split('\n')
-
-            // Format hex code to make the file look nicer
-            hexLines.forEach((h) => {
-              if (h) {
-                let splitHex = h.split(':')
-                let dataLocations = splitHex[1].split(' ')
-
-                offsetLines += splitHex[0] + '<br/>'
-                if (dataLocations.length > 9) {
-                  for (var i = 1; i < 9; i++) {
-                    let middle = Math.floor(dataLocations[i].length / 2)
-                    encodedData +=
-                      dataLocations[i].substr(0, middle).toUpperCase() +
-                      '' +
-                      dataLocations[i].substr(middle).toUpperCase() +
-                      ' '
-                  }
-                }
-
-                encodedData += '<br/>'
-              }
-            })
-
-            panel.webview.postMessage({
-              command: commandHex,
-              text: encodedData,
-              offsetText: offsetLines,
-            })
-          } else if (commandHex) {
-            let hxt = hexy.hexy(txt)
-            panel.webview.postMessage({ command: commandHex, text: hxt })
-          }
-        }
-      }
-    )
+  client.subscribeToViewportEvents(request).on('data', async (ve) => {
+    await setViewportDataForPanel(panel, vp2, commandViewport, commandHex)
   })
+
+  // data request not ran right away, so this ensures the views are populated
+  await setViewportDataForPanel(panel, vp2, commandViewport, commandHex)
 }
