@@ -1,0 +1,58 @@
+Apache Daffodil VS Code Extension
+Copyright 2022 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+Based on source code originally developed by
+- Concurrent Technologies Corporation (https://www.ctc.com/)
+- Nteligen LLC (https://www.nteligen.com/)
+
+The following binary components distributed with this project are licensed under the Apache License v2 but do not include NOTICE files in their repositories:
+
+- 'detect-libc' in extension/dist/ext/extension.js
+	This product bundles 'detect-libc' from the above files.
+	This package is available under the Apache License v2 without a NOTICE:
+        Repository at: https://github.com/lovell/detect-libc
+
+- 'omega-edit' in extension/dist/ext/extension.js
+	This product bundles 'omega-edit' from the above files.
+	This package is available under the Apache License v2 without a NOTICE:
+        Repository at: https://github.com/ctc-oss/omega-edit
+
+- 'rc' in extension/dist/ext/extension.js
+	This product bundles 'rc' from the above files.
+	This package has 3 licenses, available under the BSD, MIT and Apache License v2 licenses.
+    Was not sure which one to apply so went with ALv2:
+        Repository at: https://github.com/dominictarr/rc
+
+- 'tunnel-agent' in extension/dist/ext/extension.js
+	This product bundles 'tunnel-agent' from the above files.
+	This package is available under the Apache License v2 without a NOTICE:
+        Repository at: https://github.com/request/tunnel-agent
+
+- 'typescript' in extension/dist/ext/extension.js
+	This product bundles 'typescript' from the above files.
+	This package is available under the Apache License v2 without a NOTICE:
+        Repository at: https://github.com/Microsoft/TypeScript
+
+- 'workerpool' in extension/dist/ext/extension.js
+	This product bundles 'workerpool' from the above files.
+	This package is available under the Apache License v2 without a NOTICE:
+        Repository at: https://github.com/josdejong/workerpool
+
+- '@grpc/grpc-js' in extension/dist/ext/extension.js
+	This product bundles '@grpc/grpc-js' from the above files.
+	This package is available under the Apache License v2 without a NOTICE:
+        Repository at: https://github.com/grpc/grpc-node/tree/master
+
+- '@grpc/proto-loader' in extension/dist/ext/extension.js
+	This product bundles '@grpc/proto-loader' from the above files.
+    This package is available under the Apache License v2 without a NOTICE:
+        Repository at: https://github.com/grpc/grpc-node
+
+- '@xtuc/long' in extension/dist/ext/extension.js
+- 'long' in extension/dist/ext/extension.js
+	This product bundles '@xtuc/long, long' from the above files.
+	This package is available under the Apache License v2 without a NOTICE:
+        Repository at: https://github.com/dcodeIO/long.js

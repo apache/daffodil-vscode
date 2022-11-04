@@ -1,0 +1,21 @@
+Apache Daffodil VS Code Extension
+Copyright 2022 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+Based on source code originally developed by
+- Concurrent Technologies Corporation (https://www.ctc.com/)
+- Nteligen LLC (https://www.nteligen.com/)
+
+The following binary components distributed with this project are licensed under the Apache approved licenses but do not include LICENSE files in their repositories:
+
+- 'acorn-import-assertions' in extension/dist/ext/extension.js
+	This product bundles 'acorn-import-assertions' from the above files.
+	This package is available under the MIT LICENSE but no LICENSE data found in the repository:
+        Repository at: https://github.com/xtuc/acorn-import-assertions
+
+- 'github-from-package' in extension/dist/ext/extension.js
+	This product bundles 'github-from-package' from the above files.
+	This package is available under the MIT LICENSE but no LICENSE data but repository linked on https://npmjs.org is not found possibly private?:
+        Repository supposed to be at: https://github.com/substack/github-from-package
