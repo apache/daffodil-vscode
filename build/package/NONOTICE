@@ -15,11 +15,6 @@ The following binary components distributed with this project are licensed under
 	This package is available under the Apache License v2 without a NOTICE:
         Repository at: https://github.com/lovell/detect-libc
 
-- 'omega-edit' in extension/dist/ext/extension.js
-	This product bundles 'omega-edit' from the above files.
-	This package is available under the Apache License v2 without a NOTICE:
-        Repository at: https://github.com/ctc-oss/omega-edit
-
 - 'rc' in extension/dist/ext/extension.js
 	This product bundles 'rc' from the above files.
 	This package has 3 licenses, available under the BSD, MIT and Apache License v2 licenses.
