@@ -51,3 +51,47 @@ The following binary components distributed with this project are licensed under
 	This product bundles '@xtuc/long, long' from the above files.
 	This package is available under the Apache License v2 without a NOTICE:
         Repository at: https://github.com/dcodeIO/long.js
+
+- com.fasterxml.woodstox.woodstox-core-<VERSION>.jar in daffodil-debugger-<VERSION>.zip
+  This product bundles 'woodstox-core' from the above files.
+  This packages is available under the Apache License v2 without a NOTICE:
+	  	Repository at: https://github.com/FasterXML/woodstox
+
+- com.google.code.gson.gson-<VERSION>.jar in daffodil-debugger-<VERSION>.zip
+  This product bundles 'gso' from the above files.
+  This packages is available under the Apache License v2 without a NOTICE:
+	  	Repository at: https://github.com/google/gson
+
+- com.monovore.decline-effect_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
+- com.monovore.decline_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
+  This product bundles 'decline' from the above files.
+  This packages is available under the Apache License v2 without a NOTICE:
+	  	Repository at: https://github.com/bkirwi/decline
+
+- com.typesafe.config-<VERSION>.jar in daffodil-debugger-<VERSION>.zip
+  This product bundles 'config' from the above files.
+  This packages is available under the Apache License v2 without a NOTICE:
+	  	Repository at: https://github.com/lightbend/config
+
+- io.reactivex.rxjava2.rxjava-<VERSION>.jar in daffodil-debugger-<VERSION>.zip
+  This product bundles 'rxjava' from the above files.
+  This packages is available under the Apache License v2 without a NOTICE:
+	  	Repository at: https://github.com/ReactiveX/RxJava
+
+- org.typelevel.cats-effect-kernel_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
+- org.typelevel.cats-effect-std_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
+- org.typelevel.cats-effect_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
+  This product bundles 'cats-effect' from the above files.
+  This packages is available under the Apache License v2 without a NOTICE:
+	  	Repository at: https://github.com/typelevel/cats-effect
+
+- org.typelevel.literally_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
+  This product bundles 'literally' from the above files.
+  This packages is available under the Apache License v2 without a NOTICE:
+	  	Repository at: https://github.com/typelevel/literally
+
+- org.typelevel.log4cats-core_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
+- org.typelevel.log4cats-slf4j_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
+  This product bundles 'log4cats' from the above files.
+  This packages is available under the Apache License v2 without a NOTICE:
+	  	Repository at: https://github.com/typelevel/log4cats
