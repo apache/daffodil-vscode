@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="mock.css" rel="stylesheet">
+    <script src="mock.js"></script>
+    <script>
+        function loadContent(file) {
+            const physical_vw = document.querySelector(".physical_vw");
+            const logical_vw = document.querySelector(".logicalView");
+            const address_vw = document.querySelector(".address_vw");
+            const file_size = document.getElementById("file_size");
+            const ascii_count = document.getElementById("ascii_count");
+            const logical_offsets = document.getElementById("logical_offsets");
+            const physical_offsets = document.getElementById("physical_offsets");
+            logical_offsets.innerHTML = makeOffsetRange(10, 0);
+            physical_offsets.innerHTML = makeOffsetRange(10, 2);
+            file_size.innerHTML = String(file.size);
+            address_vw.innerHTML = makeAddressRange(0, Math.ceil(file.size / 16), 16, 10)
+            console.log(file);
+            readFile(file).then(data => {
+                ascii_count.innerHTML = String(countAscii(data));
+                physical_vw.dataset.data = ab2b64(data);
+                physical_vw.innerHTML = encodeHex(data);
+                logical_vw.innerHTML = ab2str(data).replaceAll("\n", " ");
+            });
+            const commit_btn = document.getElementById("commit_btn");
+            commit_btn.disabled = false;
+            const set_breakpoint_btn = document.getElementById("set_breakpoint_btn");
+            set_breakpoint_btn.disabled = false;
+        }
+    </script>
+    <title>Mock3</title>
+</head>
+<body style="background-color: #170d3b">
+<header>
+    <fieldset class='box'>
+        <legend>file to view</legend>
+        <div class='filetoview'>
+            <input type="file" onchange="loadContent(this.files[0])"/>
+        </div>
+        <hr/>
+        <div>
+            file size: <span id="file_size">0</span><br/>
+            ASCII count: <span id="ascii_count">0</span>
+        </div>
+    </fieldset>
+
+    <fieldset class='box'>
+        <legend>bytes in group</legend>
+        <div class='bytesingroup'>
+            <select id="bytesingroup">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="4">4</option>
+                <option value="8">8</option>
+            </select>
+        </div>
+    </fieldset>
+
+    <fieldset class='box'>
+        <legend>endianness</legend>
+        <div class='endinanness'>
+            <select id="endianness">
+                <option value="le">little</option>
+                <option value="be">big</option>
+            </select>
+        </div>
+    </fieldset>
+
+    <fieldset class='box'>
+        <legend>radix</legend>
+        <div class='radix'>
+            <select id="radix">
+                <option value="2">2 (BIN)</option>
+                <option value="8">8 (OCT)</option>
+                <option value="10">10 (DEC)</option>
+                <option value="16">16 (HEX)</option>
+            </select>
+        </div>
+    </fieldset>
+
+    <fieldset class='box'>
+        <legend>misc</legend>
+        <div class='radix'>
+            <input type='checkbox' id='show_address' checked>
+            <label for='address'>address</label><br/>
+            <input type='checkbox' id='caps'>
+            <label for='caps'>caps</label><br/>
+        </div>
+    </fieldset>
+</header>
+
+<main class="dataEditor">
+    <div class="hd">address</div>
+    <div class="hd">physical</div>
+    <div class="hd">logical</div>
+    <div class="hd">edit</div>
+    <div class="measure" style="align-items: center;">
+        <select class="address_type" id="address_type">
+            <option value="10">decimal</option>
+            <option value="16">hexadecimal</option>
+            <option value="8">octal</option>
+            <option value="2">binary</option>
+        </select>
+    </div>
+    <div class="measure"><span id="physical_offsets">0<br/>0</span></div>
+    <div class="measure"><span id="logical_offsets">0<br/>0</span></div>
+    <div class="measure"><span id="selected_offsets">0</span></div>
+    <textarea class="address_vw" id="address" readonly>0</textarea>
+    <textarea class="physical_vw" id="physical" readonly></textarea>
+    <textarea class="logicalView" cols="16" id="logical" readonly></textarea>
+    <div class="editView" id="edit_view">
+        <textarea class="selectedContent" id="selected_content"></textarea>
+        <fieldset class='box'>
+            <legend>content controls</legend>
+            <div class="contentControls" id="content_controls">
+                <div>
+                    <button id="commit_btn" onclick="alert('committed');" disabled>
+                        commit changes
+                    </button>
+                    committed changes: <span id="num_changes">0</span>
+                    <button id="set_breakpoint_btn" onclick="alert('breakpoint set');" disabled>
+                        set breakpoint
+                    </button>
+                    breakpoints: <span id="breakpoint_count">0</span>
+                </div>
+                <hr/>
+                <div>
+                    <label>logical byte size</label>
+                    <select>
+                        <option>8</option>
+                        <option>7</option>
+                        <option>6</option>
+                    </select>
+                </div>
+                <div>
+                    <label>encoding</label>
+                    <select>
+                        <option>decimal</option>
+                        <option>octal</option>
+                        <option>hexadecimal</option>
+                        <option>binary</option>
+                        <option>ASCII</option>
+                    </select>
+                </div>
+                <label>least significant bit</label>
+                <select>
+                    <option value="h">higher offset</option>
+                    <option value="l">lower offset</option>
+                </select>
+                <div>
+                    <label>byte offset</label>
+                    <select>
+                        <option value="0">0 bits</option>
+                        <option value="1">1 bit</option>
+                        <option value="2">2 bits</option>
+                        <option value="3">3 bits</option>
+                        <option value="4">4 bits</option>
+                        <option value="5">5 bits</option>
+                        <option value="6">6 bits</option>
+                        <option value="7">7 bits</option>
+                    </select>
+                </div>
+                <div>
+                    additional controls...</br>
+                    additional controls...</br>
+                    additional controls...</br>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</main>
+
+</body>
+</html>

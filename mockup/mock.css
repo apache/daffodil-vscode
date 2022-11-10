@@ -1,0 +1,146 @@
+/* CSS reset */
+* {
+    margin: 0;
+    padding: 0;
+}
+
+/* fonts */
+html {
+    font-family: monospace;
+    font-size: 12px;
+}
+
+/* dimensions */
+body {
+    height: 100%;
+    width: 100%;
+}
+
+/* user inputs */
+button, input, select, textarea {
+    color: inherit;
+    background-color: inherit;
+    font: inherit;
+    resize: none;
+    width: auto;
+    border: 0;
+}
+
+legend {
+    font-weight: bold;
+}
+
+header {
+    display: flex;
+    justify-content: center;
+    background-color: #404040;
+    color: #d0d0d0;
+    width: 100%;
+    flex: 0 1 auto;
+}
+
+/* the data editor is a 4 x 4 grid */
+.dataEditor {
+    display: grid;
+    /* I think this should be 16em instead of 10em for 16 characters, but that didn't work */
+    grid-template-columns: max-content max-content 10em auto;
+    grid-template-rows: max-content max-content auto;
+    gap: 1px;
+    color: #fefefe;
+    overflow: auto;
+    resize: vertical;
+    min-height: 500px;
+}
+
+/* display of binary encoded data takes more space in the physical view */
+.dataEditor.binary {
+    /* I think this should be 8em instead of 5em for 8 characters, but that didn't work */
+    grid-template-columns: max-content max-content 5em 1fr;
+}
+
+.dataEditor div {
+    resize: none;
+}
+
+.dataEditor textarea {
+    display: block;
+    word-break: break-all;
+    white-space: break-spaces;
+    box-sizing: content-box;
+    height: 100%;
+    width: 100%;
+}
+
+.dataEditor div.hd {
+    background: #767676;
+    text-align: center;
+    font-weight: bold;
+}
+
+.dataEditor div.measure {
+    display: flex;
+}
+
+.dataEditor div.measure span {
+    align-self: flex-end;
+}
+
+.dataEditor textarea.address_vw {
+    text-align: right;
+    direction: rtl;
+    user-select: none;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.dataEditor textarea.physical_vw {
+    background: #4c4c4c;
+}
+
+.dataEditor textarea.logicalView {
+    background: #3c3c3c;
+}
+
+.dataEditor div.editView {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr max-content;
+    overflow-x: scroll;
+}
+
+.dataEditor textarea.selectedContent {
+    background: #2c2c2c;
+}
+
+
+.dataEditor div.stats {
+    grid-column: 1 / span 4;
+    background: #6c6c6c;
+    height: max-content;
+}
+
+.dataEditor button {
+    margin: 5px;
+    padding: 4px 8px;
+    background: darkgreen;
+    border: 1px solid #dedede;
+    font-weight: bold;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.dataEditor button:active {
+    background: green;
+    font-weight: bolder;
+    box-shadow: inset 0 0 5px #ffffff;
+    outline: none;
+}
+
+.dataEditor button:disabled {
+    color: #444444;
+    border: 1px solid #444444;
+    font-weight: lighter;
+    background: #696969;
+    cursor: not-allowed;
+    pointer-events: none;
+}
