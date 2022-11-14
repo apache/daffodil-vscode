@@ -2,7 +2,7 @@
 	"name": "apache-daffodil-vscode",
 	"displayName": "Apache Daffodil VS Code Extension",
 	"description": "VS Code extension for Apache Daffodil DFDL schema debugging",
-	"version": "1.1.0-SNAPSHOT",
+	"version": "1.2.0",
 	"daffodilVersion": "3.4.0",
 	"omegaEditServerHash": "1c11c5711b6cd477023be71d04b070e1289312aaaef5f81fb9ded4e3884b7135ca13e2b2cf7b547e374142167c19789555eeb5d83dbed38ff6dde71c25db5fb7",
 	"publisher": "asf",
