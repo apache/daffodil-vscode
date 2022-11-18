@@ -97,6 +97,7 @@ function save() {
       : configSelectedValue
   const data = document.getElementById('data').value
   const debugServer = parseInt(document.getElementById('debugServer').value)
+  const infosetFormat = document.getElementById('infosetFormat').value
   const infosetOutputFilePath = document.getElementById(
     'infosetOutputFilePath'
   ).value
@@ -121,6 +122,7 @@ function save() {
         program: program,
         data: data,
         debugServer: debugServer,
+        infosetFormat: infosetFormat,
         infosetOutput: {
           type: infosetOutputType,
           path: infosetOutputFilePath,
@@ -147,6 +149,9 @@ function updateConfigValues(config) {
   document.getElementById('name').value = config.name
   document.getElementById('data').value = config.data
   document.getElementById('debugServer').value = parseInt(config.debugServer)
+  document.getElementById('infosetFormat').value = config.infosetFormat
+    ? config.infosetFormat
+    : 'xml'
   document.getElementById('infosetOutputFilePath').value = config.infosetOutput[
     'path'
   ]

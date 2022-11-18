@@ -334,6 +334,18 @@ class LaunchWizard {
       daffodilDebugClasspathAction !== 'append' ? 'checked' : ''
     let appendCheck = daffodilDebugClasspathAction === 'append' ? 'checked' : ''
 
+    let infosetFormatSelect = ''
+    let infosetFormatTypes = ['xml', 'json']
+    let infosetFormat = defaultValues.infosetFormat
+
+    infosetFormatTypes.forEach((type) => {
+      if (type === infosetFormat) {
+        infosetFormatSelect += `<option selected value="${type}">${type}</option>`
+      } else {
+        infosetFormatSelect += `<option value="${type}">${type}</option>`
+      }
+    })
+
     let infosetOutputTypeSelect = ''
     let infosetOutputTypes = ['none', 'console', 'file']
     let infosetOutputType = defaultValues.infosetOutput['type']
@@ -428,6 +440,14 @@ class LaunchWizard {
         <p>Debug Server:</p>
         <p class="setting-description">Port debug server running on.</p>
         <input class="file-input" value="${defaultValues.debugServer}" id="debugServer"/>
+      </div>
+
+      <div id="infosetFormatDiv" class="setting-div">
+        <p>Infoset Format:</p>
+        <p class="setting-description">Desired format of infoset ('xml' | 'json')</p>
+        <select class="file-input" style="width: 200px;" id="infosetFormat">
+          ${infosetFormatSelect}
+        </select>
       </div>
 
       <div id="infosetOutputTypeDiv" class="setting-div">

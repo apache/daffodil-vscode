@@ -86,6 +86,7 @@ export function getConfig(
   program: string = '',
   data: string | boolean = false,
   debugServer: number | boolean = false,
+  infosetFormat: string | null = null,
   infosetOutput: object | null = null,
   stopOnEntry = false,
   useExistingServer = false,
@@ -106,6 +107,7 @@ export function getConfig(
     debugServer: debugServer
       ? debugServer
       : defaultConf.get('debugServer', 4711),
+    infosetFormat: infosetFormat ? infosetFormat : 'xml',
     infosetOutput: infosetOutput
       ? infosetOutput
       : {

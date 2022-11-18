@@ -2,7 +2,7 @@
 	"name": "apache-daffodil-vscode",
 	"displayName": "Apache Daffodil VS Code Extension",
 	"description": "VS Code extension for Apache Daffodil DFDL schema debugging",
-	"version": "1.2.0",
+	"version": "1.2.0-SNAPSHOT",
 	"daffodilVersion": "3.4.0",
 	"omegaEditServerHash": "1c11c5711b6cd477023be71d04b070e1289312aaaef5f81fb9ded4e3884b7135ca13e2b2cf7b547e374142167c19789555eeb5d83dbed38ff6dde71c25db5fb7",
 	"publisher": "asf",
@@ -25,11 +25,12 @@
 	},
 	"scripts": {
 		"omega-edit-download": "node -e \"require('./build/scripts/omega_edit_download.ts').downloadServer()\"",
-		"precompile": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
+		"gen-version-ts": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
+		"precompile": "yarn run gen-version-ts",
 		"compile": "tsc -p ./ && yarn omega-edit-download",
 		"lint": "yarn run prettier src -c",
-		"watch": "yarn omega-edit-download && webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js",
-		"watch2": "tsc -watch -p ./",
+		"prewatch": "yarn omega-edit-download && yarn run gen-version-ts",
+		"watch": "webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js",
 		"webpack": "webpack --mode production --config ./build/extension.webpack.config.js",
 		"prepackage": "yarn sbt && yarn install && yarn compile && yarn webpack",
 		"package": "yarn package-setup && yarn package-create",
@@ -302,6 +303,11 @@
 								"description": "Absolute path to the input data file.",
 								"default": "${command:AskForDataName}"
 							},
+							"infosetFormat": {
+								"type": "string",
+								"description": "Infoset format type (xml/json)",
+								"default": "xml"
+							},
 							"infosetOutput": {
 								"type": "object",
 								"description": "Destination for final Infoset (file-path | 'console' | 'none')",
@@ -361,6 +367,7 @@
 						"program": "${command:AskForProgramName}",
 						"stopOnEntry": true,
 						"data": "${command:AskForDataName}",
+						"infosetFormat": "xml",
 						"infosetOutput": {
 							"type": "file",
 							"path": "${workspaceFolder}/infoset.xml"
@@ -383,6 +390,7 @@
 							"program": "^\"\\${command:AskForProgramName}\"",
 							"stopOnEntry": true,
 							"data": "^\"\\${command:AskForDataName}\"",
+							"infosetFormat": "xml",
 							"infosetOutput": {
 								"type": "file",
 								"path": "${workspaceFolder}/infoset.xml"

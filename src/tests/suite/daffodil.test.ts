@@ -53,14 +53,24 @@ suite('Daffodfil', () => {
       assert.strictEqual(100, daffodilData.bytePos1b)
     })
 
-    test('InfosetEvent functions properly', () => {
+    test('InfosetEvent functions properly (xml)', () => {
       let infosetEvent: daffodil.InfosetEvent = {
-        content: 'This is content',
+        content: 'This is xml content',
         mimeType: 'xml',
       }
 
-      assert.strictEqual('This is content', infosetEvent.content)
+      assert.strictEqual('This is xml content', infosetEvent.content)
       assert.strictEqual('xml', infosetEvent.mimeType)
+    })
+
+    test('InfosetEvent functions properly (json)', () => {
+      let infosetEvent: daffodil.InfosetEvent = {
+        content: 'This is json content',
+        mimeType: 'json',
+      }
+
+      assert.strictEqual('This is json content', infosetEvent.content)
+      assert.strictEqual('json', infosetEvent.mimeType)
     })
 
     test('InfosetOutput functions properly', () => {
@@ -93,12 +103,14 @@ suite('Daffodfil', () => {
         schemaPath: '/path/to/schema.xsd.xml',
         dataPath: '/path/to/data.jpg',
         stopOnEntry: true,
+        infosetFormat: 'json',
         infosetOutput: infosetOutput,
       }
 
       assert.strictEqual('/path/to/schema.xsd.xml', launchArgs.schemaPath)
       assert.strictEqual('/path/to/data.jpg', launchArgs.dataPath)
       assert.strictEqual(true, launchArgs.stopOnEntry)
+      assert.strictEqual('json', launchArgs.infosetFormat)
       assert.strictEqual(infosetOutput, launchArgs.infosetOutput)
     })
 
@@ -116,6 +128,7 @@ suite('Daffodfil', () => {
         schemaPath: '/path/to/schema.xsd.xml',
         dataPath: '/path/to/data.jpg',
         stopOnEntry: true,
+        infosetFormat: 'xml',
         infosetOutput: infosetOutput,
       }
 
