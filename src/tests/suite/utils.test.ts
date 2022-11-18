@@ -30,6 +30,7 @@ suite('Utils Test Suite', () => {
     program: '${command:AskForProgramName}',
     data: '${command:AskForDataName}',
     debugServer: 4711,
+    infosetFormat: 'xml',
     infosetOutput: {
       type: 'none',
       path: '${workspaceFolder}/infoset.xml',

@@ -40,6 +40,7 @@ export interface LaunchArgs {
   schemaPath: string
   dataPath: string
   stopOnEntry: boolean
+  infosetFormat: string
   infosetOutput: InfosetOutput
 }
 
