@@ -89,9 +89,9 @@ export async function setViewportDataForPanel(
                 for (var i = 1; i < 9; i++) {
                   let middle = Math.floor(dataLocations[i].length / 2)
                   encodedData +=
-                    dataLocations[i].substr(0, middle).toUpperCase() +
+                    dataLocations[i].substring(0, middle).toUpperCase() +
                     '' +
-                    dataLocations[i].substr(middle).toUpperCase() +
+                    dataLocations[i].substring(middle).toUpperCase() +
                     ' '
                 }
               }
