@@ -35,7 +35,7 @@ export function getCloseElementSlashProvider() {
         const nsPrefix = getXsdNsPrefix(document, position)
         const wholeLine = document
           .lineAt(position)
-          .text.substr(0, position.character)
+          .text.substring(0, position.character)
         const nearestOpenItem = nearestOpen(document, position)
         if (checkBraceOpen(document, position)) {
           return undefined
