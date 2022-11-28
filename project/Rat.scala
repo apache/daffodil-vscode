@@ -34,7 +34,10 @@ object Rat {
     file("images/daffodil.ico"),
     // yarn and rpm generated files
     file("yarn.lock"),
-    file("package-lock.json")
+    file("package-lock.json"),
+    // files listing packages with no license or notice
+    file("build/package/NOLICENSE"),
+    file("build/package/NONOTICE")
   )
 
   lazy val MIT_LICENSE_NAME = "MIT License"

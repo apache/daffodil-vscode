@@ -250,9 +250,9 @@ export class DebuggerHexView {
         for (var i = 1; i < dataLocations.length - 2; i++) {
           let middle = Math.floor(dataLocations[i].length / 2)
           this.hexString +=
-            dataLocations[i].substr(0, middle).toUpperCase() +
+            dataLocations[i].substring(0, middle).toUpperCase() +
             ' ' +
-            dataLocations[i].substr(middle).toUpperCase() +
+            dataLocations[i].substring(middle).toUpperCase() +
             ' '
         }
         this.hexString += '\t' + dataLocations[dataLocations.length - 1] + '\n'

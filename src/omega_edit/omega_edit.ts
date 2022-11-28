@@ -106,12 +106,7 @@ export class OmegaEdit {
     len: number,
     data: string = ''
   ) {
-    await omegaEditChange.del(sessionId, offset, len)
-
-    // if no data sent don't insert
-    if (data !== '') {
-      await omegaEditChange.insert(sessionId, offset, data)
-    }
+    await omegaEditChange.replace(sessionId, offset, len, data)
   }
 
   // Perform search on a single result
