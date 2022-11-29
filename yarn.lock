@@ -2321,10 +2321,10 @@ v8-compile-cache-lib@^3.0.1:
   resolved "https://registry.yarnpkg.com/v8-compile-cache-lib/-/v8-compile-cache-lib-3.0.1.tgz#6336e8d71965cb3d35a1bbb7868445a7c05264bf"
   integrity sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==
 
-vsce@2.9.2:
-  version "2.9.2"
-  resolved "https://registry.yarnpkg.com/vsce/-/vsce-2.9.2.tgz#be5d2ca5899f31ba84225d6b19ea1376589df897"
-  integrity sha512-xyLqL4U82BilUX1t6Ym2opQEa2tLGWYjbgB7+ETeNVXlIJz5sWBJjQJSYJVFOKJSpiOtQclolu88cj7oY6vvPQ==
+vsce@2.14.0:
+  version "2.14.0"
+  resolved "https://registry.yarnpkg.com/vsce/-/vsce-2.14.0.tgz#f264c427f52cb6c1b1ba2e5f8a84063a034f2438"
+  integrity sha512-LH0j++sHjcFNT++SYcJ86Zyw49GvyoTRfzYJGmaCgfzTyL7MyMhZeVEnj9K9qKh/m1N3/sdWWNxP+PFS/AvWiA==
   dependencies:
     azure-devops-node-api "^11.0.1"
     chalk "^2.4.2"
