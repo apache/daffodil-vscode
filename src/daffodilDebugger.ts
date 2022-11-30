@@ -167,7 +167,7 @@ export async function getDebugger(
       // Get daffodilDebugger class paths to be added to the debugger
       let daffodilDebugClasspath = ''
 
-      if (config.daffodilDebugClassPath) {
+      if (config.daffodilDebugClasspath) {
         daffodilDebugClasspath = config.daffodilDebugClasspath.includes(
           '${workspaceFolder}'
         )
