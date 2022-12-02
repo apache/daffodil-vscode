@@ -202,12 +202,12 @@
    limitations under the License.
 
 
-APACHE DAFFODIL VS CODE EXTENSION SUBCOMPONENTS:
+APACHE DAFFODIL™ EXTENSION FOR VISUAL STUDIO CODE SUBCOMPONENTS:
 
-The Apache Daffodil VS Code Extension project contains subcomponents with
-separate copyright notices and license terms. Your use of the source code for
-these subcomponents is subject to the terms and conditions of the following
-licenses.
+The Apache Daffodil™ Extension for Visual Studio Code project contains
+subcomponents with separate copyright notices and license terms. Your use of
+the source code for these subcomponents is subject to the terms and
+conditions of the following licenses.
 
 - images/arrow.svg
   This product bundles the above files from the 'VS Code Mock Debug' extension.
