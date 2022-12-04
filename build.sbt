@@ -78,7 +78,7 @@ lazy val core = project
     name := "daffodil-debugger",
     libraryDependencies ++= Seq(
       "ch.qos.logback" % "logback-classic" % "1.2.11",
-      "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.38.0",
+      "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.43.0",
       "co.fs2" %% "fs2-io" % "3.2.10",
       "com.monovore" %% "decline-effect" % "2.3.0",
       "org.typelevel" %% "log4cats-slf4j" % "2.4.0"
