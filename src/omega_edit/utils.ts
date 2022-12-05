@@ -23,6 +23,8 @@ import {
   ViewportDataRequest,
 } from 'omega-edit/omega_edit_pb'
 import { getClient, ALL_EVENTS } from 'omega-edit/settings'
+import * as omegaEditServer from 'omega-edit/server'
+import { runScript } from '../utils'
 
 const client = getClient()
 
@@ -131,4 +133,19 @@ export async function viewportSubscribe(
 
   // data request not ran right away, so this ensures the views are populated
   await setViewportDataForPanel(panel, vp2, commandViewport, commandHex)
+}
+
+export async function startOmegaEditServer(
+  ctx: vscode.ExtensionContext,
+  rootPath: string,
+  omegaEditPackageVersion: string
+): Promise<[vscode.Terminal, boolean]> {
+  const [scriptName, scriptPath] = await omegaEditServer.setupServer(
+    rootPath,
+    omegaEditPackageVersion,
+    ctx.asAbsolutePath('./node_modules/omega-edit')
+  )
+
+  let terminal = await runScript(scriptPath, scriptName)
+  return [terminal, true]
 }
