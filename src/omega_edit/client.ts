@@ -20,12 +20,15 @@ import * as fs from 'fs'
 import * as omegaEditSession from 'omega-edit/session'
 import * as omegaEditViewport from 'omega-edit/viewport'
 import * as omegaEditVersion from 'omega-edit/version'
-import { getServer, stopServer } from './server'
-import { viewportSubscribe } from './utils'
+import { startOmegaEditServer, viewportSubscribe } from './utils'
 import { OmegaEdit } from './omega_edit'
 import { v4 as uuidv4 } from 'uuid'
-
+import XDGAppPaths from 'xdg-app-paths'
+import { killProcess } from '../utils'
 let serverRunning = false
+let serverTerminal: vscode.Terminal | undefined
+const xdgAppPaths = XDGAppPaths({ name: 'omega_edit' })
+let rootPath = xdgAppPaths.data()
 
 // Method to get omega-edit version from a JSON file
 export function getOmegaEditPackageVersion(filePath: fs.PathLike) {
@@ -44,6 +47,20 @@ async function cleanupViewportSession(
   await omegaEditSession.destroySession(sessionId)
 }
 
+async function commonOmegaEdit(
+  ctx: vscode.ExtensionContext,
+  startServer: boolean,
+  omegaEditPackageVersion: string
+) {
+  if (!serverRunning && startServer) {
+    ;[serverTerminal, serverRunning] = await startOmegaEditServer(
+      ctx,
+      rootPath,
+      omegaEditPackageVersion
+    )
+  }
+}
+
 export function activate(ctx: vscode.ExtensionContext) {
   const omegaEditPackageVersion = getOmegaEditPackageVersion(
     ctx.asAbsolutePath('./package.json')
@@ -53,11 +70,7 @@ export function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand(
       'omega_edit.version',
       async (startServer: boolean = true) => {
-        if (!serverRunning && startServer) {
-          await getServer(ctx, omegaEditPackageVersion)
-          serverRunning = true
-        }
-
+        await commonOmegaEdit(ctx, startServer, omegaEditPackageVersion)
         return await omegaEditVersion.getVersion()
       }
     )
@@ -71,10 +84,7 @@ export function activate(ctx: vscode.ExtensionContext) {
         startServer: boolean = true,
         subscribeToViewports: boolean = true
       ) => {
-        if (!serverRunning && startServer) {
-          await getServer(ctx, omegaEditPackageVersion)
-          serverRunning = true
-        }
+        await commonOmegaEdit(ctx, startServer, omegaEditPackageVersion)
 
         return await createOmegaEditWebviewPanel(
           ctx,
@@ -182,7 +192,9 @@ async function createOmegaEditWebviewPanel(
     async () => {
       await cleanupViewportSession(s, [vpAll, vp1, vp2, vp3])
       panel.dispose()
-      serverRunning = !(await stopServer())
+      await serverTerminal?.processId.then(async (id) => await killProcess(id))
+      serverRunning = false
+      vscode.window.showInformationMessage('omega-edit server stopped!')
     },
     undefined,
     ctx.subscriptions

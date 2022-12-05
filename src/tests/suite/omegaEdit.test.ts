@@ -23,30 +23,30 @@ import { Artifact, Backend } from '../../classes/artifact'
 import * as omegaEditClient from '../../omega_edit/client'
 import { unzipFile, runScript, killProcess } from '../../utils'
 import { before, after } from 'mocha'
+import * as fs from 'fs'
 
+const PROJECT_ROOT = path.join(__dirname, '../../../')
 const wait_port = require('wait-port')
-const omegaEditPackagePath = path.join(__dirname, '../../../src/omega_edit')
+
+const omegaEditPackagePath = path.join(PROJECT_ROOT, 'node_modules/omega-edit')
+const omegaEditVersion = omegaEditClient.getOmegaEditPackageVersion(
+  path.join(PROJECT_ROOT, 'package.json')
+)
 const localArtifact = new Artifact(
   'omega-edit-scala-server',
-  omegaEditClient.getOmegaEditPackageVersion(
-    path.join(__dirname, '../../../package.json')
-  ),
+  omegaEditVersion,
   'omega-edit-grpc-server'
 )
-const testDfdlFile = path.join(
-  __dirname,
-  '../../../src/tests/data/test.dfdl.xsd'
-)
+const extractedFolder = path.join(PROJECT_ROOT, localArtifact.name)
+const testDfdlFile = path.join(PROJECT_ROOT, 'src/tests/data/test.dfdl.xsd')
 
 export async function runServerForTests() {
-  const extractedFolder = `${omegaEditPackagePath}/${localArtifact.name}`
-
-  await unzipFile(
+  fs.copyFileSync(
     `${omegaEditPackagePath}/${localArtifact.name}.zip`,
-    omegaEditPackagePath
+    `${extractedFolder}.zip`
   )
-
-  return await runScript(`${extractedFolder}`, localArtifact)
+  await unzipFile(`${extractedFolder}.zip`, PROJECT_ROOT)
+  return await runScript(`${extractedFolder}`, localArtifact.scriptName)
 }
 
 suite('omega-edit Test Suite', () => {
@@ -58,6 +58,11 @@ suite('omega-edit Test Suite', () => {
 
   after(async () => {
     await terminal.processId.then(async (id) => await killProcess(id))
+    fs.rmSync(`${PROJECT_ROOT}/${localArtifact.name}.zip`)
+    fs.rmSync(`${PROJECT_ROOT}/${localArtifact.name}`, {
+      recursive: true,
+      force: true,
+    })
   })
 
   test('Test toggle.experimental', async () => {
