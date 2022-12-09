@@ -20,18 +20,14 @@ import * as assert from 'assert'
 import * as daffodil from '../../daffodil'
 import * as fs from 'fs'
 import * as path from 'path'
-import * as os from 'os'
 import { Artifact } from '../../classes/artifact'
 import { LIB_VERSION } from '../../version'
 import { before, after } from 'mocha'
+import { PROJECT_ROOT, TEST_SCHEMA } from './common'
+import { osCheck } from '../../utils'
 
 suite('Daffodfil', () => {
-  const PROJECT_ROOT = path.join(__dirname, '../../../')
   const packageFile = path.join(PROJECT_ROOT, 'package-test.json')
-  const testDfdlFile = path.join(
-    __dirname,
-    '../../../src/tests/data/test.dfdl.xsd'
-  )
 
   // Create test package.json before anything else happens
   before(() => {
@@ -229,9 +225,9 @@ suite('Daffodfil', () => {
       assert.strictEqual(
         await vscode.commands.executeCommand(
           'extension.dfdl-debug.getProgramName',
-          testDfdlFile
+          TEST_SCHEMA
         ),
-        testDfdlFile
+        TEST_SCHEMA
       )
     })
 
@@ -251,9 +247,9 @@ suite('Daffodfil', () => {
       assert.strictEqual(
         await vscode.commands.executeCommand(
           'extension.dfdl-debug.getDataName',
-          testDfdlFile
+          TEST_SCHEMA
         ),
-        testDfdlFile
+        TEST_SCHEMA
       )
     })
 
@@ -293,7 +289,7 @@ suite('Daffodfil', () => {
     test('scriptName set properly', () => {
       assert.strictEqual(
         artifact.scriptName,
-        os.platform() === 'win32' ? `${scriptName}.bat` : `./${scriptName}`
+        osCheck(`${scriptName}.bat`, `./${scriptName}`)
       )
     })
   })

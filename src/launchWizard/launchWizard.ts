@@ -17,8 +17,7 @@
 
 import * as vscode from 'vscode'
 import * as fs from 'fs'
-import { getConfig } from '../utils'
-import * as os from 'os'
+import { getConfig, osCheck } from '../utils'
 
 const defaultConf = getConfig('Wizard Config', 'launch', 'dfdl')
 
@@ -53,10 +52,10 @@ async function createUpdateConfigFile(data, updateOrCreate) {
     fs.mkdirSync(`${rootPath}/.vscode`)
   }
 
-  const launchPath =
-    os.platform() === 'win32'
-      ? `/${rootPath}/.vscode/launch.json`
-      : `${rootPath}/.vscode/launch.json`
+  const launchPath = osCheck(
+    `/${rootPath}/.vscode/launch.json`,
+    `${rootPath}/.vscode/launch.json`
+  )
 
   // Create launch.json if it doesn't exist already
   if (!fs.existsSync(`${rootPath}/.vscode/launch.json`)) {

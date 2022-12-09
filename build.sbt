@@ -78,7 +78,10 @@ lazy val core = project
     name := "daffodil-debugger",
     libraryDependencies ++= Seq(
       "ch.qos.logback" % "logback-classic" % "1.2.11",
-      "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.38.0",
+      // NOTE: To support Java 8 this dependency can not go above version 0.34.0.
+      // scala-steward:off
+      "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.34.0",
+      // scala-steward:on
       "co.fs2" %% "fs2-io" % "3.2.10",
       "com.monovore" %% "decline-effect" % "2.3.0",
       "org.typelevel" %% "log4cats-slf4j" % "2.4.0"

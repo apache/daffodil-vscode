@@ -54,11 +54,11 @@ jobs:
         uses: actions/setup-node@v3.3.0
         with:
           node-version: '16'
-      - name: Setup Java 11
+      - name: Setup Java 8
         uses: actions/setup-java@v3.4.1
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 8
       - run: $SBT scalafmtCheck
       - run: $SBT scalafmtSbtCheck
       - run: yarn install
@@ -73,11 +73,11 @@ jobs:
     env:
       SBT: sbt -J-Xms1024m -J-Xmx5120m -J-XX:ReservedCodeCacheSize=512m -J-XX:MaxMetaspaceSize=1024m ++2.12.15
     steps:
-      - name: Setup Java 11
+      - name: Setup Java 8
         uses: actions/setup-java@v3.4.1
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 8
       - name: Check out Repository
         uses: actions/checkout@v3.0.2
         with:
@@ -98,11 +98,11 @@ jobs:
     env:
       SBT: sbt -J-Xms1024m -J-Xmx5120m -J-XX:ReservedCodeCacheSize=512m -J-XX:MaxMetaspaceSize=1024m ++2.12.15
     steps:
-      - name: Setup Java 11
+      - name: Setup Java 8
         uses: actions/setup-java@v3.4.1
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 8
       - uses: actions/checkout@v3.0.2
       - name: Install Node.js
         uses: actions/setup-node@v3.3.0
