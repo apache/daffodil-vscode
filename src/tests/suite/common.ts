@@ -15,32 +15,9 @@
  * limitations under the License.
  */
 
-import * as assert from 'assert'
-import * as fs from 'fs'
 import * as path from 'path'
-import { PROJECT_ROOT } from './common'
 
-suite('Daffodil Version', () => {
-  const versionFile = path.join(PROJECT_ROOT, 'src/version.ts')
-  const packageMapped = JSON.parse(
-    fs.readFileSync(path.join(PROJECT_ROOT, 'package.json')).toString()
-  )
-
-  suite('version', () => {
-    test('version.ts should exist', (done) => {
-      if (fs.existsSync(versionFile)) {
-        done()
-      } else {
-        new Error('version.ts not created')
-      }
-    })
-
-    test('version.ts version should be same as package.json', () => {
-      let version = fs.readFileSync(versionFile).toString().trim()
-      assert.strictEqual(
-        version,
-        `export const LIB_VERSION = "${packageMapped.version}";`
-      )
-    })
-  })
-})
+export const PROJECT_ROOT = path.join(__dirname, '../../../')
+export const DATA_ROOT = path.join(PROJECT_ROOT, 'src/tests/data/')
+export const PACKAGE_PATH = path.join(PROJECT_ROOT, 'package.json')
+export const TEST_SCHEMA = path.join(DATA_ROOT, 'test.dfdl.xsd')

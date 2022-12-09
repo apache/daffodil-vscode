@@ -16,7 +16,7 @@
  */
 
 import { LIB_VERSION } from '../version'
-import * as os from 'os'
+import { osCheck } from '../utils'
 
 export class Backend {
   constructor(readonly owner: string, readonly repo: string) {}
@@ -36,10 +36,7 @@ export class Artifact {
       ? `${type}-${this.version}-${LIB_VERSION}`
       : `${type}-${this.version}`
     this.archive = `${this.name}.zip`
-    this.scriptName =
-      os.platform() === 'win32'
-        ? `${baseScriptName}.bat`
-        : `./${baseScriptName}`
+    this.scriptName = osCheck(`${baseScriptName}.bat`, `./${baseScriptName}`)
   }
 
   archiveUrl = (backend: Backend) => {

@@ -21,10 +21,10 @@ import * as unzip from 'unzip-stream'
 import * as os from 'os'
 import * as child_process from 'child_process'
 import path from 'path'
+
 const wait_port = require('wait-port')
 
 const defaultConf = vscode.workspace.getConfiguration()
-// const
 let currentConfig: vscode.DebugConfiguration
 
 export const regexp = {
@@ -173,17 +173,36 @@ export async function executeScript(
   return terminal
 }
 
+/*
+ * Check if OS is windows, if so return windows option else return the mac and linux option.
+ * This method is used to elimate a lot duplicated code we had check if the os was windows related.
+ */
+export function osCheck(winOption: any, macLinOption: any): any {
+  return os.platform().toLowerCase().startsWith('win')
+    ? winOption
+    : macLinOption
+}
+
 export async function killProcess(id: number | undefined) {
   if (id) {
-    if (os.platform() === 'win32') {
-      child_process.exec(`taskkill /F /PID ${id}`)
-    } else {
-      child_process.exec(`kill -9 ${id} 2>&1 || echo 0`)
-    }
+    child_process.exec(
+      osCheck(`taskkill /F /PID ${id}`, `kill -9 ${id} 2>&1 || echo 0`)
+    )
   }
 }
 
 export const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
+
+export function chmodScript(scriptPath: string, scriptName: string) {
+  if (!os.platform().toLowerCase().startsWith('win')) {
+    child_process.execSync(
+      `chmod +x ${scriptPath.replace(' ', '\\ ')}/bin/${scriptName.replace(
+        './',
+        ''
+      )}`
+    )
+  }
+}
 
 export async function runScript(
   scriptPath: string,
@@ -198,14 +217,7 @@ export async function runScript(
   type: string = '',
   hideTerminal: boolean = false
 ) {
-  if (!os.platform().toLowerCase().startsWith('win')) {
-    child_process.execSync(
-      `chmod +x ${scriptPath.replace(' ', '\\ ')}/bin/${scriptName.replace(
-        './',
-        ''
-      )}`
-    )
-  }
+  chmodScript(scriptPath, scriptName)
 
   // Start server in terminal based on scriptName
   let terminal = vscode.window.createTerminal({

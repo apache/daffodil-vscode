@@ -411,8 +411,7 @@ object Parse {
         startElement.schemaLocation.lineNumber
           .map(_.toInt)
           .getOrElse(1), // line numbers start at 1 according to InitializeRequest
-        0, // column numbers start at 1 according to InitializeRequest, but set to 0 to ignore it; column calculation by Daffodil uses 1 tab = 2 spaces(?), but breakpoints use 1 character per tab
-        null
+        0 // column numbers start at 1 according to InitializeRequest, but set to 0 to ignore it; column calculation by Daffodil uses 1 tab = 2 spaces(?), but breakpoints use 1 character per tab
       )
 
       schemaScope <- schemaScope(schemaScopeId, startElement.state, variableRefs)

@@ -54,3 +54,6 @@ tmp.*
 
 # ignore omega-edit scala server package file
 omega-edit-scala-server*
+
+# ignore tests unzip daffodil-debugger
+daffodil-debugger-*

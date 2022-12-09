@@ -18,27 +18,24 @@
 import * as vscode from 'vscode'
 import * as assert from 'assert'
 import * as path from 'path'
-import * as os from 'os'
 import { Artifact, Backend } from '../../classes/artifact'
 import * as omegaEditClient from '../../omega_edit/client'
-import { unzipFile, runScript, killProcess } from '../../utils'
+import { unzipFile, runScript, killProcess, osCheck } from '../../utils'
 import { before, after } from 'mocha'
 import * as fs from 'fs'
+import { PROJECT_ROOT, PACKAGE_PATH, TEST_SCHEMA } from './common'
 
-const PROJECT_ROOT = path.join(__dirname, '../../../')
 const wait_port = require('wait-port')
 
 const omegaEditPackagePath = path.join(PROJECT_ROOT, 'node_modules/omega-edit')
-const omegaEditVersion = omegaEditClient.getOmegaEditPackageVersion(
-  path.join(PROJECT_ROOT, 'package.json')
-)
+const omegaEditVersion =
+  omegaEditClient.getOmegaEditPackageVersion(PACKAGE_PATH)
 const localArtifact = new Artifact(
   'omega-edit-scala-server',
   omegaEditVersion,
   'omega-edit-grpc-server'
 )
 const extractedFolder = path.join(PROJECT_ROOT, localArtifact.name)
-const testDfdlFile = path.join(PROJECT_ROOT, 'src/tests/data/test.dfdl.xsd')
 
 export async function runServerForTests() {
   fs.copyFileSync(
@@ -111,7 +108,7 @@ suite('omega-edit Test Suite', () => {
     test('scriptName set properly', () => {
       assert.strictEqual(
         artifact.scriptName,
-        os.platform() === 'win32' ? `${scriptName}.bat` : `./${scriptName}`
+        osCheck(`${scriptName}.bat`, `./${scriptName}`)
       )
     })
 
@@ -144,17 +141,14 @@ suite('omega-edit Test Suite', () => {
 
       assert.strictEqual(
         version,
-        'v' +
-          omegaEditClient.getOmegaEditPackageVersion(
-            path.join(__dirname, '../../../package.json')
-          )
+        'v' + omegaEditClient.getOmegaEditPackageVersion(PACKAGE_PATH)
       )
     })
 
     test('data editor opens', async () => {
       const panel: vscode.WebviewPanel = await vscode.commands.executeCommand(
         'data.edit',
-        testDfdlFile,
+        TEST_SCHEMA,
         false,
         false
       )

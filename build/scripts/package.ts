@@ -42,7 +42,7 @@ async function copyGlob(pattern, dir = '.') {
 // Setup package directory
 function setup() {
   if (fs.existsSync(pkg_dir)) {
-    fs.rmdirSync(pkg_dir, { recursive: true })
+    fs.rmSync(pkg_dir, { recursive: true })
   }
 
   fs.mkdirSync(pkg_dir)
