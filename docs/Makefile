@@ -13,48 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# Platform and environment specific entries should be placed in .git/info/exclude
-#
+SRCDIR := .wiki/
+DOCX = $(addsuffix .docx,$(basename $(notdir $(wildcard $(SRCDIR)*.md))))
 
-# js/ts build
-out
-dist
-node_modules
+$(SRCDIR):
+	git clone https://github.com/apache/daffodil-vscode.wiki.git .wiki
 
-# sbt
-target
-.bsp
+%.docx:
+	pandoc -t docx -f markdown -o $@ $(addprefix $(SRCDIR),$(addsuffix .md,$(basename $@)))
 
-# npm install file
-package-lock.json
+update: $(SRCDIR)
+	cd $<; git pull
 
-# build
-src/version.ts
+all: update
+	${MAKE} $(DOCX)
 
-# unknown
-.vscode-test/
+clean:
+	rm -rf *.docx $(SRCDIR)
 
-# scala metals vscode extension compiled folder
-.metals
-
-# application build
-# todo;; the build logic needs refactored to write these elsewhere
-#        either target/ or /tmp or ...
-*.vsix
-
-# application runtime
-# todo;; the app logic needs refactored to write these elsewhere
-#        either /tmp or XDG or ...
-datafile-hex
-npm-debug.log
-
-# tmp files
-tmp.*
-
-# ignore omega-edit scala server package file
-src/omega_edit/omega-edit-scala-server*
-
-# ignore generated docs
-docs/*.docx
-docs/.wiki/
+.PHONY: update all clean
