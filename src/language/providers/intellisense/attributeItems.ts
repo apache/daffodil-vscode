@@ -29,6 +29,7 @@ export const attributeCompletion = (additionalItems, nsPrefix: string) => {
         snippetString: '<dfdl:defineEscapeScheme name=$1 >\n\t$0,/dfdl:defineEscapeScheme>\n',
         markdownString: 'dfdl escape character definition',
       },
+
       {
         item: 'minOccurs=',
         snippetString: 'minOccurs="${1|0,1|}"$0',
