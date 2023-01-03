@@ -18,9 +18,9 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as unzip from 'unzip-stream'
-import { Artifact } from './classes/artifact'
 import * as os from 'os'
 import * as child_process from 'child_process'
+import path from 'path'
 const wait_port = require('wait-port')
 
 const defaultConf = vscode.workspace.getConfiguration()
@@ -183,9 +183,11 @@ export async function killProcess(id: number | undefined) {
   }
 }
 
+export const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
+
 export async function runScript(
   scriptPath: string,
-  artifact: Artifact,
+  scriptName: string,
   shellPath: string | null = null,
   shellArgs: string[] = [],
   env:
@@ -196,23 +198,21 @@ export async function runScript(
   type: string = '',
   hideTerminal: boolean = false
 ) {
-  const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
-
   if (!os.platform().toLowerCase().startsWith('win')) {
     child_process.execSync(
-      `chmod +x ${scriptPath.replace(
-        ' ',
-        '\\ '
-      )}/bin/${artifact.scriptName.replace('./', '')}`
+      `chmod +x ${scriptPath.replace(' ', '\\ ')}/bin/${scriptName.replace(
+        './',
+        ''
+      )}`
     )
   }
 
   // Start server in terminal based on scriptName
   let terminal = vscode.window.createTerminal({
-    name: artifact.scriptName,
-    cwd: `${scriptPath}/bin`,
+    name: scriptName,
+    cwd: path.join(scriptPath, 'bin'),
     hideFromUser: false,
-    shellPath: shellPath !== null ? shellPath : artifact.scriptName,
+    shellPath: shellPath !== null ? shellPath : scriptName,
     shellArgs: shellArgs,
     env: env,
   })

@@ -120,19 +120,6 @@ export async function getDebugger(
         await unzipFile(filePath, rootPath)
       }
 
-      // Stop debugger if running
-      if (os.platform() === 'win32') {
-        // Windows stop debugger if already running
-        child_process.execSync(
-          'tskill java 2>nul 1>nul || echo "Java not running"'
-        )
-      } else {
-        // Linux/Mac stop debugger if already running and make sure script is executable
-        child_process.exec(
-          "kill -9 $(ps -ef | grep 'daffodil' | grep 'jar' | awk '{ print $2 }') || return 0"
-        ) // ensure debugger server not running and
-      }
-
       // Get program file before debugger starts to avoid timeout
       if (config.program.includes('${command:AskForProgramName}')) {
         config.program = await vscode.commands.executeCommand(
@@ -193,7 +180,7 @@ export async function getDebugger(
 
       await runScript(
         `${rootPath}/daffodil-debugger-${daffodilVersion}-${LIB_VERSION}`,
-        artifact,
+        artifact.scriptName,
         shellPath,
         shellArgs,
         {
