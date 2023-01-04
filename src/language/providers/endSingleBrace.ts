@@ -26,12 +26,12 @@ export function getEndSingleBraceProvider() {
         document: vscode.TextDocument,
         position: vscode.Position
       ) {
-        const wholeLine = document
+        const triggerText = document
           .lineAt(position)
           .text.substring(0, position.character)
         if (
-          wholeLine.includes('dfdl:length="{') ||
-          wholeLine.includes('dfdl:choiceDispatchKey="{')
+          triggerText.includes('dfdl:length="{') ||
+          triggerText.includes('dfdl:choiceDispatchKey="{')
         ) {
           insertSnippet('$1}$0', position)
         }
