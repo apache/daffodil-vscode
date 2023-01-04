@@ -33,7 +33,7 @@ export function getCloseElementSlashProvider() {
       ) {
         var backpos = position.with(position.line, position.character - 1)
         const nsPrefix = getXsdNsPrefix(document, position)
-        const wholeLine = document
+        const triggerText = document
           .lineAt(position)
           .text.substring(0, position.character)
         const nearestOpenItem = nearestOpen(document, position)
@@ -41,12 +41,12 @@ export function getCloseElementSlashProvider() {
           return undefined
         }
         if (
-          wholeLine.endsWith('/') &&
-          (wholeLine.includes('<' + nsPrefix + 'element') ||
+          triggerText.endsWith('/') &&
+          (triggerText.includes('<' + nsPrefix + 'element') ||
             nearestOpenItem.includes('element') ||
-            wholeLine.includes('<' + nsPrefix + 'group') ||
+            triggerText.includes('<' + nsPrefix + 'group') ||
             nearestOpenItem.includes('group') ||
-            wholeLine.includes('<' + nsPrefix + 'sequence') ||
+            triggerText.includes('<' + nsPrefix + 'sequence') ||
             nearestOpenItem.includes('sequence'))
         ) {
           var range = new vscode.Range(backpos, position)
@@ -56,9 +56,9 @@ export function getCloseElementSlashProvider() {
           insertSnippet(' />$0', backpos)
         }
         if (
-          wholeLine.endsWith('/') &&
-          (wholeLine.includes('dfdl:defineVariable') ||
-            wholeLine.includes('dfdl:setVariable') ||
+          triggerText.endsWith('/') &&
+          (triggerText.includes('dfdl:defineVariable') ||
+            triggerText.includes('dfdl:setVariable') ||
             nearestOpenItem.includes('defineVariable') ||
             nearestOpenItem.includes('setVariable'))
         ) {
