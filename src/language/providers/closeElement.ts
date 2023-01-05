@@ -29,24 +29,24 @@ export function getCloseElementProvider() {
         var backpos = position.with(position.line, position.character - 1)
         const nsPrefix = getXsdNsPrefix(document, position)
         const nearestOpenItem = nearestOpen(document, position)
-        const wholeLine = document
+        const triggerText = document
           .lineAt(position)
           .text.substring(0, position.character)
 
         if (
-          !wholeLine.includes('</') &&
-          wholeLine.endsWith('>') &&
-          (wholeLine.includes('<' + nsPrefix + 'element') ||
+          !triggerText.includes('</') &&
+          triggerText.endsWith('>') &&
+          (triggerText.includes('<' + nsPrefix + 'element') ||
             nearestOpenItem.includes('element') ||
-            wholeLine.includes('<' + nsPrefix + 'group') ||
+            triggerText.includes('<' + nsPrefix + 'group') ||
             nearestOpenItem.includes('group') ||
-            wholeLine.includes('<' + nsPrefix + 'sequence') ||
+            triggerText.includes('<' + nsPrefix + 'sequence') ||
             nearestOpenItem.includes('sequence') ||
-            wholeLine.includes('<' + nsPrefix + 'simpleType') ||
+            triggerText.includes('<' + nsPrefix + 'simpleType') ||
             nearestOpenItem.includes('simpleType') ||
-            wholeLine.includes('<' + nsPrefix + 'choice') ||
+            triggerText.includes('<' + nsPrefix + 'choice') ||
             nearestOpenItem.includes('choice') ||
-            wholeLine.includes('dfdl:defineVariable') ||
+            triggerText.includes('dfdl:defineVariable') ||
             nearestOpenItem.includes('Variable'))
         ) {
           var range = new vscode.Range(backpos, position)
@@ -54,44 +54,44 @@ export function getCloseElementProvider() {
             editBuilder.replace(range, '')
           })
           if (
-            wholeLine.endsWith('>') &&
-            (wholeLine.includes('<' + nsPrefix + 'element ref') ||
-              wholeLine.includes('<' + nsPrefix + 'group ref'))
+            triggerText.endsWith('>') &&
+            (triggerText.includes('<' + nsPrefix + 'element ref') ||
+              triggerText.includes('<' + nsPrefix + 'group ref'))
           ) {
             insertSnippet(' />\n$0', backpos)
           } else if (
-            wholeLine.endsWith('>') &&
-            (wholeLine.includes('<' + nsPrefix + 'element') ||
+            triggerText.endsWith('>') &&
+            (triggerText.includes('<' + nsPrefix + 'element') ||
               nearestOpenItem.includes('element'))
           ) {
             insertSnippet('>\n\t$0\n</' + nsPrefix + 'element>', backpos)
           } else if (
-            wholeLine.endsWith('>') &&
-            (wholeLine.includes('<' + nsPrefix + 'group') ||
+            triggerText.endsWith('>') &&
+            (triggerText.includes('<' + nsPrefix + 'group') ||
               nearestOpenItem.includes('group'))
           ) {
             insertSnippet('>\n\t$0\n</' + nsPrefix + 'group>', backpos)
           } else if (
-            (wholeLine.endsWith('>') &&
-              wholeLine.includes('<' + nsPrefix + 'sequence')) ||
+            (triggerText.endsWith('>') &&
+              triggerText.includes('<' + nsPrefix + 'sequence')) ||
             nearestOpenItem.includes('sequence')
           ) {
             insertSnippet('>\n\t$0\n</' + nsPrefix + 'sequence>', backpos)
           } else if (
-            (wholeLine.endsWith('>') &&
-              wholeLine.includes('<' + nsPrefix + 'choice')) ||
+            (triggerText.endsWith('>') &&
+              triggerText.includes('<' + nsPrefix + 'choice')) ||
             nearestOpenItem.includes('choice')
           ) {
             insertSnippet('>\n\t$0\n</' + nsPrefix + 'choice>', backpos)
           } else if (
-            (wholeLine.endsWith('>') &&
-              wholeLine.includes('<' + nsPrefix + 'simpleType')) ||
+            (triggerText.endsWith('>') &&
+              triggerText.includes('<' + nsPrefix + 'simpleType')) ||
             nearestOpenItem.includes('simpleType')
           ) {
             insertSnippet('>\n\t$0\n</' + nsPrefix + 'simpleType>', backpos)
           } else if (
-            (wholeLine.endsWith('>') &&
-              wholeLine.includes('dfdl:defineVariable')) ||
+            (triggerText.endsWith('>') &&
+              triggerText.includes('dfdl:defineVariable')) ||
             nearestOpenItem.includes('defineVariable')
           ) {
             var startPos = document.lineAt(position).text.indexOf('<', 0)
@@ -105,8 +105,8 @@ export function getCloseElementProvider() {
             var backpos3 = position.with(position.line + 3, startPos - 4)
             insertSnippet('</<' + nsPrefix + 'annotation>$0', backpos3)
           } else if (
-            (wholeLine.endsWith('>') &&
-              wholeLine.includes('dfdl:setVariable')) ||
+            (triggerText.endsWith('>') &&
+              triggerText.includes('dfdl:setVariable')) ||
             nearestOpenItem.includes('setVariable')
           ) {
             var startPos = document.lineAt(position).text.indexOf('<', 0)

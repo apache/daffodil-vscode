@@ -37,20 +37,20 @@ export function checkLastItemOpen(
   position: vscode.Position
 ) {
   var lineNum = position.line
-  const wholeLine = document.lineAt(lineNum).text
-  while (wholeLine.length === 0) {
+  const triggerText = document.lineAt(lineNum).text
+  while (triggerText.length === 0) {
     --lineNum
   }
   const previousLine = document.lineAt(lineNum).text
   return !(
     previousLine.includes('</') ||
     previousLine.includes('/>') ||
-    ((wholeLine.includes('element') ||
-      wholeLine.includes('sequence') ||
-      wholeLine.includes('choice') ||
-      wholeLine.includes('group') ||
-      wholeLine.includes('Variable')) &&
-      (wholeLine.includes('</') || wholeLine.includes('/>')))
+    ((triggerText.includes('element') ||
+      triggerText.includes('sequence') ||
+      triggerText.includes('choice') ||
+      triggerText.includes('group') ||
+      triggerText.includes('Variable')) &&
+      (triggerText.includes('</') || triggerText.includes('/>')))
   )
 }
 
@@ -64,11 +64,11 @@ export function lineCount(
   while (lineNum !== 0) {
     --lineNum
     ++lineCount
-    const wholeLine = document.lineAt(lineNum).text
+    const triggerText = document.lineAt(lineNum).text
     if (
-      wholeLine.includes('<' + nsPrefix + 'element') &&
-      !wholeLine.includes('</' + nsPrefix + 'element') &&
-      !wholeLine.includes('/>')
+      triggerText.includes('<' + nsPrefix + 'element') &&
+      !triggerText.includes('</' + nsPrefix + 'element') &&
+      !triggerText.includes('/>')
     ) {
       return lineCount
     }
@@ -83,44 +83,53 @@ export function nearestOpen(
   var lineNum = position.line
   const nsPrefix = getXsdNsPrefix(document, position)
   while (lineNum !== -1) {
-    const wholeLine = document.lineAt(lineNum).text
-    if (wholeLine.includes('element') && !wholeLine.includes('/>')) {
+    const triggerText = document.lineAt(lineNum).text
+    if (triggerText.includes('element') && !triggerText.includes('/>')) {
       if (checkElementOpen(document, position)) {
         return 'element'
       }
-    } else if (wholeLine.includes('sequence') && !wholeLine.includes('/>')) {
+    } else if (
+      triggerText.includes('sequence') &&
+      !triggerText.includes('/>')
+    ) {
       if (checkSequenceOpen(document, position)) {
         return 'sequence'
       }
-    } else if (wholeLine.includes('choice') && !wholeLine.includes('/>')) {
+    } else if (triggerText.includes('choice') && !triggerText.includes('/>')) {
       if (checkChoiceOpen(document, position)) {
         return 'choice'
       }
-    } else if (wholeLine.includes('group')) {
+    } else if (triggerText.includes('group')) {
       if (
-        wholeLine.includes('<' + nsPrefix + 'group') &&
-        !wholeLine.includes('</' + nsPrefix + 'group') &&
-        !wholeLine.includes('/>') &&
-        !wholeLine.includes('/')
+        triggerText.includes('<' + nsPrefix + 'group') &&
+        !triggerText.includes('</' + nsPrefix + 'group') &&
+        !triggerText.includes('/>') &&
+        !triggerText.includes('/')
       ) {
         return 'group'
       }
-    } else if (wholeLine.includes('simpleType') && !wholeLine.includes('/>')) {
+    } else if (
+      triggerText.includes('simpleType') &&
+      !triggerText.includes('/>')
+    ) {
       if (checkSimpleTypeOpen(document, position)) {
         return 'simpleType'
       }
     } else if (
-      wholeLine.includes('defineVariable') &&
-      !wholeLine.includes('/>')
+      triggerText.includes('defineVariable') &&
+      !triggerText.includes('/>')
     ) {
       if (checkDefineVariableOpen(document, position)) {
         return 'defineVariable'
       }
-    } else if (wholeLine.includes('setVariable') && !wholeLine.includes('/>')) {
+    } else if (
+      triggerText.includes('setVariable') &&
+      !triggerText.includes('/>')
+    ) {
       if (checkSetVariableOpen(document, position)) {
         return 'setVariable'
       }
-    } else if (wholeLine.includes('/>')) {
+    } else if (triggerText.includes('/>')) {
       return 'none'
     }
     --lineNum
@@ -135,23 +144,23 @@ export function checkElementOpen(
   const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
   while (lineNum !== -1) {
-    const wholeLine = document.lineAt(lineNum).text
+    const triggerText = document.lineAt(lineNum).text
     if (
-      wholeLine.includes('<' + nsPrefix + 'element') &&
-      (wholeLine.includes('>') ||
-        wholeLine.includes('</' + nsPrefix + 'element') ||
-        wholeLine.includes('/>'))
+      triggerText.includes('<' + nsPrefix + 'element') &&
+      (triggerText.includes('>') ||
+        triggerText.includes('</' + nsPrefix + 'element') ||
+        triggerText.includes('/>'))
     ) {
       return false
     }
-    if (wholeLine.includes('</' + nsPrefix + 'element')) {
+    if (triggerText.includes('</' + nsPrefix + 'element')) {
       return false
     }
     if (
-      wholeLine.includes('<' + nsPrefix + 'element') &&
-      !wholeLine.includes('</' + nsPrefix + 'element') &&
-      !wholeLine.includes('/>') &&
-      !wholeLine.includes('>')
+      triggerText.includes('<' + nsPrefix + 'element') &&
+      !triggerText.includes('</' + nsPrefix + 'element') &&
+      !triggerText.includes('/>') &&
+      !triggerText.includes('>')
     ) {
       return true
     }
@@ -167,19 +176,19 @@ export function checkSequenceOpen(
   const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
   while (lineNum !== 0) {
-    const wholeLine = document.lineAt(lineNum).text
+    const triggerText = document.lineAt(lineNum).text
     if (
-      (wholeLine.includes('<' + nsPrefix + 'sequence') &&
-        (wholeLine.includes('</' + nsPrefix + 'sequence') ||
-          wholeLine.includes('/>'))) ||
-      wholeLine.includes('</' + nsPrefix + 'sequence>')
+      (triggerText.includes('<' + nsPrefix + 'sequence') &&
+        (triggerText.includes('</' + nsPrefix + 'sequence') ||
+          triggerText.includes('/>'))) ||
+      triggerText.includes('</' + nsPrefix + 'sequence>')
     ) {
       return false
     }
     if (
-      wholeLine.includes('<' + nsPrefix + 'sequence') &&
-      !wholeLine.includes('</' + nsPrefix + 'sequence') &&
-      !wholeLine.includes('/>')
+      triggerText.includes('<' + nsPrefix + 'sequence') &&
+      !triggerText.includes('</' + nsPrefix + 'sequence') &&
+      !triggerText.includes('/>')
     ) {
       return true
     }
@@ -195,19 +204,19 @@ export function checkChoiceOpen(
   const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
   while (lineNum !== 0) {
-    const wholeLine = document.lineAt(lineNum).text
+    const triggerText = document.lineAt(lineNum).text
     if (
-      (wholeLine.includes('<' + nsPrefix + 'choice') &&
-        (wholeLine.includes('</' + nsPrefix + 'choice') ||
-          wholeLine.includes('/>'))) ||
-      wholeLine.includes('</' + nsPrefix + 'choice>')
+      (triggerText.includes('<' + nsPrefix + 'choice') &&
+        (triggerText.includes('</' + nsPrefix + 'choice') ||
+          triggerText.includes('/>'))) ||
+      triggerText.includes('</' + nsPrefix + 'choice>')
     ) {
       return false
     }
     if (
-      wholeLine.includes('<' + nsPrefix + 'choice') &&
-      !wholeLine.includes('</' + nsPrefix + 'choice') &&
-      !wholeLine.includes('/>')
+      triggerText.includes('<' + nsPrefix + 'choice') &&
+      !triggerText.includes('</' + nsPrefix + 'choice') &&
+      !triggerText.includes('/>')
     ) {
       return true
     }
@@ -222,11 +231,11 @@ export function checkSimpleTypeOpen(
   const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
   while (lineNum !== 0) {
-    const wholeLine = document.lineAt(lineNum).text
+    const triggerText = document.lineAt(lineNum).text
     if (
-      wholeLine.includes('<' + nsPrefix + 'simpleType') &&
-      !wholeLine.includes('</' + nsPrefix + 'simpleType') &&
-      !wholeLine.includes('/>')
+      triggerText.includes('<' + nsPrefix + 'simpleType') &&
+      !triggerText.includes('</' + nsPrefix + 'simpleType') &&
+      !triggerText.includes('/>')
     ) {
       return true
     }
@@ -241,11 +250,11 @@ export function checkDefineVariableOpen(
 ) {
   var lineNum = position.line
   while (lineNum !== 0) {
-    const wholeLine = document.lineAt(lineNum).text
+    const triggerText = document.lineAt(lineNum).text
     if (
-      wholeLine.includes('<dfdl:defineVariable') &&
-      !wholeLine.includes('</dfdl:defineVariable') &&
-      !wholeLine.includes('/>')
+      triggerText.includes('<dfdl:defineVariable') &&
+      !triggerText.includes('</dfdl:defineVariable') &&
+      !triggerText.includes('/>')
     ) {
       return true
     }
@@ -260,11 +269,11 @@ export function checkSetVariableOpen(
 ) {
   var lineNum = position.line
   while (lineNum !== 0) {
-    const wholeLine = document.lineAt(lineNum).text
+    const triggerText = document.lineAt(lineNum).text
     if (
-      wholeLine.includes('<dfdl:setVariable') &&
-      !wholeLine.includes('</dfdl:setVariable') &&
-      !wholeLine.includes('/>')
+      triggerText.includes('<dfdl:setVariable') &&
+      !triggerText.includes('</dfdl:setVariable') &&
+      !triggerText.includes('/>')
     ) {
       return true
     }
@@ -300,38 +309,38 @@ export function checkBraceOpen(
   var lineNum = position.line
 
   while (lineNum !== 0) {
-    const wholeLine = document.lineAt(lineNum).text
+    const triggerText = document.lineAt(lineNum).text
     //.text.substring(0, document.lineAt(lineNum).range.end.character)
 
     if (
-      wholeLine.includes('"{') &&
-      wholeLine.includes('}"') &&
-      wholeLine.includes('..') &&
-      !wholeLine.includes('}"/') &&
-      !wholeLine.includes('>')
+      triggerText.includes('"{') &&
+      triggerText.includes('}"') &&
+      triggerText.includes('..') &&
+      !triggerText.includes('}"/') &&
+      !triggerText.includes('>')
     ) {
       return true
     }
     if (
-      wholeLine.includes('"{') &&
-      !wholeLine.includes('}"') &&
-      !wholeLine.includes('}"/') &&
-      !wholeLine.includes('>')
+      triggerText.includes('"{') &&
+      !triggerText.includes('}"') &&
+      !triggerText.includes('}"/') &&
+      !triggerText.includes('>')
     ) {
       return true
     }
     if (
-      wholeLine.includes('}"') &&
-      !wholeLine.includes('}"/') &&
-      !wholeLine.includes('>')
+      triggerText.includes('}"') &&
+      !triggerText.includes('}"/') &&
+      !triggerText.includes('>')
     ) {
       return true
     }
     if (
-      wholeLine.includes('}"') &&
-      (wholeLine.includes('}"/') ||
-        wholeLine.includes('>') ||
-        wholeLine.includes('/>'))
+      triggerText.includes('}"') &&
+      (triggerText.includes('}"/') ||
+        triggerText.includes('>') ||
+        triggerText.includes('/>'))
     ) {
       return false
     }
