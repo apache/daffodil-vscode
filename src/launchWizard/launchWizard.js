@@ -18,20 +18,6 @@
 // Retrieve vscode api - Doing this multiple times causes issues with the scripts
 const vscode = acquireVsCodeApi()
 
-// Function to update which checkbox is checked for the classpath, replace/action
-function daffodilDebugClassAction(action) {
-  switch (action) {
-    case 'replace':
-      document.getElementById('daffodilDebugClasspathReplace').checked = true
-      document.getElementById('daffodilDebugClasspathAppend').checked = false
-      break
-    case 'append':
-      document.getElementById('daffodilDebugClasspathReplace').checked = false
-      document.getElementById('daffodilDebugClasspathAppend').checked = true
-      break
-  }
-}
-
 // Function to call extension to open file picker
 function filePicker(id, description) {
   vscode.postMessage({
@@ -39,6 +25,37 @@ function filePicker(id, description) {
     id: id,
     description: description,
   })
+}
+
+// Function to remove child node from list
+async function removeDebugClasspathItem(child) {
+  document.getElementById('daffodilDebugClasspathTable').removeChild(child)
+}
+
+// Function to update classpath list
+async function updateClasspathList(data, delimeter) {
+  let list = document.getElementById('daffodilDebugClasspathTable')
+  let itemArray = data.split(delimeter)
+
+  for (var i = 0; i < itemArray.length; i++) {
+    let item = itemArray[i]
+    let li = document.createElement('li')
+    li.id = `debug-classpath-li-${item}`
+    li.style = 'margin-left: -5px;'
+    li.innerHTML = `
+      <p id="debug-classpath-li-${itemArray[i]}" class="debug-classpath-item">
+        <button id="remove-debug-classpath-li-${itemArray[i]}" class="minus-button" type="button">-</button>
+        ${itemArray[i]}
+      </p>`
+
+    li.onclick = () => {
+      list.removeChild(li)
+    }
+
+    if (!document.contains(li)) {
+      list.appendChild(li)
+    }
+  }
 }
 
 // Function to update select infoset output type
@@ -112,6 +129,18 @@ function save() {
   const trace = document.getElementById('trace').checked
   const useExistingServer = document.getElementById('useExistingServer').checked
 
+  let list = document.getElementById('daffodilDebugClasspathTable')
+
+  let daffodilDebugClasspath = ''
+
+  for (var i = 0; i < list.childNodes.length; i++) {
+    let item = list.childNodes[i]
+    let classpath = item.innerHTML.split('"')[3]
+
+    daffodilDebugClasspath +=
+      i === list.childNodes.length - 1 ? classpath : classpath + ':'
+  }
+
   var obj = {
     version: '0.2.0',
     configurations: [
@@ -133,6 +162,7 @@ function save() {
         openHexView: openHexView,
         openInfosetView: openInfosetView,
         openInfosetDiffView: openInfosetDiffView,
+        daffodilDebugClasspath: daffodilDebugClasspath,
       },
     ],
   }
@@ -145,7 +175,7 @@ function save() {
 }
 
 // Function to update config values in the webview
-function updateConfigValues(config) {
+async function updateConfigValues(config) {
   document.getElementById('name').value = config.name
   document.getElementById('data').value = config.data
   document.getElementById('debugServer').value = parseInt(config.debugServer)
@@ -171,52 +201,28 @@ function updateConfigValues(config) {
   document.getElementById('trace').checked = config.trace
   document.getElementById('useExistingServer').checked =
     config.useExistingServer
+
+  if (config.daffodilDebugClasspath !== '') {
+    await updateClasspathList(config.daffodilDebugClasspath, ':')
+  }
+
   updateInfosetOutputType()
 }
 
 // Function for updating the classpath input box
-function updateClasspath(message) {
-  let action = ''
-
-  if (
-    document.getElementById('daffodilDebugClasspathAppend').checked &&
-    !document.getElementById('daffodilDebugClasspathReplace').checked
-  ) {
-    action = 'append'
-  } else {
-    action = 'replace'
-  }
-
-  if (action === 'append') {
-    let newValue = ''
-    var filesToAdd = message.value.split(':')
-
-    for (var i = 0; i < filesToAdd.length; i++) {
-      if (
-        !document
-          .getElementById('daffodilDebugClasspath')
-          .value.includes(filesToAdd[i])
-      ) {
-        newValue += filesToAdd[i] + ':'
-      }
-    }
-
-    document.getElementById('daffodilDebugClasspath').value =
-      newValue + document.getElementById('daffodilDebugClasspath').value
-  } else {
-    document.getElementById('daffodilDebugClasspath').value = message.value
-  }
+async function updateClasspath(message) {
+  await updateClasspathList(message.value, ',')
 }
 
 // Function that gets called by default to create and update the hex web view
 ;(function main() {
   // Listener for getting messages/data from the extension
-  window.addEventListener('message', (event) => {
+  window.addEventListener('message', async (event) => {
     const message = event.data
 
     switch (message.command) {
       case 'updateConfValues':
-        updateConfigValues(message.configValues)
+        await updateConfigValues(message.configValues)
         break
       case 'dataUpdate':
         document.getElementById('data').value = message.value
@@ -225,7 +231,7 @@ function updateClasspath(message) {
         document.getElementById('program').value = message.value
         break
       case 'daffodilDebugClasspathUpdate':
-        updateClasspath(message)
+        await updateClasspath(message)
         break
     }
   })
