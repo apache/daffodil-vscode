@@ -17,16 +17,17 @@
 
 import * as vscode from 'vscode'
 import * as fs from 'fs'
-import * as unzip from 'unzip-stream'
-import * as os from 'os'
-import * as child_process from 'child_process'
-import { deactivate } from './adapter/extension'
-import { LIB_VERSION } from './version'
 import XDGAppPaths from 'xdg-app-paths'
 import * as path from 'path'
-import { regexp } from './utils'
-import { getDaffodilVersion } from './daffodil'
-import { Artifact } from './classes/artifact'
+import { regexp, unzipFile } from './utils'
+import {
+  buildDebugger,
+  daffodilArtifact,
+  daffodilVersion,
+  runDebugger,
+  stopDebugger,
+  stopDebugging,
+} from './daffodilDebuggerUtils'
 
 const xdgAppPaths = XDGAppPaths({ name: 'daffodil-dap' })
 
@@ -75,20 +76,12 @@ export async function getDebugger(
   context: vscode.ExtensionContext,
   config: vscode.DebugConfiguration
 ) {
-  // Get daffodilVersion
-  const daffodilVersion = getDaffodilVersion(
-    context.asAbsolutePath('./package.json')
-  )
-  const artifact = new Artifact(
-    'daffodil-debugger',
-    daffodilVersion,
-    'daffodil-debugger'
+  const artifact = daffodilArtifact(
+    daffodilVersion(context.asAbsolutePath('./package.json'))
   )
 
   // If useExistingServer var set to false make sure version of debugger entered is downloaded then ran
   if (!config.useExistingServer) {
-    const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
-
     if (vscode.workspace.workspaceFolders !== undefined) {
       let rootPath = xdgAppPaths.data()
 
@@ -108,49 +101,13 @@ export async function getDebugger(
           .toString()
 
         // If debugging the extension without vsix installed make sure debugger is created
-        if (!filePath.includes('.vscode/extension')) {
-          if (!fs.existsSync(filePath)) {
-            let baseFolder = context.asAbsolutePath('.')
-            let command =
-              os.platform() === 'win32'
-                ? 'sbt universal:packageBin'
-                : '/bin/bash --login -c "sbt universal:packageBin"' // Needed --login so it could resolve sbt command
-            child_process.execSync(command, { cwd: baseFolder })
-          }
-        }
+        await buildDebugger(context.asAbsolutePath('.'), filePath)
 
         // Unzip file
-        await new Promise((res, rej) => {
-          let stream = fs
-            .createReadStream(filePath)
-            .pipe(unzip.Extract({ path: `${rootPath}` }))
-          stream.on('close', () => {
-            try {
-              res(filePath)
-            } catch (err) {
-              rej(err)
-            }
-          })
-        })
+        await unzipFile(filePath, rootPath)
       }
 
-      // Stop debugger if running
-      if (os.platform() === 'win32') {
-        // Windows stop debugger if already running
-        child_process.execSync(
-          'tskill java 2>nul 1>nul || echo "Java not running"'
-        )
-      } else {
-        // Linux/Mac stop debugger if already running and make sure script is executable
-        child_process.exec(
-          "kill -9 $(ps -ef | grep 'daffodil' | grep 'jar' | awk '{ print $2 }') || return 0"
-        ) // ensure debugger server not running and
-        child_process.execSync(
-          `chmod +x ${rootPath.replace(regexp['space'], '\\ ')}/${
-            artifact.name
-          }/bin/${artifact.scriptName}`
-        ) // make sure debugger is executable
-      }
+      await stopDebugger()
 
       // Get program file before debugger starts to avoid timeout
       if (config.program.includes('${command:AskForProgramName}')) {
@@ -165,7 +122,7 @@ export async function getDebugger(
           config.data = ''
         }
 
-        return stopDebugging()
+        return await stopDebugging()
       }
 
       // Get data file before debugger starts to avoid timeout
@@ -176,7 +133,7 @@ export async function getDebugger(
       }
 
       if (config.data === '') {
-        return stopDebugging()
+        return await stopDebugging()
       }
 
       let workspaceFolder = vscode.workspace.workspaceFolders
@@ -184,14 +141,18 @@ export async function getDebugger(
         : vscode.Uri.parse('').fsPath
 
       // Get daffodilDebugger class paths to be added to the debugger
-      let daffodilDebugClasspath = config.daffodilDebugClasspath.includes(
-        '${workspaceFolder}'
-      )
-        ? config.daffodilDebugClasspath.replace(
-            regexp['workspace'],
-            workspaceFolder
-          )
-        : config.daffodilDebugClasspath
+      let daffodilDebugClasspath = ''
+
+      if (config.daffodilDebugClasspath) {
+        daffodilDebugClasspath = config.daffodilDebugClasspath.includes(
+          '${workspaceFolder}'
+        )
+          ? config.daffodilDebugClasspath.replace(
+              regexp['workspace'],
+              workspaceFolder
+            )
+          : config.daffodilDebugClasspath
+      }
 
       // Start debugger in terminal based on scriptName
 
@@ -201,40 +162,11 @@ export async function getDebugger(
        * being there will cause no issues.
        */
 
-      let shellPath =
-        os.platform() === 'win32' ? artifact.scriptName : '/bin/bash'
-      let shellArgs =
-        os.platform() === 'win32' ? [] : ['--login', '-c', artifact.scriptName]
-
-      let terminal = vscode.window.createTerminal({
-        name: artifact.scriptName,
-        cwd: `${rootPath}/daffodil-debugger-${daffodilVersion}-${LIB_VERSION}/bin/`,
-        hideFromUser: false,
-        shellPath: shellPath,
-        shellArgs: shellArgs,
-        env: {
-          DAFFODIL_DEBUG_CLASSPATH: daffodilDebugClasspath,
-        },
-      })
-      terminal.show()
-
-      // Wait for 5000 ms to make sure debugger is running before the extension tries to connect to it
-      await delay(5000)
+      await runDebugger(
+        rootPath,
+        daffodilDebugClasspath,
+        context.asAbsolutePath('./package.json')
+      )
     }
-  }
-
-  // Function for stopping debugging
-  function stopDebugging() {
-    vscode.debug.stopDebugging()
-    deactivate()
-    vscode.window.activeTerminal?.processId.then((id) => {
-      if (id) {
-        if (os.platform() === 'win32') {
-          child_process.exec(`taskkill /F /PID ${id}`)
-        } else {
-          child_process.exec(`kill -9 ${id}`)
-        }
-      }
-    })
   }
 }

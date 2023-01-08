@@ -15,35 +15,9 @@
  * limitations under the License.
  */
 
-{
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"name": "Extension",
-			"type": "extensionHost",
-			"request": "launch",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"${workspaceFolder}/../sampleWorkspace"
-			],
-			"outFiles": [
-				"${workspaceFolder}/dist/ext/**/*.js"
-			],
-			"preLaunchTask": "npm: watch",
-		},
-		{
-			"name": "Tests",
-			"type": "extensionHost",
-			"request": "launch",
-			"runtimeExecutable": "${execPath}",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionTestsPath=${workspaceFolder}/out/tests/suite"
-			],
-			"outFiles": [
-				"${workspaceFolder}/out/tests/**/*.js",
-			],
-			"preLaunchTask": "npm: compile"
-		}
-	]
-}
+import * as path from 'path'
+
+export const PROJECT_ROOT = path.join(__dirname, '../../../')
+export const DATA_ROOT = path.join(PROJECT_ROOT, 'src/tests/data/')
+export const PACKAGE_PATH = path.join(PROJECT_ROOT, 'package.json')
+export const TEST_SCHEMA = path.join(DATA_ROOT, 'test.dfdl.xsd')

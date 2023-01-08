@@ -18,9 +18,9 @@
 import * as assert from 'assert'
 import * as fs from 'fs'
 import * as path from 'path'
+import { PROJECT_ROOT } from './common'
 
 suite('Daffodil Version', () => {
-  const PROJECT_ROOT = path.join(__dirname, '../../')
   const versionFile = path.join(PROJECT_ROOT, 'src/version.ts')
   const packageMapped = JSON.parse(
     fs.readFileSync(path.join(PROJECT_ROOT, 'package.json')).toString()

@@ -18,11 +18,10 @@
 import * as assert from 'assert'
 import * as path from 'path'
 import { DebugClient } from 'vscode-debugadapter-testsupport'
+import { TEST_SCHEMA, PROJECT_ROOT } from './common'
 
 suite('Daffodil Debug Adapter', () => {
-  const DEBUG_ADAPTER = './out/adapter/debugAdapter.js'
-  const PROJECT_ROOT = path.join(__dirname, '../../')
-  const DATA_ROOT = path.join(PROJECT_ROOT, 'src/tests/data/')
+  const DEBUG_ADAPTER = path.join(PROJECT_ROOT, 'out/adapter/debugAdapter.js')
 
   let client: DebugClient
 
@@ -76,22 +75,19 @@ suite('Daffodil Debug Adapter', () => {
 
   suite('launch', () => {
     test('should run program to the end', () => {
-      const PROGRAM = path.join(DATA_ROOT, 'test.dfdl.xsd')
-
       return Promise.all([
         client.configurationSequence(),
-        client.launch({ program: PROGRAM }),
+        client.launch({ program: TEST_SCHEMA }),
         client.waitForEvent('terminated'),
       ])
     })
 
     test('should stop on entry', () => {
-      const PROGRAM = path.join(DATA_ROOT, 'test.dfdl.xsd')
       const ENTRY_LINE = 1
 
       return Promise.all([
         client.configurationSequence(),
-        client.launch({ program: PROGRAM, stopOnEntry: true }),
+        client.launch({ program: TEST_SCHEMA, stopOnEntry: true }),
         client.assertStoppedLocation('entry', { line: ENTRY_LINE }),
       ])
     })

@@ -15,35 +15,16 @@
  * limitations under the License.
  */
 
-{
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"name": "Extension",
-			"type": "extensionHost",
-			"request": "launch",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"${workspaceFolder}/../sampleWorkspace"
-			],
-			"outFiles": [
-				"${workspaceFolder}/dist/ext/**/*.js"
-			],
-			"preLaunchTask": "npm: watch",
-		},
-		{
-			"name": "Tests",
-			"type": "extensionHost",
-			"request": "launch",
-			"runtimeExecutable": "${execPath}",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionTestsPath=${workspaceFolder}/out/tests/suite"
-			],
-			"outFiles": [
-				"${workspaceFolder}/out/tests/**/*.js",
-			],
-			"preLaunchTask": "npm: compile"
-		}
-	]
+// prettier-ignore
+export const commonCompletion = (additionalItems, nsPrefix: string) => {
+  return {
+    items: [
+      {
+        item: 'type=',
+        // use the "xs:" prefix for primitive types to differentiate them from custom simple types
+        snippetString: 'type="${1|xs:string,xs:decimal,xs:float,xs:double,xs:integer,xs:nonNegativeInteger,xs:int,xs:unsignedInt,xs:short,xs:unsignedShort,xs:long,xs:unsignedLong,xs:byte,xs:unsignedByte,xs:hexBinary,xs:boolean' + additionalItems + '|}"$0',
+        markdownString: 'an attribute which specifies the type of a simply-typed element',
+      },
+    ],
+  }
 }

@@ -28,8 +28,11 @@ export function getEndSingleBraceProvider() {
       ) {
         const wholeLine = document
           .lineAt(position)
-          .text.substr(0, position.character)
-        if (wholeLine.includes('dfdl:length="{')) {
+          .text.substring(0, position.character)
+        if (
+          wholeLine.includes('dfdl:length="{') ||
+          wholeLine.includes('dfdl:choiceDispatchKey="{')
+        ) {
           insertSnippet('$1}$0', position)
         }
         return undefined

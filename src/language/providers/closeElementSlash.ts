@@ -16,7 +16,12 @@
  */
 
 import * as vscode from 'vscode'
-import { insertSnippet, nearestOpen, checkBraceOpen } from './utils'
+import {
+  insertSnippet,
+  nearestOpen,
+  checkBraceOpen,
+  getXsdNsPrefix,
+} from './utils'
 
 export function getCloseElementSlashProvider() {
   return vscode.languages.registerCompletionItemProvider(
@@ -27,20 +32,21 @@ export function getCloseElementSlashProvider() {
         position: vscode.Position
       ) {
         var backpos = position.with(position.line, position.character - 1)
+        const nsPrefix = getXsdNsPrefix(document, position)
         const wholeLine = document
           .lineAt(position)
-          .text.substr(0, position.character)
+          .text.substring(0, position.character)
         const nearestOpenItem = nearestOpen(document, position)
         if (checkBraceOpen(document, position)) {
           return undefined
         }
         if (
           wholeLine.endsWith('/') &&
-          (wholeLine.includes('xs:element') ||
+          (wholeLine.includes('<' + nsPrefix + 'element') ||
             nearestOpenItem.includes('element') ||
-            wholeLine.includes('xs:group') ||
+            wholeLine.includes('<' + nsPrefix + 'group') ||
             nearestOpenItem.includes('group') ||
-            wholeLine.includes('xs:sequence') ||
+            wholeLine.includes('<' + nsPrefix + 'sequence') ||
             nearestOpenItem.includes('sequence'))
         ) {
           var range = new vscode.Range(backpos, position)
@@ -63,9 +69,9 @@ export function getCloseElementSlashProvider() {
           })
           insertSnippet('/>\n', backpos)
           var backpos2 = position.with(position.line + 1, startPos - 2)
-          insertSnippet('</xs:appinfo>\n', backpos2)
+          insertSnippet('</<' + nsPrefix + 'appinfo>\n', backpos2)
           var backpos3 = position.with(position.line + 2, startPos - 4)
-          insertSnippet('</xs:annotation>$0', backpos3)
+          insertSnippet('</<' + nsPrefix + 'annotation>$0', backpos3)
         }
         return undefined
       },

@@ -16,7 +16,7 @@
  */
 
 import * as vscode from 'vscode'
-import { insertSnippet, nearestOpen } from './utils'
+import { getXsdNsPrefix, insertSnippet, nearestOpen } from './utils'
 
 export function getCloseElementProvider() {
   return vscode.languages.registerCompletionItemProvider(
@@ -27,21 +27,25 @@ export function getCloseElementProvider() {
         position: vscode.Position
       ) {
         var backpos = position.with(position.line, position.character - 1)
+        const nsPrefix = getXsdNsPrefix(document, position)
         const nearestOpenItem = nearestOpen(document, position)
         const wholeLine = document
           .lineAt(position)
-          .text.substr(0, position.character)
+          .text.substring(0, position.character)
 
         if (
+          !wholeLine.includes('</') &&
           wholeLine.endsWith('>') &&
-          (wholeLine.includes('xs:element') ||
+          (wholeLine.includes('<' + nsPrefix + 'element') ||
             nearestOpenItem.includes('element') ||
-            wholeLine.includes('xs:group') ||
+            wholeLine.includes('<' + nsPrefix + 'group') ||
             nearestOpenItem.includes('group') ||
-            wholeLine.includes('xs:sequence') ||
+            wholeLine.includes('<' + nsPrefix + 'sequence') ||
             nearestOpenItem.includes('sequence') ||
-            wholeLine.includes('xs:simpleType') ||
+            wholeLine.includes('<' + nsPrefix + 'simpleType') ||
             nearestOpenItem.includes('simpleType') ||
+            wholeLine.includes('<' + nsPrefix + 'choice') ||
+            nearestOpenItem.includes('choice') ||
             wholeLine.includes('dfdl:defineVariable') ||
             nearestOpenItem.includes('Variable'))
         ) {
@@ -51,32 +55,40 @@ export function getCloseElementProvider() {
           })
           if (
             wholeLine.endsWith('>') &&
-            (wholeLine.includes('xs:element ref') ||
-              wholeLine.includes('xs:group ref'))
+            (wholeLine.includes('<' + nsPrefix + 'element ref') ||
+              wholeLine.includes('<' + nsPrefix + 'group ref'))
           ) {
             insertSnippet(' />\n$0', backpos)
           } else if (
             wholeLine.endsWith('>') &&
-            (wholeLine.includes('xs:element') ||
+            (wholeLine.includes('<' + nsPrefix + 'element') ||
               nearestOpenItem.includes('element'))
           ) {
-            insertSnippet('>\n\t$0\n</xs:element>', backpos)
+            insertSnippet('>\n\t$0\n</' + nsPrefix + 'element>', backpos)
           } else if (
             wholeLine.endsWith('>') &&
-            (wholeLine.includes('xs:group') ||
+            (wholeLine.includes('<' + nsPrefix + 'group') ||
               nearestOpenItem.includes('group'))
           ) {
-            insertSnippet('>\n\t$0\n</xs:group>', backpos)
+            insertSnippet('>\n\t$0\n</' + nsPrefix + 'group>', backpos)
           } else if (
-            (wholeLine.endsWith('>') && wholeLine.includes('xs:sequence')) ||
+            (wholeLine.endsWith('>') &&
+              wholeLine.includes('<' + nsPrefix + 'sequence')) ||
             nearestOpenItem.includes('sequence')
           ) {
-            insertSnippet('>\n\t$0\n</xs:sequence>', backpos)
+            insertSnippet('>\n\t$0\n</' + nsPrefix + 'sequence>', backpos)
           } else if (
-            (wholeLine.endsWith('>') && wholeLine.includes('xs:simpleType')) ||
+            (wholeLine.endsWith('>') &&
+              wholeLine.includes('<' + nsPrefix + 'choice')) ||
+            nearestOpenItem.includes('choice')
+          ) {
+            insertSnippet('>\n\t$0\n</' + nsPrefix + 'choice>', backpos)
+          } else if (
+            (wholeLine.endsWith('>') &&
+              wholeLine.includes('<' + nsPrefix + 'simpleType')) ||
             nearestOpenItem.includes('simpleType')
           ) {
-            insertSnippet('>\n\t$0\n</xs:simpleType>', backpos)
+            insertSnippet('>\n\t$0\n</' + nsPrefix + 'simpleType>', backpos)
           } else if (
             (wholeLine.endsWith('>') &&
               wholeLine.includes('dfdl:defineVariable')) ||
@@ -89,9 +101,9 @@ export function getCloseElementProvider() {
             })
             insertSnippet('>\n</dfdl:defineVariable>\n', backpos)
             var backpos2 = position.with(position.line + 2, startPos - 2)
-            insertSnippet('</xs:appinfo>\n', backpos2)
+            insertSnippet('</<' + nsPrefix + 'appinfo>\n', backpos2)
             var backpos3 = position.with(position.line + 3, startPos - 4)
-            insertSnippet('</xs:annotation>$0', backpos3)
+            insertSnippet('</<' + nsPrefix + 'annotation>$0', backpos3)
           } else if (
             (wholeLine.endsWith('>') &&
               wholeLine.includes('dfdl:setVariable')) ||
@@ -104,9 +116,9 @@ export function getCloseElementProvider() {
             })
             insertSnippet('>\n</dfdl:setVariable>\n', backpos)
             var backpos2 = position.with(position.line + 2, startPos - 2)
-            insertSnippet('</xs:appinfo>\n', backpos2)
+            insertSnippet('</' + nsPrefix + 'appinfo>\n', backpos2)
             var backpos3 = position.with(position.line + 3, startPos - 4)
-            insertSnippet('</xs:annotation>$0', backpos3)
+            insertSnippet('</' + nsPrefix + 'annotation>$0', backpos3)
           }
         }
         return undefined

@@ -24,6 +24,43 @@ import * as launchWizard from '../launchWizard/launchWizard'
 import * as omegaEditClient from '../omega_edit/client'
 import * as dfdlLang from '../language/dfdl'
 
+/** Method to file path for program and data
+ * Details:
+ *   Required so that the vscode api commands:
+ *     - extension.dfdl-debug.getProgramName
+ *     - extension.dfdl-debug.getDataName
+ *   can be sent a file instead of always opening up a prompt.
+ *   Always makes it so the vscode api commands above are able
+ *   to be tested inside of the test suite
+ */
+async function getFile(fileRequested, label, title) {
+  let file = ''
+
+  if (fileRequested && fs.existsSync(fileRequested)) {
+    file = fileRequested
+  } else if (fileRequested && !fs.existsSync(fileRequested)) {
+    file = ''
+  } else {
+    file = await vscode.window
+      .showOpenDialog({
+        canSelectMany: false,
+        openLabel: label,
+        canSelectFiles: true,
+        canSelectFolders: false,
+        title: title,
+      })
+      .then((fileUri) => {
+        if (fileUri && fileUri[0]) {
+          return fileUri[0].fsPath
+        }
+
+        return ''
+      })
+  }
+
+  return file
+}
+
 // Function for setting up the commands for Run and Debug file
 function createDebugRunFileConfigs(
   resource: vscode.Uri,
@@ -58,6 +95,7 @@ function createDebugRunFileConfigs(
           targetResource.fsPath,
           false,
           false,
+          'xml',
           { type: 'file', path: '${workspaceFolder}/' + infosetFile }
         ),
         { noDebug: noDebug }
@@ -113,49 +151,30 @@ export function activateDaffodilDebug(
       }
     ),
     vscode.commands.registerCommand('toggle.experimental', async (_) => {
-      const action = await vscode.window.showQuickPick(['Yes', 'No'], {
-        title: 'Enable Experimental Features?',
-        canPickMany: false,
-      })
-
       vscode.commands.executeCommand(
         'setContext',
         'experimentalFeaturesEnabled',
-        action === 'Yes' ? true : false
+        true
       )
 
-      if (action === 'Yes') {
-        omegaEditClient.activate(context)
+      omegaEditClient.activate(context)
 
-        vscode.window.showInformationMessage(
-          'DFDL: Experimental Features Enabled!'
-        )
-      }
+      vscode.window.showInformationMessage(
+        'DFDL: Experimental Features Enabled!'
+      )
     })
   )
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'extension.dfdl-debug.getProgramName',
-      async (_) => {
+      async (fileRequested = null) => {
         // Open native file explorer to allow user to select data file from anywhere on their machine
-        let programFile = await vscode.window
-          .showOpenDialog({
-            canSelectMany: false,
-            openLabel: 'Select DFDL schema to debug',
-            canSelectFiles: true,
-            canSelectFolders: false,
-            title: 'Select DFDL schema to debug',
-          })
-          .then((fileUri) => {
-            if (fileUri && fileUri[0]) {
-              return fileUri[0].fsPath
-            }
-
-            return ''
-          })
-
-        return programFile
+        return await getFile(
+          fileRequested,
+          'Select DFDL schema to debug',
+          'Select DFDL schema to debug'
+        )
       }
     )
   )
@@ -163,23 +182,13 @@ export function activateDaffodilDebug(
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'extension.dfdl-debug.getDataName',
-      async (_) => {
+      async (fileRequested = null) => {
         // Open native file explorer to allow user to select data file from anywhere on their machine
-        return await vscode.window
-          .showOpenDialog({
-            canSelectMany: false,
-            openLabel: 'Select input data file to debug',
-            canSelectFiles: true,
-            canSelectFolders: false,
-            title: 'Select input data file to debug',
-          })
-          .then((fileUri) => {
-            if (fileUri && fileUri[0]) {
-              return fileUri[0].fsPath
-            }
-
-            return ''
-          })
+        return await getFile(
+          fileRequested,
+          'Select input data file to debug',
+          'Select input data file to debug'
+        )
       }
     )
   )
@@ -207,6 +216,7 @@ export function activateDaffodilDebug(
                 '${file}',
                 false,
                 false,
+                'xml',
                 { type: 'file', path: '${file}-infoset.xml' }
               ),
             ]
@@ -227,6 +237,7 @@ export function activateDaffodilDebug(
               '${file}',
               false,
               false,
+              'xml',
               { type: 'file', path: '${workspaceFolder}/' + infosetFile }
             ),
           ]

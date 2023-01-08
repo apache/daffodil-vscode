@@ -14,7 +14,7 @@
 # limitations under the License.
 
 github:
-  description: "VS Code extension for Apache Daffodil"
+  description: "Apache Daffodil™ Extension for Visual Studio Code"
   homepage: https://daffodil.apache.org/
   features:
     wiki:     true

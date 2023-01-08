@@ -16,7 +16,7 @@
  */
 
 // prettier-ignore
-export const attributeCompletion = (additionalItems) => {
+export const attributeCompletion = (additionalItems, nsPrefix: string) => {
   return {
     items: [
       {
@@ -30,14 +30,9 @@ export const attributeCompletion = (additionalItems) => {
         markdownString: 'dfdl escape character definition',
       },
       {
-        item: 'type=',
-        snippetString: 'type="${1|xs:string,xs:decimal,xs:float,xs:double,xs:integer,xs:nonNegativeInteger,xs:int,xs:unsignedInt,xs:short,xs:unsignedShort,xs:long,xs:unsignedLong,xs:byte,xs:unsignedByte,xs:hexBinary,xs:boolean' + additionalItems + '|}"$0',
-        markdownString: 'attribute to specify a simple type element type',
-      },
-      {
         item: 'minOccurs=',
         snippetString: 'minOccurs="${1|0,1|}"$0',
-        markdownString: 'mininum number of times element will occur',
+        markdownString: 'minimum number of times element will occur',
       },
       {
         item: 'maxOccurs=',
@@ -154,22 +149,23 @@ export const attributeCompletion = (additionalItems) => {
         markdownString: 'Only used when dfdl:choiceLengthKind is explicit',
       },
       {
-        item: 'dfdl:intiatedContent=',
-        snippetString: 'dfdl:intiatedContent="${1|yes,no}"$0',
+        item: 'dfdl:initiatedContent=',
+        snippetString: 'dfdl:initiatedContent="${1|yes,no}"$0',
         markdownString: 'yes indicates all branches of a choice are initiated\no indicates the branch dfdl:initator property may be ste to empty string',
       },
       {
         item: 'dfdl:choiceDispatchKey=',
-        snippetString: 'dfdl:choiceBranchKey="$1"$0',
+        snippetString: 'dfdl:choiceDispatchKey="$1"$0',
         markdownString: 'The expression must evaluate to a string',
       },
       {
         item: 'dfdl:simpleType',
-        snippetString: '<xs:annotation>\n\t<xs:appinfo source="http://www.ogf.org/dfdl/">\n\t\trepresentation="${1|binary,|"\n\t</xs:appinfo>\n</xs:annotation>$0',
+        snippetString: '<' + nsPrefix + 'annotation>\n\t<' + nsPrefix + 'appinfo source="http://www.ogf.org/dfdl/">\n\t\trepresentation="${1|binary,|"\n\t</' + nsPrefix + 'appinfo>\n</' + nsPrefix + 'annotation>$0',
       },
       {
-        item: 'xs:restriction',
-        snippetString: '<xs:restriction base="${1|xs:string,xs:decimal,xs:float,xs:double,xs:integer,xs:nonNegativeInteger,xs:int,xs:unsignedInt,xs:short,xs:unsignedShort,xs:long,xs:unsignedLong,xs:byte,xs:unsignedByte,xs:hexBinary,xs:boolean|}"/>$0',
+        item: nsPrefix + 'restriction',
+        // use the "xs:" prefix for primitive types to differentiate them from custom simple types
+        snippetString: '<' + nsPrefix + 'restriction base="${1|xs:string,xs:decimal,xs:float,xs:double,xs:integer,xs:nonNegativeInteger,xs:int,xs:unsignedInt,xs:short,xs:unsignedShort,xs:long,xs:unsignedLong,xs:byte,xs:unsignedByte,xs:hexBinary,xs:boolean|}"/>$0',
       },
     ],
   }

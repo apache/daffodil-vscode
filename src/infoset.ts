@@ -46,8 +46,8 @@ async function openInfosetFilePrompt() {
 
     switch (action) {
       case 'Open':
-        let xml = await vscode.workspace.openTextDocument(uri)
-        await vscode.window.showTextDocument(xml, {
+        let infoset = await vscode.workspace.openTextDocument(uri)
+        await vscode.window.showTextDocument(infoset, {
           preview: false,
           viewColumn: vscode.ViewColumn.One,
         })
@@ -173,7 +173,7 @@ const fileInfosetProvider = new (class
 })()
 
 function tmp(sid: string): string {
-  return `${tmpdir()}/infoset-${sid}.xml`
+  return `${tmpdir()}/infoset-${sid}.${getCurrentConfig().infosetFormat}`
 }
 
 function ensure(path: string): string {

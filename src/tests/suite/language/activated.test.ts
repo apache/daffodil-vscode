@@ -15,35 +15,14 @@
  * limitations under the License.
  */
 
-{
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"name": "Extension",
-			"type": "extensionHost",
-			"request": "launch",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"${workspaceFolder}/../sampleWorkspace"
-			],
-			"outFiles": [
-				"${workspaceFolder}/dist/ext/**/*.js"
-			],
-			"preLaunchTask": "npm: watch",
-		},
-		{
-			"name": "Tests",
-			"type": "extensionHost",
-			"request": "launch",
-			"runtimeExecutable": "${execPath}",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionTestsPath=${workspaceFolder}/out/tests/suite"
-			],
-			"outFiles": [
-				"${workspaceFolder}/out/tests/**/*.js",
-			],
-			"preLaunchTask": "npm: compile"
-		}
-	]
-}
+import * as vscode from 'vscode'
+import * as assert from 'assert'
+
+suite('DFDL Language Test Suite', () => {
+  test('Test DFDL language configured', async () => {
+    assert.strictEqual(
+      (await vscode.languages.getLanguages()).includes('dfdl'),
+      true
+    )
+  })
+})

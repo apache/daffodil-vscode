@@ -25,6 +25,9 @@ import {
   checkSequenceOpen,
   checkElementOpen,
   checkSimpleTypeOpen,
+  createCompletionItem,
+  getCommonItems,
+  getXsdNsPrefix,
 } from './utils'
 
 import { attributeCompletion } from './intellisense/attributeItems'
@@ -32,34 +35,19 @@ import { attributeCompletion } from './intellisense/attributeItems'
 function getCompletionItems(
   itemsToUse: string[],
   preVal: string = '',
-  additionalItems: string = ''
+  additionalItems: string = '',
+  nsPrefix: string
 ) {
-  let compItems: vscode.CompletionItem[] = []
-  let noPreVals: string[] = [
-    'dfdl:choiceBranchKey=',
-    'dfdl:representation',
-    'dfdl:choiceDispatchKey=',
-    'dfdl:simpleType',
-    'xs:restriction',
-  ]
+  let compItems: vscode.CompletionItem[] = getCommonItems(
+    itemsToUse,
+    preVal,
+    additionalItems,
+    nsPrefix
+  )
 
-  attributeCompletion(additionalItems).items.forEach((e) => {
+  attributeCompletion(additionalItems, nsPrefix).items.forEach((e) => {
     if (itemsToUse.includes(e.item)) {
-      const completionItem = new vscode.CompletionItem(e.item)
-
-      if (preVal !== '' && !noPreVals.includes(e.item)) {
-        completionItem.insertText = new vscode.SnippetString(
-          preVal + e.snippetString
-        )
-      } else {
-        completionItem.insertText = new vscode.SnippetString(e.snippetString)
-      }
-
-      if (e.markdownString) {
-        completionItem.documentation = new vscode.MarkdownString(
-          e.markdownString
-        )
-      }
+      const completionItem = createCompletionItem(e, preVal, nsPrefix)
       compItems.push(completionItem)
     }
   })
@@ -77,8 +65,9 @@ export function getAttributeCompletionProvider() {
       ) {
         const wholeLine = document
           .lineAt(position)
-          .text.substr(0, position.character)
+          .text.substring(0, position.character)
         var nearestOpenItem = nearestOpen(document, position)
+        const nsPrefix = getXsdNsPrefix(document, position)
 
         if (
           !checkBraceOpen(document, position) &&
@@ -87,19 +76,19 @@ export function getAttributeCompletionProvider() {
         ) {
           if (nearestOpenItem.includes('element')) {
             var preVal = ''
-            if (!wholeLine.includes('xs:element')) {
+            if (!wholeLine.includes(nsPrefix + 'element')) {
               if (lineCount(document, position) === 1) {
                 preVal = '\t'
               } else {
                 preVal = ''
               }
             }
-            var additionalItems = getDefinedTypes(document)
+            var additionalItems = getDefinedTypes(document, nsPrefix)
 
             if (
               checkLastItemOpen(document, position) &&
-              (wholeLine.includes('<xs:element name="') ||
-                wholeLine.includes('<xs:element ref="') ||
+              (wholeLine.includes('<' + nsPrefix + 'element name="') ||
+                wholeLine.includes('<' + nsPrefix + 'element ref="') ||
                 checkElementOpen(document, position))
             ) {
               return getCompletionItems(
@@ -127,14 +116,15 @@ export function getAttributeCompletionProvider() {
                   'dfdl:representation',
                 ],
                 preVal,
-                additionalItems
+                additionalItems,
+                nsPrefix
               )
             }
           }
 
           if (nearestOpenItem.includes('sequence')) {
             var preVal = ''
-            if (!wholeLine.includes('xs:sequence')) {
+            if (!wholeLine.includes(nsPrefix + 'sequence')) {
               if (lineCount(document, position) === 1) {
                 preVal = '\t'
               } else {
@@ -144,7 +134,7 @@ export function getAttributeCompletionProvider() {
 
             if (
               checkLastItemOpen(document, position) &&
-              (wholeLine.includes('<xs:sequence') ||
+              (wholeLine.includes('<' + nsPrefix + 'sequence') ||
                 checkSequenceOpen(document, position))
             ) {
               return getCompletionItems(
@@ -155,20 +145,27 @@ export function getAttributeCompletionProvider() {
                   'dfdl:separatorPosition=',
                   'dfdl:separatorSuppressionPolicy',
                 ],
-                preVal
+                preVal,
+                undefined,
+                nsPrefix
               )
             }
           }
 
           if (wholeLine.includes('choice')) {
             if (!wholeLine.includes('>')) {
-              return getCompletionItems([
-                'dfdl:choiceLengthKind=',
-                'dfdl:choiceLength=',
-                'dfdl:intiatedContent=',
-                'dfdl:choiceDispatchKey=',
-                'dfdl:choiceBranchKey=',
-              ])
+              return getCompletionItems(
+                [
+                  'dfdl:choiceLengthKind=',
+                  'dfdl:choiceLength=',
+                  'dfdl:initiatedContent=',
+                  'dfdl:choiceDispatchKey=',
+                  'dfdl:choiceBranchKey=',
+                ],
+                undefined,
+                undefined,
+                nsPrefix
+              )
             }
           }
 
@@ -177,13 +174,18 @@ export function getAttributeCompletionProvider() {
             checkSimpleTypeOpen(document, position)
           ) {
             if (!wholeLine.includes('>')) {
-              return getCompletionItems([
-                'dfdl:length=',
-                'dfdl:lengthKind=',
-                'dfdl:simpleType',
-                'dfdl:simpleType',
-                'xs:restriction',
-              ])
+              return getCompletionItems(
+                [
+                  'dfdl:length=',
+                  'dfdl:lengthKind=',
+                  'dfdl:simpleType',
+                  'dfdl:simpleType',
+                  nsPrefix + 'restriction',
+                ],
+                undefined,
+                undefined,
+                nsPrefix
+              )
             }
           }
 
@@ -196,19 +198,9 @@ export function getAttributeCompletionProvider() {
                 preVal = ''
               }
             }
-            var additionalItems = getDefinedTypes(document)
+            var additionalItems = getDefinedTypes(document, nsPrefix)
 
             var xmlItems = [
-              {
-                item: 'type=',
-                snippetString:
-                  preVal +
-                  'type="${1|xs:string,xs:decimal,xs:float,xs:double,xs:integer,xs:nonNegativeInteger,xs:int,xs:unsignedInt,xs:short,xs:unsignedShort,xs:long,xs:unsignedLong,xs:byte,xs:unsignedByte,xs:hexBinary,xs:boolean' +
-                  additionalItems +
-                  '|}"$0',
-                markdownString:
-                  'attribute to specify a simple type element type',
-              },
               {
                 item: 'external=',
                 snippetString: preVal + 'external="${1|true,false|}"$0',
@@ -227,13 +219,14 @@ export function getAttributeCompletionProvider() {
                   e.snippetString
                 )
 
-                if (e.markdownString) {
-                  completionItem.documentation = new vscode.MarkdownString(
-                    e.markdownString
-                  )
-                }
                 compItems.push(completionItem)
               })
+
+              getCommonItems(['type='], '', additionalItems, nsPrefix).forEach(
+                (ci) => {
+                  compItems.push(ci)
+                }
+              )
 
               return compItems
             }
@@ -266,17 +259,18 @@ export function getAttributeCompletionProvider() {
   )
 }
 
-function getDefinedTypes(document: vscode.TextDocument) {
+function getDefinedTypes(document: vscode.TextDocument, nsPrefix: string) {
   var additionalTypes = ''
   var lineNum = 0
   const lineCount = document.lineCount
+
   while (lineNum !== lineCount) {
     const wholeLine = document
       .lineAt(lineNum)
       .text.substring(0, document.lineAt(lineNum).range.end.character)
     if (
-      wholeLine.includes('xs:simpleType Name=') ||
-      wholeLine.includes('xs:complexType Name=')
+      wholeLine.includes(nsPrefix + 'simpleType Name=') ||
+      wholeLine.includes(nsPrefix + 'complexType Name=')
     ) {
       var startPos = wholeLine.indexOf('"', 0)
       var endPos = wholeLine.indexOf('"', startPos + 1)

@@ -16,8 +16,9 @@
  */
 
 import * as vscode from 'vscode'
-import { checkBraceOpen } from './utils'
+import { checkBraceOpen, getXsdNsPrefix } from './utils'
 import { elementCompletion } from './intellisense/elementItems'
+import { createCompletionItem } from './utils'
 
 export function getElementCompletionProvider(dfdlFormatString: string) {
   return vscode.languages.registerCompletionItemProvider('dfdl', {
@@ -31,6 +32,7 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
         console.log('in elementCompletionProvider - brace is showing open')
         return undefined
       }
+      var nsPrefix = getXsdNsPrefix(document, position)
       var definedVariables = getDefinedVariables(document)
 
       // a completion item that inserts its text as snippet,
@@ -38,19 +40,21 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
       // honored by the editor.
       let compItems: vscode.CompletionItem[] = []
 
-      elementCompletion(definedVariables, dfdlFormatString).items.forEach(
-        (e) => {
-          const completionItem = new vscode.CompletionItem(e.item)
-          completionItem.insertText = new vscode.SnippetString(e.snippetString)
+      elementCompletion(
+        definedVariables,
+        dfdlFormatString,
+        nsPrefix
+      ).items.forEach((e) => {
+        const line = document
+          .lineAt(position)
+          .text.substring(0, position.character)
 
-          if (e.markdownString) {
-            completionItem.documentation = new vscode.MarkdownString(
-              e.markdownString
-            )
-          }
-          compItems.push(completionItem)
+        if (line.includes('<') && e.snippetString.startsWith('<')) {
+          e.snippetString = e.snippetString.substring(1, e.snippetString.length)
         }
-      )
+
+        compItems.push(createCompletionItem(e, '', nsPrefix))
+      })
 
       return compItems
     },
