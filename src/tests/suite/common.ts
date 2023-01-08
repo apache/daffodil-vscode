@@ -15,29 +15,9 @@
  * limitations under the License.
  */
 
-import * as vscode from 'vscode'
-import { insertSnippet } from './utils'
+import * as path from 'path'
 
-export function getEndSingleBraceProvider() {
-  return vscode.languages.registerCompletionItemProvider(
-    'dfdl',
-    {
-      provideCompletionItems(
-        document: vscode.TextDocument,
-        position: vscode.Position
-      ) {
-        const wholeLine = document
-          .lineAt(position)
-          .text.substring(0, position.character)
-        if (
-          wholeLine.includes('dfdl:length="{') ||
-          wholeLine.includes('dfdl:choiceDispatchKey="{')
-        ) {
-          insertSnippet('$1}$0', position)
-        }
-        return undefined
-      },
-    },
-    '{'
-  )
-}
+export const PROJECT_ROOT = path.join(__dirname, '../../../')
+export const DATA_ROOT = path.join(PROJECT_ROOT, 'src/tests/data/')
+export const PACKAGE_PATH = path.join(PROJECT_ROOT, 'package.json')
+export const TEST_SCHEMA = path.join(DATA_ROOT, 'test.dfdl.xsd')

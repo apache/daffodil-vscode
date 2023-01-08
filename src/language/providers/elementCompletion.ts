@@ -45,8 +45,15 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
         dfdlFormatString,
         nsPrefix
       ).items.forEach((e) => {
-        const completionItem = createCompletionItem(e, '', nsPrefix)
-        compItems.push(completionItem)
+        const line = document
+          .lineAt(position)
+          .text.substring(0, position.character)
+
+        if (line.includes('<') && e.snippetString.startsWith('<')) {
+          e.snippetString = e.snippetString.substring(1, e.snippetString.length)
+        }
+
+        compItems.push(createCompletionItem(e, '', nsPrefix))
       })
 
       return compItems

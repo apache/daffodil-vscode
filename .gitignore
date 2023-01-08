@@ -53,4 +53,7 @@ npm-debug.log
 tmp.*
 
 # ignore omega-edit scala server package file
-src/omega_edit/omega-edit-scala-server*
+omega-edit-scala-server*
+
+# ignore tests unzip daffodil-debugger
+daffodil-debugger-*

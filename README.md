@@ -20,15 +20,16 @@
 
 <img src="https://daffodil.apache.org/assets/themes/apache/img/apache-daffodil-logo.png" height="85" alt="Apache Daffodil"/>
 
-# Apache Daffodil VS Code Extension
+# Apache Daffodil™ Extension for Visual Studio Code
 
 [![CI](https://github.com/apache/daffodil-vscode/workflows/CI/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/CI.yml)
 
 </div>
 
-This is a VS Code extension which enables the interactive debugging of DFDL schema parsing using [Apache Daffodil](https://daffodil.apache.org/).
+This is an extension for Visual Studio Code (VS Code) which enables the interactive debugging of DFDL schema parsing using [Apache Daffodil](https://daffodil.apache.org/).
 
 ## Build Requirements
+
 - Java Development Kit (JDK) 11 or higher
 - SBT 0.13.8 or higher
 - Node 10 or higher
@@ -38,13 +39,14 @@ This is a VS Code extension which enables the interactive debugging of DFDL sche
 
 Until the extension is available in the [VS Code Extension Marketplace](https://marketplace.visualstudio.com/vscode), please download the latest `.vsix` file from the [releases page](https://github.com/apache/daffodil-vscode/releases).
 
-
 ## Package VSIX and Debugger
+
 :exclamation:**NOT necessary if using prebuilt VSIX**:exclamation:
 
 :exclamation:**NOT necessary if running extension via VS Code without VSIX but a `yarn install` will be required**:exclamation:
 
 Run full package
+
   ```bash
   yarn package
   ```
@@ -95,7 +97,7 @@ users@daffodil.apache.org mailing lists.  You can report bugs via
 
 ## License
 
-Apache Daffodil VS Code Extension is licensed under the [Apache License, v2.0].
+Apache Daffodil™ Extension for Visual Studio Code is licensed under the [Apache License, v2.0].
 
 [Apache License, v2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [GitHub Issues]: https://github.com/apache/daffodil-vscode/issues

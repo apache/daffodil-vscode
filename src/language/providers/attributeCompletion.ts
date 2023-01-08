@@ -65,7 +65,7 @@ export function getAttributeCompletionProvider() {
       ) {
         const wholeLine = document
           .lineAt(position)
-          .text.substr(0, position.character)
+          .text.substring(0, position.character)
         var nearestOpenItem = nearestOpen(document, position)
         const nsPrefix = getXsdNsPrefix(document, position)
 

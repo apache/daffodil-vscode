@@ -18,13 +18,13 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as unzip from 'unzip-stream'
-import { Artifact } from './classes/artifact'
 import * as os from 'os'
 import * as child_process from 'child_process'
+import path from 'path'
+
 const wait_port = require('wait-port')
 
 const defaultConf = vscode.workspace.getConfiguration()
-// const
 let currentConfig: vscode.DebugConfiguration
 
 export const regexp = {
@@ -86,6 +86,7 @@ export function getConfig(
   program: string = '',
   data: string | boolean = false,
   debugServer: number | boolean = false,
+  infosetFormat: string | null = null,
   infosetOutput: object | null = null,
   stopOnEntry = false,
   useExistingServer = false,
@@ -106,6 +107,7 @@ export function getConfig(
     debugServer: debugServer
       ? debugServer
       : defaultConf.get('debugServer', 4711),
+    infosetFormat: infosetFormat ? infosetFormat : 'xml',
     infosetOutput: infosetOutput
       ? infosetOutput
       : {
@@ -171,19 +173,40 @@ export async function executeScript(
   return terminal
 }
 
+/*
+ * Check if OS is windows, if so return windows option else return the mac and linux option.
+ * This method is used to elimate a lot duplicated code we had check if the os was windows related.
+ */
+export function osCheck(winOption: any, macLinOption: any): any {
+  return os.platform().toLowerCase().startsWith('win')
+    ? winOption
+    : macLinOption
+}
+
 export async function killProcess(id: number | undefined) {
   if (id) {
-    if (os.platform() === 'win32') {
-      child_process.exec(`taskkill /F /PID ${id}`)
-    } else {
-      child_process.exec(`kill -9 ${id} 2>&1 || echo 0`)
-    }
+    child_process.exec(
+      osCheck(`taskkill /F /PID ${id}`, `kill -9 ${id} 2>&1 || echo 0`)
+    )
+  }
+}
+
+export const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
+
+export function chmodScript(scriptPath: string, scriptName: string) {
+  if (!os.platform().toLowerCase().startsWith('win')) {
+    child_process.execSync(
+      `chmod +x ${scriptPath.replace(' ', '\\ ')}/bin/${scriptName.replace(
+        './',
+        ''
+      )}`
+    )
   }
 }
 
 export async function runScript(
   scriptPath: string,
-  artifact: Artifact,
+  scriptName: string,
   shellPath: string | null = null,
   shellArgs: string[] = [],
   env:
@@ -194,23 +217,14 @@ export async function runScript(
   type: string = '',
   hideTerminal: boolean = false
 ) {
-  const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
-
-  if (!os.platform().toLowerCase().startsWith('win')) {
-    child_process.execSync(
-      `chmod +x ${scriptPath.replace(
-        ' ',
-        '\\ '
-      )}/bin/${artifact.scriptName.replace('./', '')}`
-    )
-  }
+  chmodScript(scriptPath, scriptName)
 
   // Start server in terminal based on scriptName
   let terminal = vscode.window.createTerminal({
-    name: artifact.scriptName,
-    cwd: `${scriptPath}/bin`,
+    name: scriptName,
+    cwd: path.join(scriptPath, 'bin'),
     hideFromUser: false,
-    shellPath: shellPath !== null ? shellPath : artifact.scriptName,
+    shellPath: shellPath !== null ? shellPath : scriptName,
     shellArgs: shellArgs,
     env: env,
   })

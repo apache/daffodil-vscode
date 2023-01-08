@@ -31,7 +31,7 @@ export function getCloseElementProvider() {
         const nearestOpenItem = nearestOpen(document, position)
         const wholeLine = document
           .lineAt(position)
-          .text.substr(0, position.character)
+          .text.substring(0, position.character)
 
         if (
           !wholeLine.includes('</') &&

@@ -18,35 +18,32 @@
 import * as vscode from 'vscode'
 import * as assert from 'assert'
 import * as path from 'path'
-import * as os from 'os'
 import { Artifact, Backend } from '../../classes/artifact'
 import * as omegaEditClient from '../../omega_edit/client'
-import { unzipFile, runScript, killProcess } from '../../utils'
+import { unzipFile, runScript, killProcess, osCheck } from '../../utils'
 import { before, after } from 'mocha'
+import * as fs from 'fs'
+import { PROJECT_ROOT, PACKAGE_PATH, TEST_SCHEMA } from './common'
 
 const wait_port = require('wait-port')
-const omegaEditPackagePath = path.join(__dirname, '../../../src/omega_edit')
+
+const omegaEditPackagePath = path.join(PROJECT_ROOT, 'node_modules/omega-edit')
+const omegaEditVersion =
+  omegaEditClient.getOmegaEditPackageVersion(PACKAGE_PATH)
 const localArtifact = new Artifact(
   'omega-edit-scala-server',
-  omegaEditClient.getOmegaEditPackageVersion(
-    path.join(__dirname, '../../../package.json')
-  ),
+  omegaEditVersion,
   'omega-edit-grpc-server'
 )
-const testDfdlFile = path.join(
-  __dirname,
-  '../../../src/tests/data/test.dfdl.xsd'
-)
+const extractedFolder = path.join(PROJECT_ROOT, localArtifact.name)
 
 export async function runServerForTests() {
-  const extractedFolder = `${omegaEditPackagePath}/${localArtifact.name}`
-
-  await unzipFile(
+  fs.copyFileSync(
     `${omegaEditPackagePath}/${localArtifact.name}.zip`,
-    omegaEditPackagePath
+    `${extractedFolder}.zip`
   )
-
-  return await runScript(`${extractedFolder}`, localArtifact)
+  await unzipFile(`${extractedFolder}.zip`, PROJECT_ROOT)
+  return await runScript(`${extractedFolder}`, localArtifact.scriptName)
 }
 
 suite('omega-edit Test Suite', () => {
@@ -58,6 +55,11 @@ suite('omega-edit Test Suite', () => {
 
   after(async () => {
     await terminal.processId.then(async (id) => await killProcess(id))
+    fs.rmSync(`${PROJECT_ROOT}/${localArtifact.name}.zip`)
+    fs.rmSync(`${PROJECT_ROOT}/${localArtifact.name}`, {
+      recursive: true,
+      force: true,
+    })
   })
 
   test('Test toggle.experimental', async () => {
@@ -106,7 +108,7 @@ suite('omega-edit Test Suite', () => {
     test('scriptName set properly', () => {
       assert.strictEqual(
         artifact.scriptName,
-        os.platform() === 'win32' ? `${scriptName}.bat` : `./${scriptName}`
+        osCheck(`${scriptName}.bat`, `./${scriptName}`)
       )
     })
 
@@ -139,17 +141,14 @@ suite('omega-edit Test Suite', () => {
 
       assert.strictEqual(
         version,
-        'v' +
-          omegaEditClient.getOmegaEditPackageVersion(
-            path.join(__dirname, '../../../package.json')
-          )
+        'v' + omegaEditClient.getOmegaEditPackageVersion(PACKAGE_PATH)
       )
     })
 
     test('data editor opens', async () => {
       const panel: vscode.WebviewPanel = await vscode.commands.executeCommand(
         'data.edit',
-        testDfdlFile,
+        TEST_SCHEMA,
         false,
         false
       )
