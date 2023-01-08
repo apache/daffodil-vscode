@@ -82,7 +82,7 @@ lazy val core = project
       // scala-steward:off
       "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.34.0",
       // scala-steward:on
-      "co.fs2" %% "fs2-io" % "3.2.10",
+      "co.fs2" %% "fs2-io" % "3.2.14",
       "com.monovore" %% "decline-effect" % "2.3.0",
       "org.typelevel" %% "log4cats-slf4j" % "2.4.0"
     ),
