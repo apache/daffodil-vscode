@@ -41,6 +41,7 @@ import org.apache.daffodil.processors.dfa.DFADelimiter
 import org.apache.daffodil.processors.parsers._
 import org.apache.daffodil.processors._
 import org.apache.daffodil.sapi.infoset.XMLTextInfosetOutputter
+import org.apache.daffodil.sapi.infoset.JsonInfosetOutputter
 import org.apache.daffodil.sapi.io.InputSourceDataInputStream
 import org.apache.daffodil.util.Misc
 import org.typelevel.log4cats.Logger
@@ -63,7 +64,8 @@ object Parse {
   def apply(
       schema: Path,
       data: InputStream,
-      debugger: Debugger
+      debugger: Debugger,
+      infosetFormat: String
   ): IO[Parse] =
     for {
       dp <- Compiler().compile(schema).map(p => p.withDebugger(debugger).withDebugging(true))
@@ -76,11 +78,16 @@ object Parse {
             val stopper =
               pleaseStop.get *> IO.canceled // will cancel the concurrent parse effect
 
+            val infosetOutputter = infosetFormat match {
+              case "xml"  => new XMLTextInfosetOutputter(os, true)
+              case "json" => new JsonInfosetOutputter(os, true)
+            }
+
             val parse =
               IO.interruptibleMany {
                 dp.parse(
                   new InputSourceDataInputStream(data),
-                  new XMLTextInfosetOutputter(os, true)
+                  infosetOutputter
                 ) // WARNING: parse doesn't close the OutputStream, so closed below
               }.guaranteeCase(outcome => Logger[IO].debug(s"parse finished: $outcome"))
                 .void
@@ -160,6 +167,7 @@ object Parse {
         schemaPath: Path,
         dataPath: Path,
         stopOnEntry: Boolean,
+        infosetFormat: String,
         infosetOutput: LaunchArgs.InfosetOutput
     ) extends Arguments {
       def data: IO[InputStream] =
@@ -199,6 +207,11 @@ object Parse {
           Option(arguments.getAsJsonPrimitive("stopOnEntry"))
             .map(_.getAsBoolean())
             .getOrElse(true)
+            .asRight[String]
+            .toEitherNel,
+          Option(arguments.getAsJsonPrimitive("infosetFormat"))
+            .map(_.getAsString())
+            .getOrElse("xml")
             .asRight[String]
             .toEitherNel,
           Option(arguments.getAsJsonObject("infosetOutput")) match {
@@ -257,13 +270,25 @@ object Parse {
       infosetChanges = Stream
         .fromQueueNoneTerminated(infoset)
         .evalTap(latestInfoset.set)
-        .evalTap(content => dapEvents.offer(Some(InfosetEvent(content, "text/xml"))))
+        .evalTap(content =>
+          dapEvents.offer(
+            Some(
+              InfosetEvent(
+                content,
+                args.infosetFormat match {
+                  case "xml"  => "text/xml"
+                  case "json" => "application/json"
+                }
+              )
+            )
+          )
+        )
         .onFinalizeCase(ec => Logger[IO].debug(s"infosetChanges (orig): $ec"))
 
       events <- Resource.eval(Queue.bounded[IO, Option[Event]](10))
       debugger <- DaffodilDebugger
-        .resource(state, events, breakpoints, control, infoset)
-      parse <- Resource.eval(args.data.flatMap(in => Parse(args.schemaPath, in, debugger)))
+        .resource(state, events, breakpoints, control, infoset, args.infosetFormat)
+      parse <- Resource.eval(args.data.flatMap(in => Parse(args.schemaPath, in, debugger, args.infosetFormat)))
 
       parsing = args.infosetOutput match {
         case Debugee.LaunchArgs.InfosetOutput.None =>
@@ -386,8 +411,7 @@ object Parse {
         startElement.schemaLocation.lineNumber
           .map(_.toInt)
           .getOrElse(1), // line numbers start at 1 according to InitializeRequest
-        0, // column numbers start at 1 according to InitializeRequest, but set to 0 to ignore it; column calculation by Daffodil uses 1 tab = 2 spaces(?), but breakpoints use 1 character per tab
-        null
+        0 // column numbers start at 1 according to InitializeRequest, but set to 0 to ignore it; column calculation by Daffodil uses 1 tab = 2 spaces(?), but breakpoints use 1 character per tab
       )
 
       schemaScope <- schemaScope(schemaScopeId, startElement.state, variableRefs)
@@ -594,7 +618,13 @@ object Parse {
   case class ConfigEvent(launchArgs: ConfigEvent.LaunchArgs, buildInfo: ConfigEvent.BuildInfo)
       extends Events.DebugEvent("daffodil.config")
   object ConfigEvent {
-    case class LaunchArgs(schemaPath: String, dataPath: String, stopOnEntry: Boolean, infosetOutput: InfosetOutput)
+    case class LaunchArgs(
+        schemaPath: String,
+        dataPath: String,
+        stopOnEntry: Boolean,
+        infosetFormat: String,
+        infosetOutput: InfosetOutput
+    )
 
     sealed trait InfosetOutput {
       val `type`: String =
@@ -625,6 +655,7 @@ object Parse {
           launchArgs.schemaPath.toString,
           launchArgs.dataPath.toString(),
           launchArgs.stopOnEntry,
+          launchArgs.infosetFormat,
           InfosetOutput(launchArgs.infosetOutput)
         ),
         BuildInfo(
@@ -731,7 +762,8 @@ object Parse {
       breakpoints: Breakpoints,
       control: Control,
       events: QueueSink[IO, Option[Event]],
-      infoset: QueueSink[IO, Option[String]]
+      infoset: QueueSink[IO, Option[String]],
+      infosetFormat: String
   ) extends Debugger {
     implicit val logger: Logger[IO] = Slf4jLogger.getLogger
 
@@ -776,10 +808,14 @@ object Parse {
 
     def infosetToString(ie: InfosetElement): String = {
       val bos = new java.io.ByteArrayOutputStream()
-      val xml = new XMLTextInfosetOutputter(bos, true)
+      val infosetOutputter = infosetFormat match {
+        case "xml"  => new XMLTextInfosetOutputter(bos, true)
+        case "json" => new JsonInfosetOutputter(bos, true)
+      }
+
       val iw = InfosetWalker(
         ie.asInstanceOf[DIElement],
-        xml,
+        infosetOutputter,
         walkHidden = false,
         ignoreBlocks = true,
         releaseUnneededInfoset = false
@@ -818,7 +854,8 @@ object Parse {
         events: QueueSink[IO, Option[Event]],
         breakpoints: Breakpoints,
         control: Control,
-        infoset: QueueSink[IO, Option[String]]
+        infoset: QueueSink[IO, Option[String]],
+        infosetFormat: String
     ): Resource[IO, DaffodilDebugger] =
       for {
         dispatcher <- Dispatcher[IO]
@@ -828,7 +865,8 @@ object Parse {
         breakpoints,
         control,
         events,
-        infoset
+        infoset,
+        infosetFormat
       )
   }
 }

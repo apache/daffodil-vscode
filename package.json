@@ -1,10 +1,9 @@
 {
 	"name": "apache-daffodil-vscode",
-	"displayName": "Apache Daffodil VS Code Extension",
-	"description": "VS Code extension for Apache Daffodil DFDL schema debugging",
-	"version": "1.2.0",
+	"displayName": "Apache Daffodil™ Extension for Visual Studio Code",
+	"description": "Apache Daffodil™ Extension for Visual Studio Code providing DFDL syntax highlighting, DFDL code completion, DFDL schema debugging, and data editor",
+	"version": "1.3.0-SNAPSHOT",
 	"daffodilVersion": "3.4.0",
-	"omegaEditServerHash": "1c11c5711b6cd477023be71d04b070e1289312aaaef5f81fb9ded4e3884b7135ca13e2b2cf7b547e374142167c19789555eeb5d83dbed38ff6dde71c25db5fb7",
 	"publisher": "asf",
 	"author": "Apache Daffodil",
 	"license": "Apache-2.0",
@@ -24,18 +23,18 @@
 		"url": "https://github.com/apache/daffodil-vscode/issues"
 	},
 	"scripts": {
-		"omega-edit-download": "node -e \"require('./build/scripts/omega_edit_download.ts').downloadServer()\"",
-		"precompile": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
-		"compile": "tsc -p ./ && yarn omega-edit-download",
-		"lint": "yarn run prettier src -c",
-		"watch": "yarn omega-edit-download && webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js",
-		"watch2": "tsc -watch -p ./",
+		"gen-version-ts": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
+		"precompile": "yarn gen-version-ts",
+		"compile": "tsc -p ./ && yarn sbt",
+		"lint": "yarn prettier src -c",
+		"prewatch": "yarn gen-version-ts && yarn sbt",
+		"watch": "webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js",
 		"webpack": "webpack --mode production --config ./build/extension.webpack.config.js",
-		"prepackage": "yarn sbt && yarn install && yarn compile && yarn webpack",
+		"prepackage": "yarn install && yarn compile && yarn webpack",
 		"package": "yarn package-setup && yarn package-create",
 		"package-setup": "node -e \"require('./build/scripts/package.ts').setup()\"",
 		"package-create": "node -e \"require('./build/scripts/package.ts').create()\"",
-		"pretest": "yarn run compile && yarn run webpack",
+		"pretest": "yarn compile && yarn webpack",
 		"test": "node ./out/tests/runTest.js --disable_cert_verification",
 		"sbt": "sbt universal:packageBin"
 	},
@@ -45,7 +44,7 @@
 		"child_process": "1.0.2",
 		"google-protobuf": "3.20.1",
 		"hexy": "0.3.4",
-		"omega-edit": "0.9.24",
+		"omega-edit": "0.9.32",
 		"unzip-stream": "0.3.1",
 		"uuid": "^8.3.2",
 		"vscode-debugadapter": "1.51.0",
@@ -302,6 +301,11 @@
 								"description": "Absolute path to the input data file.",
 								"default": "${command:AskForDataName}"
 							},
+							"infosetFormat": {
+								"type": "string",
+								"description": "Infoset format type (xml/json)",
+								"default": "xml"
+							},
 							"infosetOutput": {
 								"type": "object",
 								"description": "Destination for final Infoset (file-path | 'console' | 'none')",
@@ -361,6 +365,7 @@
 						"program": "${command:AskForProgramName}",
 						"stopOnEntry": true,
 						"data": "${command:AskForDataName}",
+						"infosetFormat": "xml",
 						"infosetOutput": {
 							"type": "file",
 							"path": "${workspaceFolder}/infoset.xml"
@@ -383,6 +388,7 @@
 							"program": "^\"\\${command:AskForProgramName}\"",
 							"stopOnEntry": true,
 							"data": "^\"\\${command:AskForDataName}\"",
+							"infosetFormat": "xml",
 							"infosetOutput": {
 								"type": "file",
 								"path": "${workspaceFolder}/infoset.xml"

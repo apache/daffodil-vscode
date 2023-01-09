@@ -95,6 +95,7 @@ function createDebugRunFileConfigs(
           targetResource.fsPath,
           false,
           false,
+          'xml',
           { type: 'file', path: '${workspaceFolder}/' + infosetFile }
         ),
         { noDebug: noDebug }
@@ -215,6 +216,7 @@ export function activateDaffodilDebug(
                 '${file}',
                 false,
                 false,
+                'xml',
                 { type: 'file', path: '${file}-infoset.xml' }
               ),
             ]
@@ -235,6 +237,7 @@ export function activateDaffodilDebug(
               '${file}',
               false,
               false,
+              'xml',
               { type: 'file', path: '${workspaceFolder}/' + infosetFile }
             ),
           ]

@@ -16,15 +16,49 @@
   limitations under the License.
 -->
 
-<xs:schema xmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"
-  xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"
+  xmlns:daf="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext"
+  xmlns:fn="http://www.w3.org/2005/xpath-functions">
 
-  <xs:element name="name">
-    <xs:simpleType>
-      <xs:restriction base="xs:string">
-        <xs:length value="25"/>
-      </xs:restriction>
-    </xs:simpleType>
-  </xs:element>
+  <xs:annotation>
+    <xs:appinfo source="http://www.ogf.org/dfdl/">
+      <dfdl:defineFormat name="testFormat">
+        <dfdl:format alignmentUnits="bytes" lengthUnits="bits" representation="binary" binaryNumberRep="binary" 
+                      byteOrder="bigEndian" bitOrder="mostSignificantBitFirst" lengthKind="implicit" alignment="1" encodingErrorPolicy="replace" 
+                      binaryFloatRep="ieee" calendarPatternKind="implicit" documentFinalTerminatorCanBeMissing="yes" 
+                      emptyValueDelimiterPolicy="none" escapeSchemeRef="" fillByte="f" floating="no" ignoreCase="no" 
+                      initiatedContent="no" initiator="" leadingSkip="0" separator="" separatorSuppressionPolicy="anyEmpty" 
+                      textStandardZeroRep="0" textStandardInfinityRep="Inf" textStandardExponentRep="E" 
+                      textStandardNaNRep="NaN" textNumberPattern="#,##0.###;-#,##0.###" textNumberRounding="explicit" 
+                      textNumberRoundingMode="roundUnnecessary" textNumberRoundingIncrement="0" textStandardGroupingSeparator="," 
+                      separatorPosition="infix" sequenceKind="ordered" terminator="" textBidi="no" textNumberCheckPolicy="strict" 
+                      textNumberRep="standard" textPadKind="none" textStandardBase="10" textTrimKind="none" trailingSkip="0" truncateSpecifiedLengthString="no" 
+                      utf16Width="fixed" encoding="US-ASCII" nilKind="literalValue" nilValueDelimiterPolicy="none" occursCountKind="parsed"
+                      textOutputMinLength="0" />
+        </dfdl:defineFormat>
+        <dfdl:format ref="testFormat"/>
+    </xs:appinfo>
+  </xs:annotation>
+
+  <xs:element name="element">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:sequence>
+					<xs:annotation>
+						<xs:appinfo source="http://www.ogf.org/dfdl/">
+						</xs:appinfo>
+					</xs:annotation>
+				</xs:sequence>
+				<xs:sequence dfdl:hiddenGroupRef="hiddenGroup" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+  <!-- NOTE: Intentionally empty. This is to make sure the file is a correctly defined schema file. -->
+  <xs:group name="hiddenGroup">
+		<xs:sequence>
+		</xs:sequence>
+	</xs:group>
 
 </xs:schema>
