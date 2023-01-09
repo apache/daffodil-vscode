@@ -18,6 +18,7 @@
 // All tests ran here are ones that require the vscode API
 import * as path from 'path'
 import * as cp from 'child_process'
+import { parseArgs } from 'util'
 import {
   runTests,
   resolveCliArgsFromVSCodeExecutablePath,
@@ -25,6 +26,20 @@ import {
 } from '@vscode/test-electron'
 
 async function main() {
+  const {
+    values: { disable_cert_verification },
+  } = parseArgs({
+    options: {
+      disable_cert_verification: {
+        type: 'boolean',
+        short: 'k',
+        default: false,
+      },
+    },
+  })
+  if (disable_cert_verification) {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+  }
   try {
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
@@ -34,7 +49,7 @@ async function main() {
     // Passed to --extensionTestsPath
     const extensionTestsPath = path.resolve(__dirname, './suite/index')
 
-    const vscodeExecutablePath = await downloadAndUnzipVSCode('1.68.0')
+    const vscodeExecutablePath = await downloadAndUnzipVSCode('stable')
     const [cli, ...args] =
       resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath)
 
@@ -48,16 +63,16 @@ async function main() {
       }
     )
 
-    // Download VS Code, unzip it and run the integration test
+    // Download VS Code, unzip it and run the integration tests
     await runTests({
       vscodeExecutablePath,
       extensionDevelopmentPath,
       extensionTestsPath,
     })
   } catch (err) {
-    console.error('Failed to run tests')
+    console.error('Failed to run tests: ' + err)
     process.exit(1)
   }
 }
 
-main()
+main().then()
