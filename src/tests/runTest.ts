@@ -18,7 +18,6 @@
 // All tests ran here are ones that require the vscode API
 import * as path from 'path'
 import * as cp from 'child_process'
-import { parseArgs } from 'util'
 import {
   runTests,
   resolveCliArgsFromVSCodeExecutablePath,
@@ -31,17 +30,10 @@ const DEFAULT_DAFFODIL_TEST_VSCODE_VERSION =
   require('../../package.json').engines.vscode.replace('^', '')
 
 async function main() {
-  const {
-    values: { disable_cert_verification },
-  } = parseArgs({
-    options: {
-      disable_cert_verification: {
-        type: 'boolean',
-        short: 'k',
-        default: false,
-      },
-    },
-  })
+  const disable_cert_verification =
+    process.argv.includes('-k') ||
+    process.argv.includes('--disable_cert_verification')
+
   if (disable_cert_verification) {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
   }

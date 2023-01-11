@@ -32,7 +32,7 @@ object logging {
       s"#${response.request_seq} ${response.command} ${if (response.success) "success" else "failure"} <response body elided>"
     case response =>
       s"#${response.request_seq} ${response.command} ${if (response.success) "success" else "failure"} ${JsonUtils
-        .toJson(response.body)}"
+          .toJson(response.body)}"
   }
 
   implicit val eventShow: Show[DebugEvent] = {

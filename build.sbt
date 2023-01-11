@@ -15,16 +15,20 @@
  * limitations under the License.
  */
 
-import play.api.libs.json._
+val packageJsonStr = scala.io.Source.fromFile("package.json").mkString
 
-lazy val packageData = Json.parse(scala.io.Source.fromFile("./package.json").mkString).as[JsObject]
-lazy val daffodilVer = packageData("daffodilVersion").as[String]
+val daffodilVer = {
+  val daffodilVerRegex = raw""""daffodilVersion": "(.*)",""".r
+  daffodilVerRegex.findFirstMatchIn(packageJsonStr) match {
+    case Some(m) => m.toString.split(":")(1).trim.replaceAll("\"", "").replaceAll(",", "")
+    case None    => sys.error("Missing daffodilVersion specifier in package.json")
+  }
+}
 
 lazy val commonSettings =
   Seq(
     version := {
       val versionRegex = raw""""version": "(.*)",""".r
-      val packageJsonStr = scala.io.Source.fromFile("package.json").mkString
       versionRegex.findFirstMatchIn(packageJsonStr) match {
         case Some(m) => m.group(1)
         case None    => sys.error("Missing version specifier in package.json")
@@ -77,14 +81,17 @@ lazy val core = project
   .settings(
     name := "daffodil-debugger",
     libraryDependencies ++= Seq(
-      "ch.qos.logback" % "logback-classic" % "1.2.11",
-      // NOTE: To support Java 8 this dependency can not go above version 0.34.0.
+      /* NOTE: To support Java 8:
+       *   logback-classic can not go above version 1.2.11.
+       *   com.microsoft.java.debug.core can not go above version 0.34.0.
+       */
       // scala-steward:off
+      "ch.qos.logback" % "logback-classic" % "1.2.11",
       "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.34.0",
       // scala-steward:on
-      "co.fs2" %% "fs2-io" % "3.2.10",
-      "com.monovore" %% "decline-effect" % "2.3.0",
-      "org.typelevel" %% "log4cats-slf4j" % "2.4.0"
+      "co.fs2" %% "fs2-io" % "3.2.14",
+      "com.monovore" %% "decline-effect" % "2.3.1",
+      "org.typelevel" %% "log4cats-slf4j" % "2.5.0"
     ),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer),
     buildInfoPackage := "org.apache.daffodil.debugger.dap",
