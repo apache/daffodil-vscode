@@ -46,7 +46,7 @@
 		"hexy": "0.3.4",
 		"omega-edit": "0.9.32",
 		"unzip-stream": "0.3.1",
-		"uuid": "^8.3.2",
+		"uuid": "^9.0.0",
 		"vscode-debugadapter": "1.51.0",
 		"wait-port": "^0.3.0",
 		"xdg-app-paths": "7.3.0"
