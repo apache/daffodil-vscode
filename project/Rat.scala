@@ -22,8 +22,8 @@ object Rat {
   lazy val excludes = Seq(
     // git files
     file(".git"),
-    /** Can't add license headers in JSON files.
-      * Adding a license attribute breaks things in some of these fiels as well.
+    /** Can't add license headers in JSON files. Adding a license attribute breaks things in some of these files as
+      * well.
       */
     file("language/dfdl.json"),
     file("language/syntax.json"),

@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This workflow will launch at 00:00 every Sunday
+# This workflow will launch at 00:00 the 1st of every month
 # This file is based on docs from https://github.com/scala-steward-org/scala-steward-action
 on:
   schedule:
-    - cron: "0 0 * * 0"
+    - cron: "0 0 1 * *"
 
 name: Scala Steward CI
 

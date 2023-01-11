@@ -121,7 +121,9 @@ object Parse {
     def events(): Stream[IO, Events.DebugEvent] =
       events
 
-    /** We return only the "static" sources of the schema and data file, and notify the debugger of additional sources, if any, via source change events, which only subsequently fetch the content directly via `sourceContent`. */
+    /** We return only the "static" sources of the schema and data file, and notify the debugger of additional sources,
+      * if any, via source change events, which only subsequently fetch the content directly via `sourceContent`.
+      */
     def sources(): IO[List[DAPodil.Source]] =
       IO.pure(List(schema, data))
 
@@ -378,7 +380,8 @@ object Parse {
 
   /** Transform Daffodil state to a DAP stack frame.
     *
-    * @see https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
+    * @see
+    *   https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
     */
   def createFrame(
       startElement: Parse.Event.StartElement,
@@ -671,7 +674,9 @@ object Parse {
   /** Behavior of a stepping debugger that can be running or stopped. */
   sealed trait Control {
 
-    /** Blocks if the current state is stopped, unblocking when a `step` or `continue` happens. Returns true if blocking happened, false otherwise. */
+    /** Blocks if the current state is stopped, unblocking when a `step` or `continue` happens. Returns true if blocking
+      * happened, false otherwise.
+      */
     def await(): IO[Boolean]
 
     /** Start running. */
@@ -679,8 +684,8 @@ object Parse {
 
     /** If stopped, advance one "step", remaining stopped.
       *
-      * IMPORTANT: Shouldn't return until any work blocked by
-      * an `await` completes, otherwise the update that was waiting will race with the code that sees the `step` complete.
+      * IMPORTANT: Shouldn't return until any work blocked by an `await` completes, otherwise the update that was
+      * waiting will race with the code that sees the `step` complete.
       */
     def step(): IO[Unit]
 
@@ -752,9 +757,9 @@ object Parse {
       }
   }
 
-  /** The Daffodil `Debugger` interface is asynchronously invoked from a running parse,
-    * and always returns `Unit`. In order to invoke effects like `IO` but return `Unit`,
-    * we use a `Dispatcher` to execute the effects at this "outermost" layer (with respect to the effects).
+  /** The Daffodil `Debugger` interface is asynchronously invoked from a running parse, and always returns `Unit`. In
+    * order to invoke effects like `IO` but return `Unit`, we use a `Dispatcher` to execute the effects at this
+    * "outermost" layer (with respect to the effects).
     */
   class DaffodilDebugger(
       dispatcher: Dispatcher[IO],
@@ -824,7 +829,9 @@ object Parse {
       bos.toString("UTF-8")
     }
 
-    /** If the current location is a breakpoint, pause the control and update the state to notify the breakpoint was hit. */
+    /** If the current location is a breakpoint, pause the control and update the state to notify the breakpoint was
+      * hit.
+      */
     def checkBreakpoints(location: DAPodil.Location): IO[Unit] =
       breakpoints
         .shouldBreak(location)

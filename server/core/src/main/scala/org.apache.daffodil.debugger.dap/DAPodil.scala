@@ -173,7 +173,7 @@ class DAPodil(
       case extract(Command.PAUSE, _)                                     => pause(request)
       case extract(Command.DISCONNECT, args: DisconnectArguments)        => disconnect(request, args)
       case extract(Command.EVALUATE, args: EvaluateArguments)            => eval(request, args)
-      case _                                                             => Logger[IO].warn(show"unhandled request $request") *> session.sendResponse(request.respondFailure())
+      case _ => Logger[IO].warn(show"unhandled request $request") *> session.sendResponse(request.respondFailure())
     }
 
   /** State.Uninitialized -> State.Initialized */
@@ -475,7 +475,9 @@ object DAPodil extends IOApp {
       _ <- Logger[IO].info(s"disconnected at $uri")
     } yield done
 
-  /** Returns a resource that launches the "DAPodil" debugger given a DAP session, returning an effect that waits until the debugger stops or the session ends. */
+  /** Returns a resource that launches the "DAPodil" debugger given a DAP session, returning an effect that waits until
+    * the debugger stops or the session ends.
+    */
   def resource(
       session: DAPSession[Request, Response, DebugEvent],
       debugee: Request => EitherNel[String, Resource[IO, Debugee]]
@@ -537,7 +539,9 @@ object DAPodil extends IOApp {
 
         object Reason {
 
-          /** The launch requested "stop on entry", i.e., stop at the "first" possible place. May only be received once as the first stopped reason. */
+          /** The launch requested "stop on entry", i.e., stop at the "first" possible place. May only be received once
+            * as the first stopped reason.
+            */
           case object Entry extends Reason
 
           /** The user requested a pause. */
@@ -743,7 +747,8 @@ object DAPodil extends IOApp {
       LoadedSources(sources.map(_.toDAP).asJava)
   }
 
-  /** Our own capabilities data type that is a superset of java-debug, which doesn't have `supportsLoadedSourcesRequest`.
+  /** Our own capabilities data type that is a superset of java-debug, which doesn't have
+    * `supportsLoadedSourcesRequest`.
     *
     * TODO: VS Code doesn't seem to notice supportsRestartRequest=true and sends Disconnect (+restart) requests instead
     */
