@@ -69,7 +69,13 @@ async function main() {
     // Install required extensions
     cp.spawnSync(
       cli,
-      [...args, '--install-extension', 'vincaslt.highlight-matching-tag'],
+      [
+        ...args,
+        '--install-extension',
+        'vincaslt.highlight-matching-tag',
+        '--install-extension',
+        'wmanth.jar-viewer',
+      ],
       {
         encoding: 'utf-8',
         stdio: 'inherit',
