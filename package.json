@@ -68,7 +68,8 @@
 		"webpack-cli": "4.10.0"
 	},
 	"extensionDependencies": [
-		"vincaslt.highlight-matching-tag"
+		"vincaslt.highlight-matching-tag",
+		"wmanth.jar-viewer"
 	],
 	"main": "./dist/ext/extension.js",
 	"activationEvents": [
