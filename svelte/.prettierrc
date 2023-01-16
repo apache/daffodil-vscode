@@ -1,4 +1,5 @@
 {
+  "plugins": ["prettier-plugin-svelte"],
   "semi": false,
   "singleQuote": true,
   "tabWidth": 2,

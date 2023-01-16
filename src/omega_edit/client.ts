@@ -29,6 +29,7 @@ let serverRunning = false
 let serverTerminal: vscode.Terminal | undefined
 const xdgAppPaths = XDGAppPaths({ name: 'omega_edit' })
 let rootPath = xdgAppPaths.data()
+import { WebView } from './webView'
 
 // Method to get omega-edit version from a JSON file
 export function getOmegaEditPackageVersion(filePath: fs.PathLike) {
@@ -101,14 +102,8 @@ async function createOmegaEditWebviewPanel(
   filePassed: string,
   subscribeToViewports: boolean
 ) {
-  let panel = vscode.window.createWebviewPanel(
-    'viewport',
-    'Data Editor',
-    vscode.ViewColumn.One,
-    {
-      enableScripts: true,
-    }
-  )
+  const dataEditorView = new WebView(ctx, 'dataEditor', 'Data Editor')
+  dataEditorView.show()
 
   let fileToEdit =
     filePassed !== ''
@@ -126,10 +121,8 @@ async function createOmegaEditWebviewPanel(
             }
           })
 
-  panel.webview.html = getWebviewContent(ctx)
-
   let s = await omegaEditSession.createSession(fileToEdit, uuidv4())
-  panel.webview.postMessage({
+  dataEditorView.panel.webview.postMessage({
     command: 'setSessionFile',
     filePath: fileToEdit,
   })
@@ -141,13 +134,19 @@ async function createOmegaEditWebviewPanel(
 
   // This break CI so option was added to skip it during CI
   if (subscribeToViewports) {
-    await viewportSubscribe(panel, vpAll, vpAll, 'vpAll', 'hexAll')
-    await viewportSubscribe(panel, vpAll, vp1, 'viewport1', null)
-    await viewportSubscribe(panel, vpAll, vp2, 'viewport2', null)
-    await viewportSubscribe(panel, vpAll, vp3, 'viewport3', null)
+    await viewportSubscribe(
+      dataEditorView.panel,
+      vpAll,
+      vpAll,
+      'vpAll',
+      'hexAll'
+    )
+    await viewportSubscribe(dataEditorView.panel, vpAll, vp1, 'viewport1', null)
+    await viewportSubscribe(dataEditorView.panel, vpAll, vp2, 'viewport2', null)
+    await viewportSubscribe(dataEditorView.panel, vpAll, vp3, 'viewport3', null)
   }
 
-  panel.webview.onDidReceiveMessage(
+  dataEditorView.panel.webview.onDidReceiveMessage(
     async (message) => {
       if (message.command === 'printChangeCount') {
         vscode.window.showInformationMessage(message.changeCount)
@@ -159,7 +158,7 @@ async function createOmegaEditWebviewPanel(
         message.offset,
         message.data,
         message.len,
-        panel
+        dataEditorView.panel
       )
 
       var fileSize = await omegaEditSession.getComputedFileSize(s)
@@ -188,10 +187,10 @@ async function createOmegaEditWebviewPanel(
     ctx.subscriptions
   )
 
-  panel.onDidDispose(
+  dataEditorView.panel.onDidDispose(
     async () => {
       await cleanupViewportSession(s, [vpAll, vp1, vp2, vp3])
-      panel.dispose()
+      dataEditorView.dispose()
       await serverTerminal?.processId.then(async (id) => await killProcess(id))
       serverRunning = false
       vscode.window.showInformationMessage('omega-edit server stopped!')
@@ -200,25 +199,5 @@ async function createOmegaEditWebviewPanel(
     ctx.subscriptions
   )
 
-  return panel
-}
-
-function getWebviewContent(ctx: vscode.ExtensionContext) {
-  const scriptUri = vscode.Uri.parse(
-    ctx.asAbsolutePath('./src/omega_edit/omega_edit.js')
-  )
-  const styleUri = vscode.Uri.parse(
-    ctx.asAbsolutePath('./src/styles/styles.css')
-  )
-  const uiUri = vscode.Uri.parse(
-    ctx.asAbsolutePath('./src/omega_edit/interface.html')
-  )
-  const scriptData = fs.readFileSync(scriptUri.fsPath)
-  const styleData = fs.readFileSync(styleUri.fsPath)
-  const uiData = fs.readFileSync(uiUri.fsPath)
-
-  return uiData
-    .toString()
-    .replace("'<SCRIPT_DATA>'", `${scriptData}`)
-    .replace('<style></style>', `<style>${styleData}</style>`)
+  return dataEditorView
 }

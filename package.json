@@ -23,10 +23,12 @@
 		"url": "https://github.com/apache/daffodil-vscode/issues"
 	},
 	"scripts": {
+		"postinstall": "cd svelte && yarn install",
 		"gen-version-ts": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
-		"precompile": "yarn gen-version-ts",
+		"precompile": "yarn gen-version-ts && cd svelte && yarn build",
 		"compile": "tsc -p ./ && yarn sbt",
-		"lint": "yarn prettier src -c",
+		"lint": "yarn prettier src -c && cd svelte && yarn lint",
+		"lint:fix": "yarn prettier src -w && cd svelte && yarn lint:fix",
 		"prewatch": "yarn gen-version-ts && yarn sbt",
 		"watch": "webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js",
 		"webpack": "webpack --mode production --config ./build/extension.webpack.config.js",
@@ -59,7 +61,7 @@
 		"@vscode/test-electron": "2.1.5",
 		"glob": "8.0.3",
 		"mocha": "10.0.0",
-		"prettier": "2.7.1",
+		"prettier": "^2.8.3",
 		"ts-loader": "8.1.0",
 		"typescript": "4.3.5",
 		"vsce": "2.15.0",
@@ -246,7 +248,7 @@
 			},
 			{
 				"command": "omega_edit.version",
-				"title": "Omega Edit Ω Version Info",
+				"title": "Ωedit Version Info",
 				"category": "OmegaEdit",
 				"enablement": "experimentalFeaturesEnabled"
 			},

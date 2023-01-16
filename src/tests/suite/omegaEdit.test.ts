@@ -134,7 +134,7 @@ suite('omega-edit Test Suite', () => {
 
   suite('omega-edit commands', () => {
     test('omega_edit.version returns correct version', async () => {
-      let version = await vscode.commands.executeCommand(
+      const version = await vscode.commands.executeCommand(
         'omega_edit.version',
         false
       )
