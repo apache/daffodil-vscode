@@ -23,6 +23,7 @@
 # Apache Daffodil™ Extension for Visual Studio Code
 
 [![CI](https://github.com/apache/daffodil-vscode/workflows/CI/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/CI.yml)
+[![Nightly Tests](https://github.com/apache/daffodil-vscode/actions/workflows/nightly.yml/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/nightly.yml)
 
 </div>
 
@@ -30,14 +31,28 @@ This is an extension for Visual Studio Code (VS Code) which enables the interact
 
 ## Build Requirements
 
-- Java Development Kit (JDK) 11 or higher
+- Java Development Kit (JDK) 8 or higher
 - SBT 0.13.8 or higher
 - Node 10 or higher
 - Yarn (https://yarnpkg.com/getting-started/install)
 
-## Download - Prebuilt
+## Download
 
-Until the extension is available in the [VS Code Extension Marketplace](https://marketplace.visualstudio.com/vscode), please download the latest `.vsix` file from the [releases page](https://github.com/apache/daffodil-vscode/releases).
+### VS Code Marketplace
+
+The easiest way to install the extension is through the VS Code Extension Marketplace. The steps are as follow:
+
+- `Ctrl+P` (windown/linux) OR `Command+P` (macos)
+- Type in `ext install ASF.apache-daffodil-vscode`, then hit `Enter`. This will begin installing the extension.
+
+### Prebuilt VSIX
+
+If you wish to download the VSIX file instead, perhaps to install a previous version of the extension. The prebuilt VSIX files used to released the extension are available at [Apache Daffodil VS Code Release Page](https://daffodil.apache.org/vscode/). The steps are as follow:
+
+- Navigate to [Apache Daffodil VS Code Release Page](https://daffodil.apache.org/vscode/).
+- Click on a release version.
+- On the next page you will see `Binaries` click on the file listed to begin the download.
+- See the `Installation From File` section for installing the prebuilt file.
 
 ## Package VSIX and Debugger
 
@@ -72,9 +87,9 @@ If you wish to run the debug server manually the scripts to do so are at the fol
   * Mac = `/Users/USERNAME/Library/Application\ Support/daffodil-dap`
   * Windows = `C:\\Users\\USERNAME\\AppData\\Roaming\\daffodil-dap`
 
-## Installation
+## Installation From File
 
-Once you have either downloaded the VSIX file or created it you can now install it. There are two options to do this:
+Once you have either downloaded the VSIX file or created it, you can now install it. There are two options to do this:
 
 * Via "Extensions: Install from VSIX" command from within VS Code.
   * Open the Command Palette with Shift-Command-P (Mac) OR Shift-Ctrl-P (Windows/Linux)
