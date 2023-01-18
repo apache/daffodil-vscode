@@ -424,35 +424,10 @@ limitations under the License.
       } else {
         keyEvent.preventDefault()
       }
-      // else if (['Backspace', "Delete"].some((type)=> key.startsWith(type))){
-      //   let len = editor_state.editor_elements.editor.value.length
-      //   if(editor_state.editor_controls.edit_encoding === 'hex') {
-      //     len = len / 2
-      //     editor_state.editor_elements.commit_button.disabled = (len % 1 != 0)
-      //     if( len % 1 != 0 ) { // Total length off by 1 nibble
-      //       ++editor_state.editor_controls.length
-      //     }
-      //   }
-      //   editor_state.editor_elements.selected_offsets.innerHTML =
-      //     'Edited: ' +
-      //     editor_state.editor_controls.offset +
-      //     ' - ' +
-      //     (editor_state.editor_controls.offset + (-editor_state.editor_controls.length) )  +
-      //     ', length: ' +
-      //     Math.ceil(len)
-      //   storeCursorPos()
-      //   updateDataView()
-      // }
       let len = editor_state.editor_elements.editor.value.length
       if (editor_state.editor_controls.edit_encoding != 'hex') {
         len = len / 2
       }
-      //   || (key.match(/^[0-9a-fA-F]*$/) && editor_state.editor_controls.edit_encoding === 'hex')){
-      //   --editor_state.editor_controls.length
-      // }
-      // else if( (!(key.match(/^[0-9a-fA-F]*$/)) && editor_state.editor_controls.edit_encoding === 'hex')) {
-      //   editor_state.editor_elements.editor.innerHTML = editor_state.editor_elements.editor.innerHTML.replace(/[^0-9a-fA-F]/g, "")
-      // }
       editor_state.editor_elements.selected_offsets.innerHTML =
         'Edited: ' +
         editor_state.editor_controls.offset +
