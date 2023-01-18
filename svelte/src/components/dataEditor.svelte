@@ -464,7 +464,7 @@ limitations under the License.
       updateDataView()
     }
     // Lock the address, physical and logical views scrollbars together
-    let currentScrollEvt: string | null, scrollSyncTimer: number
+    let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
     editor_state.editor_elements.physical.onscroll = () => {
       if (!currentScrollEvt || currentScrollEvt === 'physical') {
         clearTimeout(scrollSyncTimer)
@@ -602,34 +602,6 @@ limitations under the License.
     }
   }
 
-  function refreshEditor() {
-    try {
-      editor_state.editor_elements.editor.value = Buffer.from(
-        editor_state.edit_content
-      ).toString(editor_state.editor_controls.edit_encoding)
-    } catch (e) {
-      console.error(
-        'decoding into ' +
-          editor_state.editor_controls.edit_encoding +
-          ' failed: ' +
-          e
-      )
-      editor_state.editor_elements.editor.value = new TextDecoder().decode(
-        editor_state.edit_content
-      )
-    }
-    console.log(
-      'compare: ' +
-        Buffer.compare(
-          Buffer.from(
-            editor_state.editor_elements.editor.value,
-            editor_state.editor_controls.edit_encoding
-          ),
-          new Uint8Array(editor_state.edit_content)
-        )
-    )
-  }
-
   function selectEditEncoding(editEncoding: string) {
     editor_state.editor_controls.edit_encoding = editEncoding as BufferEncoding
     editor_state.editor_elements.editor.selectionStart =
@@ -645,7 +617,7 @@ limitations under the License.
       encoding: editor_state.editor_controls.edit_encoding,
       radix: editor_state.editor_controls.radix,
     }
-    console.log(editorMsg)
+    
     vscode.postMessage({
       command: MessageCommand.editorOnChange,
       data: { editor: editorMsg },
@@ -874,18 +846,15 @@ limitations under the License.
   function handleSelected(selected: HTMLTextAreaElement) {
     let selectionStart = selected.selectionStart as number
     let selectionEnd = selected.selectionEnd as number
-
+    let selectionOffsetsByRadix = {
+      2: {start: selectionStart / 9, end: (selectionEnd - 8) / 9 + 1},
+      8: {start: selectionStart / 4, end: (selectionEnd - 3) / 4 + 1},
+      10: {start: selectionStart / 4, end: (selectionEnd - 3) / 4 + 1},
+      16: {start: selectionStart / 3, end: (selectionEnd - 2) / 3 + 1},
+    }
     if (selected.id === 'physical') {
-      if (
-        editor_state.editor_controls.radix === 2 &&
-        editor_state.editor_controls.address_numbering === 2
-      ) {
-        selectionStart = selectionStart / 9
-        selectionEnd = (selectionEnd - 8) / 9 + 1
-      } else {
-        selectionStart = selectionStart / 3
-        selectionEnd = (selectionEnd - 2) / 3 + 1
-      }
+      selectionStart = selectionOffsetsByRadix[editor_state.editor_controls.radix].start
+      selectionEnd = selectionOffsetsByRadix[editor_state.editor_controls.radix].end
     } else {
       selectionStart = selectionStart / 2
       selectionEnd = (selectionEnd + 1) / 2
@@ -898,6 +867,7 @@ limitations under the License.
       selectionStart,
       selectionEnd
     )
+
     editor_state.editor_elements.editor.scrollTo(0, 0)
     editor_state.editor_elements.selected_offsets.innerHTML =
       selected.id +
@@ -919,7 +889,6 @@ limitations under the License.
       radix: parseInt(editor_state.editor_elements.radix.value),
     }
 
-    console.log(editorMsg)
     vscode.postMessage({
       command: MessageCommand.editorOnChange,
       data: { editor: editorMsg },
@@ -936,12 +905,14 @@ limitations under the License.
   function frameSelected(selected: HTMLTextAreaElement) {
     let selectionStart = selected.selectionStart as number
     let selectionEnd = selected.selectionEnd as number
+
     if (selectionStart % 2 === 1) {
       ++selectionStart
     }
     if (selectionEnd % 2 === 0) {
       --selectionEnd
     }
+    
     selected.selectionStart = selectionStart
     selected.selectionEnd = selectionEnd
     return selected
