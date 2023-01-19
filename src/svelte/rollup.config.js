@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import svelte from 'rollup-plugin-svelte'
 import resolve from '@rollup/plugin-node-resolve'
+import typescript from '@rollup/plugin-typescript'
+import multiInput from 'rollup-plugin-multi-input'
+import scss from 'rollup-plugin-scss'
+import svelte from 'rollup-plugin-svelte'
 import { terser } from 'rollup-terser'
 import sveltePreprocess from 'svelte-preprocess'
-import typescript from '@rollup/plugin-typescript'
-import scss from 'rollup-plugin-scss'
-import multiInput from 'rollup-plugin-multi-input'
 
 const production = !process.env.ROLLUP_WATCH
 
@@ -30,7 +30,7 @@ export default {
   output: {
     sourcemap: !production,
     format: 'esm',
-    dir: 'dist',
+    dir: '../../dist',
   },
   plugins: [
     multiInput.default(),
@@ -66,7 +66,7 @@ export default {
       module: 'ESNext',
       compilerOptions: {
         rootDir: 'src',
-        outDir: 'dist',
+        outDir: '../../dist',
       },
     }),
 

@@ -83,20 +83,14 @@ export class SvelteWebviewInitializer {
   private getSvelteAppDistributionFolderUri(
     context: vscode.ExtensionContext
   ): vscode.Uri {
-    return vscode.Uri.joinPath(context.extensionUri, 'svelte', 'dist')
+    return vscode.Uri.joinPath(context.extensionUri, 'dist')
   }
 
   private getSvelteAppDistributionViewFolderUri(
     context: vscode.ExtensionContext,
     view: string
   ): vscode.Uri {
-    return vscode.Uri.joinPath(
-      context.extensionUri,
-      'svelte',
-      'dist',
-      'views',
-      view
-    )
+    return vscode.Uri.joinPath(context.extensionUri, 'dist', 'views', view)
   }
 
   private getSvelteAppDistributionIndexJsUri(
@@ -105,7 +99,6 @@ export class SvelteWebviewInitializer {
   ): vscode.Uri {
     return vscode.Uri.joinPath(
       context.extensionUri,
-      'svelte',
       'dist',
       'views',
       view,
@@ -114,12 +107,7 @@ export class SvelteWebviewInitializer {
   }
 
   private getStylesUri(context: vscode.ExtensionContext): vscode.Uri {
-    return vscode.Uri.joinPath(
-      context.extensionUri,
-      'svelte',
-      'dist',
-      'styles.css'
-    )
+    return vscode.Uri.joinPath(context.extensionUri, 'dist', 'styles.css')
   }
 
   private getCodeIconsUri(context: vscode.ExtensionContext): vscode.Uri {

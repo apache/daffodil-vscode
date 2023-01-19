@@ -23,12 +23,12 @@
 		"url": "https://github.com/apache/daffodil-vscode/issues"
 	},
 	"scripts": {
-		"postinstall": "cd svelte && yarn install",
+		"postinstall": "cd src/svelte && yarn install",
 		"gen-version-ts": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
-		"precompile": "yarn gen-version-ts && cd svelte && yarn build",
+		"precompile": "yarn gen-version-ts && cd src/svelte && yarn build",
 		"compile": "tsc -p ./ && yarn sbt",
-		"lint": "yarn prettier src -c && cd svelte && yarn lint",
-		"lint:fix": "yarn prettier src -w && cd svelte && yarn lint:fix",
+		"lint": "yarn prettier src -c && cd src/svelte && yarn lint",
+		"lint:fix": "yarn prettier src -w && cd src/svelte && yarn lint:fix",
 		"prewatch": "yarn gen-version-ts && yarn sbt",
 		"watch": "webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js",
 		"webpack": "webpack --mode production --config ./build/extension.webpack.config.js",

@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as omegaEditSession from 'omega-edit/session'
-import * as omegaEditViewport from 'omega-edit/viewport'
 import * as omegaEditVersion from 'omega-edit/version'
-import { startOmegaEditServer, viewportSubscribe } from './utils'
-import { OmegaEdit } from './omega_edit'
+import * as omegaEditViewport from 'omega-edit/viewport'
 import { v4 as uuidv4 } from 'uuid'
+import * as vscode from 'vscode'
 import XDGAppPaths from 'xdg-app-paths'
 import { killProcess } from '../utils'
+import { OmegaEdit } from './omega_edit'
+import { startOmegaEditServer, viewportSubscribe } from './utils'
+import { WebView } from './webView'
 let serverRunning = false
 let serverTerminal: vscode.Terminal | undefined
 const xdgAppPaths = XDGAppPaths({ name: 'omega_edit' })
 let rootPath = xdgAppPaths.data()
-import { WebView } from './webView'
 
 // Method to get omega-edit version from a JSON file
 export function getOmegaEditPackageVersion(filePath: fs.PathLike) {
