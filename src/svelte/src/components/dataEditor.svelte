@@ -23,6 +23,8 @@ limitations under the License.
     vsCodeOption,
     vsCodeTextField,
   } from '@vscode/webview-ui-toolkit'
+  import { answer } from '../stores'
+
   provideVSCodeDesignSystem().register(
     vsCodeButton(),
     vsCodeCheckbox(),
@@ -592,7 +594,7 @@ limitations under the License.
       encoding: editor_state.editor_controls.edit_encoding,
       radix: editor_state.editor_controls.radix,
     }
-    
+
     vscode.postMessage({
       command: MessageCommand.editorOnChange,
       data: { editor: editorMsg },
@@ -822,14 +824,16 @@ limitations under the License.
     let selectionStart = selected.selectionStart as number
     let selectionEnd = selected.selectionEnd as number
     let selectionOffsetsByRadix = {
-      2: {start: selectionStart / 9, end: (selectionEnd - 8) / 9 + 1},
-      8: {start: selectionStart / 4, end: (selectionEnd - 3) / 4 + 1},
-      10: {start: selectionStart / 4, end: (selectionEnd - 3) / 4 + 1},
-      16: {start: selectionStart / 3, end: (selectionEnd - 2) / 3 + 1},
+      2: { start: selectionStart / 9, end: (selectionEnd - 8) / 9 + 1 },
+      8: { start: selectionStart / 4, end: (selectionEnd - 3) / 4 + 1 },
+      10: { start: selectionStart / 4, end: (selectionEnd - 3) / 4 + 1 },
+      16: { start: selectionStart / 3, end: (selectionEnd - 2) / 3 + 1 },
     }
     if (selected.id === 'physical') {
-      selectionStart = selectionOffsetsByRadix[editor_state.editor_controls.radix].start
-      selectionEnd = selectionOffsetsByRadix[editor_state.editor_controls.radix].end
+      selectionStart =
+        selectionOffsetsByRadix[editor_state.editor_controls.radix].start
+      selectionEnd =
+        selectionOffsetsByRadix[editor_state.editor_controls.radix].end
     } else {
       selectionStart = selectionStart / 2
       selectionEnd = (selectionEnd + 1) / 2
@@ -887,7 +891,7 @@ limitations under the License.
     if (selectionEnd % 2 === 0) {
       --selectionEnd
     }
-    
+
     selected.selectionStart = selectionStart
     selected.selectionEnd = selectionEnd
     return selected
@@ -1108,7 +1112,7 @@ limitations under the License.
       <label for="advanced_mode"
         >Advanced Mode
         <vscode-checkbox id="advanced_mode" checked />
-      </label>
+      </label><br />The Answer: {$answer}
     </div>
   </fieldset>
 </header>
