@@ -21,6 +21,7 @@ import {
   nearestOpen,
   checkBraceOpen,
   getXsdNsPrefix,
+  getItemsOnLineCount,
 } from './utils'
 
 export function getCloseElementSlashProvider() {
@@ -36,42 +37,99 @@ export function getCloseElementSlashProvider() {
         const triggerText = document
           .lineAt(position)
           .text.substring(0, position.character)
-        const nearestOpenItem = nearestOpen(document, position)
+        var nearestOpenItem = nearestOpen(document, position)
+        const itemsOnLine = getItemsOnLineCount(triggerText)
         if (checkBraceOpen(document, position)) {
           return undefined
         }
-        if (
-          triggerText.endsWith('/') &&
-          (triggerText.includes('<' + nsPrefix + 'element') ||
-            nearestOpenItem.includes('element') ||
-            triggerText.includes('<' + nsPrefix + 'group') ||
-            nearestOpenItem.includes('group') ||
-            triggerText.includes('<' + nsPrefix + 'sequence') ||
-            nearestOpenItem.includes('sequence'))
-        ) {
+        if (triggerText.endsWith('/')) {
           var range = new vscode.Range(backpos, position)
           vscode.window.activeTextEditor?.edit((editBuilder) => {
             editBuilder.replace(range, '')
           })
-          insertSnippet(' />$0', backpos)
-        }
-        if (
-          triggerText.endsWith('/') &&
-          (triggerText.includes('dfdl:defineVariable') ||
-            triggerText.includes('dfdl:setVariable') ||
-            nearestOpenItem.includes('defineVariable') ||
-            nearestOpenItem.includes('setVariable'))
-        ) {
-          var startPos = document.lineAt(position).text.indexOf('<', 0)
-          var range = new vscode.Range(backpos, position)
-          vscode.window.activeTextEditor?.edit((editBuilder) => {
-            editBuilder.replace(range, '')
-          })
-          insertSnippet('/>\n', backpos)
-          var backpos2 = position.with(position.line + 1, startPos - 2)
-          insertSnippet('</<' + nsPrefix + 'appinfo>\n', backpos2)
-          var backpos3 = position.with(position.line + 2, startPos - 4)
-          insertSnippet('</<' + nsPrefix + 'annotation>$0', backpos3)
+          if ((itemsOnLine == 1) || (itemsOnLine == 0)) {
+            if (
+              triggerText.includes('<' + nsPrefix + 'element') ||
+              nearestOpenItem.includes('element') ||
+              triggerText.includes('<' + nsPrefix + 'group') ||
+              nearestOpenItem.includes('group') ||
+              triggerText.includes('<' + nsPrefix + 'sequence') ||
+              nearestOpenItem.includes('sequence')
+            ) {
+              if(itemsOnLine == 1) {
+                insertSnippet(' />$0', backpos)
+              }
+              if(itemsOnLine == 0) {
+                const backpos3 = position.with(position.line, position.character - 3)
+                insertSnippet('</' + nsPrefix + nearestOpenItem + '>$0', backpos3)
+              }
+            }
+            if (
+              triggerText.includes('dfdl:defineVariable') ||
+              triggerText.includes('dfdl:setVariable') ||
+              nearestOpenItem.includes('defineVariable') ||
+              nearestOpenItem.includes('setVariable')
+            ) {
+              var startPos = document.lineAt(position).text.indexOf('<', 0)
+              var range = new vscode.Range(backpos, position)
+              vscode.window.activeTextEditor?.edit((editBuilder) => {
+                editBuilder.replace(range, '')
+              })
+              insertSnippet('/>\n', backpos)
+              var backpos2 = position.with(position.line + 1, startPos - 2)
+              insertSnippet('</' + nsPrefix + 'appinfo>\n', backpos2)
+              var backpos3 = position.with(position.line + 2, startPos - 4)
+              insertSnippet('</' + nsPrefix + 'annotation>$0', backpos3)
+            }
+          }
+          if (itemsOnLine > 1) {
+            if (
+              triggerText.includes('<' + nsPrefix + 'element') &&
+              nearestOpenItem.includes('element')
+            ) {
+              insertSnippet(' />$0', backpos)
+            } else if (
+              triggerText.includes('<' + nsPrefix + 'sequence') &&
+              nearestOpenItem.includes('sequence')
+            ) {
+              if (
+                triggerText
+                  .substring(
+                    triggerText.lastIndexOf('<' + nsPrefix + 'sequence')
+                  )
+                  .includes('sequence>') ||
+                triggerText.includes('</' + nsPrefix + 'sequence>')
+              ) {
+                insertSnippet('</' + nsPrefix + 'sequence>$0', backpos)
+              } else {
+                insertSnippet(' />$0', backpos)
+              }
+            } else if (
+              triggerText.includes('<' + nsPrefix + 'group') &&
+              nearestOpenItem.includes('group')
+            ) {
+              const tagPos = triggerText.lastIndexOf('<' + nsPrefix + 'group')
+              const nextTagPos = triggerText.indexOf('<', tagPos + 1)
+              if (
+                triggerText.substr(tagPos, nextTagPos).includes('>') ||
+                triggerText.includes('</' + nsPrefix + 'group')
+              ) {
+                insertSnippet('</' + nsPrefix + 'group>$0', backpos)
+              } else {
+                insertSnippet(' />$0', backpos)
+              }
+            }
+          }
+          /*if(( (nearestOpenItem = nearestOpen(document, position)) !== 'none' )  && 
+            (!triggerText.includes(nearestOpenItem)) ){
+            var startPos = document.lineAt(position).text.indexOf('<', 0)
+            var range = new vscode.Range(backpos, position)
+            vscode.window.activeTextEditor?.edit((editBuilder) => {
+              editBuilder.replace(range, '')
+            })
+            var backpos2 = position.with(position.line + 1, startPos - 2)
+            insertSnippet('</' + nsPrefix + nearestOpenItem + '>$0', backpos2)
+          }*/
         }
         return undefined
       },
