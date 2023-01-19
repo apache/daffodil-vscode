@@ -785,11 +785,6 @@ conditions of the following licenses.
     OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-- 'child_process' in extension/dist/ext/extension.js
-  This product bundles 'child_process' from the above files.
-  This package is available under the ISC License:
-    NO LICENSE https://www.npmjs.com/package/child_process
-
 - 'cliui' in extension/dist/ext/extension.js
 - 'y18n' in extension/dist/ext/extension.js
 - 'yargs-parser' in extension/dist/ext/extension.js
