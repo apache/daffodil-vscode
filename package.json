@@ -248,14 +248,12 @@
 			{
 				"command": "omega_edit.version",
 				"title": "Ωedit Version Info",
-				"category": "OmegaEdit",
-				"enablement": "experimentalFeaturesEnabled"
+				"category": "OmegaEdit"
 			},
 			{
 				"command": "data.edit",
 				"title": "Data Editor",
-				"category": "OmegaEdit",
-				"enablement": "experimentalFeaturesEnabled"
+				"category": "OmegaEdit"
 			},
 			{
 				"command": "position.goto",
