@@ -37,21 +37,51 @@ export function checkLastItemOpen(
   position: vscode.Position
 ) {
   var lineNum = position.line
-  const triggerText = document.lineAt(lineNum).text
+  const nsPrefix = getXsdNsPrefix(document, position)
+  const triggerText = document.lineAt(lineNum).text.trim()
   while (triggerText.length === 0) {
     --lineNum
   }
-  const previousLine = document.lineAt(lineNum).text
-  return !(
-    previousLine.includes('</') ||
-    previousLine.includes('/>') ||
-    ((triggerText.includes('element') ||
-      triggerText.includes('sequence') ||
-      triggerText.includes('choice') ||
-      triggerText.includes('group') ||
-      triggerText.includes('Variable')) &&
-      (triggerText.includes('</') || triggerText.includes('/>')))
-  )
+  if (lineNum > 0 && triggerText.lastIndexOf('<') == 0) {
+    const previousLine = document
+      .lineAt(lineNum)
+      .text.substr(0, document.lineAt(lineNum - 1).range.end.character)
+    if (
+      (previousLine.includes('</') ||
+        previousLine.includes('/>') ||
+        triggerText.includes('element') ||
+        triggerText.includes('sequence') ||
+        triggerText.includes('choice') ||
+        triggerText.includes('group') ||
+        triggerText.includes('Variable')) &&
+      (triggerText.includes('</') || triggerText.includes('/>'))
+    ) {
+      return false
+    }
+  }
+  if (
+    triggerText.lastIndexOf('<') > 0 &&
+    triggerText.lastIndexOf('>') < triggerText.lastIndexOf('<')
+  ) {
+    const lastOpenItem = triggerText.substring(
+      triggerText.indexOf('<'),
+      triggerText.length - triggerText.lastIndexOf('<')
+    )
+    if (
+      (lastOpenItem.includes('<' + nsPrefix + 'group') &&
+        !triggerText.includes('</' + nsPrefix + 'group')) ||
+      (lastOpenItem.includes('<' + nsPrefix + 'sequence') &&
+        !triggerText.includes('</' + nsPrefix + 'sequence')) ||
+      (lastOpenItem.includes('<' + nsPrefix + 'choice') &&
+        !triggerText.includes('</' + nsPrefix + 'choice')) ||
+      (lastOpenItem.includes('<' + nsPrefix + 'element') &&
+        !triggerText.includes('</' + nsPrefix + 'element')) ||
+      lastOpenItem.includes('Variable')
+    ) {
+      return true
+    }
+  }
+  return true
 }
 
 export function lineCount(
@@ -81,21 +111,82 @@ export function nearestOpen(
   position: vscode.Position
 ) {
   var lineNum = position.line
+  const itemsOnLine = getItemsOnLineCount(document.lineAt(lineNum).text)
   const nsPrefix = getXsdNsPrefix(document, position)
-  while (lineNum !== -1) {
+  if (itemsOnLine > 1) {
     const triggerText = document.lineAt(lineNum).text
-    if (triggerText.includes('element') && !triggerText.includes('/>')) {
+    if (triggerText.includes('<' + nsPrefix + 'element')) {
+      const tagPos = triggerText.lastIndexOf('<' + nsPrefix + 'element')
+      const tagEndPos = triggerText.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          !triggerText.substr(tagEndPos - 1, 2).includes('/>') &&
+          !triggerText.includes('</' + nsPrefix + 'element')
+        ) {
+          return 'element'
+        }
+      }
+    }
+    if (triggerText.includes('<' + nsPrefix + 'sequence')) {
+      const tagPos = triggerText.lastIndexOf('<' + nsPrefix + 'sequence')
+      const tagEndPos = triggerText.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          !triggerText.substr(tagEndPos - 1, 2).includes('/>') &&
+          !triggerText.includes('</' + nsPrefix + 'sequence')
+        ) {
+          return 'sequence'
+        }
+      }
+    }
+    if (triggerText.includes('<' + nsPrefix + 'choice')) {
+      const tagPos = triggerText.lastIndexOf('<' + nsPrefix + 'choice')
+      const tagEndPos = triggerText.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          !triggerText.substr(tagEndPos - 1, 2).includes('/>') &&
+          !triggerText.includes('</' + nsPrefix + 'choice')
+        ) {
+          return 'choice'
+        }
+      }
+    }
+    if (triggerText.includes('<' + nsPrefix + 'group')) {
+      const tagPos = triggerText.lastIndexOf('<' + nsPrefix + 'group')
+      const tagEndPos = triggerText.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          !triggerText.substr(tagEndPos - 1, 2).includes('/>') &&
+          !triggerText.includes('</' + nsPrefix + 'group')
+        ) {
+          return 'group'
+        }
+      }
+    }
+    if (triggerText.includes('<' + nsPrefix + 'simpleType')) {
+      const tagPos = triggerText.lastIndexOf('<' + nsPrefix + 'simpleType')
+      const tagEndPos = triggerText.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          !triggerText.substr(tagEndPos - 1, 2).includes('/>') &&
+          !triggerText.includes('</' + nsPrefix + 'simpleType')
+        ) {
+          return 'simpleType'
+        }
+      }
+    }
+  }
+  while (lineNum !== -1) {
+    var triggerText = document.lineAt(lineNum).text
+    if (triggerText.includes('element')) {
       if (checkElementOpen(document, position)) {
         return 'element'
       }
-    } else if (
-      triggerText.includes('sequence') &&
-      !triggerText.includes('/>')
-    ) {
+    } else if (triggerText.includes('sequence')) {
       if (checkSequenceOpen(document, position)) {
         return 'sequence'
       }
-    } else if (triggerText.includes('choice') && !triggerText.includes('/>')) {
+    } else if (triggerText.includes('choice')) {
       if (checkChoiceOpen(document, position)) {
         return 'choice'
       }
@@ -108,10 +199,7 @@ export function nearestOpen(
       ) {
         return 'group'
       }
-    } else if (
-      triggerText.includes('simpleType') &&
-      !triggerText.includes('/>')
-    ) {
+    } else if (triggerText.includes('simpleType')) {
       if (checkSimpleTypeOpen(document, position)) {
         return 'simpleType'
       }
@@ -122,15 +210,10 @@ export function nearestOpen(
       if (checkDefineVariableOpen(document, position)) {
         return 'defineVariable'
       }
-    } else if (
-      triggerText.includes('setVariable') &&
-      !triggerText.includes('/>')
-    ) {
+    } else if (triggerText.includes('setVariable')) {
       if (checkSetVariableOpen(document, position)) {
         return 'setVariable'
       }
-    } else if (triggerText.includes('/>')) {
-      return 'none'
     }
     --lineNum
   }
@@ -143,8 +226,39 @@ export function checkElementOpen(
 ) {
   const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
-  while (lineNum !== -1) {
+  const itemsOnLine = getItemsOnLineCount(document.lineAt(lineNum).text)
+
+  if (itemsOnLine > 1) {
     const triggerText = document.lineAt(lineNum).text
+    if (triggerText.includes('<' + nsPrefix + 'element')) {
+      const tagPos = triggerText.indexOf('<' + nsPrefix + 'element')
+      const tagEndPos = triggerText.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          triggerText.substring(tagEndPos - 1, 2).includes('/>') ||
+          triggerText
+            .substring(tagEndPos + 1, triggerText.length - (tagEndPos + 1))
+            .includes('<' + nsPrefix + 'element') ||
+          triggerText.includes('</' + nsPrefix + 'element>')
+        ) {
+          return false
+        } else {
+          return true
+        }
+      }
+    }
+  }
+
+  while (lineNum !== -1) {
+    var triggerText = document.lineAt(lineNum).text
+    if (
+      triggerText.includes('<' + nsPrefix + 'element') &&
+      triggerText.indexOf('<' + nsPrefix + 'element') ==
+        triggerText.lastIndexOf('<') &&
+      triggerText.lastIndexOf('>') > triggerText.lastIndexOf('<')
+    ) {
+      return true
+    }
     if (
       triggerText.includes('<' + nsPrefix + 'element') &&
       (triggerText.includes('>') ||
@@ -160,7 +274,7 @@ export function checkElementOpen(
       triggerText.includes('<' + nsPrefix + 'element') &&
       !triggerText.includes('</' + nsPrefix + 'element') &&
       !triggerText.includes('/>') &&
-      !triggerText.includes('>')
+      !triggerText.includes('/element>')
     ) {
       return true
     }
@@ -175,8 +289,38 @@ export function checkSequenceOpen(
 ) {
   const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
-  while (lineNum !== 0) {
+  const itemsOnLine = getItemsOnLineCount(document.lineAt(lineNum).text)
+
+  if (itemsOnLine > 1) {
     const triggerText = document.lineAt(lineNum).text
+    if (triggerText.includes('<' + nsPrefix + 'sequence')) {
+      const tagPos = triggerText.indexOf('<' + nsPrefix + 'sequence')
+      const tagEndPos = triggerText.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          triggerText.substring(tagEndPos - 1, 2).includes('/>') ||
+          triggerText
+            .substring(tagEndPos + 1, triggerText.length - (tagEndPos + 1))
+            .includes('<' + nsPrefix + 'sequence') ||
+          triggerText.includes('</' + nsPrefix + 'sequence>')
+        ) {
+          return false
+        } else {
+          return true
+        }
+      }
+    }
+  }
+  while (lineNum !== -1) {
+    const triggerText = document.lineAt(lineNum).text
+    if (
+      triggerText.includes('<' + nsPrefix + 'sequence') &&
+      triggerText.indexOf('<' + nsPrefix + 'sequence') ==
+        triggerText.lastIndexOf('<') &&
+      triggerText.lastIndexOf('>') < triggerText.lastIndexOf('<')
+    ) {
+      return true
+    }
     if (
       (triggerText.includes('<' + nsPrefix + 'sequence') &&
         (triggerText.includes('</' + nsPrefix + 'sequence') ||
@@ -203,8 +347,37 @@ export function checkChoiceOpen(
 ) {
   const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
-  while (lineNum !== 0) {
+  const itemsOnLine = getItemsOnLineCount(document.lineAt(lineNum).text)
+
+  if (itemsOnLine > 1) {
     const triggerText = document.lineAt(lineNum).text
+    if (triggerText.includes('<' + nsPrefix + 'choice')) {
+      const tagPos = triggerText.indexOf('<' + nsPrefix + 'choice')
+      const tagEndPos = triggerText.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          triggerText.substring(tagEndPos - 1, 2).includes('/>') ||
+          triggerText
+            .substring(tagEndPos + 1, triggerText.length - (tagEndPos + 1))
+            .includes('<' + nsPrefix + 'choice')
+        ) {
+          return false
+        } else {
+          return true
+        }
+      }
+    }
+  }
+  while (lineNum !== -1) {
+    const triggerText = document.lineAt(lineNum).text
+    if (
+      triggerText.includes('<' + nsPrefix + 'choice') &&
+      triggerText.indexOf('<' + nsPrefix + 'choice') ==
+        triggerText.lastIndexOf('<') &&
+      triggerText.lastIndexOf('>') < triggerText.lastIndexOf('<')
+    ) {
+      return true
+    }
     if (
       (triggerText.includes('<' + nsPrefix + 'choice') &&
         (triggerText.includes('</' + nsPrefix + 'choice') ||
@@ -230,8 +403,37 @@ export function checkSimpleTypeOpen(
 ) {
   const nsPrefix = getXsdNsPrefix(document, position)
   var lineNum = position.line
-  while (lineNum !== 0) {
+  const itemsOnLine = getItemsOnLineCount(document.lineAt(lineNum).text)
+
+  if (itemsOnLine > 1) {
     const triggerText = document.lineAt(lineNum).text
+    if (triggerText.includes('<' + nsPrefix + 'simpleType')) {
+      const tagPos = triggerText.indexOf('<' + nsPrefix + 'simpleType')
+      const tagEndPos = triggerText.indexOf('>', tagPos)
+      if (tagPos != -1) {
+        if (
+          triggerText.substring(tagEndPos - 1, 2).includes('/>') ||
+          triggerText
+            .substring(tagEndPos + 1, triggerText.length - (tagEndPos + 1))
+            .includes('<' + nsPrefix + 'simpleType')
+        ) {
+          return false
+        } else {
+          return true
+        }
+      }
+    }
+  }
+  while (lineNum !== -1) {
+    const triggerText = document.lineAt(lineNum).text
+    if (
+      triggerText.includes('<' + nsPrefix + 'simpletype') &&
+      triggerText.indexOf('<' + nsPrefix + 'simpleType') ==
+        triggerText.lastIndexOf('<') &&
+      triggerText.lastIndexOf('>') < triggerText.lastIndexOf('<')
+    ) {
+      return true
+    }
     if (
       triggerText.includes('<' + nsPrefix + 'simpleType') &&
       !triggerText.includes('</' + nsPrefix + 'simpleType') &&
@@ -302,6 +504,20 @@ export function getXsdNsPrefix(
   return defaultXsdNsPrefix + ':'
 }
 
+export function getItemsOnLineCount(triggerText: String) {
+  var itemsOnLine = 0
+  var nextPos = 0
+  var result = 0
+  while (result != -1) {
+    result = triggerText.indexOf('<', nextPos)
+    nextPos = result + 1
+    if (result != -1) {
+      ++itemsOnLine
+    }
+  }
+  return itemsOnLine
+}
+
 export function checkBraceOpen(
   document: vscode.TextDocument,
   position: vscode.Position
@@ -312,10 +528,13 @@ export function checkBraceOpen(
     const triggerText = document.lineAt(lineNum).text
     //.text.substring(0, document.lineAt(lineNum).range.end.character)
 
+    if (!triggerText.includes('{')) {
+      return false
+    }
     if (
       triggerText.includes('"{') &&
       triggerText.includes('}"') &&
-      triggerText.includes('..') &&
+      (triggerText.includes('..') || triggerText.includes('.')) &&
       !triggerText.includes('}"/') &&
       !triggerText.includes('>')
     ) {
@@ -333,6 +552,16 @@ export function checkBraceOpen(
       triggerText.includes('}"') &&
       !triggerText.includes('}"/') &&
       !triggerText.includes('>')
+    ) {
+      return true
+    }
+    if (
+      triggerText
+        .substr(
+          triggerText.lastIndexOf('{'),
+          triggerText.indexOf('}', triggerText.lastIndexOf('{'))
+        )
+        .includes('/')
     ) {
       return true
     }

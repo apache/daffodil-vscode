@@ -18,7 +18,6 @@
 import * as vscode from 'vscode'
 import { checkBraceOpen, getXsdNsPrefix } from './utils'
 import { elementCompletion } from './intellisense/elementItems'
-import { createCompletionItem } from './utils'
 
 export function getElementCompletionProvider(dfdlFormatString: string) {
   return vscode.languages.registerCompletionItemProvider('dfdl', {
@@ -45,17 +44,16 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
         dfdlFormatString,
         nsPrefix
       ).items.forEach((e) => {
-        const line = document
-          .lineAt(position)
-          .text.substring(0, position.character)
+        const completionItem = new vscode.CompletionItem(e.item)
+        completionItem.insertText = new vscode.SnippetString(e.snippetString)
 
-        if (line.includes('<') && e.snippetString.startsWith('<')) {
-          e.snippetString = e.snippetString.substring(1, e.snippetString.length)
+        if (e.markdownString) {
+          completionItem.documentation = new vscode.MarkdownString(
+            e.markdownString
+          )
         }
-
-        compItems.push(createCompletionItem(e, '', nsPrefix))
+        compItems.push(completionItem)
       })
-
       return compItems
     },
   })
