@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 export enum MessageCommand {
   fileInfo,
   commit,
@@ -26,7 +25,6 @@ export enum MessageCommand {
   setSessionFile,
   updateLogicalDisplay,
 }
-
 export type EditorMessage = {
   command: MessageCommand
   data: Record<string, any>

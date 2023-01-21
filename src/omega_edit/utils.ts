@@ -22,9 +22,11 @@ import {
   // ObjectId,
   ViewportDataRequest,
 } from 'omega-edit/omega_edit_pb'
+import * as fs from 'fs'
 import { getClient, ALL_EVENTS } from 'omega-edit/settings'
 import * as omegaEditServer from 'omega-edit/server'
 import { runScript } from '../utils'
+import { EditorMessage } from './messageHandler'
 
 const client = getClient()
 
@@ -70,13 +72,17 @@ export async function setViewportDataForPanel(
     new ViewportDataRequest().setViewportId(vp),
     (err, r) => {
       let data = r?.getData_asB64()
-
       if (data) {
-        let txt = Buffer.from(data, 'base64').toString('binary')
-        panel.webview.postMessage({ command: commandViewport, text: txt })
+        let bufferData = Buffer.from(data, 'base64')
+
+        panel.webview.postMessage({
+          command: commandViewport,
+          viewportData: Uint8Array.from(bufferData),
+          displayData: bufferData.toString('hex'),
+        })
 
         if (commandHex === 'hexAll') {
-          let hex = hexy.hexy(txt)
+          let hex = hexy.hexy(bufferData)
           let offsetLines = ''
           let encodedData = ''
 
@@ -110,7 +116,7 @@ export async function setViewportDataForPanel(
             offsetText: offsetLines,
           })
         } else if (commandHex) {
-          let hxt = hexy.hexy(txt)
+          let hxt = hexy.hexy(bufferData)
           panel.webview.postMessage({ command: commandHex, text: hxt })
         }
       }
@@ -152,35 +158,12 @@ export async function startOmegaEditServer(
   return [terminal, true]
 }
 
-export type LogicalDisplayState = {
-  bytesPerRow: number
-}
-export type EditorDisplayState = {
-  encoding: BufferEncoding
-  start: number
-  end: number
-  cursor: number
-  radix: number
-}
 export class DisplayState {
-  public logicalDisplay: LogicalDisplayState
-  public editorDisplay: EditorDisplayState
-
+  public bytesPerRow: number
+  public editorEncoding: BufferEncoding
   constructor() {
-    this.logicalDisplay = { bytesPerRow: 16 }
-    this.editorDisplay = {
-      encoding: 'utf-8',
-      start: 0,
-      end: 0,
-      cursor: 0,
-      radix: 16,
-    }
-  }
-  public updateLogicalDisplayState(state: LogicalDisplayState) {
-    this.logicalDisplay = state
-  }
-  public updateEditorDisplayState(state: EditorDisplayState) {
-    this.editorDisplay = state
+    this.bytesPerRow = 16
+    this.editorEncoding = 'hex'
   }
 }
 
@@ -195,19 +178,15 @@ function latin1Undefined(c: string): boolean {
 
 export function logicalDisplay(
   bytes: ArrayBuffer,
-  logicalDisplay: LogicalDisplayState
+  bytesPerRow: number
 ): string {
   const undefinedCharStandIn = '�'
   let result = ''
   if (bytes.byteLength > 0) {
-    const data = Buffer.from(bytes).toString('latin1').replaceAll('\n', ' ')
+    const data = Buffer.from(bytes).toString('latin1').replace('\n', ' ')
     let i = 0
     while (true) {
-      for (
-        let col = 0;
-        i < data.length && col < logicalDisplay.bytesPerRow;
-        ++col
-      ) {
+      for (let col = 0; i < data.length && col < bytesPerRow; ++col) {
         const c = data.charAt(i++)
         result += (latin1Undefined(c) ? undefinedCharStandIn : c) + ' '
       }
@@ -220,9 +199,11 @@ export function logicalDisplay(
   }
   return result
 }
+
 type Mimes = {
   [key: string]: number[]
 }
+
 const mimeTypes = {
   PNG: [0x89, 0x50, 0x4e, 0x47],
   JPEG: [0xff, 0xd8, 0xff, 0xe0],
@@ -236,7 +217,13 @@ const mimeTypes = {
   XLSX: [0x50, 0x4b, 0x03, 0x04],
 } as Mimes
 
-export function checkMimeType(bytes: number[], filename: string): string {
+export async function checkMimeType(filename: string): Promise<string> {
+  let bytes: Buffer
+  const file = fs.openSync(filename, 'r')
+  bytes = Buffer.alloc(5)
+  fs.readSync(file, bytes, 0, 5, null)
+  fs.close(file)
+
   for (const key in mimeTypes) {
     if (mimeTypes[key].toString() === bytes.toString()) {
       return key
@@ -245,4 +232,56 @@ export function checkMimeType(bytes: number[], filename: string): string {
   return filename.lastIndexOf('.') > 0
     ? filename.substring(filename.lastIndexOf('.'))
     : 'unknown/binary'
+}
+
+export function fillRequestData(message: EditorMessage): [Buffer, string] {
+  let selectionByteData = encodedStrToData(
+    message.data.editor.editedContent,
+    message.data.encoding
+  )
+  let selectionByteDisplay = dataToEncodedStr(
+    selectionByteData,
+    message.data.encoding
+  )
+  return [selectionByteData, selectionByteDisplay]
+}
+export function encodedStrToData(
+  selectionEdits: string,
+  selectionEncoding: BufferEncoding
+): Buffer {
+  let selectionByteLength: number
+  let selectionByteData: Buffer
+
+  if (selectionEncoding === 'hex') {
+    selectionByteLength = selectionEdits.length / 2
+    selectionByteData = Buffer.alloc(selectionByteLength)
+    for (let i = 0; i < selectionEdits.length; i += 2) {
+      selectionByteData[i / 2] = parseInt(selectionEdits.substr(i, 2), 16)
+    }
+  } else if (selectionEncoding === 'binary') {
+    selectionByteLength = selectionEdits.length / 8
+    selectionByteData = Buffer.alloc(selectionByteLength)
+    for (let i = 0; i < selectionEdits.length; i += 8) {
+      selectionByteData[i / 8] = parseInt(selectionEdits.substr(i, 8), 2)
+    }
+  } else {
+    selectionByteLength = selectionEdits.length
+    selectionByteData = Buffer.from(selectionEdits, selectionEncoding)
+  }
+  return selectionByteData
+}
+
+export function dataToEncodedStr(
+  buffer: Buffer,
+  encoding: BufferEncoding
+): string {
+  let ret = ''
+  if (encoding === 'binary') {
+    for (let i = 0; i < buffer.byteLength; i++) {
+      ret += buffer[i].toString(2).padStart(8, '0')
+    }
+  } else {
+    ret = buffer.toString(encoding)
+  }
+  return ret
 }
