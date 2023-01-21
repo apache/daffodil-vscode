@@ -23,7 +23,16 @@ limitations under the License.
     vsCodeOption,
     vsCodeTextField,
   } from '@vscode/webview-ui-toolkit'
-  import { answer } from '../stores'
+  import { answer, displayRadix, addressValue, addressDisplay } from '../stores'
+  import { writable } from 'svelte/store';
+
+
+  export const fileByteStart = writable(0)
+  export const fileByteEnd = writable(0)
+  export const bytesPerRow = writable(16)
+
+  const physicalDisplay = writable('')
+  const physicalOffsets = writable('')
 
   provideVSCodeDesignSystem().register(
     vsCodeButton(),
@@ -349,15 +358,15 @@ limitations under the License.
       editor_state.editor_controls.address_numbering = parseInt(
         address_type.value
       )
-      editor_state.editor_elements.address.innerHTML = makeAddressRange(
-        0,
-        Math.ceil(
-          editor_state.editor_metrics.file_byte_count /
-            editor_state.editor_controls.bytes_per_row
-        ),
-        editor_state.editor_controls.bytes_per_row,
-        editor_state.editor_controls.address_numbering
-      )
+      // editor_state.editor_elements.address.innerHTML = makeAddressRange(
+      //   0,
+      //   Math.ceil(
+      //     editor_state.editor_metrics.file_byte_count /
+      //       editor_state.editor_controls.bytes_per_row
+      //   ),
+      //   editor_state.editor_controls.bytes_per_row,
+      //   editor_state.editor_controls.address_numbering
+      // )
     })
     const edit_encoding = document.getElementById(
       'edit_encoding'
@@ -528,6 +537,7 @@ limitations under the License.
   async function loadContent(fileData: Uint8Array) {
     editor_state.editor_elements.editor.value = ''
     editor_state.editor_metrics.file_byte_count = fileData.length
+    $fileByteEnd = fileData.length / $bytesPerRow
     editor_state.editor_controls.goto_offset = 0
     editor_state.editor_elements.goto_offset.max = String(fileData.length)
     editor_state.editor_elements.goto_offset.value = '0'
@@ -539,12 +549,12 @@ limitations under the License.
       10,
       2
     )
-    editor_state.editor_elements.address.innerHTML = makeAddressRange(
-      0,
-      Math.ceil(fileData.length / 16),
-      16,
-      editor_state.editor_controls.address_numbering
-    )
+    // editor_state.editor_elements.address.innerHTML = makeAddressRange(
+    //   0,
+    //   Math.ceil(fileData.length / 16),
+    //   16,
+    //   editor_state.editor_controls.address_numbering
+    // )
     editor_state.editor_elements.file_byte_count.innerHTML = String(
       editor_state.editor_metrics.file_byte_count
     )
@@ -624,15 +634,15 @@ limitations under the License.
         editor_state.editor_controls.radix,
         1
       )
-      editor_state.editor_elements.address.innerHTML = makeAddressRange(
-        0,
-        Math.ceil(
-          editor_state.editor_metrics.file_byte_count /
-            editor_state.editor_controls.bytes_per_row
-        ),
-        8,
-        editor_state.editor_controls.address_numbering
-      )
+      // editor_state.editor_elements.address.innerHTML = makeAddressRange(
+      //   0,
+      //   Math.ceil(
+      //     editor_state.editor_metrics.file_byte_count /
+      //       editor_state.editor_controls.bytes_per_row
+      //   ),
+      //   8,
+      //   editor_state.editor_controls.address_numbering
+      // )
       editor_state.editor_elements.logical_offsets.innerHTML = makeOffsetRange(
         editor_state.editor_controls.radix * -1,
         1
@@ -664,15 +674,15 @@ limitations under the License.
         pysichalOffsetSpread
       )
 
-      editor_state.editor_elements.address.innerHTML = makeAddressRange(
-        0,
-        Math.ceil(
-          editor_state.editor_metrics.file_byte_count /
-            editor_state.editor_controls.bytes_per_row
-        ),
-        16,
-        editor_state.editor_controls.address_numbering
-      )
+      // editor_state.editor_elements.address.innerHTML = makeAddressRange(
+      //   0,
+      //   Math.ceil(
+      //     editor_state.editor_metrics.file_byte_count /
+      //       editor_state.editor_controls.bytes_per_row
+      //   ),
+      //   16,
+      //   editor_state.editor_controls.address_numbering
+      // )
       editor_state.editor_elements.logical_offsets.innerHTML = makeOffsetRange(
         editor_state.editor_controls.radix,
         1
@@ -1054,6 +1064,9 @@ limitations under the License.
     }
   })
 
+  // Reactive Declarations
+  $: addressDisplay.set(makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue))
+  
   window.onload = () => {
     init()
   }
@@ -1079,12 +1092,12 @@ limitations under the License.
   <fieldset class="box">
     <legend>Radix</legend>
     <div class="radix">
-      <vscode-dropdown id="radix">
-        <vscode-option value="10" selected>DEC</vscode-option>
-        <vscode-option value="16">HEX</vscode-option>
-        <vscode-option value="8">OCT</vscode-option>
-        <vscode-option value="2">BIN</vscode-option>
-      </vscode-dropdown>
+      <select id="radix" bind:value={$displayRadix}>
+        <option value="10" selected>DEC</option>
+        <option value="16">HEX</option>
+        <option value="8">OCT</option>
+        <option value="2">BIN</option>
+      </select>
     </div>
   </fieldset>
   <fieldset class="box">
@@ -1123,12 +1136,12 @@ limitations under the License.
   <div class="hd">Logical</div>
   <div class="hd">Edit</div>
   <div class="measure" style="align-items: center;">
-    <vscode-dropdown class="address_type" id="address_numbering">
-      <vscode-option value="10">Decimal</vscode-option>
-      <vscode-option value="16">Hexadecimal</vscode-option>
-      <vscode-option value="8">Octal</vscode-option>
-      <!-- <vscode-option value="2">Binary</vscode-option> -->
-    </vscode-dropdown>
+    <select class="address_type" id="address_numbering" bind:value={$addressValue}>
+      <option value="10">Decimal</option>
+      <option value="16">Hexadecimal</option>
+      <option value="8">Octal</option>
+      <!-- <option value="2">Binary</option> -->
+    </select>
   </div>
   <div class="measure"><span id="physical_offsets" /></div>
   <div class="measure"><span id="logical_offsets" /></div>
@@ -1138,7 +1151,7 @@ limitations under the License.
       <span id="editor_offsets" />
     </div>
   </div>
-  <textarea class="address_vw" id="address" readonly />
+  <textarea class="address_vw" id="address" contenteditable="true" readonly bind:value={$addressDisplay}/>
   <textarea class="physical_vw" id="physical" readonly />
   <textarea class="logicalView" id="logical" readonly />
   <div class="editView" id="edit_view">
@@ -1169,8 +1182,8 @@ limitations under the License.
               <label for="endianness"
                 >Endianness:
                 <vscode-dropdown id="endianness">
-                  <vscode-option value="le">Little</vscode-option>
-                  <vscode-option value="be">Big</vscode-option>
+                  <option value="le">Little</option>
+                  <option value="be">Big</option>
                 </vscode-dropdown>
               </label>
             </div>
@@ -1199,8 +1212,8 @@ limitations under the License.
               <label for="lsb"
                 >Least significant bit:
                 <vscode-dropdown id="lsb">
-                  <vscode-option value="h">Higher Offset</vscode-option>
-                  <vscode-option value="l">Lower Offset</vscode-option>
+                  <option value="h">Higher Offset</option>
+                  <option value="l">Lower Offset</option>
                 </vscode-dropdown>
               </label>
             </div>
@@ -1208,9 +1221,9 @@ limitations under the License.
               <label for="logical_byte_size"
                 >Logical byte size:
                 <vscode-dropdown id="logical_byte_size">
-                  <vscode-option>8</vscode-option>
-                  <vscode-option>7</vscode-option>
-                  <vscode-option>6</vscode-option>
+                  <option>8</option>
+                  <option>7</option>
+                  <option>6</option>
                 </vscode-dropdown>
               </label>
             </div>

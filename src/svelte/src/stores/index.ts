@@ -15,8 +15,15 @@
  * limitations under the License.
  */
 
+import { writable } from 'svelte/store'
 import { localStore } from './localStore'
 
 const state_key = 'apache-daffodil-data-editor.state'
 
 export const answer = localStore(state_key + '.answer', 42)
+export const displayRadix = writable(16)
+export const addressValue = writable(16)
+export const addressDisplay = writable('')
+export const fileByteStart = writable(0)
+export const fileByteEnd = writable(0)
+export const bytesPerRow = writable(16)
