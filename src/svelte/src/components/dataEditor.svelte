@@ -31,8 +31,36 @@ limitations under the License.
   export const fileByteEnd = writable(0)
   export const bytesPerRow = writable(16)
 
-  const physicalDisplay = writable('')
-  const physicalOffsets = writable('')
+  const UInt8Data = writable()
+
+  let addressText = ''
+  let physicalOffsetText = ''
+  let fileSize = ''
+
+  $: {
+    addressText = $addressDisplay
+    fileSize = $fileByteEnd.toString()
+  }
+  addressValue.subscribe(radix => {
+    addressDisplay.set(makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, radix))
+  })
+
+  UInt8Data.subscribe(data=>{
+
+  })
+  const offsetDisplays = {
+    16: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F  ',
+    10: '0  0  0  0  0  0  0  0  0  0  1  1  1  1  1  1  <br/>0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  ',
+    8: '0  0  0  0  0  0  0  0  0  0  1  1  1  1  1  1 <br/>0  1  2  3  4  5  6  7  0  1  2  3  4  5  6  7  ',
+    2: '00000000 00111111 11112222 22222233 33333333 44444444 44555555 55556666  <br/>01234567 89012345 67890123 45678901 23456789 01234567 89012345 67890123  ',
+  }
+  displayRadix.subscribe(radix => {
+    // Change physical offset
+    physicalOffsetText = offsetDisplays[radix]
+    // Change physical display
+    // change logical offset
+    // change logical display
+  })
 
   provideVSCodeDesignSystem().register(
     vsCodeButton(),
@@ -537,7 +565,9 @@ limitations under the License.
   async function loadContent(fileData: Uint8Array) {
     editor_state.editor_elements.editor.value = ''
     editor_state.editor_metrics.file_byte_count = fileData.length
+    $UInt8Data = fileData
     $fileByteEnd = fileData.length / $bytesPerRow
+    addressValue.set(16)
     editor_state.editor_controls.goto_offset = 0
     editor_state.editor_elements.goto_offset.max = String(fileData.length)
     editor_state.editor_elements.goto_offset.value = '0'
@@ -545,10 +575,10 @@ limitations under the License.
       10,
       1
     )
-    editor_state.editor_elements.physical_offsets.innerHTML = makeOffsetRange(
-      10,
-      2
-    )
+    // editor_state.editor_elements.physical_offsets.innerHTML = makeOffsetRange(
+    //   10,
+    //   2
+    // )
     // editor_state.editor_elements.address.innerHTML = makeAddressRange(
     //   0,
     //   Math.ceil(fileData.length / 16),
@@ -578,6 +608,7 @@ limitations under the License.
     )
     editor_state.editor_elements.commit_button.disabled = false
     editor_state.editor_elements.add_data_breakpoint_button.disabled = false
+
   }
 
   function syncScroll(from: HTMLElement, to: HTMLElement) {
@@ -614,14 +645,14 @@ limitations under the License.
   }
 
   function selectAddressType(radix: number) {
-    editor_state.editor_controls.radix = radix
+    // editor_state.editor_controls.radix = radix
     let logicalDisplayState: LogicalDisplayState
     if (
-      editor_state.editor_controls.radix === 2 &&
+      $displayRadix === 2 &&
       !editor_state.editor_elements.data_editor.classList.contains('binary')
     ) {
       // editor_state.editor_controls.radix = 2
-      editor_state.editor_controls.bytes_per_row = 8
+      $bytesPerRow = 8
       editor_state.editor_elements.data_editor.classList.add('binary')
       if (editor_state.file_content) {
         editor_state.editor_elements.physical.innerHTML = encodeForDisplay(
@@ -652,10 +683,10 @@ limitations under the License.
       }
     } else {
       let pysichalOffsetSpread: number
-      editor_state.editor_controls.radix === 16
+      $displayRadix === 16
         ? (pysichalOffsetSpread = 2)
         : (pysichalOffsetSpread = 3)
-      editor_state.editor_controls.bytes_per_row = 16
+      $bytesPerRow = 16
       if (
         editor_state.editor_elements.data_editor.classList.contains('binary')
       ) {
@@ -669,10 +700,10 @@ limitations under the License.
         )
       }
 
-      editor_state.editor_elements.physical_offsets.innerHTML = makeOffsetRange(
-        editor_state.editor_controls.radix,
-        pysichalOffsetSpread
-      )
+      // editor_state.editor_elements.physical_offsets.innerHTML = makeOffsetRange(
+      //   editor_state.editor_controls.radix,
+      //   pysichalOffsetSpread
+      // )
 
       // editor_state.editor_elements.address.innerHTML = makeAddressRange(
       //   0,
@@ -1064,9 +1095,11 @@ limitations under the License.
     }
   })
 
+
   // Reactive Declarations
-  $: addressDisplay.set(makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue))
-  
+  // $: addressDisplay.set(makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue))
+  // $: physicalOffsets.set(makeOffsetRange($displayRadix, 2))
+
   window.onload = () => {
     init()
   }
@@ -1079,7 +1112,7 @@ limitations under the License.
       File: <span id="file_name" />
       <hr />
       Type:<span id="file_type" />
-      <br />Size: <span id="file_byte_cnt"> 0</span>
+      <br />Size: <span id="file_byte_cnt">{fileSize}</span>
       <br />ASCII count: <span id="ascii_byte_cnt"> 0</span>
     </div>
   </fieldset>
@@ -1093,8 +1126,8 @@ limitations under the License.
     <legend>Radix</legend>
     <div class="radix">
       <select id="radix" bind:value={$displayRadix}>
-        <option value="10" selected>DEC</option>
-        <option value="16">HEX</option>
+        <option value="16" selected>HEX</option>
+        <option value="10">DEC</option>
         <option value="8">OCT</option>
         <option value="2">BIN</option>
       </select>
@@ -1137,13 +1170,13 @@ limitations under the License.
   <div class="hd">Edit</div>
   <div class="measure" style="align-items: center;">
     <select class="address_type" id="address_numbering" bind:value={$addressValue}>
+      <option value="16" selected>Hexadecimal</option>
       <option value="10">Decimal</option>
-      <option value="16">Hexadecimal</option>
       <option value="8">Octal</option>
       <!-- <option value="2">Binary</option> -->
     </select>
   </div>
-  <div class="measure"><span id="physical_offsets" /></div>
+  <div class="measure"><span contenteditable='true' id="physical_offsets" bind:innerHTML={physicalOffsetText}/></div>
   <div class="measure"><span id="logical_offsets" /></div>
   <div class="measure">
     <div>
@@ -1151,7 +1184,7 @@ limitations under the License.
       <span id="editor_offsets" />
     </div>
   </div>
-  <textarea class="address_vw" id="address" contenteditable="true" readonly bind:value={$addressDisplay}/>
+  <textarea class="address_vw" id="address" contenteditable="true" readonly bind:innerHTML={addressText}/>
   <textarea class="physical_vw" id="physical" readonly />
   <textarea class="logicalView" id="logical" readonly />
   <div class="editView" id="edit_view">
