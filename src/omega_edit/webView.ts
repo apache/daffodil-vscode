@@ -104,6 +104,7 @@ export class WebView implements vscode.Disposable {
   private messageReceiver(message: EditorMessage) {
     switch (message.command) {
       case MessageCommand.addressOnChange:
+        console.log(message)
         this.displayState.updateLogicalDisplayState(message.data.state)
 
         this.panel.webview.postMessage({

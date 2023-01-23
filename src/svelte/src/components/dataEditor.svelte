@@ -23,45 +23,30 @@ limitations under the License.
     vsCodeOption,
     vsCodeTextField,
   } from '@vscode/webview-ui-toolkit'
-  import { answer, displayRadix, addressValue, addressDisplay } from '../stores'
-  import { writable } from 'svelte/store';
-
-
-  export const fileByteStart = writable(0)
-  export const fileByteEnd = writable(0)
-  export const bytesPerRow = writable(16)
-
-  const UInt8Data = writable()
-
-  let addressText = ''
-  let physicalOffsetText = ''
-  let fileSize = ''
-
-  $: {
-    addressText = $addressDisplay
-    fileSize = $fileByteEnd.toString()
-  }
-  addressValue.subscribe(radix => {
-    addressDisplay.set(makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, radix))
-  })
-
-  UInt8Data.subscribe(data=>{
-
-  })
-  const offsetDisplays = {
-    16: { text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F  ', spread: 2 },
-    10: { text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 ', spread: 3 },
-    8: { text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ', spread: 3 },
-    2: { text: '00000000 00111111 11112222 22222233 33333333 44444444 44555555 55556666  <br/>01234567 89012345 67890123 45678901 23456789 01234567 89012345 67890123  ',
-          spread: 1 }
-  }
-  displayRadix.subscribe(radix => {
-    // Change physical offset
-    physicalOffsetText = offsetDisplays[radix].text.replaceAll(' ', '&nbsp;'.repeat(offsetDisplays[radix].spread))
-    // Change physical displa
-    // change logical offset
-    // change logical display
-  })
+  import {
+    displayRadix, 
+    addressValue,
+    filesize,
+    fileByteStart,
+    fileByteEnd,
+    bytesPerRow,
+    UInt8Data,
+    selectionStartStore,
+    selectionEndStore } from '../stores'
+  import { 
+    radixOpt, 
+    encoding_groups, 
+    endiannessOpt, 
+    lsbOpt, 
+    byteSizeOpt, 
+    addressOpt, 
+    getOffsetDisplay as getOffsetText,
+    makeAddressRange,
+    encodeForDisplay } from '../utilities/display';
+  import { vscode } from '../utilities/vscode'
+  import { MessageCommand } from '../utilities/message'
+  import type{ EditorDisplayState } from '../utilities/message'
+  import { writable, derived } from 'svelte/store';
 
   provideVSCodeDesignSystem().register(
     vsCodeButton(),
@@ -70,25 +55,29 @@ limitations under the License.
     vsCodeOption(),
     vsCodeTextField()
   )
-  const vscode = acquireVsCodeApi()
 
-  enum MessageCommand {
-    commit,
-    addBreakpoint,
-    editorOnChange,
-    loadFile,
-    addressOnChange,
+  let addressText = ''
+  let physicalOffsetText = ''
+  let physicalDisplayText = ''
+  let logicalOffsetText = ''
+  let logicalDisplayText = ''
+  let fileSize = ''
+  let testCount = 0
+  let testOutput = ''
+  let editorTextDisplay = ''
+
+  const editorSelection = writable('')
+  // Reactive Declarations
+  $: addressText = makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue)
+  
+  $: {
+    physicalOffsetText = getOffsetText($displayRadix, 'physical')
+    logicalOffsetText = getOffsetText($displayRadix, 'logical')
   }
-  type LogicalDisplayState = {
-    bytesPerRow: number
-  }
-  type EditorDisplayState = {
-    encoding: BufferEncoding
-    start: number
-    end: number
-    cursor: number
-    radix: number
-  }
+  $: physicalDisplayText = encodeForDisplay($UInt8Data, $displayRadix, $bytesPerRow)
+  $: testOutput = $UInt8Data.slice($selectionStartStore, $selectionEndStore).toString()
+  $: editorTextDisplay = $editorSelection
+
   interface EditorControls {
     bytes_per_line: number
     address_numbering: number
@@ -252,127 +241,127 @@ limitations under the License.
       },
     }
     // add listeners
-    editor_state.editor_elements.physical.addEventListener('select', () =>
-      handleSelected(
-        frameSelectedOnWhitespace(editor_state.editor_elements.physical)
-      )
-    )
-    editor_state.editor_elements.logical.addEventListener('select', () =>
-      handleSelected(frameSelected(editor_state.editor_elements.logical))
-    )
-    editor_state.editor_elements.radix.addEventListener('change', () => {
-      editor_state.editor_controls.radix = parseInt(
-        editor_state.editor_elements.radix.value
-      )
-      selectAddressType(editor_state.editor_controls.radix)
+    // editor_state.editor_elements.physical.addEventListener('select', () =>
+    //   handleSelected(
+    //     frameSelectedOnWhitespace(editor_state.editor_elements.physical)
+    //   )
+    // )
+    // editor_state.editor_elements.logical.addEventListener('select', () =>
+    //   handleSelected(frameSelected(editor_state.editor_elements.logical))
+    // )
+    // editor_state.editor_elements.radix.addEventListener('change', () => {
+    //   $displayRadix = parseInt(
+    //     editor_state.editor_elements.radix.value
+    //   )
+    //   selectAddressType($displayRadix)
 
-      updateDataView()
-    })
-    editor_state.editor_elements.int8_dv.addEventListener('change', () => {
-      new DataView(editor_state.edit_content.buffer).setInt8(
-        editor_state.editor_controls.editor_cursor_pos,
-        editor_state.editor_elements.int8_dv.valueAsNumber
-      )
-      updateDataView()
-      // refreshEditor()
-    })
-    editor_state.editor_elements.uint8_dv.addEventListener('change', () => {
-      new DataView(editor_state.edit_content.buffer).setUint8(
-        editor_state.editor_controls.editor_cursor_pos,
-        editor_state.editor_elements.uint8_dv.valueAsNumber
-      )
-      updateDataView()
-      // refreshEditor()
-    })
-    editor_state.editor_elements.int16_dv.addEventListener('change', () => {
-      new DataView(editor_state.edit_content.buffer).setInt16(
-        editor_state.editor_controls.editor_cursor_pos,
-        editor_state.editor_elements.int16_dv.valueAsNumber,
-        editor_state.editor_controls.little_endian
-      )
-      updateDataView()
-      // refreshEditor()
-    })
-    editor_state.editor_elements.uint16_dv.addEventListener('change', () => {
-      new DataView(editor_state.edit_content.buffer).setUint16(
-        editor_state.editor_controls.editor_cursor_pos,
-        editor_state.editor_elements.uint16_dv.valueAsNumber,
-        editor_state.editor_controls.little_endian
-      )
-      updateDataView()
-      // refreshEditor()
-    })
-    editor_state.editor_elements.int32_dv.addEventListener('change', () => {
-      new DataView(editor_state.edit_content.buffer).setInt32(
-        editor_state.editor_controls.editor_cursor_pos,
-        editor_state.editor_elements.int32_dv.valueAsNumber,
-        editor_state.editor_controls.little_endian
-      )
-      updateDataView()
-      // refreshEditor()
-    })
-    editor_state.editor_elements.uint32_dv.addEventListener('change', () => {
-      new DataView(editor_state.edit_content.buffer).setUint32(
-        editor_state.editor_controls.editor_cursor_pos,
-        editor_state.editor_elements.uint32_dv.valueAsNumber,
-        editor_state.editor_controls.little_endian
-      )
-      updateDataView()
-      // refreshEditor()
-    })
-    editor_state.editor_elements.int64_dv.addEventListener('change', () => {
-      new DataView(editor_state.edit_content.buffer).setBigInt64(
-        editor_state.editor_controls.editor_cursor_pos,
-        BigInt(editor_state.editor_elements.int64_dv.value),
-        editor_state.editor_controls.little_endian
-      )
-      updateDataView()
-      // refreshEditor()
-    })
-    editor_state.editor_elements.uint64_dv.addEventListener('change', () => {
-      new DataView(editor_state.edit_content.buffer).setBigUint64(
-        editor_state.editor_controls.editor_cursor_pos,
-        BigInt(editor_state.editor_elements.uint32_dv.value),
-        editor_state.editor_controls.little_endian
-      )
-      updateDataView()
-      // refreshEditor()
-    })
-    editor_state.editor_elements.float32_dv.addEventListener('change', () => {
-      new DataView(editor_state.edit_content.buffer).setFloat32(
-        editor_state.editor_controls.editor_cursor_pos,
-        editor_state.editor_elements.float32_dv.valueAsNumber,
-        editor_state.editor_controls.little_endian
-      )
-      updateDataView()
-      // refreshEditor()
-    })
-    editor_state.editor_elements.float64_dv.addEventListener('change', () => {
-      new DataView(editor_state.edit_content.buffer).setFloat64(
-        editor_state.editor_controls.editor_cursor_pos,
-        editor_state.editor_elements.float64_dv.valueAsNumber,
-        editor_state.editor_controls.little_endian
-      )
-      updateDataView()
-      // refreshEditor()
-    })
-    editor_state.editor_elements.commit_button.addEventListener('click', () => {
-      vscode.postMessage({
-        command: MessageCommand.commit,
-        data: {
-          fileOffset: editor_state.editor_controls.offset,
-          dataLength: -editor_state.editor_controls.length,
-          data: editor_state.editor_elements.editor.value,
-          encoding: editor_state.editor_controls.edit_encoding,
-        },
-      })
-    })
-    editor_state.editor_elements.add_data_breakpoint_button.addEventListener(
-      'click',
-      () => {
-        vscode.postMessage({ command: 'set_break', data: 'testdata' })
-      }
-    )
+    //   updateDataView()
+    // })
+    // editor_state.editor_elements.int8_dv.addEventListener('change', () => {
+    //   new DataView(editor_state.edit_content.buffer).setInt8(
+    //     editor_state.editor_controls.editor_cursor_pos,
+    //     editor_state.editor_elements.int8_dv.valueAsNumber
+    //   )
+    //   updateDataView()
+    //   // refreshEditor()
+    // })
+    // editor_state.editor_elements.uint8_dv.addEventListener('change', () => {
+    //   new DataView(editor_state.edit_content.buffer).setUint8(
+    //     editor_state.editor_controls.editor_cursor_pos,
+    //     editor_state.editor_elements.uint8_dv.valueAsNumber
+    //   )
+    //   updateDataView()
+    //   // refreshEditor()
+    // })
+    // editor_state.editor_elements.int16_dv.addEventListener('change', () => {
+    //   new DataView(editor_state.edit_content.buffer).setInt16(
+    //     editor_state.editor_controls.editor_cursor_pos,
+    //     editor_state.editor_elements.int16_dv.valueAsNumber,
+    //     editor_state.editor_controls.little_endian
+    //   )
+    //   updateDataView()
+    //   // refreshEditor()
+    // })
+    // editor_state.editor_elements.uint16_dv.addEventListener('change', () => {
+    //   new DataView(editor_state.edit_content.buffer).setUint16(
+    //     editor_state.editor_controls.editor_cursor_pos,
+    //     editor_state.editor_elements.uint16_dv.valueAsNumber,
+    //     editor_state.editor_controls.little_endian
+    //   )
+    //   updateDataView()
+    //   // refreshEditor()
+    // })
+    // editor_state.editor_elements.int32_dv.addEventListener('change', () => {
+    //   new DataView(editor_state.edit_content.buffer).setInt32(
+    //     editor_state.editor_controls.editor_cursor_pos,
+    //     editor_state.editor_elements.int32_dv.valueAsNumber,
+    //     editor_state.editor_controls.little_endian
+    //   )
+    //   updateDataView()
+    //   // refreshEditor()
+    // })
+    // editor_state.editor_elements.uint32_dv.addEventListener('change', () => {
+    //   new DataView(editor_state.edit_content.buffer).setUint32(
+    //     editor_state.editor_controls.editor_cursor_pos,
+    //     editor_state.editor_elements.uint32_dv.valueAsNumber,
+    //     editor_state.editor_controls.little_endian
+    //   )
+    //   updateDataView()
+    //   // refreshEditor()
+    // })
+    // editor_state.editor_elements.int64_dv.addEventListener('change', () => {
+    //   new DataView(editor_state.edit_content.buffer).setBigInt64(
+    //     editor_state.editor_controls.editor_cursor_pos,
+    //     BigInt(editor_state.editor_elements.int64_dv.value),
+    //     editor_state.editor_controls.little_endian
+    //   )
+    //   updateDataView()
+    //   // refreshEditor()
+    // })
+    // editor_state.editor_elements.uint64_dv.addEventListener('change', () => {
+    //   new DataView(editor_state.edit_content.buffer).setBigUint64(
+    //     editor_state.editor_controls.editor_cursor_pos,
+    //     BigInt(editor_state.editor_elements.uint32_dv.value),
+    //     editor_state.editor_controls.little_endian
+    //   )
+    //   updateDataView()
+    //   // refreshEditor()
+    // })
+    // editor_state.editor_elements.float32_dv.addEventListener('change', () => {
+    //   new DataView(editor_state.edit_content.buffer).setFloat32(
+    //     editor_state.editor_controls.editor_cursor_pos,
+    //     editor_state.editor_elements.float32_dv.valueAsNumber,
+    //     editor_state.editor_controls.little_endian
+    //   )
+    //   updateDataView()
+    //   // refreshEditor()
+    // })
+    // editor_state.editor_elements.float64_dv.addEventListener('change', () => {
+    //   new DataView(editor_state.edit_content.buffer).setFloat64(
+    //     editor_state.editor_controls.editor_cursor_pos,
+    //     editor_state.editor_elements.float64_dv.valueAsNumber,
+    //     editor_state.editor_controls.little_endian
+    //   )
+    //   updateDataView()
+    //   // refreshEditor()
+    // })
+    // editor_state.editor_elements.commit_button.addEventListener('click', () => {
+    //   vscode.postMessage({
+    //     command: MessageCommand.commit,
+    //     data: {
+    //       fileOffset: editor_state.editor_controls.offset,
+    //       dataLength: -editor_state.editor_controls.length,
+    //       data: editor_state.editor_elements.editor.value,
+    //       encoding: editor_state.editor_controls.edit_encoding,
+    //     },
+    //   })
+    // })
+    // editor_state.editor_elements.add_data_breakpoint_button.addEventListener(
+    //   'click',
+    //   () => {
+    //     vscode.postMessage({ command: 'set_break', data: 'testdata' })
+    //   }
+    // )
 
     const advanced_mode = document.getElementById(
       'advanced_mode'
@@ -380,23 +369,6 @@ limitations under the License.
     advanced_mode.addEventListener('change', () =>
       enableAdvanced(advanced_mode.checked)
     )
-    const address_type = document.getElementById(
-      'address_numbering'
-    ) as HTMLInputElement
-    address_type.addEventListener('change', () => {
-      editor_state.editor_controls.address_numbering = parseInt(
-        address_type.value
-      )
-      // editor_state.editor_elements.address.innerHTML = makeAddressRange(
-      //   0,
-      //   Math.ceil(
-      //     editor_state.editor_metrics.file_byte_count /
-      //       editor_state.editor_controls.bytes_per_row
-      //   ),
-      //   editor_state.editor_controls.bytes_per_row,
-      //   editor_state.editor_controls.address_numbering
-      // )
-    })
     const edit_encoding = document.getElementById(
       'edit_encoding'
     ) as HTMLInputElement
@@ -566,31 +538,22 @@ limitations under the License.
   async function loadContent(fileData: Uint8Array) {
     editor_state.editor_elements.editor.value = ''
     editor_state.editor_metrics.file_byte_count = fileData.length
-    $UInt8Data = fileData
-    $fileByteEnd = fileData.length / $bytesPerRow
-    addressValue.set(16)
+    
+    UInt8Data.update(() => {
+      return Uint8Array.from(fileData)
+    })
+
+    filesize.update(() => {
+      return fileData.length
+    })
+
+    displayRadix.update(() => {
+      return 16
+    })
+
     editor_state.editor_controls.goto_offset = 0
     editor_state.editor_elements.goto_offset.max = String(fileData.length)
     editor_state.editor_elements.goto_offset.value = '0'
-    // editor_state.editor_elements.logical_offsets.innerHTML = makeOffsetRange(
-    //   10,
-    //   1
-    // )
-    // editor_state.editor_elements.physical_offsets.innerHTML = makeOffsetRange(
-    //   10,
-    //   2
-    // )
-    // editor_state.editor_elements.address.innerHTML = makeAddressRange(
-    //   0,
-    //   Math.ceil(fileData.length / 16),
-    //   16,
-    //   editor_state.editor_controls.address_numbering
-    // )
-    editor_state.editor_elements.file_byte_count.innerHTML = String(
-      editor_state.editor_metrics.file_byte_count
-    )
-    editor_state.editor_elements.logical.innerHTML = 'Loading...'
-    editor_state.file_content = fileData
     editor_state.editor_metrics.ascii_byte_count = countAscii(
       editor_state.file_content
     )
@@ -602,11 +565,6 @@ limitations under the License.
         editor_state.editor_controls.bytes_per_row
     )
     editor_state.editor_elements.file_metrics_vw.hidden = false
-    editor_state.editor_elements.physical.innerHTML = encodeForDisplay(
-      editor_state.file_content,
-      editor_state.editor_controls.radix,
-      editor_state.editor_controls.bytes_per_row
-    )
     editor_state.editor_elements.commit_button.disabled = false
     editor_state.editor_elements.add_data_breakpoint_button.disabled = false
 
@@ -627,108 +585,22 @@ limitations under the License.
       editor_state.editor_elements.editor.selectionEnd = 0
     storeCursorPos()
 
-    let editorMsg: EditorDisplayState = {
-      start: editor_state.editor_controls.offset,
-      end:
-        editor_state.editor_controls.offset +
-        -editor_state.editor_controls.length,
-      cursor: editor_state.editor_controls.editor_cursor_pos,
-      encoding: editor_state.editor_controls.edit_encoding,
-      radix: editor_state.editor_controls.radix,
-    }
+    // let editorMsg: EditorDisplayState = {
+    //   start: editor_state.editor_controls.offset,
+    //   end:
+    //     editor_state.editor_controls.offset +
+    //     -editor_state.editor_controls.length,
+    //   cursor: editor_state.editor_controls.editor_cursor_pos,
+    //   encoding: editor_state.editor_controls.edit_encoding,
+    //   radix: $displayRadix,
+    // }
 
-    vscode.postMessage({
-      command: MessageCommand.editorOnChange,
-      data: { editor: editorMsg },
-    })
+    // vscode.postMessage({
+    //   command: MessageCommand.editorOnChange,
+    //   data: { editor: editorMsg },
+    // })
 
     editor_state.editor_elements.editor.focus()
-  }
-
-  function selectAddressType(radix: number) {
-    // editor_state.editor_controls.radix = radix
-    let logicalDisplayState: LogicalDisplayState
-    if (
-      $displayRadix === 2 &&
-      !editor_state.editor_elements.data_editor.classList.contains('binary')
-    ) {
-      // editor_state.editor_controls.radix = 2
-      $bytesPerRow = 8
-      editor_state.editor_elements.data_editor.classList.add('binary')
-      if (editor_state.file_content) {
-        editor_state.editor_elements.physical.innerHTML = encodeForDisplay(
-          editor_state.file_content,
-          editor_state.editor_controls.radix,
-          editor_state.editor_controls.bytes_per_row
-        )
-      }
-      // editor_state.editor_elements.physical_offsets.innerHTML = makeOffsetRange(
-      //   editor_state.editor_controls.radix,
-      //   1
-      // )
-      // editor_state.editor_elements.address.innerHTML = makeAddressRange(
-      //   0,
-      //   Math.ceil(
-      //     editor_state.editor_metrics.file_byte_count /
-      //       editor_state.editor_controls.bytes_per_row
-      //   ),
-      //   8,
-      //   editor_state.editor_controls.address_numbering
-      // )
-      // editor_state.editor_elements.logical_offsets.innerHTML = makeOffsetRange(
-      //   editor_state.editor_controls.radix * -1,
-      //   1
-      // )
-      logicalDisplayState = {
-        bytesPerRow: 8,
-      }
-    } else {
-      let pysichalOffsetSpread: number
-      $displayRadix === 16
-        ? (pysichalOffsetSpread = 2)
-        : (pysichalOffsetSpread = 3)
-      $bytesPerRow = 16
-      if (
-        editor_state.editor_elements.data_editor.classList.contains('binary')
-      ) {
-        editor_state.editor_elements.data_editor.classList.remove('binary')
-      }
-      if (editor_state.file_content) {
-        editor_state.editor_elements.physical.innerHTML = encodeForDisplay(
-          editor_state.file_content,
-          editor_state.editor_controls.radix,
-          editor_state.editor_controls.bytes_per_row
-        )
-      }
-
-      // editor_state.editor_elements.physical_offsets.innerHTML = makeOffsetRange(
-      //   editor_state.editor_controls.radix,
-      //   pysichalOffsetSpread
-      // )
-
-      // editor_state.editor_elements.address.innerHTML = makeAddressRange(
-      //   0,
-      //   Math.ceil(
-      //     editor_state.editor_metrics.file_byte_count /
-      //       editor_state.editor_controls.bytes_per_row
-      //   ),
-      //   16,
-      //   editor_state.editor_controls.address_numbering
-      // )
-      // editor_state.editor_elements.logical_offsets.innerHTML = makeOffsetRange(
-      //   editor_state.editor_controls.radix,
-      //   1
-      // )
-      logicalDisplayState = {
-        bytesPerRow: 16,
-      }
-    }
-    vscode.postMessage({
-      command: MessageCommand.addressOnChange,
-      data: {
-        state: logicalDisplayState,
-      },
-    })
   }
 
   function updateDataView() {
@@ -741,7 +613,7 @@ limitations under the License.
     const offset = bytePOS.valueOf()
     const data_view = new DataView(editor_state.edit_content.buffer)
     const little_endian = editor_state.editor_controls.little_endian
-    const radix = editor_state.editor_controls.radix
+    const radix = $displayRadix
     const look_ahead = data_view.byteLength - offset
     editor_state.editor_elements.data_view_offset.innerHTML = String(
       editor_state.editor_controls.offset +
@@ -862,66 +734,74 @@ limitations under the License.
     }
   }
 
-  function handleSelected(selected: HTMLTextAreaElement) {
-    let selectionStart = selected.selectionStart as number
-    let selectionEnd = selected.selectionEnd as number
-    let selectionOffsetsByRadix = {
-      2: { start: selectionStart / 9, end: (selectionEnd - 8) / 9 + 1 },
-      8: { start: selectionStart / 4, end: (selectionEnd - 3) / 4 + 1 },
-      10: { start: selectionStart / 4, end: (selectionEnd - 3) / 4 + 1 },
-      16: { start: selectionStart / 3, end: (selectionEnd - 2) / 3 + 1 },
-    }
-    if (selected.id === 'physical') {
-      selectionStart =
-        selectionOffsetsByRadix[editor_state.editor_controls.radix].start
-      selectionEnd =
-        selectionOffsetsByRadix[editor_state.editor_controls.radix].end
-    } else {
-      selectionStart = selectionStart / 2
-      selectionEnd = (selectionEnd + 1) / 2
-    }
-    editor_state.editor_elements.data_vw.hidden = false
-    editor_state.editor_controls.editor_cursor_pos = 0
-    editor_state.editor_controls.offset = selectionStart
-    editor_state.editor_controls.length = selectionStart - selectionEnd
-    editor_state.edit_content = editor_state.file_content!.slice(
-      selectionStart,
-      selectionEnd
-    )
-
-    editor_state.editor_elements.editor.scrollTo(0, 0)
-    editor_state.editor_elements.selected_offsets.innerHTML =
-      selected.id +
-      ': ' +
-      selectionStart +
-      ' - ' +
-      selectionEnd +
-      ', length: ' +
-      (selectionEnd - selectionStart)
-    editor_state.editor_elements.data_view_offset.innerHTML =
-      String(selectionStart)
-    editor_state.editor_elements.editor_offsets.innerHTML = '-'
+  export function handleSelectionEvent(e: Event){
+    frameSelectedOnWhitespace(e.target as HTMLTextAreaElement)
 
     let editorMsg: EditorDisplayState = {
-      start: selectionStart,
-      end: selectionEnd,
+      start: $selectionStartStore,
+      end: $selectionEndStore,
       encoding: editor_state.editor_controls.edit_encoding,
       cursor: editor_state.editor_controls.editor_cursor_pos,
-      radix: parseInt(editor_state.editor_elements.radix.value),
+      radix: $displayRadix,
     }
 
     vscode.postMessage({
       command: MessageCommand.editorOnChange,
       data: { editor: editorMsg },
     })
+}
+function handleSelected(selected: HTMLTextAreaElement) {
+    // if (selected.id === 'physical') {
+    //   selectionStart =
+    //     selectionOffsetsByRadix[$displayRadix].start
+    //   selectionEnd =
+    //     selectionOffsetsByRadix[$displayRadix].end
+    // } else {
+    //   selectionStart = selectionStart / 2
+    //   selectionEnd = (selectionEnd + 1) / 2
+    // }
+    // editor_state.editor_elements.data_vw.hidden = false
+    // editor_state.editor_controls.editor_cursor_pos = 0
+    // editor_state.editor_controls.offset = selectionStart
+    // editor_state.editor_controls.length = selectionStart - selectionEnd
+    // editor_state.edit_content = editor_state.file_content!.slice(
+    //   selectionStart,
+    //   selectionEnd
+    // )
 
-    editor_state.editor_elements.editor.scrollTo(
-      0,
-      editor_state.editor_elements.editor.scrollHeight
-    )
+    // editor_state.editor_elements.editor.scrollTo(0, 0)
+    // editor_state.editor_elements.selected_offsets.innerHTML =
+    //   selected.id +
+    //   ': ' +
+    //   selectionStart +
+    //   ' - ' +
+    //   selectionEnd +
+    //   ', length: ' +
+    //   (selectionEnd - selectionStart)
+    // editor_state.editor_elements.data_view_offset.innerHTML =
+    //   String(selectionStart)
+    // editor_state.editor_elements.editor_offsets.innerHTML = '-'
 
-    updateDataView()
-  }
+    // let editorMsg: EditorDisplayState = {
+    //   start: selectionStart,
+    //   end: selectionEnd,
+    //   encoding: editor_state.editor_controls.edit_encoding,
+    //   cursor: editor_state.editor_controls.editor_cursor_pos,
+    //   radix: $displayRadix,
+    // }
+
+    // vscode.postMessage({
+    //   command: MessageCommand.editorOnChange,
+    //   data: { editor: editorMsg },
+    // })
+
+    // editor_state.editor_elements.editor.scrollTo(
+    //   0,
+    //   editor_state.editor_elements.editor.scrollHeight
+    // )
+
+    // updateDataView()
+}
 
   function frameSelected(selected: HTMLTextAreaElement) {
     let selectionStart = selected.selectionStart as number
@@ -972,7 +852,19 @@ limitations under the License.
         selectionEnd < selected.value.length ? selectionEnd + 1 : selectionEnd
     }
 
-    return selected
+    const selectionOffsetsByRadix = {
+      2: { start: selectionStart / 9, end: (selectionEnd - 8) / 9 + 1 },
+      8: { start: selectionStart / 4, end: (selectionEnd - 3) / 4 + 1 },
+      10: { start: selectionStart / 4, end: (selectionEnd - 3) / 4 + 1 },
+      16: { start: selectionStart / 3, end: (selectionEnd - 2) / 3 + 1 },
+    }
+
+    selectionStartStore.update(()=>{
+      return selectionOffsetsByRadix[$displayRadix].start
+    })
+    selectionEndStore.update(()=>{
+      return selectionOffsetsByRadix[$displayRadix].end
+    })
   }
 
   function isWhitespace(c: string | undefined): boolean {
@@ -981,91 +873,6 @@ limitations under the License.
 
   function countAscii(buf: ArrayBuffer): number {
     return new Uint8Array(buf).reduce((a, b) => a + (b < 128 ? 1 : 0), 0)
-  }
-
-  // // determine if the given character is undefined for latin-1 (ref: https://en.wikipedia.org/wiki/ISO/IEC_8859-1)
-
-  function radixBytePad(radix: number): number {
-    switch (radix) {
-      case 2:
-        return 8
-      case 8:
-        return 3
-      case 10:
-        return 3
-      case 16:
-        return 2
-    }
-    return 0
-  }
-
-  function encodeForDisplay(
-    arr: Uint8Array,
-    radix: number,
-    bytes_per_row: number
-  ): string {
-    let result = ''
-    if (arr.byteLength > 0) {
-      const pad = radixBytePad(radix)
-      let i = 0
-      while (true) {
-        for (let col = 0; i < arr.byteLength && col < bytes_per_row; ++col) {
-          result += arr[i++].toString(radix).padStart(pad, '0') + ' '
-        }
-        result = result.slice(0, result.length - 1)
-        if (i === arr.byteLength) {
-          break
-        }
-        result += '\n'
-      }
-    }
-    return result
-  }
-
-  function makeAddressRange(
-    start: number,
-    end: number,
-    stride: number,
-    radix: number
-  ): string {
-    let i = start
-    let result = (i * stride).toString(radix)
-    for (++i; i < end; ++i) {
-      result += '\n' + (i * stride).toString(radix)
-    }
-    return result
-  }
-
-  function makeOffsetRange(radix: number, spread: number): string {
-    return ((radix_: number): string => {
-      switch (radix_) {
-        // @formatter:off
-        case 16:
-          return (
-            '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  <br/>' +
-            '0 1 2 3 4 5 6 7 8 9 A B C D E F'
-          )
-        case 10:
-          return (
-            '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1  <br/>' +
-            '0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5'
-          )
-        case 8:
-          return (
-            '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1  <br/>' +
-            '0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7'
-          )
-        case 2:
-          return (
-            '00000000 00111111 11112222 22222233 33333333 44444444 44555555 55556666  <br/>' +
-            '01234567 89012345 67890123 45678901 23456789 01234567 89012345 67890123  '
-          )
-        case -2:
-          return '0 0 0 0 0 0 0 0 <br>' + '0 1 2 3 4 5 6 7'
-        // @formatter:on
-      }
-      return 'unhandled radix'
-    })(radix).replaceAll(' ', '&nbsp;'.repeat(spread))
   }
 
   function enableAdvanced(enable: boolean) {
@@ -1087,25 +894,22 @@ limitations under the License.
           msg.data.display.logical
         break
       case MessageCommand.editorOnChange:
-        editor_state.editor_elements.editor.value = msg.data.display.editor
+        editorSelection.update(()=>{
+          return msg.data.display.editor
+        })
+
         break
       case MessageCommand.addressOnChange:
-        editor_state.editor_elements.logical.innerHTML =
-          msg.data.display.logical
+        logicalDisplayText = msg.data.display.logical
         break
     }
   })
 
-
-  // Reactive Declarations
-  // $: addressDisplay.set(makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue))
-  // $: physicalOffsets.set(makeOffsetRange($displayRadix, 2))
-
   window.onload = () => {
     init()
   }
-</script>
 
+</script>
 <header>
   <fieldset class="box">
     <legend>File Metrics</legend>
@@ -1113,7 +917,7 @@ limitations under the License.
       File: <span id="file_name" />
       <hr />
       Type:<span id="file_type" />
-      <br />Size: <span id="file_byte_cnt">{fileSize}</span>
+      <br />Size: <span id="file_byte_cnt">{$filesize}</span>
       <br />ASCII count: <span id="ascii_byte_cnt"> 0</span>
     </div>
   </fieldset>
@@ -1127,10 +931,9 @@ limitations under the License.
     <legend>Radix</legend>
     <div class="radix">
       <select id="radix" bind:value={$displayRadix}>
-        <option value="16" selected>HEX</option>
-        <option value="10">DEC</option>
-        <option value="8">OCT</option>
-        <option value="2">BIN</option>
+        {#each radixOpt as {name, value}}
+          <option {value}>{name}</option>
+        {/each}
       </select>
     </div>
   </fieldset>
@@ -1159,7 +962,6 @@ limitations under the License.
       <label for="advanced_mode"
         >Advanced Mode
         <vscode-checkbox id="advanced_mode" checked />
-      </label><br />The Answer: {$answer}
     </div>
   </fieldset>
 </header>
@@ -1171,14 +973,13 @@ limitations under the License.
   <div class="hd">Edit</div>
   <div class="measure" style="align-items: center;">
     <select class="address_type" id="address_numbering" bind:value={$addressValue}>
-      <option value="16" selected>Hexadecimal</option>
-      <option value="10">Decimal</option>
-      <option value="8">Octal</option>
-      <!-- <option value="2">Binary</option> -->
+    {#each addressOpt as {name, value}}
+      <option {value}>{name}</option>
+    {/each}
     </select>
   </div>
   <div class="measure"><span contenteditable='true' id="physical_offsets" bind:innerHTML={physicalOffsetText}/></div>
-  <div class="measure"><span id="logical_offsets" /></div>
+  <div class="measure"><span contenteditable='true' id="logical_offsets" bind:innerHTML={logicalOffsetText}/></div>
   <div class="measure">
     <div>
       <span id="selected_offsets" />
@@ -1186,10 +987,10 @@ limitations under the License.
     </div>
   </div>
   <textarea class="address_vw" id="address" contenteditable="true" readonly bind:innerHTML={addressText}/>
-  <textarea class="physical_vw" id="physical" readonly />
-  <textarea class="logicalView" id="logical" readonly />
+  <textarea class="physical_vw" id="physical" contenteditable="true" readonly bind:innerHTML={physicalDisplayText} on:select={handleSelectionEvent}/>
+  <textarea class="logicalView" id="logical" contenteditable="true" readonly bind:innerHTML={logicalDisplayText}/>
   <div class="editView" id="edit_view">
-    <textarea class="selectedContent" id="editor" readonly />
+    <textarea class="selectedContent" id="editor" contenteditable="true" readonly bind:innerHTML={editorTextDisplay} />
     <fieldset class="box">
       <legend>content controls</legend>
       <div class="contentControls" id="content_controls">
@@ -1215,50 +1016,42 @@ limitations under the License.
             <div>
               <label for="endianness"
                 >Endianness:
-                <vscode-dropdown id="endianness">
-                  <option value="le">Little</option>
-                  <option value="be">Big</option>
-                </vscode-dropdown>
+                <select id="endianness">
+                  {#each endiannessOpt as {name, value}}
+                  <option {value}>{name}</option>
+                  {/each}
+                </select>
               </label>
             </div>
             <div>
-              <label for="edit_encoding"
-                >Encoding:
+              <label for="edit_encoding">Encoding:
                 <select id="edit_encoding">
-                  <optgroup label="Binary Encodings">
-                    <option value="hex">Hexadecimal</option>
-                    <option value="binary">Binary</option>
-                    <option value="base64">Base64</option>
-                  </optgroup>
-                  <optgroup label="Single-Byte Character Encodings">
-                    <option value="ascii">ASCII (7-bit)</option>
-                    <option value="latin1">ISO-8859-1 (8-bit)</option>
-                  </optgroup>
-                  <optgroup label="Multi-Byte Character Encodings">
-                    <option value="ucs2">UCS-2</option>
-                    <option value="utf-8" selected>UTF-8</option>
-                    <option value="utf-16le">UTF-16LE</option>
-                  </optgroup>
+                  {#each encoding_groups as {group, encodings}}
+                    <optgroup label={group}>
+                    {#each encodings as {name, value}}
+                      <option {value}>{name}</option>
+                    {/each}
+                    </optgroup>
+                  {/each}
                 </select>
               </label>
             </div>
             <div class="advanced">
-              <label for="lsb"
-                >Least significant bit:
-                <vscode-dropdown id="lsb">
-                  <option value="h">Higher Offset</option>
-                  <option value="l">Lower Offset</option>
-                </vscode-dropdown>
+              <label for="lsb">Least significant bit:
+                <select id="lsb">
+                {#each lsbOpt as {name, value}}
+                <option {value}>{name}</option>
+                {/each}
+                </select>
               </label>
             </div>
             <div class="advanced">
-              <label for="logical_byte_size"
-                >Logical byte size:
-                <vscode-dropdown id="logical_byte_size">
-                  <option>8</option>
-                  <option>7</option>
-                  <option>6</option>
-                </vscode-dropdown>
+              <label for="logical_byte_size">Logical byte size:
+                <select id="logical_byte_size">
+                {#each byteSizeOpt as {value}}
+                  <option {value}>{value}</option>
+                {/each}
+                </select>
               </label>
             </div>
           </div>
@@ -1312,7 +1105,15 @@ limitations under the License.
     </fieldset>
   </div>
 </main>
-
+<div contenteditable="true">
+  <h3>BytesPerRow: {$bytesPerRow}</h3>
+  <h3>Radix: {$displayRadix}</h3>
+  <h3>Data<br></h3><hr><p>{$UInt8Data}</p>
+  <hr><br><br>
+  <h3>Selection: {$selectionStartStore} - {$selectionEndStore}</h3>
+  <hr>
+  {testOutput}
+</div>
 <!-- svelte-ignore css-unused-selector -->
 <style lang="scss">
   /* CSS reset */

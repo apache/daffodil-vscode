@@ -15,8 +15,12 @@
  * limitations under the License.
  */
 
-import { writable } from 'svelte/store'
+import { writable, derived } from 'svelte/store'
 import { localStore } from './localStore'
+import {vscode} from '../utilities/vscode'
+import { MessageCommand } from '../utilities/message'
+
+import type { LogicalDisplayState } from '../utilities/message'
 
 const state_key = 'apache-daffodil-data-editor.state'
 
@@ -25,5 +29,29 @@ export const displayRadix = writable(16)
 export const addressValue = writable(16)
 export const addressDisplay = writable('')
 export const fileByteStart = writable(0)
-export const fileByteEnd = writable(0)
-export const bytesPerRow = writable(16)
+export const filesize = writable(0)
+export const selectionStartStore = writable(0)
+export const selectionEndStore = writable(0)
+
+
+export const bytesPerRow = derived(displayRadix, $displayRadix=>{
+    let logicalDisplayState: LogicalDisplayState
+    let newVal: number
+    ($displayRadix === 2)? newVal = 8 : newVal = 16
+
+    logicalDisplayState = { bytesPerRow: newVal }
+    vscode.postMessage({
+        command: MessageCommand.addressOnChange,
+        data: {
+        state: logicalDisplayState,
+        },
+    })
+
+    return newVal
+})
+export const fileByteEnd = derived([bytesPerRow, filesize], ([$bytesPerRow, $filesize])=>{
+  return $filesize / $bytesPerRow
+})
+
+export const UInt8Data = writable(new Uint8Array(0))
+
