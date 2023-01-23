@@ -32,7 +32,10 @@ limitations under the License.
     bytesPerRow,
     UInt8Data,
     selectionStartStore,
-    selectionEndStore } from '../stores'
+    selectionEndStore,
+    editorSelection,
+    editorEncoding,
+    cursorPos } from '../stores'
   import { 
     radixOpt, 
     encoding_groups, 
@@ -66,7 +69,6 @@ limitations under the License.
   let testOutput = ''
   let editorTextDisplay = ''
 
-  const editorSelection = writable('')
   // Reactive Declarations
   $: addressText = makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue)
   
@@ -76,7 +78,7 @@ limitations under the License.
   }
   $: physicalDisplayText = encodeForDisplay($UInt8Data, $displayRadix, $bytesPerRow)
   $: testOutput = $UInt8Data.slice($selectionStartStore, $selectionEndStore).toString()
-  $: editorTextDisplay = $editorSelection
+  $: sendSelectionMsg($selectionStartStore, $selectionEndStore, $editorEncoding)
 
   interface EditorControls {
     bytes_per_line: number
@@ -152,6 +154,20 @@ limitations under the License.
   }
 
   let editor_state: EditorState
+
+  function sendSelectionMsg(start: number, end: number, encoding: string) {
+    let editorMsg: EditorDisplayState = {
+      start: start,
+      end: end,
+      encoding: encoding as BufferEncoding,
+      cursor: $cursorPos,
+    }
+
+    vscode.postMessage({
+      command: MessageCommand.editorOnChange,
+      data: { editor: editorMsg },
+    })
+  }
 
   function init() {
     editor_state = {
@@ -734,15 +750,15 @@ limitations under the License.
     }
   }
 
-  export function handleSelectionEvent(e: Event){
+  function handleSelectionEvent(e: Event){
     frameSelectedOnWhitespace(e.target as HTMLTextAreaElement)
 
     let editorMsg: EditorDisplayState = {
       start: $selectionStartStore,
       end: $selectionEndStore,
-      encoding: editor_state.editor_controls.edit_encoding,
-      cursor: editor_state.editor_controls.editor_cursor_pos,
-      radix: $displayRadix,
+      encoding: $editorEncoding as BufferEncoding,
+      cursor: 0,
+      // radix: $displayRadix,
     }
 
     vscode.postMessage({
@@ -822,7 +838,7 @@ function handleSelected(selected: HTMLTextAreaElement) {
   function frameSelectedOnWhitespace(selected: HTMLTextAreaElement) {
     let selectionStart = selected.selectionStart
     let selectionEnd = selected.selectionEnd
-
+    // console.log(selectionStart / $bytesPerRow, selectionEnd / $bytesPerRow)
     // Adjust the start to align with the closest beginning of content
     if (selectionStart != undefined && selectionEnd != undefined) {
       if (isWhitespace(selected.value.at(selectionStart))) {
@@ -863,8 +879,9 @@ function handleSelected(selected: HTMLTextAreaElement) {
       return selectionOffsetsByRadix[$displayRadix].start
     })
     selectionEndStore.update(()=>{
-      return selectionOffsetsByRadix[$displayRadix].end
+      return Math.ceil(selectionOffsetsByRadix[$displayRadix].end)
     })
+    console.log($selectionStartStore, $selectionEndStore)
   }
 
   function isWhitespace(c: string | undefined): boolean {
@@ -894,6 +911,7 @@ function handleSelected(selected: HTMLTextAreaElement) {
           msg.data.display.logical
         break
       case MessageCommand.editorOnChange:
+        console.log(msg)
         editorSelection.update(()=>{
           return msg.data.display.editor
         })
@@ -990,7 +1008,7 @@ function handleSelected(selected: HTMLTextAreaElement) {
   <textarea class="physical_vw" id="physical" contenteditable="true" readonly bind:innerHTML={physicalDisplayText} on:select={handleSelectionEvent}/>
   <textarea class="logicalView" id="logical" contenteditable="true" readonly bind:innerHTML={logicalDisplayText}/>
   <div class="editView" id="edit_view">
-    <textarea class="selectedContent" id="editor" contenteditable="true" readonly bind:innerHTML={editorTextDisplay} />
+    <textarea class="selectedContent" id="editor" contenteditable="true" bind:value={$editorSelection}/>
     <fieldset class="box">
       <legend>content controls</legend>
       <div class="contentControls" id="content_controls">
@@ -1025,7 +1043,7 @@ function handleSelected(selected: HTMLTextAreaElement) {
             </div>
             <div>
               <label for="edit_encoding">Encoding:
-                <select id="edit_encoding">
+                <select id="edit_encoding" bind:value={$editorEncoding}>
                   {#each encoding_groups as {group, encodings}}
                     <optgroup label={group}>
                     {#each encodings as {name, value}}
@@ -1106,13 +1124,14 @@ function handleSelected(selected: HTMLTextAreaElement) {
   </div>
 </main>
 <div contenteditable="true">
+  <h3>Selection: {$selectionStartStore} - {$selectionEndStore} | Encoding: {$editorEncoding}</h3>
+  <hr>
+  {$editorSelection}
+  <hr><br><br>
   <h3>BytesPerRow: {$bytesPerRow}</h3>
   <h3>Radix: {$displayRadix}</h3>
-  <h3>Data<br></h3><hr><p>{$UInt8Data}</p>
-  <hr><br><br>
-  <h3>Selection: {$selectionStartStore} - {$selectionEndStore}</h3>
-  <hr>
-  {testOutput}
+  <h3>Data<br></h3><hr>
+  <subscript>{$UInt8Data}</subscript>
 </div>
 <!-- svelte-ignore css-unused-selector -->
 <style lang="scss">

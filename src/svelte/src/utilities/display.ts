@@ -8,7 +8,7 @@ export const radixOpt = [
 ]
 export const encoding_groups = [
     { group: 'Binary' , encodings: [
-            { name: 'Hexidecimal', value: 'HEX'},
+            { name: 'Hexidecimal', value: 'hex'},
             { name: 'Binary', value: 'binary'},
             { name: 'Base64', value: 'base64'},
         ]

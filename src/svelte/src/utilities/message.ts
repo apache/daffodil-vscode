@@ -14,5 +14,5 @@ export type EditorDisplayState = {
     start: number
     end: number
     cursor: number
-    radix: number
+    // radix: number
 }

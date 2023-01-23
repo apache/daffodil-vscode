@@ -158,7 +158,7 @@ export type EditorDisplayState = {
   start: number
   end: number
   cursor: number
-  radix: number
+  // radix: number
 }
 export class DisplayState {
   public logicalDisplay: LogicalDisplayState
@@ -171,7 +171,7 @@ export class DisplayState {
       start: 0,
       end: 0,
       cursor: 0,
-      radix: 16,
+      // radix: 16,
     }
   }
   public updateLogicalDisplayState(state: LogicalDisplayState) {
