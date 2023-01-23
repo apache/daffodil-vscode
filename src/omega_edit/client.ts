@@ -97,7 +97,7 @@ async function createOmegaEditWebviewPanel(
   ctx: vscode.ExtensionContext,
   filePassed: string,
   subscribeToViewports: boolean
-) {
+): Promise<WebView> {
   const dataEditorView = new WebView(ctx, 'dataEditor', 'Data Editor')
   dataEditorView.show()
 
