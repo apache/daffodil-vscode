@@ -28,7 +28,9 @@ import { runScript } from '../utils'
 
 const client = getClient()
 
-export var randomId = () => Math.floor(Math.random() * (1000 - 0 + 1))
+export function randomId() {
+  return Math.floor(Math.random() * (1000 - 0 + 1))
+}
 
 export async function getFilePath(
   sessionFile: string,
@@ -88,7 +90,7 @@ export async function setViewportDataForPanel(
 
               offsetLines += splitHex[0] + '<br/>'
               if (dataLocations.length > 9) {
-                for (var i = 1; i < 9; i++) {
+                for (let i = 1; i < 9; i++) {
                   let middle = Math.floor(dataLocations[i].length / 2)
                   encodedData +=
                     dataLocations[i].substring(0, middle).toUpperCase() +
@@ -123,7 +125,7 @@ export async function viewportSubscribe(
   commandViewport: string,
   commandHex: string | null
 ) {
-  var request = new EventSubscriptionRequest()
+  let request = new EventSubscriptionRequest()
     .setId(vp1)
     .setInterest(ALL_EVENTS)
 
@@ -235,16 +237,12 @@ const mimeTypes = {
 } as Mimes
 
 export function checkMimeType(bytes: number[], filename: string): string {
-  let ret: string
   for (const key in mimeTypes) {
     if (mimeTypes[key].toString() === bytes.toString()) {
-      ret = key
-      return ret
+      return key
     }
   }
-  filename.lastIndexOf('.') > 0
-    ? (ret = filename.substring(filename.lastIndexOf('.')))
-    : (ret = 'unknown/binary')
-
-  return ret
+  return filename.lastIndexOf('.') > 0
+    ? filename.substring(filename.lastIndexOf('.'))
+    : 'unknown/binary'
 }

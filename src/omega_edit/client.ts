@@ -42,9 +42,9 @@ async function cleanupViewportSession(
   sessionId: string,
   viewportIds: Array<string>
 ) {
-  viewportIds.forEach(async (vid) => {
+  for (const vid of viewportIds) {
     await omegaEditViewport.destroyViewport(vid)
-  })
+  }
   await omegaEditSession.destroySession(sessionId)
 }
 

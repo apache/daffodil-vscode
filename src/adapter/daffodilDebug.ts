@@ -606,7 +606,7 @@ export class DaffodilDebugSession extends LoggingDebugSession {
           if (matches && matches.length === 1) {
             if (this._reportProgress) {
               reply = `progress started`
-              this.progressSequence()
+              await this.progressSequence()
             } else {
               reply = `frontend doesn't support progress (capability 'supportsProgressReporting' not set)`
             }

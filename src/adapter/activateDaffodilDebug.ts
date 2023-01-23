@@ -68,7 +68,7 @@ function createDebugRunFileConfigs(
   runLast = false
 ) {
   let targetResource = resource
-  let noDebug = runOrDebug === 'run' ? true : false
+  let noDebug = runOrDebug === 'run'
 
   if (!targetResource && vscode.window.activeTextEditor) {
     targetResource = vscode.window.activeTextEditor.document.uri

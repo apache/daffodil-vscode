@@ -140,8 +140,8 @@ async function openFilePicker(description) {
     ? vscode.workspace.workspaceFolders[0].uri.fsPath
     : vscode.Uri.parse('').fsPath
 
-  let canSelectMany = description.includes('jar files/folder') ? true : false
-  let canSelectFolders = description.includes('jar files/folder') ? true : false
+  let canSelectMany = !!description.includes('jar files/folder')
+  let canSelectFolders = !!description.includes('jar files/folder')
 
   let chosenFile = await vscode.window
     .showOpenDialog({
@@ -295,9 +295,7 @@ class LaunchWizard {
       : vscode.Uri.parse('').fsPath
 
     let configSelect = ''
-    let newConfig = fs.existsSync(`${rootPath}/.vscode/launch.json`)
-      ? false
-      : true
+    let newConfig = !fs.existsSync(`${rootPath}/.vscode/launch.json`)
     let configIndex = fs.existsSync(`${rootPath}/.vscode/launch.json`) ? 0 : -1
     let fileData = JSON.parse('{}')
 
