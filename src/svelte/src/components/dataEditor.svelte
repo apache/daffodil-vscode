@@ -49,15 +49,16 @@ limitations under the License.
 
   })
   const offsetDisplays = {
-    16: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F  ',
-    10: '0  0  0  0  0  0  0  0  0  0  1  1  1  1  1  1  <br/>0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  ',
-    8: '0  0  0  0  0  0  0  0  0  0  1  1  1  1  1  1 <br/>0  1  2  3  4  5  6  7  0  1  2  3  4  5  6  7  ',
-    2: '00000000 00111111 11112222 22222233 33333333 44444444 44555555 55556666  <br/>01234567 89012345 67890123 45678901 23456789 01234567 89012345 67890123  ',
+    16: { text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F  ', spread: 2 },
+    10: { text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 ', spread: 3 },
+    8: { text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ', spread: 3 },
+    2: { text: '00000000 00111111 11112222 22222233 33333333 44444444 44555555 55556666  <br/>01234567 89012345 67890123 45678901 23456789 01234567 89012345 67890123  ',
+          spread: 1 }
   }
   displayRadix.subscribe(radix => {
     // Change physical offset
-    physicalOffsetText = offsetDisplays[radix]
-    // Change physical display
+    physicalOffsetText = offsetDisplays[radix].text.replaceAll(' ', '&nbsp;'.repeat(offsetDisplays[radix].spread))
+    // Change physical displa
     // change logical offset
     // change logical display
   })
@@ -571,10 +572,10 @@ limitations under the License.
     editor_state.editor_controls.goto_offset = 0
     editor_state.editor_elements.goto_offset.max = String(fileData.length)
     editor_state.editor_elements.goto_offset.value = '0'
-    editor_state.editor_elements.logical_offsets.innerHTML = makeOffsetRange(
-      10,
-      1
-    )
+    // editor_state.editor_elements.logical_offsets.innerHTML = makeOffsetRange(
+    //   10,
+    //   1
+    // )
     // editor_state.editor_elements.physical_offsets.innerHTML = makeOffsetRange(
     //   10,
     //   2
@@ -661,10 +662,10 @@ limitations under the License.
           editor_state.editor_controls.bytes_per_row
         )
       }
-      editor_state.editor_elements.physical_offsets.innerHTML = makeOffsetRange(
-        editor_state.editor_controls.radix,
-        1
-      )
+      // editor_state.editor_elements.physical_offsets.innerHTML = makeOffsetRange(
+      //   editor_state.editor_controls.radix,
+      //   1
+      // )
       // editor_state.editor_elements.address.innerHTML = makeAddressRange(
       //   0,
       //   Math.ceil(
@@ -674,10 +675,10 @@ limitations under the License.
       //   8,
       //   editor_state.editor_controls.address_numbering
       // )
-      editor_state.editor_elements.logical_offsets.innerHTML = makeOffsetRange(
-        editor_state.editor_controls.radix * -1,
-        1
-      )
+      // editor_state.editor_elements.logical_offsets.innerHTML = makeOffsetRange(
+      //   editor_state.editor_controls.radix * -1,
+      //   1
+      // )
       logicalDisplayState = {
         bytesPerRow: 8,
       }
@@ -714,10 +715,10 @@ limitations under the License.
       //   16,
       //   editor_state.editor_controls.address_numbering
       // )
-      editor_state.editor_elements.logical_offsets.innerHTML = makeOffsetRange(
-        editor_state.editor_controls.radix,
-        1
-      )
+      // editor_state.editor_elements.logical_offsets.innerHTML = makeOffsetRange(
+      //   editor_state.editor_controls.radix,
+      //   1
+      // )
       logicalDisplayState = {
         bytesPerRow: 16,
       }
