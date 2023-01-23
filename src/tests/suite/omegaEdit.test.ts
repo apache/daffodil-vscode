@@ -25,7 +25,6 @@ import { WebView } from '../../omega_edit/webView'
 import * as omegaEditClient from '../../omega_edit/client'
 import { killProcess, osCheck, runScript, unzipFile } from '../../utils'
 import { PACKAGE_PATH, PROJECT_ROOT, TEST_SCHEMA } from './common'
-
 import wait_port from 'wait-port'
 
 const omegaEditPackagePath = path.join(PROJECT_ROOT, 'node_modules/omega-edit')
@@ -138,7 +137,7 @@ suite('omega-edit Test Suite', () => {
         'omega_edit.version',
         false
       )
-
+      assert.ok(version)
       assert.strictEqual(
         version,
         'v' + omegaEditClient.getOmegaEditPackageVersion(PACKAGE_PATH)
@@ -152,8 +151,9 @@ suite('omega-edit Test Suite', () => {
         false,
         false
       )
-
+      assert.ok(webview)
       assert.strictEqual(webview.panel.active, true)
+      assert.strictEqual(webview.panel.title, 'Data Editor')
     })
   })
 })
