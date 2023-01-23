@@ -74,10 +74,7 @@ export function activate(ctx: vscode.ExtensionContext) {
         await commonOmegaEdit(ctx, startServer, omegaEditPackageVersion)
         return await omegaEditVersion.getVersion()
       }
-    )
-  )
-
-  ctx.subscriptions.push(
+    ),
     vscode.commands.registerCommand(
       'data.edit',
       async (
@@ -86,7 +83,6 @@ export function activate(ctx: vscode.ExtensionContext) {
         subscribeToViewports: boolean = true
       ) => {
         await commonOmegaEdit(ctx, startServer, omegaEditPackageVersion)
-
         return await createOmegaEditWebviewPanel(
           ctx,
           filePassed,
@@ -153,7 +149,7 @@ async function createOmegaEditWebviewPanel(
         return
       }
 
-      var omegaEdit = new OmegaEdit(
+      const omegaEdit = new OmegaEdit(
         s,
         message.offset,
         message.data,
@@ -161,8 +157,8 @@ async function createOmegaEditWebviewPanel(
         dataEditorView.panel
       )
 
-      var fileSize = await omegaEditSession.getComputedFileSize(s)
-      var searchPattern = message.searchPattern ? message.searchPattern : ''
+      const fileSize = await omegaEditSession.getComputedFileSize(s)
+      const searchPattern = message.searchPattern ? message.searchPattern : ''
 
       // If the search pattern exceeds the length of the file, matches are
       // not possible.  Ωedit (as implemented currently) considers
@@ -172,7 +168,7 @@ async function createOmegaEditWebviewPanel(
         throw new Error("Search pattern can't be larger than file")
       }
 
-      omegaEdit.execute(
+      await omegaEdit.execute(
         message.command,
         message.sessionFile ? message.sessionFile : '',
         message.overwrite ? message.overwrite : false,

@@ -2237,7 +2237,7 @@ ts-loader@8.1.0:
     micromatch "^4.0.0"
     semver "^7.3.4"
 
-ts-node@^10.7.0:
+ts-node@^10.7.0, ts-node@^10.9.1:
   version "10.9.1"
   resolved "https://registry.npmjs.org/ts-node/-/ts-node-10.9.1.tgz"
   integrity sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==
@@ -2353,7 +2353,7 @@ util-deprecate@^1.0.1, util-deprecate@~1.0.1:
 
 uuid@^9.0.0:
   version "9.0.0"
-  resolved "https://registry.npmjs.org/uuid/-/uuid-9.0.0.tgz"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
   integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
 
 v8-compile-cache-lib@^3.0.1:
@@ -2516,9 +2516,9 @@ wrappy@1:
   resolved "https://registry.npmjs.org/wrappy/-/wrappy-1.0.2.tgz"
   integrity sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==
 
-xdg-app-paths@8.2.0:
+xdg-app-paths@^8.2.0:
   version "8.2.0"
-  resolved "https://registry.npmjs.org/xdg-app-paths/-/xdg-app-paths-8.2.0.tgz"
+  resolved "https://registry.yarnpkg.com/xdg-app-paths/-/xdg-app-paths-8.2.0.tgz#ae367d279ef594c11d52c00671b1b9bf5cb39805"
   integrity sha512-feo6L3w1woxOOGMVSCoUplqS7Wf96zqwQX/IjjIJoBao/yHREALVuinsk2ZBvN+jEiY0VdX1sCW2jR5/KGdefg==
   dependencies:
     xdg-portable "^10.5.0"

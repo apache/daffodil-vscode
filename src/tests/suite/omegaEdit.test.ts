@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
-import * as vscode from 'vscode'
 import * as assert from 'assert'
+import * as fs from 'fs'
+import { after, before } from 'mocha'
 import * as path from 'path'
+import * as vscode from 'vscode'
 import { Artifact, Backend } from '../../classes/artifact'
 import * as omegaEditClient from '../../omega_edit/client'
-import { unzipFile, runScript, killProcess, osCheck } from '../../utils'
-import { before, after } from 'mocha'
-import * as fs from 'fs'
-import { PROJECT_ROOT, PACKAGE_PATH, TEST_SCHEMA } from './common'
+import { killProcess, osCheck, runScript, unzipFile } from '../../utils'
+import { PACKAGE_PATH, PROJECT_ROOT, TEST_SCHEMA } from './common'
 
-const wait_port = require('wait-port')
+import wait_port from 'wait-port'
 
 const omegaEditPackagePath = path.join(PROJECT_ROOT, 'node_modules/omega-edit')
 const omegaEditVersion =
@@ -36,6 +36,7 @@ const localArtifact = new Artifact(
   'omega-edit-grpc-server'
 )
 const extractedFolder = path.join(PROJECT_ROOT, localArtifact.name)
+const omegaEditPort = 9000
 
 export async function runServerForTests() {
   fs.copyFileSync(
@@ -62,24 +63,18 @@ suite('omega-edit Test Suite', () => {
     })
   })
 
-  test('Test toggle.experimental', async () => {
-    // omega-edit related commands should be hidden
-    assert.strictEqual(
-      (await vscode.commands.getCommands()).includes('omega_edit.version'),
-      false
-    )
-    assert.strictEqual(
-      (await vscode.commands.getCommands()).includes('data.edit'),
-      false
-    )
-
-    // Toggle experimental features to be enabled
-    await vscode.commands.executeCommand('toggle.experimental', true)
-
-    // omega-edit related commands should not longer be hidden
+  test('Ωedit version command exists', async () => {
     assert.strictEqual(
       (await vscode.commands.getCommands()).includes('omega_edit.version'),
       true
+    )
+  })
+
+  test('data edit command exists', async () => {
+    // DEBUG: dump the registered commands to a file in the temp directory
+    fs.writeFileSync(
+      '/tmp/commands.txt',
+      (await vscode.commands.getCommands()).sort().join('\n')
     )
     assert.strictEqual(
       (await vscode.commands.getCommands()).includes('data.edit'),
@@ -127,7 +122,11 @@ suite('omega-edit Test Suite', () => {
 
   test('running omega-edit server', async () => {
     assert.strictEqual(
-      await wait_port({ host: '127.0.0.1', port: 9000, output: 'silent' }),
+      await wait_port({
+        host: '127.0.0.1',
+        port: omegaEditPort,
+        output: 'silent',
+      }),
       true
     )
   })

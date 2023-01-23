@@ -49,7 +49,7 @@
 		"uuid": "^9.0.0",
 		"vscode-debugadapter": "1.51.0",
 		"wait-port": "^0.3.0",
-		"xdg-app-paths": "8.2.0"
+		"xdg-app-paths": "^8.2.0"
 	},
 	"devDependencies": {
 		"@types/glob": "^8.0.0",
@@ -62,6 +62,7 @@
 		"mocha": "10.0.0",
 		"prettier": "^2.8.3",
 		"ts-loader": "8.1.0",
+		"ts-node": "^10.9.1",
 		"typescript": "4.3.5",
 		"vsce": "2.15.0",
 		"vscode-debugadapter-testsupport": "1.51.0",
@@ -156,12 +157,10 @@
 					"when": "resourceLangId == dfdl"
 				},
 				{
-					"command": "data.edit",
-					"enablement": "experimentalFeaturesEnabled"
+					"command": "data.edit"
 				},
 				{
-					"command": "omega_edit.version",
-					"enablement": "experimentalFeaturesEnabled"
+					"command": "omega_edit.version"
 				},
 				{
 					"command": "toggle.experimental"

@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import * as vscode from 'vscode'
 import * as fs from 'fs'
+import * as vscode from 'vscode'
 import { getConfig, osCheck } from '../utils'
 
 const defaultConf = getConfig('Wizard Config', 'launch', 'dfdl')
