@@ -19,9 +19,9 @@ import { expect } from 'chai'
 import * as utils from '../../utils'
 
 describe('Utils Test Suite', () => {
-  const name = 'Default Config';
-  const request = 'launch';
-  const type = 'dfdl';
+  const name = 'Default Config'
+  const request = 'launch'
+  const type = 'dfdl'
 
   const defaultConfig = {
     name: 'Default Config',
@@ -59,6 +59,8 @@ describe('Utils Test Suite', () => {
     utils.setCurrentConfig(defaultConfig)
     // Check current config is now set
     expect(utils.getCurrentConfig()).to.not.be.undefined
-    expect(JSON.stringify(utils.getCurrentConfig())).to.equal(JSON.stringify(defaultConfig))
+    expect(JSON.stringify(utils.getCurrentConfig())).to.equal(
+      JSON.stringify(defaultConfig)
+    )
   })
 })

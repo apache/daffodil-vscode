@@ -22,7 +22,9 @@ import { PROJECT_ROOT } from './common'
 
 describe('Daffodil Version', () => {
   const versionFile = path.join(PROJECT_ROOT, 'src/version.ts')
-  const packageMapped = JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'package.json')).toString())
+  const packageMapped = JSON.parse(
+    fs.readFileSync(path.join(PROJECT_ROOT, 'package.json')).toString()
+  )
 
   it('version.ts should exist', () => {
     expect(fs.existsSync(versionFile)).to.be.true

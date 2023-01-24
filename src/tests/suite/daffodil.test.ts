@@ -80,7 +80,10 @@ describe('Daffodfil', () => {
         daffodilVersion: allVersions,
         scalaVersion: allVersions,
       }
-      expect(allVersions).to.equal(buildInfo.version).and.to.equal(buildInfo.daffodilVersion).and.to.equal(buildInfo.scalaVersion)
+      expect(allVersions)
+        .to.equal(buildInfo.version)
+        .and.to.equal(buildInfo.daffodilVersion)
+        .and.to.equal(buildInfo.scalaVersion)
     })
 
     it('LaunchArgs functions properly', () => {
@@ -207,7 +210,8 @@ describe('Daffodfil', () => {
         await vscode.commands.executeCommand(
           'extension.dfdl-debug.getProgramName',
           TEST_SCHEMA
-      )).to.equal(TEST_SCHEMA)
+        )
+      ).to.equal(TEST_SCHEMA)
       done()
     })
 
@@ -217,7 +221,8 @@ describe('Daffodfil', () => {
         await vscode.commands.executeCommand(
           'extension.dfdl-debug.getProgramName',
           file
-        )).to.not.equal(file)
+        )
+      ).to.not.equal(file)
       done()
     })
 
@@ -226,7 +231,8 @@ describe('Daffodfil', () => {
         await vscode.commands.executeCommand(
           'extension.dfdl-debug.getDataName',
           TEST_SCHEMA
-        )).to.equal(TEST_SCHEMA)
+        )
+      ).to.equal(TEST_SCHEMA)
       done()
     })
 
@@ -236,7 +242,8 @@ describe('Daffodfil', () => {
         await vscode.commands.executeCommand(
           'extension.dfdl-debug.getDataName',
           file
-        )).to.not.equal(file)
+        )
+      ).to.not.equal(file)
       done()
     })
   })
@@ -248,15 +255,21 @@ describe('Daffodfil', () => {
     const artifact = new Artifact(packageName, packageVersion, scriptName)
 
     it('name set properly', () => {
-      expect(artifact.name).to.equal(`${packageName}-${packageVersion}-${LIB_VERSION}`)
+      expect(artifact.name).to.equal(
+        `${packageName}-${packageVersion}-${LIB_VERSION}`
+      )
     })
 
     it('archive set properly', () => {
-      expect(artifact.archive).to.equal(`${packageName}-${packageVersion}-${LIB_VERSION}.zip`)
+      expect(artifact.archive).to.equal(
+        `${packageName}-${packageVersion}-${LIB_VERSION}.zip`
+      )
     })
 
     it('scriptName set properly', () => {
-      expect(artifact.scriptName).to.equal(osCheck(`${scriptName}.bat`, `./${scriptName}`))
+      expect(artifact.scriptName).to.equal(
+        osCheck(`${scriptName}.bat`, `./${scriptName}`)
+      )
     })
   })
 })
