@@ -35,7 +35,7 @@
 		"package-setup": "node -e \"require('./build/scripts/package.ts').setup()\"",
 		"package-create": "node -e \"require('./build/scripts/package.ts').create()\"",
 		"pretest": "yarn compile && yarn webpack",
-		"test": "node ./out/tests/runTest.js",
+		"test": "extest setup-and-run --yarn --uninstall_extension --install_dependencies --code_version 1.60.2 --open_resource . --mocha_config ./.mocharc.js --storage ./test-resources --extensions_dir ./test-extensions \"./out/tests/suite/**/*test.js\"",
 		"sbt": "sbt universal:packageBin"
 	},
 	"dependencies": {
@@ -61,6 +61,7 @@
 		"typescript": "4.3.5",
 		"@vscode/vsce": "2.15.0",
 		"@vscode/debugadapter-testsupport": "1.51.0",
+		"vscode-extension-tester": "^5.2.1",
 		"webpack": "5.75.0",
 		"webpack-cli": "4.10.0"
 	},

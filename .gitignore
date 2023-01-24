@@ -57,3 +57,5 @@ omega-edit-grpc-server*
 
 # ignore tests unzip daffodil-debugger
 daffodil-debugger-*
+test-extensions/
+test-resources/

@@ -44,6 +44,9 @@
 	},
 	"exclude": [
 		"node_modules",
-		"build/scripts"
+		"build/scripts",
+		"target",
+		"test-extensions",
+		"test-resources"
 	]
 }
