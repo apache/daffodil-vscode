@@ -66,8 +66,6 @@ lazy val ratSettings = Seq(
   ratFailBinaries := true
 )
 
-lazy val commonPlugins = Seq(BuildInfoPlugin, JavaAppPackaging, UniversalPlugin)
-
 lazy val `daffodil-debugger` = project
   .in(file("."))
   .settings(commonSettings, ratSettings)
@@ -97,4 +95,4 @@ lazy val core = project
     buildInfoPackage := "org.apache.daffodil.debugger.dap",
     packageName := s"${name.value}-$daffodilVer"
   )
-  .enablePlugins(commonPlugins: _*)
+  .enablePlugins(BuildInfoPlugin, JavaAppPackaging, UniversalPlugin, ClasspathJarPlugin)
