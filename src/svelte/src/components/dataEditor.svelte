@@ -51,6 +51,7 @@ limitations under the License.
   import { MessageCommand } from '../utilities/message'
   import type{ EditorDisplayState } from '../utilities/message'
   import { writable, derived } from 'svelte/store';
+  import { onMount } from 'svelte'
 
   provideVSCodeDesignSystem().register(
     vsCodeButton(),
@@ -67,13 +68,112 @@ limitations under the License.
   let logicalDisplayText = ''
   let testOutput = ''
   let editorTextDisplay = ''
-  const commitable = writable(false)
+  let selectedContent: HTMLTextAreaElement
 
-  const selectedOffsets = writable('')
+  const disableDataView = writable(false)
+  const selectionActive = derived(selectionSize, $selectionSize=>{
+    return ($selectionSize > 0)
+  })
+  const editedCount = writable(0)
+
+  const commitable = derived([editorEncoding, selectionSize, selectionActive, editedCount], ([$editorEncoding, $selectionSize, $selectionActive, $editedCount]) => {
+    console.log($editorEncoding, ($selectionSize*2)%2)
+    if(!$selectionActive)
+      return false
+    if($editorEncoding === 'hex') {
+      if((($selectionSize + $editedCount) * 2) % 2 != 0)
+        return false
+    }
+    return true
+  })
+
+  const dataView = derived([UInt8Data, selectionStartStore, selectionEndStore, editedCount], ([$UInt8Data, $selectionStartStore, $selectionEndStore, $editedCount])=>{
+    if($editedCount <= 0)
+      return new DataView($UInt8Data.buffer.slice($selectionStartStore, $selectionEndStore + $editedCount))
+    else {
+      // Need OmegaEdit version
+      $disableDataView = true
+    }
+  })
+  const byteOffsetPos = derived([cursorPos, editorEncoding], ([$cursorPos, $editorEncoding]) => {
+    let bytePOS: number
+    $editorEncoding === 'hex'
+      ? (bytePOS = Math.ceil(
+          ($cursorPos - 1) / 2
+        ))
+      : bytePOS = $cursorPos
+    return bytePOS
+  })
+  const dataViewEndianness = writable('')
+
+  const dataViewLookAhead = derived([dataView, byteOffsetPos, disableDataView], ([$dataView, $byteOffsetPos, $disableDataView]) => {
+    if($disableDataView)
+      return 0
+    return $dataView.byteLength - $byteOffsetPos.valueOf()
+  })
+
+  const int8 = derived([byteOffsetPos, dataViewLookAhead, displayRadix], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix])=>{
+    if($dataViewLookAhead >= 1 && $selectionActive)
+      return $dataView.getInt8($byteOffsetPos).toString($displayRadix)
+    return ''
+  })
+  const uint8 = derived([byteOffsetPos, dataViewLookAhead, displayRadix], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix])=>{
+    if($dataViewLookAhead >= 1 && $selectionActive)
+      return $dataView.getUint8($byteOffsetPos).toString($displayRadix)
+    return ''
+  })
+  const int16 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
+    // return $dataView.getInt8($selectionStartStore)
+    if($dataViewLookAhead >= 2 && $selectionActive)
+      return $dataView.getInt16($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    return ''
+  })
+  const uint16 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
+    // return $dataView.getInt8($selectionStartStore)
+    if($dataViewLookAhead >= 2 && $selectionActive)
+      return $dataView.getUint16($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    return ''
+  })
+  const int32 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
+    // return $dataView.getInt8($selectionStartStore)
+    if($dataViewLookAhead >= 4 && $selectionActive)
+      return $dataView.getInt32($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    return ''
+  })
+  const uint32 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
+    // return $dataView.getInt8($selectionStartStore)
+    if($dataViewLookAhead >= 4 && $selectionActive)
+      return $dataView.getUint32($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    return ''
+  })
+  const float32 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
+    // return $dataView.getInt8($selectionStartStore)
+    if($dataViewLookAhead >= 4 && $selectionActive)
+      return $dataView.getFloat32($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    return ''
+  })
+  const int64 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
+    // return $dataView.getInt8($selectionStartStore)
+    if($dataViewLookAhead >= 8 && $selectionActive)
+      return $dataView.getBigInt64($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    return ''
+  })
+  const uint64 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
+    // return $dataView.getInt8($selectionStartStore)
+    if($dataViewLookAhead >= 8 && $selectionActive)
+      return $dataView.getBigUint64($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    return ''
+  })
+  const float64 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
+    // return $dataView.getInt8($selectionStartStore)
+    if($dataViewLookAhead >= 8 && $selectionActive)
+      return $dataView.getFloat64($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix).substring(0, 16)
+    return ''
+  })
 
   // Reactive Declarations
   $: addressText = makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue)
-  $: selectionOffsetText = setSelectionOffsetInfo('Selection', $selectionStartStore, $selectionEndStore, $selectionSize)
+  $: selectionOffsetText = setSelectionOffsetInfo('Selection', $selectionStartStore, $selectionEndStore, $selectionSize, $cursorPos)
   $: {
     physicalOffsetText = getOffsetText($displayRadix, 'physical')
     logicalOffsetText = getOffsetText($displayRadix, 'logical')
@@ -261,106 +361,6 @@ limitations under the License.
         row_count: 0,
       },
     }
-    // add listeners
-    // editor_state.editor_elements.int8_dv.addEventListener('change', () => {
-    //   new DataView(editor_state.edit_content.buffer).setInt8(
-    //     editor_state.editor_controls.editor_cursor_pos,
-    //     editor_state.editor_elements.int8_dv.valueAsNumber
-    //   )
-    //   updateDataView()
-    //   // refreshEditor()
-    // })
-    // editor_state.editor_elements.uint8_dv.addEventListener('change', () => {
-    //   new DataView(editor_state.edit_content.buffer).setUint8(
-    //     editor_state.editor_controls.editor_cursor_pos,
-    //     editor_state.editor_elements.uint8_dv.valueAsNumber
-    //   )
-    //   updateDataView()
-    //   // refreshEditor()
-    // })
-    // editor_state.editor_elements.int16_dv.addEventListener('change', () => {
-    //   new DataView(editor_state.edit_content.buffer).setInt16(
-    //     editor_state.editor_controls.editor_cursor_pos,
-    //     editor_state.editor_elements.int16_dv.valueAsNumber,
-    //     editor_state.editor_controls.little_endian
-    //   )
-    //   updateDataView()
-    //   // refreshEditor()
-    // })
-    // editor_state.editor_elements.uint16_dv.addEventListener('change', () => {
-    //   new DataView(editor_state.edit_content.buffer).setUint16(
-    //     editor_state.editor_controls.editor_cursor_pos,
-    //     editor_state.editor_elements.uint16_dv.valueAsNumber,
-    //     editor_state.editor_controls.little_endian
-    //   )
-    //   updateDataView()
-    //   // refreshEditor()
-    // })
-    // editor_state.editor_elements.int32_dv.addEventListener('change', () => {
-    //   new DataView(editor_state.edit_content.buffer).setInt32(
-    //     editor_state.editor_controls.editor_cursor_pos,
-    //     editor_state.editor_elements.int32_dv.valueAsNumber,
-    //     editor_state.editor_controls.little_endian
-    //   )
-    //   updateDataView()
-    //   // refreshEditor()
-    // })
-    // editor_state.editor_elements.uint32_dv.addEventListener('change', () => {
-    //   new DataView(editor_state.edit_content.buffer).setUint32(
-    //     editor_state.editor_controls.editor_cursor_pos,
-    //     editor_state.editor_elements.uint32_dv.valueAsNumber,
-    //     editor_state.editor_controls.little_endian
-    //   )
-    //   updateDataView()
-    //   // refreshEditor()
-    // })
-    // editor_state.editor_elements.int64_dv.addEventListener('change', () => {
-    //   new DataView(editor_state.edit_content.buffer).setBigInt64(
-    //     editor_state.editor_controls.editor_cursor_pos,
-    //     BigInt(editor_state.editor_elements.int64_dv.value),
-    //     editor_state.editor_controls.little_endian
-    //   )
-    //   updateDataView()
-    //   // refreshEditor()
-    // })
-    // editor_state.editor_elements.uint64_dv.addEventListener('change', () => {
-    //   new DataView(editor_state.edit_content.buffer).setBigUint64(
-    //     editor_state.editor_controls.editor_cursor_pos,
-    //     BigInt(editor_state.editor_elements.uint32_dv.value),
-    //     editor_state.editor_controls.little_endian
-    //   )
-    //   updateDataView()
-    //   // refreshEditor()
-    // })
-    // editor_state.editor_elements.float32_dv.addEventListener('change', () => {
-    //   new DataView(editor_state.edit_content.buffer).setFloat32(
-    //     editor_state.editor_controls.editor_cursor_pos,
-    //     editor_state.editor_elements.float32_dv.valueAsNumber,
-    //     editor_state.editor_controls.little_endian
-    //   )
-    //   updateDataView()
-    //   // refreshEditor()
-    // })
-    // editor_state.editor_elements.float64_dv.addEventListener('change', () => {
-    //   new DataView(editor_state.edit_content.buffer).setFloat64(
-    //     editor_state.editor_controls.editor_cursor_pos,
-    //     editor_state.editor_elements.float64_dv.valueAsNumber,
-    //     editor_state.editor_controls.little_endian
-    //   )
-    //   updateDataView()
-    //   // refreshEditor()
-    // })
-    // editor_state.editor_elements.commit_button.addEventListener('click', () => {
-    //   vscode.postMessage({
-    //     command: MessageCommand.commit,
-    //     data: {
-    //       fileOffset: editor_state.editor_controls.offset,
-    //       dataLength: -editor_state.editor_controls.length,
-    //       data: editor_state.editor_elements.editor.value,
-    //       encoding: editor_state.editor_controls.edit_encoding,
-    //     },
-    //   })
-    // })
 
     const advanced_mode = document.getElementById(
       'advanced_mode'
@@ -413,26 +413,11 @@ limitations under the License.
       }
     })
     // Track the cursor position
-    editor_state.editor_elements.editor.oninput =
-      editor_state.editor_elements.editor.onclick =
-      editor_state.editor_elements.editor.oncontextmenu =
-        storeCursorPos
-    // editor_state.editor_elements.editor.onkeyup = (keyEvent) => {
-    //   if (
-    //     ['Arrow', 'Page', 'Home', 'End'].some((type) =>
-    //       keyEvent.key.startsWith(type)
-    //     )
-    //   ) {
-    //     storeCursorPos()
-    //   } else {
-    //     keyEvent.preventDefault()
-    //   }
-    //   let len = editor_state.editor_elements.editor.value.length
-    //   if (editor_state.editor_controls.edit_encoding != 'hex') {
-    //     len = len / 2
-    //   }
-    //   updateDataView()
-    // }
+    // editor_state.editor_elements.editor.oninput =
+    //   editor_state.editor_elements.editor.onclick =
+    //   editor_state.editor_elements.editor.oncontextmenu =
+        // storeCursorPos
+
     // Lock the address, physical and logical views scrollbars together
     let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
     editor_state.editor_elements.physical.onscroll = () => {
@@ -489,28 +474,30 @@ limitations under the License.
   }
 
   function storeCursorPos() {
-    editor_state.editor_controls.editor_cursor_pos =
-      editor_state.editor_elements.editor.selectionStart
-    editor_state.editor_controls.editor_selection_start =
-      editor_state.editor_elements.editor.selectionStart
-    editor_state.editor_controls.editor_selection_end =
-      editor_state.editor_elements.editor.selectionEnd
-    editor_state.editor_elements.editor_offsets.innerHTML =
-      editor_state.editor_controls.editor_selection_start ===
-      editor_state.editor_controls.editor_selection_end
-        ? 'cursor: ' + String(editor_state.editor_controls.editor_cursor_pos)
-        : 'start: ' +
-          String(editor_state.editor_controls.editor_selection_start) +
-          ', end: ' +
-          String(editor_state.editor_controls.editor_selection_end) +
-          ', cursor: ' +
-          String(editor_state.editor_controls.editor_cursor_pos)
-    updateDataView()
+    // editor_state.editor_controls.editor_cursor_pos =
+    //   editor_state.editor_elements.editor.selectionStart
+    // editor_state.editor_controls.editor_selection_start =
+    //   editor_state.editor_elements.editor.selectionStart
+    // editor_state.editor_controls.editor_selection_end =
+    //   editor_state.editor_elements.editor.selectionEnd
+    // editor_state.editor_elements.editor_offsets.innerHTML =
+    //   editor_state.editor_controls.editor_selection_start ===
+    //   editor_state.editor_controls.editor_selection_end
+    //     ? 'cursor: ' + String(editor_state.editor_controls.editor_cursor_pos)
+    //     : 'start: ' +
+    //       String(editor_state.editor_controls.editor_selection_start) +
+    //       ', end: ' +
+    //       String(editor_state.editor_controls.editor_selection_end) +
+    //       ', cursor: ' +
+    //       String(editor_state.editor_controls.editor_cursor_pos)
+    cursorPos.update(pos=>{
+      return selectedContent.selectionStart
+    })
   }
 
   function selectEndianness(endianness: string) {
     editor_state.editor_controls.little_endian = endianness == 'le'
-    updateDataView()
+    // updateDataView()
     editor_state.editor_elements.editor.focus()
     editor_state.editor_elements.editor.setSelectionRange(
       editor_state.editor_controls.editor_selection_start,
@@ -586,137 +573,6 @@ limitations under the License.
     editor_state.editor_elements.editor.focus()
   }
 
-  function updateDataView() {
-    let bytePOS: number
-    editor_state.editor_controls.edit_encoding === 'hex'
-      ? (bytePOS = Math.ceil(
-          (editor_state.editor_controls.editor_cursor_pos - 1) / 2
-        ))
-      : (bytePOS = editor_state.editor_controls.editor_cursor_pos)
-    const offset = bytePOS.valueOf()
-    const data_view = new DataView(editor_state.edit_content.buffer)
-    const little_endian = editor_state.editor_controls.little_endian
-    const radix = $displayRadix
-    const look_ahead = data_view.byteLength - offset
-    editor_state.editor_elements.data_view_offset.innerHTML = String(
-      editor_state.editor_controls.offset +
-        offset +
-        ', encoding: ' +
-        String(radix)
-    )
-    if (look_ahead >= 8) {
-      editor_state.editor_elements.int64_dv.value = data_view
-        .getBigInt64(offset, little_endian)
-        .toString(radix)
-      editor_state.editor_elements.uint64_dv.value = data_view
-        .getBigUint64(offset, little_endian)
-        .toString(radix)
-      editor_state.editor_elements.float64_dv.value = data_view
-        .getFloat64(offset, little_endian)
-        .toString(radix)
-      editor_state.editor_elements.int32_dv.value = data_view
-        .getInt32(offset, little_endian)
-        .toString(radix)
-      editor_state.editor_elements.uint32_dv.value = data_view
-        .getUint32(offset, little_endian)
-        .toString(radix)
-      editor_state.editor_elements.float32_dv.value = data_view
-        .getFloat32(offset, little_endian)
-        .toString(radix)
-      editor_state.editor_elements.int16_dv.value = data_view
-        .getInt16(offset, little_endian)
-        .toString(radix)
-      editor_state.editor_elements.uint16_dv.value = data_view
-        .getUint16(offset, little_endian)
-        .toString(radix)
-      editor_state.editor_elements.int8_dv.value = data_view
-        .getInt8(offset)
-        .toString(radix)
-      editor_state.editor_elements.uint8_dv.value = data_view
-        .getUint8(offset)
-        .toString(radix)
-      editor_state.editor_elements.b8_dv.hidden = false
-      editor_state.editor_elements.b16_dv.hidden = false
-      editor_state.editor_elements.b32_dv.hidden = false
-      editor_state.editor_elements.b64_dv.hidden = false
-    } else {
-      editor_state.editor_elements.b64_dv.hidden = true
-      editor_state.editor_elements.int64_dv.value = ''
-      editor_state.editor_elements.uint64_dv.value = ''
-      editor_state.editor_elements.float64_dv.value = ''
-      if (look_ahead >= 4) {
-        editor_state.editor_elements.int32_dv.value = data_view
-          .getInt32(offset, little_endian)
-          .toString(radix)
-        editor_state.editor_elements.uint32_dv.value = data_view
-          .getUint32(offset, little_endian)
-          .toString(radix)
-        editor_state.editor_elements.float32_dv.value = data_view
-          .getFloat32(offset, little_endian)
-          .toString(radix)
-        editor_state.editor_elements.int16_dv.value = data_view
-          .getInt16(offset, little_endian)
-          .toString(radix)
-        editor_state.editor_elements.uint16_dv.value = data_view
-          .getUint16(offset, little_endian)
-          .toString(radix)
-        editor_state.editor_elements.int8_dv.value = data_view
-          .getInt8(offset)
-          .toString(radix)
-        editor_state.editor_elements.uint8_dv.value = data_view
-          .getUint8(offset)
-          .toString(radix)
-        editor_state.editor_elements.b8_dv.hidden = false
-        editor_state.editor_elements.b16_dv.hidden = false
-        editor_state.editor_elements.b32_dv.hidden = false
-      } else {
-        editor_state.editor_elements.b64_dv.hidden = true
-        editor_state.editor_elements.b32_dv.hidden = true
-        editor_state.editor_elements.int32_dv.value = ''
-        editor_state.editor_elements.uint32_dv.value = ''
-        editor_state.editor_elements.float32_dv.value = ''
-        if (look_ahead >= 2) {
-          editor_state.editor_elements.int16_dv.value = data_view
-            .getInt16(offset, little_endian)
-            .toString(radix)
-          editor_state.editor_elements.uint16_dv.value = data_view
-            .getUint16(offset, little_endian)
-            .toString(radix)
-          editor_state.editor_elements.int8_dv.value = data_view
-            .getInt8(offset)
-            .toString(radix)
-          editor_state.editor_elements.uint8_dv.value = data_view
-            .getUint8(offset)
-            .toString(radix)
-          editor_state.editor_elements.b8_dv.hidden = false
-          editor_state.editor_elements.b16_dv.hidden = false
-        } else {
-          editor_state.editor_elements.b64_dv.hidden = true
-          editor_state.editor_elements.b32_dv.hidden = true
-          editor_state.editor_elements.b16_dv.hidden = true
-          editor_state.editor_elements.int16_dv.value = ''
-          editor_state.editor_elements.uint16_dv.value = ''
-          if (look_ahead >= 1) {
-            editor_state.editor_elements.int8_dv.value = data_view
-              .getInt8(offset)
-              .toString(radix)
-            editor_state.editor_elements.uint8_dv.value = data_view
-              .getUint8(offset)
-              .toString(radix)
-            editor_state.editor_elements.b8_dv.hidden = false
-          } else {
-            editor_state.editor_elements.b64_dv.hidden = true
-            editor_state.editor_elements.b32_dv.hidden = true
-            editor_state.editor_elements.b16_dv.hidden = true
-            editor_state.editor_elements.b8_dv.hidden = true
-            editor_state.editor_elements.int8_dv.value = ''
-            editor_state.editor_elements.uint8_dv.value = ''
-          }
-        }
-      }
-    }
-  }
-
   function handleSelectionEvent(e: Event){
     frameSelectedOnWhitespace(e.target as HTMLTextAreaElement)
     
@@ -734,33 +590,58 @@ limitations under the License.
     })
   }
 
-  function setSelectionOffsetInfo(from: string, start: number, end: number, size: number):string {
-    return `${from} [${start} = ${end}] (${size})`
+  function setSelectionOffsetInfo(from: string, start: number, end: number, size: number, cursorPos?: number):string {
+    let ret = `${from} [${start} - ${end}] ` + $editedCount
+
+    if(cursorPos){
+      return  ret += ` | cursor: ${cursorPos}`
+    }
+    return ret
   }
 
-  function handleKeyEvent(e: Event) {
-    let event = e as KeyboardEvent
-    if (['Arrow', 'Page', 'Home', 'End'].some((type) =>
-          event.key.startsWith(type))) {
+  function handleEditorEvent(e: Event) {
+    switch(e.type) {
+      case 'keydown':
+        const kevent = e as KeyboardEvent
+        if (['Arrow', 'Page', 'Home', 'End'].some((type) => kevent.key.startsWith(type))) {
+          storeCursorPos()
+        } else if(['Backspace', 'Return', 'Delete'].some((type)=> kevent.key.startsWith(type))) {
+          $editedCount--
+        }
+        else {
+          e.preventDefault()
+        }
+        break
+      case 'input':
+        const ievent = e as InputEvent
+        if($editorEncoding === 'hex') {
+          ((/^[0-9A-Fa-f]+$/).test(ievent.data))
+            ? $editedCount++
+            : $editorSelection = $editorSelection.substring(0, $cursorPos) + $editorSelection.substring($cursorPos+1)
+        }
+        else if($editorEncoding === 'ascii') {
+          ((/^[\x20-\x7E]+$/).test(ievent.data))
+            ? $editedCount++
+            : $editorSelection = $editorSelection.substring(0, $cursorPos) + $editorSelection.substring($cursorPos+1)
+        }
+
+        break
+      case 'click':
+        const cevent = e as MouseEvent
+        break
+    }
+
+    storeCursorPos()
+  }
+  function handleKeyEvent(e: KeyboardEvent) {
+    // let event = e as KeyboardEvent
+    if (['Arrow', 'Page', 'Home', 'End'].some((type) => e.key.startsWith(type))) {
       storeCursorPos()
     } else {
-      event.preventDefault()
+      e.preventDefault()
+      // e.preventDefault()
+      // console.log(e.preventDefault, event.preventDefault)
     }
-    
-    commitable.update(()=>{
-      if($editorEncoding === 'hex' && $selectionSize % 2 != 0)
-        return false
-      return true
-    })
-    // editor_state.editor_elements.selected_offsets.innerHTML =
-    //   'Edited: ' +
-    //   editor_state.editor_controls.offset +
-    //   ' - ' +
-    //   (editor_state.editor_controls.offset +
-    //     -editor_state.editor_controls.length) +
-    //   ', length: ' +
-    //   Math.ceil(len)
-    updateDataView()
   }
 
   function frameSelected(selected: HTMLTextAreaElement) {
@@ -856,11 +737,9 @@ limitations under the License.
           msg.data.display.logical
         break
       case MessageCommand.editorOnChange:
-        console.log(msg)
         editorSelection.update(()=>{
           return msg.data.display.editor
         })
-
         break
       case MessageCommand.addressOnChange:
         logicalDisplayText = msg.data.display.logical
@@ -903,7 +782,7 @@ limitations under the License.
   <fieldset class="box">
     <legend>Search</legend>
     <div class="search">
-      <vscode-text-field id="search">
+      <text-field id="search">
         Search:
         <section slot="end" style="display:flex; align-items: center;">
           <vscode-button appearance="icon" aria-label="Case Sensitive">
@@ -913,8 +792,8 @@ limitations under the License.
             <span class="codicon codicon-case-sensitive" />
           </vscode-button>
         </section>
-      </vscode-text-field>
-      <vscode-text-field id="replace"> Replace: </vscode-text-field>
+      </text-field>
+      <text-field id="replace"> Replace: </text-field>
       <br /><vscode-button id="search_btn" disabled>Search</vscode-button>
       <vscode-button id="replace_btn" disabled>Replace</vscode-button>
     </div>
@@ -953,16 +832,17 @@ limitations under the License.
   <textarea class="physical_vw" id="physical" contenteditable="true" readonly bind:innerHTML={physicalDisplayText} on:select={handleSelectionEvent}/>
   <textarea class="logicalView" id="logical" contenteditable="true" readonly bind:innerHTML={logicalDisplayText} on:select={handleSelectionEvent}/>
   <div class="editView" id="edit_view">
-    <textarea class="selectedContent" id="editor" contenteditable="true" bind:value={$editorSelection} on:keyup={handleKeyEvent}/>
+    <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={selectedContent} bind:value={$editorSelection} on:keydown|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}/>
+    <!-- <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={selectedContent} bind:value={$editorSelection} on:click={storeCursorPos} on:input={storeCursorPos}/> -->
     <fieldset class="box">
-      <legend>content controls</legend>
+      <legend>Content Controls</legend>
       <div class="contentControls" id="content_controls">
         <div class="grid-container-two-columns">
           <div>
           {#if $commitable}
             <vscode-button id="commit_btn">commit changes</vscode-button>
           {:else}
-          <vscode-button id="commit_btn" disabled>commit changes</vscode-button>
+            <vscode-button id="commit_btn" disabled>commit changes</vscode-button>
           {/if}
             <br />
             Committed changes: <span id="change_cnt">0</span>
@@ -979,12 +859,11 @@ limitations under the License.
         <div class="grid-container-two-columns">
           <div class="grid-container-column">
             <div>
-              <label for="endianness"
-                >Endianness:
-                <select id="endianness">
-                  {#each endiannessOpt as {name, value}}
+              <label for="endianness">Endianness:
+                <select id="endianness" bind:value={$dataViewEndianness}>
+                {#each endiannessOpt as {name, value}}
                   <option {value}>{name}</option>
-                  {/each}
+                {/each}
                 </select>
               </label>
             </div>
@@ -1021,24 +900,24 @@ limitations under the License.
             </div>
           </div>
           <div class="grid-container-column">
-            <div id="data_vw" hidden>&nbsp;Offset: <span id="offset_dv" bind:value={$dataViewOffset}>-</span>
+            <div id="data_vw" >&nbsp;Offset: <span id="offset_dv" contenteditable='true'>{$byteOffsetPos}</span>
               <span id="b8_dv">
-                <br /><label for="int8_dv">&nbsp;&nbsp;&nbsp;int8: <vscode-text-field id="int8_dv" bind:value{$int8}/></label>
-                <br /><label for="uint8_dv">&nbsp;&nbsp;uint8: <vscode-text-field id="uint8_dv"bind:value{$uint8}/></label>
+                <br /><label for="int8_dv">&nbsp;&nbsp;&nbsp;int8: <text-field id="int8_dv" contenteditable='true' bind:textContent={$int8}></text-field></label>
+                <br /><label for="uint8_dv">&nbsp;&nbsp;uint8: <text-field id="uint8_dv" contenteditable='true' bind:textContent={$uint8}></text-field></label>
               </span>
               <span id="b16_dv">
-                <br /><label for="int16_dv">&nbsp;&nbsp;int16: <vscode-text-field id="int16_dv" bind:value{$int16}/></label>
-                <br /><label for="uint16_dv">&nbsp;uint16: <vscode-text-field id="uint16_dv" bind:value{$uint16}/></label>
+                <br /><label for="int16_dv">&nbsp;&nbsp;int16: <text-field id="int16_dv" contenteditable='true' bind:textContent={$int16}></text-field></label>
+                <br /><label for="uint16_dv">&nbsp;uint16: <text-field id="uint16_dv" contenteditable='true' bind:textContent={$uint16}></text-field></label>
               </span>
               <span id="b32_dv">
-                <br /><label for="int32_dv">&nbsp;&nbsp;int32: <vscode-text-field id="int32_dv" bind:value{$int32}/></label>
-                <br /><label for="uint32_dv">&nbsp;uint32: <vscode-text-field id="uint32_dv" bind:value{$uint32}/></label>
-                <br /><label for="float32_dv">float32: <vscode-text-field id="float32_dv" bind:value{$float32}/></label>
+                <br /><label for="int32_dv">&nbsp;&nbsp;int32: <text-field id="int32_dv" contenteditable='true' bind:textContent={$int32}></text-field></label>
+                <br /><label for="uint32_dv">&nbsp;uint32: <text-field id="uint32_dv" contenteditable='true' bind:textContent={$uint32}></text-field></label>
+                <br /><label for="float32_dv">float32: <text-field id="float32_dv" contenteditable='true' bind:textContent={$float32}></text-field></label>
               </span>
               <span id="b64_dv">
-                <br /><label for="int64_dv">&nbsp;&nbsp;int64: <vscode-text-field id="int64_dv" bind:value{$int64}/></label>
-                <br /><label for="uint64_dv">&nbsp;uint64: <vscode-text-field id="uint64_dv" bind:value{$uint64}/></label>
-                <br /><label for="float64_dv">float64: <vscode-text-field id="float64_dv"bind:value{$float64} /></label>
+                <br /><label for="int64_dv">&nbsp;&nbsp;int64: <text-field id="int64_dv" contenteditable='true' bind:textContent={$int64}></text-field></label>
+                <br /><label for="uint64_dv">&nbsp;uint64: <text-field id="uint64_dv" contenteditable='true' bind:textContent={$uint64}></text-field></label>
+                <br /><label for="float64_dv">float64: <text-field id="float64_dv" contenteditable='true' bind:textContent={$float64}></text-field></label>
               </span>
             </div>
           </div>
@@ -1048,10 +927,12 @@ limitations under the License.
   </div>
 </main>
 <div contenteditable="true">
-  <h3>Selection: {$selectionStartStore} - {$selectionEndStore} | Encoding: {$editorEncoding}</h3>
+  {#if $selectionActive}
+  <h3>Selection: {$selectionStartStore} - {$selectionEndStore} | Encoding: {$editorEncoding} | cursor: {$cursorPos} | bytePOS: {$byteOffsetPos}</h3>
   <hr>
   {$editorSelection}
   <hr><br><br>
+  {/if}
   <h3>BytesPerRow: {$bytesPerRow}</h3>
   <h3>Radix: {$displayRadix}</h3>
   <h3>Data<br></h3><hr>
