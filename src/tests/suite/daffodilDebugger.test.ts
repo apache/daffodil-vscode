@@ -16,7 +16,7 @@
  */
 
 import * as vscode from 'vscode'
-import * as assert from 'assert'
+import { expect } from 'chai'
 import * as path from 'path'
 import * as fs from 'fs'
 import { PROJECT_ROOT, PACKAGE_PATH, TEST_SCHEMA } from './common'
@@ -30,10 +30,9 @@ import {
 import { before, after } from 'mocha'
 
 // Not using the debug adapter like adapter.test.ts as it will not fully connect the debugger
-suite('Daffodil Debugger', () => {
+describe('Daffodil Debugger', () => {
   const dfdlVersion = daffodilVersion(PACKAGE_PATH)
   const artifact = daffodilArtifact(dfdlVersion)
-
   const SCALA_PATH = path.join(
     PROJECT_ROOT,
     'server/core/target/universal',
@@ -47,13 +46,14 @@ suite('Daffodil Debugger', () => {
   const JSON_INFOSET_PATH = path.join(PROJECT_ROOT, 'testinfoset.json')
   const debuggers: vscode.Terminal[] = []
 
-  before(async () => {
+  before(async (done) => {
     await unzipFile(SCALA_PATH, PROJECT_ROOT)
     debuggers.push(await runDebugger(PROJECT_ROOT, '', PACKAGE_PATH))
     debuggers.push(await runDebugger(PROJECT_ROOT, '', PACKAGE_PATH, 4712))
+    done()
   })
 
-  after(async () => {
+  after(async (done) => {
     await stopDebugging()
     debuggers.forEach((d) => {
       d.processId?.then(async (id) => await killProcess(id))
@@ -61,9 +61,10 @@ suite('Daffodil Debugger', () => {
     fs.rmSync(EXTRACTED_FOLDER, { recursive: true })
     if (fs.existsSync(XML_INFOSET_PATH)) fs.rmSync(XML_INFOSET_PATH)
     if (fs.existsSync(JSON_INFOSET_PATH)) fs.rmSync(JSON_INFOSET_PATH)
+    done()
   })
 
-  test('should output xml infoset', async () => {
+  it('should output xml infoset', async (done) => {
     await vscode.debug.startDebugging(
       undefined,
       getConfig('Run', 'launch', 'dfdl', TEST_SCHEMA, DATA, 4711, 'xml', {
@@ -72,11 +73,11 @@ suite('Daffodil Debugger', () => {
       }),
       { noDebug: true }
     )
-
-    assert.strictEqual(fs.existsSync(XML_INFOSET_PATH), true)
+    expect(fs.existsSync(XML_INFOSET_PATH)).to.be.true
+    done()
   })
 
-  test('should output json infoset', async () => {
+  it('should output json infoset', async (done) => {
     await vscode.debug.startDebugging(
       undefined,
       getConfig('Run', 'launch', 'dfdl', TEST_SCHEMA, DATA, 4712, 'json', {
@@ -85,7 +86,7 @@ suite('Daffodil Debugger', () => {
       }),
       { noDebug: true }
     )
-
-    assert.strictEqual(fs.existsSync(JSON_INFOSET_PATH), true)
+    expect(fs.existsSync(JSON_INFOSET_PATH)).to.be.true
+    done()
   })
 })

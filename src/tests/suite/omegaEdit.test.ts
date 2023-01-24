@@ -16,7 +16,7 @@
  */
 
 import * as vscode from 'vscode'
-import * as assert from 'assert'
+import { expect } from 'chai'
 import * as path from 'path'
 import { Artifact, Backend } from '../../classes/artifact'
 import * as omegaEditClient from '../../omega_edit/client'
@@ -60,107 +60,88 @@ export async function runServerForTests() {
   )
 }
 
-suite('omega-edit Test Suite', () => {
+describe('omega-edit Test Suite', () => {
   let terminal: vscode.Terminal
 
-  before(async () => {
+  before(async (done) => {
     terminal = await runServerForTests()
+    done()
   })
 
-  after(async () => {
+  after(async (done) => {
     await terminal.processId.then(async (id) => await killProcess(id))
     fs.rmSync(`${PROJECT_ROOT}/${localArtifact.name}.zip`)
     fs.rmSync(`${PROJECT_ROOT}/${localArtifact.name}`, {
       recursive: true,
       force: true,
     })
+    done()
   })
 
-  test('Test toggle.experimental', async () => {
+  it('Test toggle.experimental', async (done) => {
     // omega-edit related commands should be hidden
-    assert.strictEqual(
-      (await vscode.commands.getCommands()).includes('omega_edit.version'),
-      false
-    )
-    assert.strictEqual(
-      (await vscode.commands.getCommands()).includes('data.edit'),
-      false
-    )
+    expect(await vscode.commands.getCommands())
+      .to.not.include('omega_edit.version')
+      .and.to.not.include('data.edit')
 
     // Toggle experimental features to be enabled
     await vscode.commands.executeCommand('toggle.experimental', true)
 
     // omega-edit related commands should not longer be hidden
-    assert.strictEqual(
-      (await vscode.commands.getCommands()).includes('omega_edit.version'),
-      true
-    )
-    assert.strictEqual(
-      (await vscode.commands.getCommands()).includes('data.edit'),
-      true
-    )
+    expect(await vscode.commands.getCommands())
+      .to.include('omega_edit.version')
+      .and.to.include('data.edit')
+    done()
   })
 
-  suite('artifact attributes', () => {
-    const packageName = 'omega-edit-grpc-server'
+  describe('artifact attributes', () => {
+    const packageName = 'omega-edit-scala-server'
     const packageVersion = '1.0.0'
     const scriptName = 'omega-edit-grpc-server'
     const artifact = new Artifact(packageName, packageVersion, scriptName)
     const backend = new Backend('ctc-oss', 'omega-edit')
 
-    test('name set properly', () => {
-      assert.strictEqual(artifact.name, `${packageName}-${packageVersion}`)
+    it('name set properly', () => {
+      expect(artifact.name).to.equal(`${packageName}-${packageVersion}`)
     })
 
-    test('archive set properly', () => {
-      assert.strictEqual(
-        artifact.archive,
-        `${packageName}-${packageVersion}.zip`
-      )
+    it('archive set properly', () => {
+      expect(artifact.archive).to.equal(`${packageName}-${packageVersion}.zip`)
     })
 
-    test('scriptName set properly', () => {
-      assert.strictEqual(
-        artifact.scriptName,
+    it('scriptName set properly', () => {
+      expect(artifact.scriptName).to.equal(
         osCheck(`${scriptName}.bat`, `./${scriptName}`)
       )
     })
 
-    test('archiveUrl set properly', () => {
-      const url = artifact.archiveUrl(backend)
-
-      assert.strictEqual(url.includes('ctc-oss'), true)
-      assert.strictEqual(url.includes('omega-edit'), true)
-      assert.strictEqual(url.includes(`v${packageVersion}`), true)
-      assert.strictEqual(
-        url.includes(`${packageName}-${packageVersion}.zip`),
-        true
-      )
+    it('archiveUrl set properly', () => {
+      expect(artifact.archiveUrl(backend))
+        .to.include('ctc-oss')
+        .and.to.include('omega-edit')
+        .and.to.include(`${packageName}-${packageVersion}.zip`)
     })
   })
 
-  test('running omega-edit server', async () => {
-    assert.strictEqual(
-      await wait_port({ host: '127.0.0.1', port: port, output: 'silent' }),
-      true
-    )
+  it('running omega-edit server', async (done) => {
+    expect(await wait_port({ host: '127.0.0.1', port: 9000, output: 'silent' }))
+      .to.be.true
+    done()
   })
 
-  suite('omega-edit commands', () => {
-    test('omega_edit.version returns correct version', async () => {
-      let version = await vscode.commands.executeCommand(
+  describe('omega-edit commands', () => {
+    it('omega_edit.version returns correct version', async (done) => {
+      const version: string = await vscode.commands.executeCommand(
         'omega_edit.version',
-        false,
-        port
+        false
       )
-
-      assert.strictEqual(
-        version,
+      expect(version).to.equal(
         'v' + omegaEditClient.getOmegaEditPackageVersion(PACKAGE_PATH)
       )
+      done()
     })
 
-    test('data editor opens', async () => {
+    it('data editor opens', async (done) => {
       const panel: vscode.WebviewPanel = await vscode.commands.executeCommand(
         'data.edit',
         TEST_SCHEMA,
@@ -168,8 +149,8 @@ suite('omega-edit Test Suite', () => {
         false,
         port
       )
-
-      assert.strictEqual(panel.active, true)
+      expect(panel.active).to.be.true
+      done()
     })
   })
 })

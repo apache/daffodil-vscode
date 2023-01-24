@@ -16,13 +16,11 @@
  */
 
 import * as vscode from 'vscode'
-import * as assert from 'assert'
+import { expect } from 'chai'
 
-suite('DFDL Language Test Suite', () => {
-  test('Test DFDL language configured', async () => {
-    assert.strictEqual(
-      (await vscode.languages.getLanguages()).includes('dfdl'),
-      true
-    )
+describe('DFDL Language Test Suite', () => {
+  it('Test DFDL language configured', async (done) => {
+    expect(await vscode.languages.getLanguages()).to.include('dfdl')
+    done()
   })
 })

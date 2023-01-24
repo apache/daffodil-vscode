@@ -48,7 +48,7 @@ function setup() {
   fs.mkdirSync(pkg_dir)
 
   let lines = fs
-    .readFileSync('build/package/.vscodeignore')
+    .readFileSync('./.vscodeignore')
     .toString()
     .split('\n')
 

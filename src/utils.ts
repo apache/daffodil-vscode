@@ -188,7 +188,7 @@ export async function executeScript(
 
 /*
  * Check if OS is windows, if so return windows option else return the mac and linux option.
- * This method is used to elimate a lot duplicated code we had check if the os was windows related.
+ * This method is used to eliminate a lot duplicated code we had check if the os was windows related.
  */
 export function osCheck(winOption: any, macLinOption: any): any {
   return os.platform().toLowerCase().startsWith('win')
