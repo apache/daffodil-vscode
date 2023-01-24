@@ -45,6 +45,7 @@
 	"exclude": [
 		"node_modules",
 		"build/scripts",
-		"src/svelte"
+		"src/svelte",
+		"test-resources"
 	]
 }

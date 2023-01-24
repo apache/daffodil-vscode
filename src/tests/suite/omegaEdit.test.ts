@@ -21,7 +21,7 @@ import { after, before } from 'mocha'
 import * as path from 'path'
 import * as vscode from 'vscode'
 import { Artifact, Backend } from '../../classes/artifact'
-import { WebView } from '../../omega_edit/webView'
+import { DataEditWebView } from '../../omega_edit/dataEditWebView'
 import * as omegaEditClient from '../../omega_edit/client'
 import { killProcess, osCheck, runScript, unzipFile } from '../../utils'
 import { PACKAGE_PATH, PROJECT_ROOT, TEST_SCHEMA } from './common'
@@ -145,15 +145,16 @@ suite('omega-edit Test Suite', () => {
     })
 
     test('data editor opens', async () => {
-      const webview: WebView = await vscode.commands.executeCommand(
-        'data.edit',
-        TEST_SCHEMA,
-        false,
-        false
-      )
-      assert.ok(webview)
-      assert.strictEqual(webview.panel.active, true)
-      assert.strictEqual(webview.panel.title, 'Data Editor')
+      const dataEditWebView: DataEditWebView =
+        await vscode.commands.executeCommand(
+          'data.edit',
+          TEST_SCHEMA,
+          false,
+          false
+        )
+      assert.ok(dataEditWebView)
+      assert.strictEqual(dataEditWebView.panel.active, true)
+      assert.strictEqual(dataEditWebView.panel.title, 'Data Editor')
     })
   })
 })

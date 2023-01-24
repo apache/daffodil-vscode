@@ -25,7 +25,7 @@ import XDGAppPaths from 'xdg-app-paths'
 import { killProcess } from '../utils'
 import { OmegaEdit } from './omega_edit'
 import { startOmegaEditServer, viewportSubscribe } from './utils'
-import { WebView } from './webView'
+import { DataEditWebView } from './dataEditWebView'
 let serverRunning = false
 let serverTerminal: vscode.Terminal | undefined
 const xdgAppPaths = XDGAppPaths({ name: 'omega_edit' })
@@ -97,8 +97,8 @@ async function createOmegaEditWebviewPanel(
   ctx: vscode.ExtensionContext,
   filePassed: string,
   subscribeToViewports: boolean
-): Promise<WebView> {
-  const dataEditorView = new WebView(ctx, 'dataEditor', 'Data Editor')
+): Promise<DataEditWebView> {
+  const dataEditorView = new DataEditWebView(ctx, 'dataEditor', 'Data Editor')
   dataEditorView.show()
 
   let fileToEdit =

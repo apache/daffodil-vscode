@@ -23,7 +23,7 @@ import { EditorMessage, MessageCommand } from './messageHandler'
 
 /** Data editor message data structure for communication between Webview and VSCode. */
 
-export class WebView implements vscode.Disposable {
+export class DataEditWebView implements vscode.Disposable {
   public panel: vscode.WebviewPanel
   private svelteWebviewInitializer: SvelteWebviewInitializer
   private fileToEdit: string = ''
