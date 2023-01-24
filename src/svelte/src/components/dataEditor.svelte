@@ -65,16 +65,15 @@ limitations under the License.
   let physicalDisplayText = ''
   let logicalOffsetText = ''
   let logicalDisplayText = ''
-  let fileSize = ''
-  let testCount = 0
   let testOutput = ''
   let editorTextDisplay = ''
+  const commitable = writable(false)
 
-  const editorInfoText = writable('')
+  const selectedOffsets = writable('')
 
   // Reactive Declarations
   $: addressText = makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue)
-  
+  $: selectionOffsetText = setSelectionOffsetInfo('Selection', $selectionStartStore, $selectionEndStore, $selectionSize)
   $: {
     physicalOffsetText = getOffsetText($displayRadix, 'physical')
     logicalOffsetText = getOffsetText($displayRadix, 'logical')
@@ -174,11 +173,8 @@ limitations under the License.
     }
   }
 
-  function editorInfo(start: number, end: number, len: number): string {
-    let ret = 'Selection: ' + start + ' - ' + end + ', length: ' + Math.ceil(len)
-    return ret
+  function canCommit(){
   }
-
   function init() {
     editor_state = {
       file_content: null,
@@ -267,22 +263,6 @@ limitations under the License.
       },
     }
     // add listeners
-    // editor_state.editor_elements.physical.addEventListener('select', () =>
-    //   handleSelected(
-    //     frameSelectedOnWhitespace(editor_state.editor_elements.physical)
-    //   )
-    // )
-    // editor_state.editor_elements.logical.addEventListener('select', () =>
-    //   handleSelected(frameSelected(editor_state.editor_elements.logical))
-    // )
-    // editor_state.editor_elements.radix.addEventListener('change', () => {
-    //   $displayRadix = parseInt(
-    //     editor_state.editor_elements.radix.value
-    //   )
-    //   selectAddressType($displayRadix)
-
-    //   updateDataView()
-    // })
     // editor_state.editor_elements.int8_dv.addEventListener('change', () => {
     //   new DataView(editor_state.edit_content.buffer).setInt8(
     //     editor_state.editor_controls.editor_cursor_pos,
@@ -382,12 +362,6 @@ limitations under the License.
     //     },
     //   })
     // })
-    // editor_state.editor_elements.add_data_breakpoint_button.addEventListener(
-    //   'click',
-    //   () => {
-    //     vscode.postMessage({ command: 'set_break', data: 'testdata' })
-    //   }
-    // )
 
     const advanced_mode = document.getElementById(
       'advanced_mode'
@@ -395,14 +369,6 @@ limitations under the License.
     advanced_mode.addEventListener('change', () =>
       enableAdvanced(advanced_mode.checked)
     )
-    // const edit_encoding = document.getElementById(
-    //   'edit_encoding'
-    // ) as HTMLInputElement
-    // editor_state.editor_controls.edit_encoding =
-    //   edit_encoding.value as BufferEncoding
-    // edit_encoding.addEventListener('change', () =>
-    //   selectEditEncoding(edit_encoding.value)
-    // )
     const endianness = document.getElementById('endianness') as HTMLInputElement
     endianness.addEventListener('change', () =>
       selectEndianness(endianness.value)
@@ -452,25 +418,22 @@ limitations under the License.
       editor_state.editor_elements.editor.onclick =
       editor_state.editor_elements.editor.oncontextmenu =
         storeCursorPos
-    editor_state.editor_elements.editor.onkeyup = (keyEvent) => {
-      if (
-        ['Arrow', 'Page', 'Home', 'End'].some((type) =>
-          keyEvent.key.startsWith(type)
-        )
-      ) {
-        storeCursorPos()
-      } else {
-        keyEvent.preventDefault()
-      }
-      let len = editor_state.editor_elements.editor.value.length
-      if (editor_state.editor_controls.edit_encoding != 'hex') {
-        len = len / 2
-      }
-      editorInfoText.update(()=>{
-        return editorInfo($selectionStartStore, $selectionEndStore, len)
-      })
-      updateDataView()
-    }
+    // editor_state.editor_elements.editor.onkeyup = (keyEvent) => {
+    //   if (
+    //     ['Arrow', 'Page', 'Home', 'End'].some((type) =>
+    //       keyEvent.key.startsWith(type)
+    //     )
+    //   ) {
+    //     storeCursorPos()
+    //   } else {
+    //     keyEvent.preventDefault()
+    //   }
+    //   let len = editor_state.editor_elements.editor.value.length
+    //   if (editor_state.editor_controls.edit_encoding != 'hex') {
+    //     len = len / 2
+    //   }
+    //   updateDataView()
+    // }
     // Lock the address, physical and logical views scrollbars together
     let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
     editor_state.editor_elements.physical.onscroll = () => {
@@ -772,30 +735,33 @@ limitations under the License.
     })
   }
 
+  function setSelectionOffsetInfo(from: string, start: number, end: number, size: number):string {
+    return `${from} [${start} = ${end}] (${size})`
+  }
+
   function handleKeyEvent(e: Event) {
     let event = e as KeyboardEvent
-    if (
-        ['Arrow', 'Page', 'Home', 'End'].some((type) =>
-          event.key.startsWith(type)
-        )
-      ) {
-        storeCursorPos()
-      } else {
-        e.preventDefault()
-      }
-      let len = $selectionSize
-      if ($editorEncoding != 'hex') {
-        len = len / 2
-      }
-      editor_state.editor_elements.selected_offsets.innerHTML =
-        'Edited: ' +
-        editor_state.editor_controls.offset +
-        ' - ' +
-        (editor_state.editor_controls.offset +
-          -editor_state.editor_controls.length) +
-        ', length: ' +
-        Math.ceil(len)
-      updateDataView()
+    if (['Arrow', 'Page', 'Home', 'End'].some((type) =>
+          event.key.startsWith(type))) {
+      storeCursorPos()
+    } else {
+      event.preventDefault()
+    }
+    
+    commitable.update(()=>{
+      if($editorEncoding === 'hex' && $selectionSize % 2 != 0)
+        return false
+      return true
+    })
+    // editor_state.editor_elements.selected_offsets.innerHTML =
+    //   'Edited: ' +
+    //   editor_state.editor_controls.offset +
+    //   ' - ' +
+    //   (editor_state.editor_controls.offset +
+    //     -editor_state.editor_controls.length) +
+    //   ', length: ' +
+    //   Math.ceil(len)
+    updateDataView()
   }
 
   function frameSelected(selected: HTMLTextAreaElement) {
@@ -853,9 +819,13 @@ limitations under the License.
     }
 
     selectionStartStore.update(()=>{
+      if(selected.id === 'logical')
+        return selected.selectionStart / 2
       return selectionOffsetsByRadix[$displayRadix].start
     })
     selectionEndStore.update(()=>{
+      if(selected.id === 'logical')
+        return (selected.selectionEnd + 1) / 2
       return selectionOffsetsByRadix[$displayRadix].end
     })
   }
@@ -976,13 +946,13 @@ limitations under the License.
   <div class="measure"><span contenteditable='true' id="logical_offsets" bind:innerHTML={logicalOffsetText}/></div>
   <div class="measure">
     <div>
-      <span id="selected_offsets" />
+      <span id="selected_offsets" contenteditable="true" bind:innerHTML={selectionOffsetText}/>
       <span id="editor_offsets" />
     </div>
   </div>
   <textarea class="address_vw" id="address" contenteditable="true" readonly bind:innerHTML={addressText}/>
   <textarea class="physical_vw" id="physical" contenteditable="true" readonly bind:innerHTML={physicalDisplayText} on:select={handleSelectionEvent}/>
-  <textarea class="logicalView" id="logical" contenteditable="true" readonly bind:innerHTML={logicalDisplayText}/>
+  <textarea class="logicalView" id="logical" contenteditable="true" readonly bind:innerHTML={logicalDisplayText} on:select={handleSelectionEvent}/>
   <div class="editView" id="edit_view">
     <textarea class="selectedContent" id="editor" contenteditable="true" bind:value={$editorSelection} on:keyup={handleKeyEvent}/>
     <fieldset class="box">
@@ -990,9 +960,11 @@ limitations under the License.
       <div class="contentControls" id="content_controls">
         <div class="grid-container-two-columns">
           <div>
-            <vscode-button id="commit_btn" disabled
-              >commit changes</vscode-button
-            >
+          {#if $commitable}
+            <vscode-button id="commit_btn">commit changes</vscode-button>
+          {:else}
+          <vscode-button id="commit_btn" disabled>commit changes</vscode-button>
+          {/if}
             <br />
             Committed changes: <span id="change_cnt">0</span>
           </div>

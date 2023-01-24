@@ -128,8 +128,6 @@ export class WebView implements vscode.Disposable {
           )
           .toString(message.data.editor.encoding)
 
-        // console.log(message, bufSlice)
-
         this.panel.webview.postMessage({
           command: MessageCommand.editorOnChange,
           display: { editor: bufSlice },
