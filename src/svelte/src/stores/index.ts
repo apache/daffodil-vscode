@@ -36,6 +36,9 @@ export const editorSelection = writable('')
 export const editorEncoding = writable('hex')
 export const cursorPos = writable(0)
 
+export const selectionSize = derived([selectionStartStore, selectionEndStore], ([$selectionStartStore, $selectionEndStore])=>{
+    return $selectionEndStore - $selectionStartStore
+})
 export const bytesPerRow = derived(displayRadix, $displayRadix=>{
     let logicalDisplayState: LogicalDisplayState
     let newVal: number

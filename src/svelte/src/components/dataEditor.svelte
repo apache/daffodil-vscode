@@ -35,6 +35,7 @@ limitations under the License.
     selectionEndStore,
     editorSelection,
     editorEncoding,
+    selectionSize,
     cursorPos } from '../stores'
   import { 
     radixOpt, 
@@ -69,6 +70,8 @@ limitations under the License.
   let testOutput = ''
   let editorTextDisplay = ''
 
+  const editorInfoText = writable('')
+
   // Reactive Declarations
   $: addressText = makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue)
   
@@ -77,8 +80,8 @@ limitations under the License.
     logicalOffsetText = getOffsetText($displayRadix, 'logical')
   }
   $: physicalDisplayText = encodeForDisplay($UInt8Data, $displayRadix, $bytesPerRow)
-  $: testOutput = $UInt8Data.slice($selectionStartStore, $selectionEndStore).toString()
-  $: sendSelectionMsg($selectionStartStore, $selectionEndStore, $editorEncoding)
+  $: testOutput = $UInt8Data.subarray($selectionStartStore, $selectionEndStore).toString()
+  $: setSelectionEncoding($editorEncoding)
 
   interface EditorControls {
     bytes_per_line: number
@@ -155,18 +158,25 @@ limitations under the License.
 
   let editor_state: EditorState
 
-  function sendSelectionMsg(start: number, end: number, encoding: string) {
-    let editorMsg: EditorDisplayState = {
-      start: start,
-      end: end,
-      encoding: encoding as BufferEncoding,
-      cursor: $cursorPos,
+  function setSelectionEncoding(encoding: string) {
+    if($selectionEndStore > 0) {
+      let editorMsg: EditorDisplayState = {
+        start: $selectionStartStore,
+        end: $selectionEndStore,
+        encoding: encoding as BufferEncoding,
+        cursor: $cursorPos,
+      } 
+      vscode.postMessage({
+        command: MessageCommand.editorOnChange,
+        data: { editor: editorMsg },
+      })
+      console.log(editorMsg)
     }
+  }
 
-    vscode.postMessage({
-      command: MessageCommand.editorOnChange,
-      data: { editor: editorMsg },
-    })
+  function editorInfo(start: number, end: number, len: number): string {
+    let ret = 'Selection: ' + start + ' - ' + end + ', length: ' + Math.ceil(len)
+    return ret
   }
 
   function init() {
@@ -385,14 +395,14 @@ limitations under the License.
     advanced_mode.addEventListener('change', () =>
       enableAdvanced(advanced_mode.checked)
     )
-    const edit_encoding = document.getElementById(
-      'edit_encoding'
-    ) as HTMLInputElement
-    editor_state.editor_controls.edit_encoding =
-      edit_encoding.value as BufferEncoding
-    edit_encoding.addEventListener('change', () =>
-      selectEditEncoding(edit_encoding.value)
-    )
+    // const edit_encoding = document.getElementById(
+    //   'edit_encoding'
+    // ) as HTMLInputElement
+    // editor_state.editor_controls.edit_encoding =
+    //   edit_encoding.value as BufferEncoding
+    // edit_encoding.addEventListener('change', () =>
+    //   selectEditEncoding(edit_encoding.value)
+    // )
     const endianness = document.getElementById('endianness') as HTMLInputElement
     endianness.addEventListener('change', () =>
       selectEndianness(endianness.value)
@@ -456,14 +466,9 @@ limitations under the License.
       if (editor_state.editor_controls.edit_encoding != 'hex') {
         len = len / 2
       }
-      editor_state.editor_elements.selected_offsets.innerHTML =
-        'Edited: ' +
-        editor_state.editor_controls.offset +
-        ' - ' +
-        (editor_state.editor_controls.offset +
-          -editor_state.editor_controls.length) +
-        ', length: ' +
-        Math.ceil(len)
+      editorInfoText.update(()=>{
+        return editorInfo($selectionStartStore, $selectionEndStore, len)
+      })
       updateDataView()
     }
     // Lock the address, physical and logical views scrollbars together
@@ -552,8 +557,8 @@ limitations under the License.
   }
 
   async function loadContent(fileData: Uint8Array) {
-    editor_state.editor_elements.editor.value = ''
-    editor_state.editor_metrics.file_byte_count = fileData.length
+    // editor_state.editor_elements.editor.value = ''
+    // editor_state.editor_metrics.file_byte_count = fileData.length
     
     UInt8Data.update(() => {
       return Uint8Array.from(fileData)
@@ -752,7 +757,7 @@ limitations under the License.
 
   function handleSelectionEvent(e: Event){
     frameSelectedOnWhitespace(e.target as HTMLTextAreaElement)
-
+    
     let editorMsg: EditorDisplayState = {
       start: $selectionStartStore,
       end: $selectionEndStore,
@@ -765,59 +770,33 @@ limitations under the License.
       command: MessageCommand.editorOnChange,
       data: { editor: editorMsg },
     })
-}
-function handleSelected(selected: HTMLTextAreaElement) {
-    // if (selected.id === 'physical') {
-    //   selectionStart =
-    //     selectionOffsetsByRadix[$displayRadix].start
-    //   selectionEnd =
-    //     selectionOffsetsByRadix[$displayRadix].end
-    // } else {
-    //   selectionStart = selectionStart / 2
-    //   selectionEnd = (selectionEnd + 1) / 2
-    // }
-    // editor_state.editor_elements.data_vw.hidden = false
-    // editor_state.editor_controls.editor_cursor_pos = 0
-    // editor_state.editor_controls.offset = selectionStart
-    // editor_state.editor_controls.length = selectionStart - selectionEnd
-    // editor_state.edit_content = editor_state.file_content!.slice(
-    //   selectionStart,
-    //   selectionEnd
-    // )
+  }
 
-    // editor_state.editor_elements.editor.scrollTo(0, 0)
-    // editor_state.editor_elements.selected_offsets.innerHTML =
-    //   selected.id +
-    //   ': ' +
-    //   selectionStart +
-    //   ' - ' +
-    //   selectionEnd +
-    //   ', length: ' +
-    //   (selectionEnd - selectionStart)
-    // editor_state.editor_elements.data_view_offset.innerHTML =
-    //   String(selectionStart)
-    // editor_state.editor_elements.editor_offsets.innerHTML = '-'
-
-    // let editorMsg: EditorDisplayState = {
-    //   start: selectionStart,
-    //   end: selectionEnd,
-    //   encoding: editor_state.editor_controls.edit_encoding,
-    //   cursor: editor_state.editor_controls.editor_cursor_pos,
-    //   radix: $displayRadix,
-    // }
-
-    // vscode.postMessage({
-    //   command: MessageCommand.editorOnChange,
-    //   data: { editor: editorMsg },
-    // })
-
-    // editor_state.editor_elements.editor.scrollTo(
-    //   0,
-    //   editor_state.editor_elements.editor.scrollHeight
-    // )
-
-    // updateDataView()
-}
+  function handleKeyEvent(e: Event) {
+    let event = e as KeyboardEvent
+    if (
+        ['Arrow', 'Page', 'Home', 'End'].some((type) =>
+          event.key.startsWith(type)
+        )
+      ) {
+        storeCursorPos()
+      } else {
+        e.preventDefault()
+      }
+      let len = $selectionSize
+      if ($editorEncoding != 'hex') {
+        len = len / 2
+      }
+      editor_state.editor_elements.selected_offsets.innerHTML =
+        'Edited: ' +
+        editor_state.editor_controls.offset +
+        ' - ' +
+        (editor_state.editor_controls.offset +
+          -editor_state.editor_controls.length) +
+        ', length: ' +
+        Math.ceil(len)
+      updateDataView()
+  }
 
   function frameSelected(selected: HTMLTextAreaElement) {
     let selectionStart = selected.selectionStart as number
@@ -838,8 +817,6 @@ function handleSelected(selected: HTMLTextAreaElement) {
   function frameSelectedOnWhitespace(selected: HTMLTextAreaElement) {
     let selectionStart = selected.selectionStart
     let selectionEnd = selected.selectionEnd
-    // console.log(selectionStart / $bytesPerRow, selectionEnd / $bytesPerRow)
-    // Adjust the start to align with the closest beginning of content
     if (selectionStart != undefined && selectionEnd != undefined) {
       if (isWhitespace(selected.value.at(selectionStart))) {
         ++selectionStart
@@ -869,19 +846,18 @@ function handleSelected(selected: HTMLTextAreaElement) {
     }
 
     const selectionOffsetsByRadix = {
-      2: { start: selectionStart / 9, end: (selectionEnd - 8) / 9 + 1 },
-      8: { start: selectionStart / 4, end: (selectionEnd - 3) / 4 + 1 },
-      10: { start: selectionStart / 4, end: (selectionEnd - 3) / 4 + 1 },
-      16: { start: selectionStart / 3, end: (selectionEnd - 2) / 3 + 1 },
+      2: { start: selected.selectionStart / 9, end: (selected.selectionEnd - 8) / 9 + 1 },
+      8: { start: selected.selectionStart / 4, end: (selected.selectionEnd  - 3) / 4 + 1 },
+      10: { start: selected.selectionStart / 4, end: (selected.selectionEnd  - 3) / 4 + 1 },
+      16: { start: selected.selectionStart / 3, end: (selected.selectionEnd  - 2) / 3 + 1 },
     }
 
     selectionStartStore.update(()=>{
       return selectionOffsetsByRadix[$displayRadix].start
     })
     selectionEndStore.update(()=>{
-      return Math.ceil(selectionOffsetsByRadix[$displayRadix].end)
+      return selectionOffsetsByRadix[$displayRadix].end
     })
-    console.log($selectionStartStore, $selectionEndStore)
   }
 
   function isWhitespace(c: string | undefined): boolean {
@@ -1008,7 +984,7 @@ function handleSelected(selected: HTMLTextAreaElement) {
   <textarea class="physical_vw" id="physical" contenteditable="true" readonly bind:innerHTML={physicalDisplayText} on:select={handleSelectionEvent}/>
   <textarea class="logicalView" id="logical" contenteditable="true" readonly bind:innerHTML={logicalDisplayText}/>
   <div class="editView" id="edit_view">
-    <textarea class="selectedContent" id="editor" contenteditable="true" bind:value={$editorSelection}/>
+    <textarea class="selectedContent" id="editor" contenteditable="true" bind:value={$editorSelection} on:keyup={handleKeyEvent}/>
     <fieldset class="box">
       <legend>content controls</legend>
       <div class="contentControls" id="content_controls">
