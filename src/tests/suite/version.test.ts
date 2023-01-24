@@ -15,32 +15,21 @@
  * limitations under the License.
  */
 
-import * as assert from 'assert'
+import { expect } from 'chai'
 import * as fs from 'fs'
 import * as path from 'path'
 import { PROJECT_ROOT } from './common'
 
-suite('Daffodil Version', () => {
+describe('Daffodil Version', () => {
   const versionFile = path.join(PROJECT_ROOT, 'src/version.ts')
-  const packageMapped = JSON.parse(
-    fs.readFileSync(path.join(PROJECT_ROOT, 'package.json')).toString()
-  )
+  const packageMapped = JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'package.json')).toString())
 
-  suite('version', () => {
-    test('version.ts should exist', (done) => {
-      if (fs.existsSync(versionFile)) {
-        done()
-      } else {
-        new Error('version.ts not created')
-      }
-    })
+  it('version.ts should exist', () => {
+    expect(fs.existsSync(versionFile)).to.be.true
+  })
 
-    test('version.ts version should be same as package.json', () => {
-      let version = fs.readFileSync(versionFile).toString().trim()
-      assert.strictEqual(
-        version,
-        `export const LIB_VERSION = "${packageMapped.version}";`
-      )
-    })
+  it('version.ts version should be same as package.json', () => {
+    const expected = `export const LIB_VERSION = "${packageMapped.version}";`
+    expect(fs.readFileSync(versionFile).toString().trim()).to.equal(expected)
   })
 })
