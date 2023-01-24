@@ -173,8 +173,7 @@ limitations under the License.
     }
   }
 
-  function canCommit(){
-  }
+  
   function init() {
     editor_state = {
       file_content: null,
@@ -1022,47 +1021,24 @@ limitations under the License.
             </div>
           </div>
           <div class="grid-container-column">
-            <div id="data_vw" hidden>
-              &nbsp;Offset: <span id="offset_dv">-</span>
+            <div id="data_vw" hidden>&nbsp;Offset: <span id="offset_dv" bind:value={$dataViewOffset}>-</span>
               <span id="b8_dv">
-                <br /><label for="int8_dv"
-                  >&nbsp;&nbsp;&nbsp;int8: <vscode-text-field
-                    id="int8_dv"
-                  /></label
-                >
-                <br /><label for="uint8_dv"
-                  >&nbsp;&nbsp;uint8: <vscode-text-field id="uint8_dv" /></label
-                >
+                <br /><label for="int8_dv">&nbsp;&nbsp;&nbsp;int8: <vscode-text-field id="int8_dv" bind:value{$int8}/></label>
+                <br /><label for="uint8_dv">&nbsp;&nbsp;uint8: <vscode-text-field id="uint8_dv"bind:value{$uint8}/></label>
               </span>
               <span id="b16_dv">
-                <br /><label for="int16_dv"
-                  >&nbsp;&nbsp;int16: <vscode-text-field id="int16_dv" /></label
-                >
-                <br /><label for="uint16_dv"
-                  >&nbsp;uint16: <vscode-text-field id="uint16_dv" /></label
-                >
+                <br /><label for="int16_dv">&nbsp;&nbsp;int16: <vscode-text-field id="int16_dv" bind:value{$int16}/></label>
+                <br /><label for="uint16_dv">&nbsp;uint16: <vscode-text-field id="uint16_dv" bind:value{$uint16}/></label>
               </span>
               <span id="b32_dv">
-                <br /><label for="int32_dv"
-                  >&nbsp;&nbsp;int32: <vscode-text-field id="int32_dv" /></label
-                >
-                <br /><label for="uint32_dv"
-                  >&nbsp;uint32: <vscode-text-field id="uint32_dv" /></label
-                >
-                <br /><label for="float32_dv"
-                  >float32: <vscode-text-field id="float32_dv" /></label
-                >
+                <br /><label for="int32_dv">&nbsp;&nbsp;int32: <vscode-text-field id="int32_dv" bind:value{$int32}/></label>
+                <br /><label for="uint32_dv">&nbsp;uint32: <vscode-text-field id="uint32_dv" bind:value{$uint32}/></label>
+                <br /><label for="float32_dv">float32: <vscode-text-field id="float32_dv" bind:value{$float32}/></label>
               </span>
               <span id="b64_dv">
-                <br /><label for="int64_dv"
-                  >&nbsp;&nbsp;int64: <vscode-text-field id="int64_dv" /></label
-                >
-                <br /><label for="uint64_dv"
-                  >&nbsp;uint64: <vscode-text-field id="uint64_dv" /></label
-                >
-                <br /><label for="float64_dv"
-                  >float64: <vscode-text-field id="float64_dv" /></label
-                >
+                <br /><label for="int64_dv">&nbsp;&nbsp;int64: <vscode-text-field id="int64_dv" bind:value{$int64}/></label>
+                <br /><label for="uint64_dv">&nbsp;uint64: <vscode-text-field id="uint64_dv" bind:value{$uint64}/></label>
+                <br /><label for="float64_dv">float64: <vscode-text-field id="float64_dv"bind:value{$float64} /></label>
               </span>
             </div>
           </div>
