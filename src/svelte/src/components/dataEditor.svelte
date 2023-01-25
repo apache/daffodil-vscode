@@ -35,8 +35,7 @@ limitations under the License.
     selectionEndStore,
     editorSelection,
     editorEncoding,
-    selectionSize,
-    cursorPos } from '../stores'
+    selectionSize } from '../stores'
   import { 
     radixOpt, 
     encoding_groups, 
@@ -50,7 +49,7 @@ limitations under the License.
   import { vscode } from '../utilities/vscode'
   import { MessageCommand } from '../utilities/message'
   import type{ EditorDisplayState } from '../utilities/message'
-  import { writable, derived } from 'svelte/store';
+  import { writable, derived, readable } from 'svelte/store';
   import { onMount } from 'svelte'
 
   provideVSCodeDesignSystem().register(
@@ -68,8 +67,10 @@ limitations under the License.
   let logicalDisplayText = ''
   let testOutput = ''
   let editorTextDisplay = ''
-  let selectedContent: HTMLTextAreaElement
+  // let selectedContent: HTMLTextAreaElement
+  const selectedContent = readable(document.getElementById('selectedContent') as HTMLTextAreaElement)
 
+  const cursorPos = writable(0)
   const disableDataView = writable(false)
   const selectionActive = derived(selectionSize, $selectionSize=>{
     return ($selectionSize > 0)
@@ -97,11 +98,13 @@ limitations under the License.
   })
   const byteOffsetPos = derived([cursorPos, editorEncoding], ([$cursorPos, $editorEncoding]) => {
     let bytePOS: number
+
     $editorEncoding === 'hex'
       ? (bytePOS = Math.ceil(
           ($cursorPos - 1) / 2
         ))
       : bytePOS = $cursorPos
+    
     return bytePOS
   })
   const dataViewEndianness = writable('')
@@ -113,61 +116,76 @@ limitations under the License.
   })
 
   const int8 = derived([byteOffsetPos, dataViewLookAhead, displayRadix], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix])=>{
+    try{
     if($dataViewLookAhead >= 1 && $selectionActive)
       return $dataView.getInt8($byteOffsetPos).toString($displayRadix)
+    }catch(RangeError){ }
     return ''
   })
   const uint8 = derived([byteOffsetPos, dataViewLookAhead, displayRadix], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix])=>{
-    if($dataViewLookAhead >= 1 && $selectionActive)
-      return $dataView.getUint8($byteOffsetPos).toString($displayRadix)
+    try{
+      if($dataViewLookAhead >= 1 && $selectionActive)
+        return $dataView.getUint8($byteOffsetPos).toString($displayRadix)
+      return ''
+    }catch(RangeError){ }
     return ''
+      
   })
   const int16 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
-    // return $dataView.getInt8($selectionStartStore)
-    if($dataViewLookAhead >= 2 && $selectionActive)
-      return $dataView.getInt16($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
-    return ''
+    try{
+      if($dataViewLookAhead >= 2 && $selectionActive)
+        return $dataView.getInt16($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    }
+    catch(RangeError){  }
+      return ''
   })
   const uint16 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
-    // return $dataView.getInt8($selectionStartStore)
-    if($dataViewLookAhead >= 2 && $selectionActive)
-      return $dataView.getUint16($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    try{
+      if($dataViewLookAhead >= 2 && $selectionActive)
+        return $dataView.getUint16($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    }catch(RangeError){}
     return ''
   })
   const int32 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
-    // return $dataView.getInt8($selectionStartStore)
-    if($dataViewLookAhead >= 4 && $selectionActive)
-      return $dataView.getInt32($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    try{
+      if($dataViewLookAhead >= 4 && $selectionActive)
+        return $dataView.getInt32($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    }catch(RangeError){ }
     return ''
   })
   const uint32 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
-    // return $dataView.getInt8($selectionStartStore)
+    try{
     if($dataViewLookAhead >= 4 && $selectionActive)
       return $dataView.getUint32($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    }catch(RangeError){ }
     return ''
   })
   const float32 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
-    // return $dataView.getInt8($selectionStartStore)
+    try{
     if($dataViewLookAhead >= 4 && $selectionActive)
       return $dataView.getFloat32($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    }catch(RangeError){ }
     return ''
   })
   const int64 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
-    // return $dataView.getInt8($selectionStartStore)
+    try{
     if($dataViewLookAhead >= 8 && $selectionActive)
       return $dataView.getBigInt64($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    }catch(RangeError){ }
     return ''
   })
   const uint64 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
-    // return $dataView.getInt8($selectionStartStore)
+    try{
     if($dataViewLookAhead >= 8 && $selectionActive)
       return $dataView.getBigUint64($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    }catch(RangeError){}
     return ''
   })
   const float64 = derived([byteOffsetPos, dataViewLookAhead, displayRadix, dataViewEndianness], ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataViewEndianness])=>{
-    // return $dataView.getInt8($selectionStartStore)
+    try{
     if($dataViewLookAhead >= 8 && $selectionActive)
       return $dataView.getFloat64($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix).substring(0, 16)
+    }catch(RangeError){  }
     return ''
   })
 
@@ -490,9 +508,11 @@ limitations under the License.
     //       String(editor_state.editor_controls.editor_selection_end) +
     //       ', cursor: ' +
     //       String(editor_state.editor_controls.editor_cursor_pos)
-    cursorPos.update(pos=>{
-      return selectedContent.selectionStart
-    })
+    // cursorPos.update(pos=>{
+    //   console.log(`old pos: ${pos} selectionStart: ${$selectedContent.selectionStart}`)
+    //   return $selectedContent.selectionStart
+    // })
+    console.log(`Storecurpos: ${$selectedContent.selectionStart}`)
   }
 
   function selectEndianness(endianness: string) {
@@ -591,7 +611,7 @@ limitations under the License.
   }
 
   function setSelectionOffsetInfo(from: string, start: number, end: number, size: number, cursorPos?: number):string {
-    let ret = `${from} [${start} - ${end}] ` + $editedCount
+    let ret = `${from} [${start} - ${end}] Size: ${$selectionSize} `
 
     if(cursorPos){
       return  ret += ` | cursor: ${cursorPos}`
@@ -603,10 +623,24 @@ limitations under the License.
     switch(e.type) {
       case 'keydown':
         const kevent = e as KeyboardEvent
-        if (['Arrow', 'Page', 'Home', 'End'].some((type) => kevent.key.startsWith(type))) {
-          storeCursorPos()
-        } else if(['Backspace', 'Return', 'Delete'].some((type)=> kevent.key.startsWith(type))) {
+        console.log(kevent.key)
+        if (['Up','Right','Home'].some((type) => kevent.key.includes(type))) {
+          cursorPos.update(pos=>{
+            (pos > $selectionSize)
+            return ++pos
+          })
+        }
+        else if(['Backspace', 'Return', 'Delete'].some((type)=> kevent.key.startsWith(type))) {
           $editedCount--
+          cursorPos.update(pos=>{
+            console.log(pos)
+            return --pos
+          })
+        }
+        else if (['Down','Left','End'].some((type) => kevent.key.includes(type))) {
+          cursorPos.update(pos=>{
+            return --pos
+          })
         }
         else {
           e.preventDefault()
@@ -628,10 +662,12 @@ limitations under the License.
         break
       case 'click':
         const cevent = e as MouseEvent
+        cursorPos.update(()=>{
+          return $selectedContent.selectionStart
+        })
         break
     }
 
-    storeCursorPos()
   }
   function handleKeyEvent(e: KeyboardEvent) {
     // let event = e as KeyboardEvent
@@ -824,7 +860,11 @@ limitations under the License.
   <div class="measure"><span contenteditable='true' id="logical_offsets" bind:innerHTML={logicalOffsetText}/></div>
   <div class="measure">
     <div>
-      <span id="selected_offsets" contenteditable="true" bind:innerHTML={selectionOffsetText}/>
+      <span id="selected_offsets" contenteditable="true">{selectionOffsetText}
+      {#if $editedCount != 0}
+      <span style="color: purple;">({$editedCount})</span>
+      {/if}
+      </span>
       <span id="editor_offsets" />
     </div>
   </div>
@@ -832,7 +872,7 @@ limitations under the License.
   <textarea class="physical_vw" id="physical" contenteditable="true" readonly bind:innerHTML={physicalDisplayText} on:select={handleSelectionEvent}/>
   <textarea class="logicalView" id="logical" contenteditable="true" readonly bind:innerHTML={logicalDisplayText} on:select={handleSelectionEvent}/>
   <div class="editView" id="edit_view">
-    <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={selectedContent} bind:value={$editorSelection} on:keydown|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}/>
+    <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={$selectedContent} bind:value={$editorSelection} on:keydown|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}/>
     <!-- <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={selectedContent} bind:value={$editorSelection} on:click={storeCursorPos} on:input={storeCursorPos}/> -->
     <fieldset class="box">
       <legend>Content Controls</legend>
@@ -928,9 +968,10 @@ limitations under the License.
 </main>
 <div contenteditable="true">
   {#if $selectionActive}
-  <h3>Selection: {$selectionStartStore} - {$selectionEndStore} | Encoding: {$editorEncoding} | cursor: {$cursorPos} | bytePOS: {$byteOffsetPos}</h3>
+  <h3>Selection: {$selectionStartStore} - {$selectionEndStore} Len: {$editorSelection.length}({$selectionSize}) | Encoding: {$editorEncoding} | cursor: {$cursorPos} | bytePOS: {$byteOffsetPos}</h3>
   <hr>
-  {$editorSelection}
+  {$editorSelection}<hr>
+  {$dataView.buffer}
   <hr><br><br>
   {/if}
   <h3>BytesPerRow: {$bytesPerRow}</h3>
