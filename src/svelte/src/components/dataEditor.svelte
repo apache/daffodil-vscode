@@ -77,24 +77,18 @@ limitations under the License.
   })
   const editedCount = writable(0)
 
-  const commitable = derived([editorEncoding, selectionSize, selectionActive, editedCount], ([$editorEncoding, $selectionSize, $selectionActive, $editedCount]) => {
-    console.log($editorEncoding, ($selectionSize*2)%2)
+  const commitable = derived([editorEncoding, editorSelection, selectionActive, editedCount], ([$editorEncoding, $editorSelection, $selectionActive, $editedCount]) => {
     if(!$selectionActive)
       return false
     if($editorEncoding === 'hex') {
-      if((($selectionSize + $editedCount) * 2) % 2 != 0)
+      if(($editorSelection.length) % 2 != 0)
         return false
     }
     return true
   })
 
   const dataView = derived([UInt8Data, selectionStartStore, selectionEndStore, editedCount], ([$UInt8Data, $selectionStartStore, $selectionEndStore, $editedCount])=>{
-    if($editedCount <= 0)
       return new DataView($UInt8Data.buffer.slice($selectionStartStore, $selectionEndStore + $editedCount))
-    else {
-      // Need OmegaEdit version
-      $disableDataView = true
-    }
   })
   const byteOffsetPos = derived([cursorPos, editorEncoding], ([$cursorPos, $editorEncoding]) => {
     let bytePOS: number
@@ -110,8 +104,8 @@ limitations under the License.
   const dataViewEndianness = writable('')
 
   const dataViewLookAhead = derived([dataView, byteOffsetPos, disableDataView], ([$dataView, $byteOffsetPos, $disableDataView]) => {
-    if($disableDataView)
-      return 0
+    // if($disableDataView)
+    //   return 0
     return $dataView.byteLength - $byteOffsetPos.valueOf()
   })
 
@@ -191,7 +185,7 @@ limitations under the License.
 
   // Reactive Declarations
   $: addressText = makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue)
-  $: selectionOffsetText = setSelectionOffsetInfo('Selection', $selectionStartStore, $selectionEndStore, $selectionSize, $cursorPos)
+  $: selectionOffsetText = setSelectionOffsetInfo('Selection', $selectionStartStore, $selectionEndStore, $editedCount, $cursorPos)
   $: {
     physicalOffsetText = getOffsetText($displayRadix, 'physical')
     logicalOffsetText = getOffsetText($displayRadix, 'logical')
@@ -291,7 +285,6 @@ limitations under the License.
     }
   }
 
-  
   function init() {
     editor_state = {
       file_content: null,
@@ -595,7 +588,8 @@ limitations under the License.
 
   function handleSelectionEvent(e: Event){
     frameSelectedOnWhitespace(e.target as HTMLTextAreaElement)
-    
+    $editedCount = 0
+
     let editorMsg: EditorDisplayState = {
       start: $selectionStartStore,
       end: $selectionEndStore,
@@ -626,14 +620,14 @@ limitations under the License.
         console.log(kevent.key)
         if (['Up','Right','Home'].some((type) => kevent.key.includes(type))) {
           cursorPos.update(pos=>{
-            (pos > $selectionSize)
+            if(pos+1 > $editorSelection.length)
+              return pos
             return ++pos
           })
         }
         else if(['Backspace', 'Return', 'Delete'].some((type)=> kevent.key.startsWith(type))) {
-          $editedCount--
+          --$editedCount
           cursorPos.update(pos=>{
-            console.log(pos)
             return --pos
           })
         }
@@ -642,26 +636,17 @@ limitations under the License.
             return --pos
           })
         }
+        else if($editorEncoding === 'hex' && (/^[0-9A-Fa-f]+$/).test(kevent.key)){
+          $editedCount++
+        }
+        else if($editorEncoding === 'ascii' && (/^[\x20-\x7Ea-zA-Z0-9]+$/).test(kevent.key)) {
+          $editedCount++
+        }
         else {
           e.preventDefault()
         }
         break
-      case 'input':
-        const ievent = e as InputEvent
-        if($editorEncoding === 'hex') {
-          ((/^[0-9A-Fa-f]+$/).test(ievent.data))
-            ? $editedCount++
-            : $editorSelection = $editorSelection.substring(0, $cursorPos) + $editorSelection.substring($cursorPos+1)
-        }
-        else if($editorEncoding === 'ascii') {
-          ((/^[\x20-\x7E]+$/).test(ievent.data))
-            ? $editedCount++
-            : $editorSelection = $editorSelection.substring(0, $cursorPos) + $editorSelection.substring($cursorPos+1)
-        }
-
-        break
       case 'click':
-        const cevent = e as MouseEvent
         cursorPos.update(()=>{
           return $selectedContent.selectionStart
         })
@@ -669,6 +654,7 @@ limitations under the License.
     }
 
   }
+
   function handleKeyEvent(e: KeyboardEvent) {
     // let event = e as KeyboardEvent
     if (['Arrow', 'Page', 'Home', 'End'].some((type) => e.key.startsWith(type))) {
@@ -788,6 +774,7 @@ limitations under the License.
   }
 
 </script>
+
 <header>
   <fieldset class="box">
     <legend>File Metrics</legend>
@@ -861,10 +848,6 @@ limitations under the License.
   <div class="measure">
     <div>
       <span id="selected_offsets" contenteditable="true">{selectionOffsetText}
-      {#if $editedCount != 0}
-      <span style="color: purple;">({$editedCount})</span>
-      {/if}
-      </span>
       <span id="editor_offsets" />
     </div>
   </div>
@@ -966,6 +949,7 @@ limitations under the License.
     </fieldset>
   </div>
 </main>
+
 <div contenteditable="true">
   {#if $selectionActive}
   <h3>Selection: {$selectionStartStore} - {$selectionEndStore} Len: {$editorSelection.length}({$selectionSize}) | Encoding: {$editorEncoding} | cursor: {$cursorPos} | bytePOS: {$byteOffsetPos}</h3>
@@ -1093,5 +1077,8 @@ limitations under the License.
   }
   #address_numbering {
     min-width: 100%;
+  }
+  #edited_count {
+    color: green
   }
 </style>
