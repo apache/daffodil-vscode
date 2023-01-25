@@ -70,13 +70,9 @@ export class WebView implements vscode.Disposable {
         let mimeData: number[] = Array.from(data.subarray(0, 4))
 
         this.fileData = Buffer.from(data)
-        let msgData = new Uint8Array(
-          data
-            .toString(this.displayState.editorDisplay.encoding)
-            .split('')
-            .map((e) => e.charCodeAt(0))
-        )
+        let msgData = new Uint8Array(data)
 
+        console.log(`MsgData: ${msgData}`)
         this.panel.webview.postMessage({
           command: MessageCommand.loadFile,
           metrics: {
@@ -126,8 +122,7 @@ export class WebView implements vscode.Disposable {
             this.displayState.editorDisplay.start,
             this.displayState.editorDisplay.end
           )
-          .toString(message.data.editor.encoding)
-
+          .toString(this.displayState.editorDisplay.encoding)
         this.panel.webview.postMessage({
           command: MessageCommand.editorOnChange,
           display: { editor: bufSlice },
@@ -140,6 +135,11 @@ export class WebView implements vscode.Disposable {
           dataLength: ${message.data.dataLength},
           convertFromEncoding: ${message.data.encoding},
           data: [ ${message.data.data} ] }`)
+        break
+
+      case MessageCommand.requestEditedData:
+        vscode.window.showInformationMessage(`${message.data.editType} Request
+         @ ${message.data.editor.editPos} in region [ ${message.data.editor.startFileOffset} - ${message.data.editor.selectionLength} ]`)
         break
     }
   }

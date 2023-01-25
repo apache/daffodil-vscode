@@ -77,7 +77,8 @@ limitations under the License.
     vsCodeOption(),
     vsCodeTextField()
   )
-
+  let filename = ''
+  let fileType = ''
   let addressText = ''
   let physicalOffsetText = ''
   let physicalDisplayText = ''
@@ -86,10 +87,12 @@ limitations under the License.
   let testOutput = ''
   let editorTextDisplay = ''
   let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
-  let phyiscal_vwRef: HTMLTextAreaElement, address_vwRef: HTMLTextAreaElement, logical_vwRef: HTMLTextAreaElement
+  let physical_vwRef: HTMLTextAreaElement, address_vwRef: HTMLTextAreaElement, logical_vwRef: HTMLTextAreaElement
 
-  // let selectedContent: HTMLTextAreaElement
   const selectedContent = readable(document.getElementById('selectedContent') as HTMLTextAreaElement)
+  const gotoOffset = writable(0)
+  const gotoOffsetMax = writable(0)
+  const editType = writable('')
 
   // Reactive Declarations
   $: addressText = makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue)
@@ -99,84 +102,56 @@ limitations under the License.
     logicalOffsetText = getOffsetText($displayRadix, 'logical')
   }
   $: physicalDisplayText = encodeForDisplay($UInt8Data, $displayRadix, $bytesPerRow)
-  $: testOutput = $UInt8Data.subarray($selectionStartStore, $selectionEndStore).toString()
+  $: asciiCount = countAscii($UInt8Data)
   $: setSelectionEncoding($editorEncoding)
+  $: goTo($gotoOffset)
+  $: requestEditedData($editType)
 
-  // interface EditorControls {
-  //   bytes_per_line: number
-  //   address_numbering: number
-  //   radix: number
-  //   little_endian: boolean
-  //   logical_encoding: string
-  //   offset: number
-  //   length: number
-  //   edit_byte_size: number
-  //   edit_encoding: BufferEncoding
-  //   lsb_higher_offset: boolean
-  //   bytes_per_row: number
-  //   editor_selection_start: number
-  //   editor_selection_end: number
-  //   editor_cursor_pos: number
-  //   goto_offset: number
-  // }
+  function requestEditedData(editType) {
+    if(!$commitable){
+      return
+    }
+    switch(editType){
+      case 'remove':
+        vscode.postMessage({
+          command: MessageCommand.requestEditedData,
+          data: {
+            editType: 'remove',
+            editor: {
+              startFileOffset: $selectionStartStore,
+              selectionLength: $editorSelection.length,
+              editPos: $selectionStartStore + $byteOffsetPos
+            },
+            encoding: $editorEncoding
+          }
+        })
+        break
+      case 'insert':
+        vscode.postMessage({
+          command: MessageCommand.requestEditedData,
+          data: {
+            editType: 'insert',
+            editor: {
+              startFileOffset: $selectionStartStore,
+              selectionLength: $editorSelection.length,
+              editPos: $selectionStartStore + $byteOffsetPos
+            },
+            encoding: $editorEncoding
+          }
+        })
+        break
+    }
+  }
 
-  // interface EditorMetrics {
-  //   change_count: number
-  //   data_breakpoint_count: number
-  //   file_byte_count: number
-  //   ascii_byte_count: number
-  //   row_count: number
-  // }
-
-  // interface EditorElements {
-  //   data_editor: HTMLElement
-  //   address: HTMLTextAreaElement
-  //   physical: HTMLTextAreaElement
-  //   logical: HTMLTextAreaElement
-  //   editor: HTMLTextAreaElement
-  //   physical_offsets: HTMLElement
-  //   logical_offsets: HTMLElement
-  //   selected_offsets: HTMLElement
-  //   editor_offsets: HTMLElement
-  //   data_view_offset: HTMLElement
-  //   commit_button: HTMLInputElement
-  //   add_data_breakpoint_button: HTMLInputElement
-  //   change_count: HTMLElement
-  //   data_breakpoint_count: HTMLElement
-  //   file_byte_count: HTMLElement
-  //   ascii_byte_count: HTMLElement
-  //   file_type: HTMLElement
-  //   file_name: HTMLElement
-  //   file_metrics_vw: HTMLElement
-  //   goto_offset: HTMLInputElement
-  //   radix: HTMLInputElement
-  //   data_vw: HTMLElement
-  //   b8_dv: HTMLElement
-  //   b16_dv: HTMLElement
-  //   b32_dv: HTMLElement
-  //   b64_dv: HTMLElement
-  //   int8_dv: HTMLInputElement
-  //   uint8_dv: HTMLInputElement
-  //   int16_dv: HTMLInputElement
-  //   uint16_dv: HTMLInputElement
-  //   int32_dv: HTMLInputElement
-  //   uint32_dv: HTMLInputElement
-  //   int64_dv: HTMLInputElement
-  //   uint64_dv: HTMLInputElement
-  //   float32_dv: HTMLInputElement
-  //   float64_dv: HTMLInputElement
-  // }
-
-  // interface EditorState {
-  //   file_content: Uint8Array | null
-  //   edit_content: Uint8Array
-  //   editor_controls: EditorControls
-  //   editor_metrics: EditorMetrics
-  //   editor_elements: EditorElements
-  // }
-
-  // let editor_state: EditorState
-
+  function goTo(offset: number){
+    if(physical_vwRef){
+      const rowCount = Math.ceil(physicalDisplayText.length / $bytesPerRow)
+      const lineHeight = physical_vwRef.scrollHeight / rowCount
+      const targetLine = Math.ceil(offset / $bytesPerRow)
+      physical_vwRef.scrollTop = targetLine * lineHeight
+    }
+  }
+  
   function setSelectionEncoding(encoding: string) {
     if($selectionEndStore > 0) {
       let editorMsg: EditorDisplayState = {
@@ -193,107 +168,10 @@ limitations under the License.
     }
   }
 
-  function init() {
-    phyiscal_vwRef = document.getElementById('phyiscal_vw')
-    address_vwRef = document.getElementById('address_vw')
-    logical_vwRef = document.getElementById('logical_vw')
-    // editor_state.editor_elements.goto_offset.addEventListener('change', () => {
-    //   editor_state.editor_controls.goto_offset = parseInt(
-    //     editor_state.editor_elements.goto_offset.value
-    //   )
-    //   /* number of pixels per line */
-    //   const line_height =
-    //     editor_state.editor_elements.physical.scrollHeight /
-    //     editor_state.editor_metrics.row_count
-    //   /* number of lines to scroll */
-    //   const line =
-    //     Math.ceil(
-    //       editor_state.editor_controls.goto_offset /
-    //         editor_state.editor_controls.bytes_per_row
-    //     ) - 1
-    //   editor_state.editor_elements.physical.scrollTop = line * line_height
-    // })
-    // editor_state.editor_elements.editor.addEventListener('change', () => {
-    //   let commitMsg = {
-    //     offset: editor_state.editor_controls.offset,
-    //     length: 0,
-    //     data: null,
-    //   }
-
-    //   switch (editor_state.editor_controls.edit_encoding) {
-    //     case 'hex':
-    //       commitMsg.length =
-    //         editor_state.editor_elements.editor.value.length / 2
-    //       editor_state.editor_elements.selected_offsets.innerHTML =
-    //         'Selection: ' +
-    //         editor_state.editor_controls.offset +
-    //         ' - ' +
-    //         (editor_state.editor_controls.offset +
-    //           -editor_state.editor_controls.length) +
-    //         ', length: ' +
-    //         commitMsg.length
-    //       break
-    //     default:
-    //       commitMsg.length = editor_state.editor_elements.editor.value.length
-    //   }
-    // })
-    // editor_state.editor_elements.physical.onscroll = () => {
-    //   if (!currentScrollEvt || currentScrollEvt === 'physical') {
-    //     clearTimeout(scrollSyncTimer)
-    //     currentScrollEvt = 'physical'
-    //     syncScroll(
-    //       editor_state.editor_elements.physical,
-    //       editor_state.editor_elements.address
-    //     )
-    //     syncScroll(
-    //       editor_state.editor_elements.physical,
-    //       editor_state.editor_elements.logical
-    //     )
-    //     scrollSyncTimer = setTimeout(function () {
-    //       currentScrollEvt = null
-    //     }, 100)
-    //   }
-    // }
-    // editor_state.editor_elements.address.onscroll = () => {
-    //   if (!currentScrollEvt || currentScrollEvt === 'address') {
-    //     clearTimeout(scrollSyncTimer)
-    //     currentScrollEvt = 'address'
-    //     syncScroll(
-    //       editor_state.editor_elements.address,
-    //       editor_state.editor_elements.physical
-    //     )
-    //     syncScroll(
-    //       editor_state.editor_elements.address,
-    //       editor_state.editor_elements.logical
-    //     )
-    //     scrollSyncTimer = setTimeout(function () {
-    //       currentScrollEvt = null
-    //     }, 100)
-    //   }
-    // }
-    // editor_state.editor_elements.logical.onscroll = () => {
-    //   if (!currentScrollEvt || currentScrollEvt === 'logical') {
-    //     clearTimeout(scrollSyncTimer)
-    //     currentScrollEvt = 'logical'
-    //     syncScroll(
-    //       editor_state.editor_elements.logical,
-    //       editor_state.editor_elements.address
-    //     )
-    //     syncScroll(
-    //       editor_state.editor_elements.logical,
-    //       editor_state.editor_elements.physical
-    //     )
-    //     scrollSyncTimer = setTimeout(function () {
-    //       currentScrollEvt = null
-    //     }, 100)
-    //   }
-    // }
-  }
-
   async function loadContent(fileData: Uint8Array) {
     
     UInt8Data.update(() => {
-      return Uint8Array.from(fileData)
+      return fileData
     })
 
     filesize.update(() => {
@@ -304,37 +182,24 @@ limitations under the License.
       return 16
     })
 
-    // editor_state.editor_controls.goto_offset = 0
-    // editor_state.editor_elements.goto_offset.max = String(fileData.length)
-    // editor_state.editor_elements.goto_offset.value = '0'
-    // editor_state.editor_metrics.ascii_byte_count = countAscii(
-    //   editor_state.file_content
-    // )
-    // editor_state.editor_elements.ascii_byte_count.innerHTML = String(
-    //   editor_state.editor_metrics.ascii_byte_count
-    // )
-    // editor_state.editor_metrics.row_count = Math.ceil(
-    //   editor_state.file_content.length /
-    //     editor_state.editor_controls.bytes_per_row
-    // )
-    // editor_state.editor_elements.file_metrics_vw.hidden = false
-    // editor_state.editor_elements.commit_button.disabled = false
-    // editor_state.editor_elements.add_data_breakpoint_button.disabled = false
+    $gotoOffset = 0
+    $gotoOffsetMax = fileData.length
 
   }
-  function scrollHandle(element: string){
+
+  function scrollHandle(e: Event){
+    let element = e.target.id
     if (!currentScrollEvt || currentScrollEvt === element){
-      console.log(currentScrollEvt)
       clearTimeout(scrollSyncTimer)
       currentScrollEvt = element
       switch(currentScrollEvt){
         case 'physical':
           syncScroll(
-            phyiscal_vwRef,
+            physical_vwRef,
             address_vwRef
           )
           syncScroll(
-            phyiscal_vwRef,
+            physical_vwRef,
             logical_vwRef
           )
         break
@@ -345,13 +210,13 @@ limitations under the License.
           )
           syncScroll(
             logical_vwRef,
-            phyiscal_vwRef,
+            physical_vwRef,
           )
         break
         case 'address':
           syncScroll(
             address_vwRef,
-            phyiscal_vwRef,
+            physical_vwRef,
           )
           syncScroll(
             address_vwRef,
@@ -364,6 +229,7 @@ limitations under the License.
       }, 100)
     }
   }
+
   function syncScroll(from: HTMLElement, to: HTMLElement) {
     // Scroll the "to" by the same percentage as the "from"
     if(from && to) {
@@ -375,24 +241,6 @@ limitations under the License.
     }
   }
 
-  function handleSelectionEvent(e: Event){
-    frameSelectedOnWhitespace(e.target as HTMLTextAreaElement)
-    $editedCount = 0
-
-    let editorMsg: EditorDisplayState = {
-      start: $selectionStartStore,
-      end: $selectionEndStore,
-      encoding: $editorEncoding as BufferEncoding,
-      cursor: 0,
-      // radix: $displayRadix,
-    }
-
-    vscode.postMessage({
-      command: MessageCommand.editorOnChange,
-      data: { editor: editorMsg },
-    })
-  }
-
   function setSelectionOffsetInfo(from: string, start: number, end: number, size: number, cursorPos?: number):string {
     return `${from} [${start} - ${end}] Size: ${$selectionSize} `
   }
@@ -401,7 +249,6 @@ limitations under the License.
     switch(e.type) {
       case 'keydown':
         const kevent = e as KeyboardEvent
-        console.log(kevent.key)
         if (['Up','Right','Home'].some((type) => kevent.key.includes(type))) {
           cursorPos.update(pos=>{
             if(pos+1 > $editorSelection.length)
@@ -410,21 +257,25 @@ limitations under the License.
           })
         }
         else if(['Backspace', 'Return', 'Delete'].some((type)=> kevent.key.startsWith(type))) {
-          --$editedCount
           cursorPos.update(pos=>{
+            if(pos-1 < 0)
+              return pos
             return --pos
           })
+          editType.update(()=> {return 'remove' })
         }
         else if (['Down','Left','End'].some((type) => kevent.key.includes(type))) {
           cursorPos.update(pos=>{
+            if(pos-1 < 0)
+              return pos
             return --pos
           })
         }
         else if($editorEncoding === 'hex' && (/^[0-9A-Fa-f]+$/).test(kevent.key)){
-          $editedCount++
+          editType.update(()=> {return 'insert' })
         }
         else if($editorEncoding === 'ascii' && (/^[\x20-\x7Ea-zA-Z0-9]+$/).test(kevent.key)) {
-          $editedCount++
+          editType.update(()=> {return 'insert' })
         }
         else {
           e.preventDefault()
@@ -482,10 +333,13 @@ limitations under the License.
           ++selectionEnd
         }
       }
-      selected.selectionEnd =
-        selectionEnd < selected.value.length ? selectionEnd + 1 : selectionEnd
+      console.log(`SSS: ${selected.selectionStart} 
+      SS: ${selectionStart} 
+      SSE: ${selected.selectionEnd} 
+      SE: ${selectionEnd}
+      Slen: ${selected.value.length}`)
+      selected.selectionEnd = selectionEnd < selected.value.length ? selectionEnd + 1 : selectionEnd
     }
-
     const selectionOffsetsByRadix = {
       2: { start: selected.selectionStart / 9, end: (selected.selectionEnd - 8) / 9 + 1 },
       8: { start: selected.selectionStart / 4, end: (selected.selectionEnd  - 3) / 4 + 1 },
@@ -502,6 +356,24 @@ limitations under the License.
       if(selected.id === 'logical')
         return (selected.selectionEnd + 1) / 2
       return selectionOffsetsByRadix[$displayRadix].end
+    })
+  }
+
+  function handleSelectionEvent(e: Event){
+    frameSelectedOnWhitespace(e.target as HTMLTextAreaElement)
+    $editedCount = 0
+
+    let editorMsg: EditorDisplayState = {
+      start: $selectionStartStore,
+      end: $selectionEndStore,
+      encoding: $editorEncoding as BufferEncoding,
+      cursor: $cursorPos,
+      radix: $displayRadix,
+    }
+    console.log(editorMsg)
+    vscode.postMessage({
+      command: MessageCommand.editorOnChange,
+      data: { editor: editorMsg },
     })
   }
 
@@ -525,15 +397,15 @@ limitations under the License.
     switch (msg.data.command) {
       case MessageCommand.loadFile:
         loadContent(msg.data.editor.fileData)
-        // editor_state.editor_elements.file_name.innerHTML =
-        //   msg.data.metrics.filename
-        // editor_state.editor_elements.file_type.innerHTML = msg.data.metrics.type
+        filename = msg.data.metrics.filename
+        fileType = msg.data.metrics.type
         logicalDisplayText = msg.data.display.logical
         break
       case MessageCommand.editorOnChange:
         editorSelection.update(()=>{
           return msg.data.display.editor
         })
+        $editedCount = 0
         break
       case MessageCommand.addressOnChange:
         logicalDisplayText = msg.data.display.logical
@@ -541,27 +413,23 @@ limitations under the License.
     }
   })
 
-  window.onload = () => {
-    init()
-  }
-
 </script>
 
 <header>
   <fieldset class="box">
     <legend>File Metrics</legend>
     <div id="file_metrics_vw">
-      File: <span id="file_name" />
+      File: <span id="file_name">{filename}</span>
       <hr />
-      Type:<span id="file_type" />
+      Type:<span id="file_type">{fileType}</span>
       <br />Size: <span id="file_byte_cnt">{$filesize}</span>
-      <br />ASCII count: <span id="ascii_byte_cnt"> 0</span>
+      <br />ASCII count: <span id="ascii_byte_cnt">{asciiCount}</span>
     </div>
   </fieldset>
   <fieldset class="box">
     <legend>Offset</legend>
     <div class="goto_offset">
-      <input type="number" id="goto_offset" min="0" max="0" />
+      <input type="number" id="goto_offset" min="0" max={$gotoOffsetMax} bind:value={$gotoOffset}/>
     </div>
   </fieldset>
   <fieldset class="box">
@@ -615,11 +483,11 @@ limitations under the License.
     {/each}
     </select>
   </div>
-  <div class="measure"><span contenteditable='true' id="physical_offsets" bind:innerHTML={physicalOffsetText}/></div>
-  <div class="measure"><span contenteditable='true' id="logical_offsets" bind:innerHTML={logicalOffsetText}/></div>
+  <div class="measure"><span contenteditable='true' id="physical_offsets" bind:innerHTML={physicalOffsetText} readonly/></div>
+  <div class="measure"><span contenteditable='true' id="logical_offsets" bind:innerHTML={logicalOffsetText} readonly/></div>
   <div class="measure">
     <div>
-      <span id="selected_offsets" contenteditable="true">{selectionOffsetText}
+      <span id="selected_offsets" contenteditable="true" readonly>{selectionOffsetText}
       {#if $editedCount > 0}
       <span style="color: green;">({$editedCount})</span>
       {:else if $editedCount < 0}
@@ -628,12 +496,12 @@ limitations under the License.
       {#if $cursorPos}
       <span> | cursor: {$cursorPos}</span>
       {/if}
-      <span id="editor_offsets" />
+      <span id="editor_offsets" readonly/>
     </div>
   </div>
-  <textarea class="address_vw" id="address" contenteditable="true" readonly bind:this={address_vwRef} bind:innerHTML={addressText} on:scroll={scrollHandle('address')}/>
-  <textarea class="physical_vw" id="physical" contenteditable="true" readonly bind:this={phyiscal_vwRef} bind:innerHTML={physicalDisplayText} on:select={handleSelectionEvent} on:scroll={scrollHandle('physical')}/>
-  <textarea class="logicalView" id="logical" contenteditable="true" readonly bind:this={logical_vwRef} bind:innerHTML={logicalDisplayText} on:select={handleSelectionEvent} on:scroll={scrollHandle('logical')}/>
+  <textarea class="address_vw" id="address" contenteditable="true" readonly bind:this={address_vwRef} bind:innerHTML={addressText} on:scroll={scrollHandle}/>
+  <textarea class="physical_vw" id="physical" contenteditable="true" readonly bind:this={physical_vwRef} bind:innerHTML={physicalDisplayText} on:select={handleSelectionEvent} on:scroll={scrollHandle}/>
+  <textarea class="logicalView" id="logical" contenteditable="true" readonly bind:this={logical_vwRef} bind:innerHTML={logicalDisplayText} on:select={handleSelectionEvent} on:scroll={scrollHandle}/>
   <div class="editView" id="edit_view">
     <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={$selectedContent} bind:value={$editorSelection} on:keydown|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}/>
     <!-- <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={selectedContent} bind:value={$editorSelection} on:click={storeCursorPos} on:input={storeCursorPos}/> -->
@@ -730,19 +598,19 @@ limitations under the License.
   </div>
 </main>
 
-<!-- <div contenteditable="true">
+<div contenteditable="true">
   {#if $selectionActive}
   <h3>Selection: {$selectionStartStore} - {$selectionEndStore} Len: {$editorSelection.length}({$selectionSize}) | Encoding: {$editorEncoding} | cursor: {$cursorPos} | bytePOS: {$byteOffsetPos}</h3>
   <hr>
-  {$editorSelection}<hr>
-  {$dataView.buffer}
-  <hr><br><br>
+  {$editorSelection}
+  <hr>
   {/if}
   <h3>BytesPerRow: {$bytesPerRow}</h3>
   <h3>Radix: {$displayRadix}</h3>
   <h3>Data<br></h3><hr>
   <subscript>{$UInt8Data}</subscript>
-</div> -->
+</div>
+
 <!-- svelte-ignore css-unused-selector -->
 <style lang="scss">
   /* CSS reset */

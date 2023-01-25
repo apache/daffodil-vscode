@@ -5,6 +5,7 @@ export enum MessageCommand {
     editorOnChange,
     loadFile,
     addressOnChange,
+    requestEditedData,
 }
 export type LogicalDisplayState = {
     bytesPerRow: number

@@ -153,13 +153,15 @@ export async function startOmegaEditServer(
 export type LogicalDisplayState = {
   bytesPerRow: number
 }
+
 export type EditorDisplayState = {
   encoding: BufferEncoding
   start: number
   end: number
   cursor: number
-  // radix: number
+  radix: number
 }
+
 export class DisplayState {
   public logicalDisplay: LogicalDisplayState
   public editorDisplay: EditorDisplayState
@@ -171,7 +173,7 @@ export class DisplayState {
       start: 0,
       end: 0,
       cursor: 0,
-      // radix: 16,
+      radix: 16,
     }
   }
   public updateLogicalDisplayState(state: LogicalDisplayState) {
@@ -218,9 +220,11 @@ export function logicalDisplay(
   }
   return result
 }
+
 type Mimes = {
   [key: string]: number[]
 }
+
 const mimeTypes = {
   PNG: [0x89, 0x50, 0x4e, 0x47],
   JPEG: [0xff, 0xd8, 0xff, 0xe0],

@@ -37,7 +37,7 @@ export const selectionEndStore = writable(0)
 export const editorEncoding = writable('hex')
 export const selectionStartStore = writable(0)
 export const disableDataView = writable(false)
-export const dataViewEndianness = writable('')
+export const dataViewEndianness = writable('be')
 export const UInt8Data = writable(new Uint8Array(0))
 
 export const selectionSize = derived([selectionStartStore, selectionEndStore], ([$selectionStartStore, $selectionEndStore])=>{
@@ -68,18 +68,20 @@ export const selectionActive = derived(selectionSize, $selectionSize=>{
   return ($selectionSize > 0)
 })
 
-export const commitable = derived([editorEncoding, editorSelection, selectionActive, editedCount], ([$editorEncoding, $editorSelection, $selectionActive, $editedCount]) => {
+export const commitable = derived([editorEncoding, editorSelection, selectionActive, cursorPos], ([$editorEncoding, $editorSelection, $selectionActive, $cursorPos]) => {
   if(!$selectionActive)
     return false
   if($editorEncoding === 'hex') {
-    if(($editorSelection.length) % 2 != 0)
-      return false
+    console.log('sel len: ', $editorSelection.length)
+    if(($editorSelection.length) % 2 != 0){
+      return false   
+    }
   }
   return true
 })
 
 export const dataView = derived([UInt8Data, selectionStartStore, selectionEndStore, editedCount], ([$UInt8Data, $selectionStartStore, $selectionEndStore, $editedCount])=>{
-    return new DataView($UInt8Data.buffer.slice($selectionStartStore, $selectionEndStore + $editedCount))
+    return new DataView($UInt8Data.buffer.slice($selectionStartStore, $selectionEndStore))
 })
 
 export const byteOffsetPos = derived([cursorPos, editorEncoding], ([$cursorPos, $editorEncoding]) => {
@@ -102,8 +104,8 @@ export const int8 = derived(
     [byteOffsetPos, dataViewLookAhead, displayRadix, dataView, selectionActive], 
     ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataView, $selectionActive])=>{
   try{
-  if($dataViewLookAhead >= 1 && $selectionActive)
-    return $dataView.getInt8($byteOffsetPos).toString($displayRadix)
+    if($dataViewLookAhead >= 1 && $selectionActive)
+        return $dataView.getInt8($byteOffsetPos).toString($displayRadix)
   }catch(RangeError){ }
   return ''
 })
@@ -165,7 +167,7 @@ export const float32 = derived(
     ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataView, $selectionActive, $dataViewEndianness])=>{
   try{
   if($dataViewLookAhead >= 4 && $selectionActive)
-    return $dataView.getFloat32($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+    return $dataView.getFloat32($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix).substring(0, 32)
   }catch(RangeError){ }
   return ''
 })
@@ -195,7 +197,7 @@ export const float64 = derived(
     ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataView, $selectionActive, $dataViewEndianness])=>{
   try{
   if($dataViewLookAhead >= 8 && $selectionActive)
-    return $dataView.getFloat64($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix).substring(0, 16)
+    return $dataView.getFloat64($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix).substring(0, 32)
   }catch(RangeError){  }
   return ''
 })
