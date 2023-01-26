@@ -100,6 +100,9 @@ describe('omega-edit Test Suite', () => {
 
   it('opens a data editor', async () => {
     await new Workbench().executeCommand('Data Editor')
+    await new Promise((res) => {
+      setTimeout(res, 10000)
+    })
     const fileInput = await InputBox.create()
     await fileInput.setText(path.resolve(repoRoot, 'package.json'))
     fs.writeFileSync(

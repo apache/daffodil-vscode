@@ -16,7 +16,7 @@
  */
 
 import * as vscode from 'vscode'
-import { expect } from 'chai'
+import * as assert from 'assert'
 import * as daffodil from '../../daffodil'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -26,7 +26,7 @@ import { before, after } from 'mocha'
 import { PROJECT_ROOT, TEST_SCHEMA } from './common'
 import { osCheck } from '../../utils'
 
-describe('Daffodfil', () => {
+suite('Daffodfil', () => {
   const packageFile = path.join(PROJECT_ROOT, 'package-test.json')
 
   // Create test package.json before anything else happens
@@ -39,119 +39,128 @@ describe('Daffodfil', () => {
     fs.unlinkSync(packageFile)
   })
 
-  // describe to test all functions work properly
-  describe('interfaces', () => {
-    it('DaffodilData functions properly', () => {
-      const daffodilData: daffodil.DaffodilData = {
+  // suite to test all functions work properly
+  suite('interfaces', () => {
+    test('DaffodilData functions properly', () => {
+      let daffodilData: daffodil.DaffodilData = {
         bytePos1b: 100,
       }
-      expect(daffodilData.bytePos1b).to.equal(100)
+
+      assert.strictEqual(100, daffodilData.bytePos1b)
     })
 
-    it('InfosetEvent functions properly (xml)', () => {
-      const infosetEvent: daffodil.InfosetEvent = {
+    test('InfosetEvent functions properly (xml)', () => {
+      let infosetEvent: daffodil.InfosetEvent = {
         content: 'This is xml content',
         mimeType: 'xml',
       }
-      expect(infosetEvent.content).to.equal('This is xml content')
-      expect(infosetEvent.mimeType).to.equal('xml')
+
+      assert.strictEqual('This is xml content', infosetEvent.content)
+      assert.strictEqual('xml', infosetEvent.mimeType)
     })
 
-    it('InfosetEvent functions properly (json)', () => {
-      const infosetEvent: daffodil.InfosetEvent = {
+    test('InfosetEvent functions properly (json)', () => {
+      let infosetEvent: daffodil.InfosetEvent = {
         content: 'This is json content',
         mimeType: 'json',
       }
-      expect(infosetEvent.content).to.equal('This is json content')
-      expect(infosetEvent.mimeType).to.equal('json')
+
+      assert.strictEqual('This is json content', infosetEvent.content)
+      assert.strictEqual('json', infosetEvent.mimeType)
     })
 
-    it('InfosetOutput functions properly', () => {
-      const infosetOutput: daffodil.InfosetOutput = {
+    test('InfosetOutput functions properly', () => {
+      let infosetOutput: daffodil.InfosetOutput = {
         type: 'console',
       }
-      expect(infosetOutput.type).to.equal('console')
+
+      assert.strictEqual('console', infosetOutput.type)
     })
 
-    it('BuildInfo functions properly', () => {
-      const allVersions = '1.0.0'
-      const buildInfo: daffodil.BuildInfo = {
+    test('BuildInfo functions properly', () => {
+      let allVersions = '1.0.0'
+      let buildInfo: daffodil.BuildInfo = {
         version: allVersions,
         daffodilVersion: allVersions,
         scalaVersion: allVersions,
       }
-      expect(allVersions)
-        .to.equal(buildInfo.version)
-        .and.to.equal(buildInfo.daffodilVersion)
-        .and.to.equal(buildInfo.scalaVersion)
+
+      assert.strictEqual(allVersions, buildInfo.version)
+      assert.strictEqual(allVersions, buildInfo.daffodilVersion)
+      assert.strictEqual(allVersions, buildInfo.scalaVersion)
     })
 
-    it('LaunchArgs functions properly', () => {
-      const infosetOutput: daffodil.InfosetOutput = {
+    test('LaunchArgs functions properly', () => {
+      let infosetOutput: daffodil.InfosetOutput = {
         type: 'console',
       }
-      const launchArgs: daffodil.LaunchArgs = {
+
+      let launchArgs: daffodil.LaunchArgs = {
         schemaPath: '/path/to/schema.xsd.xml',
         dataPath: '/path/to/data.jpg',
         stopOnEntry: true,
         infosetFormat: 'json',
         infosetOutput: infosetOutput,
       }
-      expect(launchArgs.schemaPath).to.equal('/path/to/schema.xsd.xml')
-      expect(launchArgs.dataPath).to.equal('/path/to/data.jpg')
-      expect(launchArgs.stopOnEntry).to.be.true
-      expect(launchArgs.infosetFormat).to.equal('json')
-      expect(launchArgs.infosetOutput).to.equal(infosetOutput)
+
+      assert.strictEqual('/path/to/schema.xsd.xml', launchArgs.schemaPath)
+      assert.strictEqual('/path/to/data.jpg', launchArgs.dataPath)
+      assert.strictEqual(true, launchArgs.stopOnEntry)
+      assert.strictEqual('json', launchArgs.infosetFormat)
+      assert.strictEqual(infosetOutput, launchArgs.infosetOutput)
     })
 
-    it('ConfigEvent functions properly', () => {
-      const allVersions = '1.0.0'
-      const infosetOutput: daffodil.InfosetOutput = {
+    test('ConfigEvent functions properly', () => {
+      let allVersions = '1.0.0'
+      let infosetOutput: daffodil.InfosetOutput = {
         type: 'console',
       }
-      const buildInfo: daffodil.BuildInfo = {
+      let buildInfo: daffodil.BuildInfo = {
         version: allVersions,
         daffodilVersion: allVersions,
         scalaVersion: allVersions,
       }
-      const launchArgs: daffodil.LaunchArgs = {
+      let launchArgs: daffodil.LaunchArgs = {
         schemaPath: '/path/to/schema.xsd.xml',
         dataPath: '/path/to/data.jpg',
         stopOnEntry: true,
         infosetFormat: 'xml',
         infosetOutput: infosetOutput,
       }
-      const configEvent: daffodil.ConfigEvent = {
+
+      let configEvent: daffodil.ConfigEvent = {
         buildInfo: buildInfo,
         launchArgs: launchArgs,
       }
-      expect(configEvent.buildInfo).to.equal(buildInfo)
-      expect(configEvent.launchArgs).to.equal(launchArgs)
+
+      assert.strictEqual(buildInfo, configEvent.buildInfo)
+      assert.strictEqual(launchArgs, configEvent.launchArgs)
     })
   })
 
-  // describe to test all constants get set properly
-  describe('constants', () => {
-    it('dataEvent set properly', () => {
-      expect(daffodil.dataEvent).to.equal('daffodil.data')
+  // suite to test all constants get set properly
+  suite('constants', () => {
+    test('dataEvent set properly', () => {
+      assert.strictEqual(daffodil.dataEvent, 'daffodil.data')
     })
 
-    it('infosetEvent set properly', () => {
-      expect(daffodil.infosetEvent).to.equal('daffodil.infoset')
+    test('infosetEvent set properly', () => {
+      assert.strictEqual(daffodil.infosetEvent, 'daffodil.infoset')
     })
 
-    it('configEvent set properly', () => {
-      expect(daffodil.configEvent).to.equal('daffodil.config')
-    })
-  })
-
-  describe('getDaffodilVersion', () => {
-    it('getDaffodilVersion returns same version as file', () => {
-      expect(daffodil.getDaffodilVersion(packageFile)).to.equal('0.0.0')
+    test('configEvent set properly', () => {
+      assert.strictEqual(daffodil.configEvent, 'daffodil.config')
     })
   })
 
-  describe('non-debug specifc commands', () => {
+  suite('getDaffodilVersion', () => {
+    test('getDaffodilVersion returns same version as file', () => {
+      var daffodilVersion = daffodil.getDaffodilVersion(packageFile)
+      assert.strictEqual(daffodilVersion, '0.0.0')
+    })
+  })
+
+  suite('non-debug specifc commands', () => {
     const nonDebugSpecificCmds = [
       'extension.dfdl-debug.debugEditorContents',
       'extension.dfdl-debug.runEditorContents',
@@ -168,15 +177,19 @@ describe('Daffodfil', () => {
     //   })
     // })
 
-    it('Not available when inDebugMode', () => {
+    test('Not available when inDebugMode', () => {
       vscode.commands.executeCommand('setContext', 'inDebugMode', true)
+
       nonDebugSpecificCmds.forEach(async (cmd) => {
-        expect(await vscode.commands.getCommands()).to.not.include(cmd)
+        assert.strictEqual(
+          (await vscode.commands.getCommands()).includes(cmd),
+          false
+        )
       })
     })
   })
 
-  describe('debug specifc commands', () => {
+  suite('debug specifc commands', () => {
     const debugSpecificCmds = [
       'extension.dfdl-debug.toggleFormatting',
       'hexview.display',
@@ -185,9 +198,12 @@ describe('Daffodfil', () => {
       'infoset.save',
     ]
 
-    it('Not available by default', () => {
+    test('Not available by default', () => {
       debugSpecificCmds.forEach(async (cmd) => {
-        expect(await vscode.commands.getCommands()).to.not.include(cmd)
+        assert.strictEqual(
+          (await vscode.commands.getCommands()).includes(cmd),
+          false
+        )
       })
     })
 
@@ -204,70 +220,75 @@ describe('Daffodfil', () => {
     // })
   })
 
-  describe('getCommands', () => {
-    it('getProgramName file exists', async (done) => {
-      expect(
+  suite('getCommands', () => {
+    test('getProgramName file exists', async () => {
+      assert.strictEqual(
         await vscode.commands.executeCommand(
           'extension.dfdl-debug.getProgramName',
           TEST_SCHEMA
-        )
-      ).to.equal(TEST_SCHEMA)
-      done()
+        ),
+        TEST_SCHEMA
+      )
     })
 
-    it('getProgramName file does not exists', async (done) => {
-      const file = path.join(__dirname, '../data/test.dfdl.xsd')
-      expect(
+    test('getProgramName file does not exists', async () => {
+      let file = path.join(__dirname, '../data/test.dfdl.xsd')
+
+      assert.notStrictEqual(
         await vscode.commands.executeCommand(
           'extension.dfdl-debug.getProgramName',
           file
-        )
-      ).to.not.equal(file)
-      done()
+        ),
+        file
+      )
     })
 
-    it('getDataName file exists', async (done) => {
-      expect(
+    test('getDataName file exists', async () => {
+      assert.strictEqual(
         await vscode.commands.executeCommand(
           'extension.dfdl-debug.getDataName',
           TEST_SCHEMA
-        )
-      ).to.equal(TEST_SCHEMA)
-      done()
+        ),
+        TEST_SCHEMA
+      )
     })
 
-    it('getDataName file does not exists', async (done) => {
-      const file = path.join(__dirname, '../data/test.dfdl.xsd')
-      expect(
+    test('getDataName file does not exists', async () => {
+      let file = path.join(__dirname, '../data/test.dfdl.xsd')
+
+      assert.notStrictEqual(
         await vscode.commands.executeCommand(
           'extension.dfdl-debug.getDataName',
           file
-        )
-      ).to.not.equal(file)
-      done()
+        ),
+        file
+      )
     })
   })
 
-  describe('artifact attributes', () => {
+  suite('artifact attributes', () => {
     const packageName = 'daffodil-debugger'
     const packageVersion = '1.0.0'
     const scriptName = 'daffodil-debugger'
     const artifact = new Artifact(packageName, packageVersion, scriptName)
 
-    it('name set properly', () => {
-      expect(artifact.name).to.equal(
+    test('name set properly', () => {
+      assert.strictEqual(
+        artifact.name,
         `${packageName}-${packageVersion}-${LIB_VERSION}`
       )
     })
 
-    it('archive set properly', () => {
-      expect(artifact.archive).to.equal(
+    test('archive set properly', () => {
+      assert.strictEqual(
+        artifact.archive,
         `${packageName}-${packageVersion}-${LIB_VERSION}.zip`
       )
     })
 
-    it('scriptName set properly', () => {
-      expect(artifact.scriptName).to.equal(
+    test('scriptName set properly', () => {
+      assert.strictEqual(
+        artifact.scriptName,
         osCheck(`${scriptName}.bat`, `./${scriptName}`)
       )
     })

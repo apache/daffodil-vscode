@@ -27,7 +27,7 @@ export function run(): Promise<void> {
     timeout: 999999,
   })
 
-  const testsRoot = path.resolve(__dirname, '..')
+  const testsRoot = path.resolve(__dirname)
 
   return new Promise((c, e) => {
     glob('**/*.test.js', { cwd: testsRoot }, (err, files) => {

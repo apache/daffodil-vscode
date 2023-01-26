@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai'
+import * as assert from 'assert'
 import { attributeCompletion } from '../../../language/providers/intellisense/attributeItems'
 import { commonCompletion } from '../../../language/providers/intellisense/commonItems'
 import { elementCompletion } from '../../../language/providers/intellisense/elementItems'
 
-describe('Items Test Suite', () => {
+suite('Items Test Suite', () => {
   const expectedElementItems = [
     'xml version',
     'xs:schema',
@@ -78,24 +78,21 @@ describe('Items Test Suite', () => {
     'xs:restriction',
   ]
 
-  it('all commonItems available', async (done) => {
+  test('all commonItems available', async () => {
     let itemNames: string[] = []
     commonCompletion('', 'xs:').items.forEach((r) => itemNames.push(r.item))
-    expect(itemNames).to.include('type=')
-    done()
+    assert.strictEqual(itemNames.includes('type='), true)
   })
 
-  it('all elementItems available', async (done) => {
+  test('all elementItems available', async () => {
     elementCompletion('', '', 'xs:').items.forEach((item) => {
-      expect(expectedElementItems).to.include(item.item)
+      assert.strictEqual(expectedElementItems.includes(item.item), true)
     })
-    done()
   })
 
-  it('all attributeItems available', async (done) => {
+  test('all attributeItems available', async () => {
     attributeCompletion('', 'xs:').items.forEach((item) => {
-      expect(expectedAttributeItems).to.include(item.item)
+      assert.strictEqual(expectedAttributeItems.includes(item.item), true)
     })
-    done()
   })
 })

@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai'
+import * as assert from 'assert'
 import * as utils from '../../utils'
 
-describe('Utils Test Suite', () => {
-  const name = 'Default Config'
-  const request = 'launch'
-  const type = 'dfdl'
+suite('Utils Test Suite', () => {
+  var name = 'Default Config'
+  var request = 'launch'
+  var type = 'dfdl'
 
-  const defaultConfig = {
+  var defaultConfig = {
     name: 'Default Config',
     request: 'launch',
     type: 'dfdl',
@@ -44,23 +44,24 @@ describe('Utils Test Suite', () => {
     daffodilDebugClasspath: '',
   }
 
-  it('Default config', () => {
-    const config = utils.getConfig(name, request, type)
-    expect(JSON.stringify(config)).to.equal(JSON.stringify(defaultConfig))
+  test('Default config', async () => {
+    var config = await utils.getConfig(name, request, type)
+    assert.strictEqual(JSON.stringify(defaultConfig), JSON.stringify(config))
   })
 
-  it('Get current config', () => {
-    expect(utils.getCurrentConfig()).to.be.undefined
+  test('Get current config', async () => {
+    assert.strictEqual(undefined, utils.getCurrentConfig())
   })
 
-  it('Setting current config', () => {
+  test('Setting current config', async () => {
     // Check current config not set
-    expect(utils.getCurrentConfig()).to.be.undefined
+    assert.strictEqual(undefined, utils.getCurrentConfig())
     utils.setCurrentConfig(defaultConfig)
     // Check current config is now set
-    expect(utils.getCurrentConfig()).to.not.be.undefined
-    expect(JSON.stringify(utils.getCurrentConfig())).to.equal(
-      JSON.stringify(defaultConfig)
+    assert.notStrictEqual(undefined, utils.getCurrentConfig())
+    assert.strictEqual(
+      JSON.stringify(defaultConfig),
+      JSON.stringify(utils.getCurrentConfig())
     )
   })
 })

@@ -15,26 +15,26 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai'
+import * as assert from 'assert'
 import * as path from 'path'
 import { DebugClient } from '@vscode/debugadapter-testsupport'
 import { TEST_SCHEMA, PROJECT_ROOT } from './common'
 import { setup } from 'mocha'
 
-describe('Daffodil Debug Adapter', () => {
+suite('Daffodil Debug Adapter', () => {
   const DEBUG_ADAPTER = path.join(PROJECT_ROOT, 'out/adapter/debugAdapter.js')
 
   let client: DebugClient
 
-  before(() => {
+  setup(() => {
     client = new DebugClient('node', DEBUG_ADAPTER, 'dfdl')
     return client.start()
   })
 
-  after(() => client.stop())
+  teardown(() => client.stop())
 
-  describe('basic', () => {
-    it('unknown request should produce error', async (done) => {
+  suite('basic', () => {
+    test('unknown request should produce error', (done) => {
       client
         .send('illegal_request')
         .then(() => {
@@ -46,16 +46,15 @@ describe('Daffodil Debug Adapter', () => {
     })
   })
 
-  describe('initialize', () => {
-    it('should return supported features', async (done) => {
+  suite('initialize', () => {
+    test('should return supported features', () => {
       return client.initializeRequest().then((response) => {
         response.body = response.body || {}
-        expect(response.body.supportsConfigurationDoneRequest).to.be.true
-        done()
+        assert.strictEqual(response.body.supportsConfigurationDoneRequest, true)
       })
     })
 
-    it("should produce error for invalid 'pathFormat'", async (done) => {
+    test("should produce error for invalid 'pathFormat'", (done) => {
       client
         .initializeRequest({
           adapterID: 'dfdl',
@@ -75,8 +74,8 @@ describe('Daffodil Debug Adapter', () => {
     })
   })
 
-  describe('launch', () => {
-    it('should run program to the end', () => {
+  suite('launch', () => {
+    test('should run program to the end', () => {
       return Promise.all([
         client.configurationSequence(),
         client.launch({ program: TEST_SCHEMA }),
@@ -84,8 +83,9 @@ describe('Daffodil Debug Adapter', () => {
       ])
     })
 
-    it('should stop on entry', () => {
+    test('should stop on entry', () => {
       const ENTRY_LINE = 1
+
       return Promise.all([
         client.configurationSequence(),
         client.launch({ program: TEST_SCHEMA, stopOnEntry: true }),
