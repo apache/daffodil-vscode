@@ -64,14 +64,17 @@ describe('omega-edit Test Suite', () => {
     // open the command prompt and search for experimental features
     let cmdInput = await new Workbench().openCommandPrompt()
     expect(cmdInput).to.be.ok
+
     await cmdInput.clear()
     await cmdInput.setText('>Ena')
     let pick = await cmdInput.findQuickPick('Enable Experimental Features')
     expect(pick).to.not.be.undefined
+
     await cmdInput.clear()
     await cmdInput.setText('>ome')
     pick = await cmdInput.findQuickPick('Omega Edit Version Info')
     expect(pick).to.be.undefined
+
     await cmdInput.clear()
     await cmdInput.setText('>dat')
     pick = await cmdInput.findQuickPick('Data Editor')
@@ -87,14 +90,17 @@ describe('omega-edit Test Suite', () => {
     // open the command prompt again and search for experimental features
     cmdInput = await new Workbench().openCommandPrompt()
     expect(cmdInput).to.be.ok
+
     await cmdInput.clear()
     await cmdInput.setText('>ome')
     pick = await cmdInput.findQuickPick('Omega Edit Version Info')
     expect(pick).to.not.be.undefined
+
     await cmdInput.clear()
     await cmdInput.setText('>dat')
     pick = await cmdInput.findQuickPick('Data Editor')
     expect(pick).to.not.be.undefined
+
     await cmdInput.cancel()
   })
 
@@ -116,16 +122,15 @@ describe('omega-edit Test Suite', () => {
     })
     const fileInput = await InputBox.create()
     await fileInput.setText(path.resolve(repoRoot, 'package.json'))
-    fs.writeFileSync(
-      path.resolve(screenshotsDir, 'file-InputBox.png'),
-      await fileInput.takeScreenshot(),
-      'base64'
-    )
     await fileInput.confirm()
     await new Promise((res) => {
       setTimeout(res, 10000)
     })
+
+    // hide the bottom bar panel to see the whole editor
     await new BottomBarPanel().toggle(false)
+
+    // take a screenshot of the workbench
     fs.writeFileSync(
       path.resolve(screenshotsDir, 'data_editor-Workbench.png'),
       await new Workbench().takeScreenshot(),
@@ -135,37 +140,34 @@ describe('omega-edit Test Suite', () => {
 
   it('finds elements in the webview', async () => {
     const webView = new WebView()
+
     // switch the underlying webdriver context to the webview iframe
     await webView.switchToFrame()
     const element = await webView.findWebElement(By.className('inspector-text'))
     expect(await element.getText()).to.equal('Data Inspector')
+
     // switch the underlying webdriver back to the original window
     await webView.switchBack()
   })
 
   it('inspects the terminal text', async () => {
+    // show the bottom bar panel
     await new BottomBarPanel().toggle(true)
     await new Promise((res) => {
       setTimeout(res, 10000)
     })
+
+    // select the terminal view
     const terminalView = await new BottomBarPanel().openTerminalView()
     expect(terminalView).is.ok
     await new Promise((res) => {
       setTimeout(res, 10000)
     })
-    fs.writeFileSync(
-      path.resolve(testResourcesDir, 'current_channel.txt'),
-      await terminalView.getCurrentChannel()
-    )
-    fs.writeFileSync(
-      path.resolve(testResourcesDir, 'channel_names.txt'),
-      JSON.stringify(await terminalView.getChannelNames())
-    )
-    fs.writeFileSync(
-      path.resolve(testResourcesDir, 'terminal_id.txt'),
-      await terminalView.getId()
-    )
-    // this times out for some reason
+
+    // the channel name should be the application name
+    expect(await terminalView.getCurrentChannel()).to.contain('omega-edit')
+
+    // getting the terminal text times out for some reason
     //fs.writeFileSync(path.resolve(repoRoot, 'terminal_text.txt'), await terminalView.getText())
   })
 })

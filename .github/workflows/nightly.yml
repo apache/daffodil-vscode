@@ -55,3 +55,9 @@ jobs:
       - run: yarn test
         if: runner.os != 'Linux'
       - run: $SBT test
+      - run: |
+          sudo apt-get install xvfb
+          export DISPLAY=:99
+          Xvfb -ac :99 -screen 0 1920x1080x16 &
+          yarn test-ui
+        if: runner.os == 'Linux'
