@@ -93,7 +93,6 @@ limitations under the License.
   const gotoOffset = writable(0)
   const gotoOffsetMax = writable(0)
   const editType = writable('')
-
   // Reactive Declarations
   $: addressText = makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue)
   $: selectionOffsetText = setSelectionOffsetInfo('Selection', $selectionStartStore, $selectionEndStore, $editedCount, $cursorPos)
@@ -105,42 +104,24 @@ limitations under the License.
   $: asciiCount = countAscii($UInt8Data)
   $: setSelectionEncoding($editorEncoding)
   $: goTo($gotoOffset)
-  $: requestEditedData($editType)
 
-  function requestEditedData(editType) {
-    if(!$commitable){
-      return
+  function requestEditedData(type: string) {
+    if($commitable){
+      vscode.postMessage({
+        command: MessageCommand.requestEditedData,
+        data: {
+          editType: type,
+          editor: {
+            startFileOffset: $selectionStartStore,
+            selectionLength: $editorSelection.length,
+            editPos: $selectionStartStore + $byteOffsetPos
+            editedContent: $editorSelection
+          },
+          encoding: $editorEncoding
+        }
+      })
     }
-    switch(editType){
-      case 'remove':
-        vscode.postMessage({
-          command: MessageCommand.requestEditedData,
-          data: {
-            editType: 'remove',
-            editor: {
-              startFileOffset: $selectionStartStore,
-              selectionLength: $editorSelection.length,
-              editPos: $selectionStartStore + $byteOffsetPos
-            },
-            encoding: $editorEncoding
-          }
-        })
-        break
-      case 'insert':
-        vscode.postMessage({
-          command: MessageCommand.requestEditedData,
-          data: {
-            editType: 'insert',
-            editor: {
-              startFileOffset: $selectionStartStore,
-              selectionLength: $editorSelection.length,
-              editPos: $selectionStartStore + $byteOffsetPos
-            },
-            encoding: $editorEncoding
-          }
-        })
-        break
-    }
+
   }
 
   function goTo(offset: number){
@@ -164,7 +145,6 @@ limitations under the License.
         command: MessageCommand.editorOnChange,
         data: { editor: editorMsg },
       })
-      console.log(editorMsg)
     }
   }
 
@@ -245,9 +225,10 @@ limitations under the License.
     return `${from} [${start} - ${end}] Size: ${$selectionSize} `
   }
 
-  function handleEditorEvent(e: Event) {
+  async function handleEditorEvent(e: Event, cb: Function = requestEditedData) {
+    let editedType: string
     switch(e.type) {
-      case 'keydown':
+      case 'keyup':
         const kevent = e as KeyboardEvent
         if (['Up','Right','Home'].some((type) => kevent.key.includes(type))) {
           cursorPos.update(pos=>{
@@ -256,30 +237,44 @@ limitations under the License.
             return ++pos
           })
         }
-        else if(['Backspace', 'Return', 'Delete'].some((type)=> kevent.key.startsWith(type))) {
+        if(['Backspace', 'Return', 'Delete'].some((type)=> kevent.key.startsWith(type))) {
           cursorPos.update(pos=>{
             if(pos-1 < 0)
               return pos
             return --pos
           })
-          editType.update(()=> {return 'remove' })
+          editorSelection.update(str=>{
+            return str
+          })
+          requestEditedData('remove')
         }
-        else if (['Down','Left','End'].some((type) => kevent.key.includes(type))) {
+        if (['Down','Left','End'].some((type) => kevent.key.includes(type))) {
           cursorPos.update(pos=>{
             if(pos-1 < 0)
               return pos
             return --pos
           })
         }
-        else if($editorEncoding === 'hex' && (/^[0-9A-Fa-f]+$/).test(kevent.key)){
-          editType.update(()=> {return 'insert' })
+        if($editorEncoding === 'hex' && (/^[0-9A-Fa-f]+$/).test(kevent.key)){
+          cursorPos.update(pos=>{
+            return ++pos
+          })
+          editorSelection.update(str=>{
+            return str
+          })
+          requestEditedData('insert')
         }
-        else if($editorEncoding === 'ascii' && (/^[\x20-\x7Ea-zA-Z0-9]+$/).test(kevent.key)) {
-          editType.update(()=> {return 'insert' })
+        if($editorEncoding === 'ascii' && (/^[\x20-\x7Ea-zA-Z0-9]+$/).test(kevent.key)) {
+          cursorPos.update(pos=>{
+            return ++pos
+          })
+          editorSelection.update(str=>{
+            return str
+          })
+          requestEditedData('insert')
         }
-        else {
+        default:
           e.preventDefault()
-        }
         break
       case 'click':
         cursorPos.update(()=>{
@@ -287,7 +282,6 @@ limitations under the License.
         })
         break
     }
-
   }
 
   function frameSelected(selected: HTMLTextAreaElement) {
@@ -333,11 +327,6 @@ limitations under the License.
           ++selectionEnd
         }
       }
-      console.log(`SSS: ${selected.selectionStart} 
-      SS: ${selectionStart} 
-      SSE: ${selected.selectionEnd} 
-      SE: ${selectionEnd}
-      Slen: ${selected.value.length}`)
       selected.selectionEnd = selectionEnd < selected.value.length ? selectionEnd + 1 : selectionEnd
     }
     const selectionOffsetsByRadix = {
@@ -370,7 +359,6 @@ limitations under the License.
       cursor: $cursorPos,
       radix: $displayRadix,
     }
-    console.log(editorMsg)
     vscode.postMessage({
       command: MessageCommand.editorOnChange,
       data: { editor: editorMsg },
@@ -503,7 +491,7 @@ limitations under the License.
   <textarea class="physical_vw" id="physical" contenteditable="true" readonly bind:this={physical_vwRef} bind:innerHTML={physicalDisplayText} on:select={handleSelectionEvent} on:scroll={scrollHandle}/>
   <textarea class="logicalView" id="logical" contenteditable="true" readonly bind:this={logical_vwRef} bind:innerHTML={logicalDisplayText} on:select={handleSelectionEvent} on:scroll={scrollHandle}/>
   <div class="editView" id="edit_view">
-    <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={$selectedContent} bind:value={$editorSelection} on:keydown|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}/>
+    <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={$selectedContent} bind:value={$editorSelection} on:keyup|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}/>
     <!-- <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={selectedContent} bind:value={$editorSelection} on:click={storeCursorPos} on:input={storeCursorPos}/> -->
     <fieldset class="box">
       <legend>Content Controls</legend>

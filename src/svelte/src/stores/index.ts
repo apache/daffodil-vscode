@@ -21,6 +21,7 @@ import { vscode } from '../utilities/vscode'
 import { MessageCommand } from '../utilities/message'
 
 import type { LogicalDisplayState } from '../utilities/message'
+import { afterUpdate } from 'svelte'
 
 const state_key = 'apache-daffodil-data-editor.state'
 
@@ -68,13 +69,12 @@ export const selectionActive = derived(selectionSize, $selectionSize=>{
   return ($selectionSize > 0)
 })
 
-export const commitable = derived([editorEncoding, editorSelection, selectionActive, cursorPos], ([$editorEncoding, $editorSelection, $selectionActive, $cursorPos]) => {
+export const commitable = derived([editorEncoding, editorSelection, selectionActive], ([$editorEncoding, $editorSelection, $selectionActive]) => {
   if(!$selectionActive)
     return false
   if($editorEncoding === 'hex') {
-    console.log('sel len: ', $editorSelection.length)
     if(($editorSelection.length) % 2 != 0){
-      return false   
+      return false
     }
   }
   return true

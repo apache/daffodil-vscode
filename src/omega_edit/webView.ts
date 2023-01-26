@@ -72,7 +72,6 @@ export class WebView implements vscode.Disposable {
         this.fileData = Buffer.from(data)
         let msgData = new Uint8Array(data)
 
-        console.log(`MsgData: ${msgData}`)
         this.panel.webview.postMessage({
           command: MessageCommand.loadFile,
           metrics: {
@@ -100,7 +99,6 @@ export class WebView implements vscode.Disposable {
   private messageReceiver(message: EditorMessage) {
     switch (message.command) {
       case MessageCommand.addressOnChange:
-        console.log(message)
         this.displayState.updateLogicalDisplayState(message.data.state)
 
         this.panel.webview.postMessage({
