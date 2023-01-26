@@ -98,6 +98,17 @@ describe('omega-edit Test Suite', () => {
     await cmdInput.cancel()
   })
 
+  it('gets the omega edit version', async () => {
+    // enable experimental features
+    await new Workbench().executeCommand('Omega Edit Version Info')
+    await new Promise((res) => {
+      setTimeout(res, 10000)
+    })
+    const notifications = await new Workbench().getNotifications()
+    expect(notifications.length).to.equal(1)
+    expect(await notifications[0].getText()).contains('Ωedit')
+  })
+
   it('opens a data editor', async () => {
     await new Workbench().executeCommand('Data Editor')
     await new Promise((res) => {

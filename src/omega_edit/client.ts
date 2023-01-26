@@ -101,7 +101,9 @@ export function activate(ctx: vscode.ExtensionContext) {
         port = await getOmegaEditPort(port)
         initOmegaEditClient('127.0.0.1', port.toString())
         await commonOmegaEdit(ctx, startServer, omegaEditPackageVersion, port)
-        return await omegaEditVersion.getVersion()
+        const version = await omegaEditVersion.getVersion()
+        vscode.window.showInformationMessage('Ωedit ' + version)
+        return version
       }
     )
   )
