@@ -28,6 +28,7 @@ export class WebView implements vscode.Disposable {
   private svelteWebviewInitializer: SvelteWebviewInitializer
   private fileToEdit: string = ''
   private fileData: Buffer = Buffer.alloc(0)
+  // private fileDataStrComparable: string = ''
   private displayState = new DisplayState()
 
   constructor(
@@ -70,6 +71,7 @@ export class WebView implements vscode.Disposable {
         let mimeData: number[] = Array.from(data.subarray(0, 4))
 
         this.fileData = Buffer.from(data)
+        // this.fileDataStrComparable = this.fileData.toString('hex')
         let msgData = new Uint8Array(data)
 
         this.panel.webview.postMessage({
@@ -97,6 +99,7 @@ export class WebView implements vscode.Disposable {
   }
 
   private messageReceiver(message: EditorMessage) {
+    console.log('received msg:', message.command)
     switch (message.command) {
       case MessageCommand.addressOnChange:
         this.displayState.updateLogicalDisplayState(message.data.state)
@@ -115,15 +118,16 @@ export class WebView implements vscode.Disposable {
       case MessageCommand.editorOnChange:
         this.displayState.updateEditorDisplayState(message.data.editor)
 
-        const bufSlice: string = this.fileData
-          .subarray(
-            this.displayState.editorDisplay.start,
-            this.displayState.editorDisplay.end
-          )
-          .toString(this.displayState.editorDisplay.encoding)
+        const bufSlice = this.fileData.subarray(
+          this.displayState.editorDisplay.start,
+          this.displayState.editorDisplay.end + 1
+        )
         this.panel.webview.postMessage({
           command: MessageCommand.editorOnChange,
-          display: { editor: bufSlice },
+          data: Uint8Array.from(bufSlice),
+          display: Buffer.from(bufSlice).toString(
+            this.displayState.editorDisplay.encoding
+          ),
         })
         break
 
@@ -136,8 +140,73 @@ export class WebView implements vscode.Disposable {
         break
 
       case MessageCommand.requestEditedData:
-        vscode.window.showInformationMessage(`${message.data.editType} Request
-         @ ${message.data.editor.editPos} in region [ ${message.data.editor.startFileOffset} - ${message.data.editor.selectionLength} ]`)
+        // let selectionToFileOffset = message.data.editor.selectionToFileOffset
+        let selectionEncoding = message.data.encoding
+        let selectionEdits = message.data.editor.editedContent
+        // let editType = message.data.editType
+
+        let selectionByteLength: number
+        // let selectionByteData: Uint8Array
+        let selectionByteData: Buffer
+
+        // let returnData: Uint8Array
+
+        if (selectionEncoding === 'hex') {
+          selectionByteLength = selectionEdits.length / 2
+          // selectionByteData = new Uint8Array(selectionByteLength)
+          selectionByteData = Buffer.alloc(selectionByteLength)
+          for (let i = 0; i < selectionEdits.length; i += 2) {
+            selectionByteData[i / 2] = parseInt(selectionEdits.substr(i, 2), 16)
+          }
+        } else if (selectionEncoding === 'ascii') {
+          selectionByteLength = selectionEdits.length
+          // selectionByteData = new Uint8Array(selectionByteLength)
+          selectionByteData = Buffer.alloc(selectionByteLength)
+          for (let i = 0; i < selectionEdits.length; i++) {
+            selectionByteData[i] = selectionEdits.charCodeAt(i)
+          }
+        } else {
+          selectionByteData = Buffer.alloc(0)
+        }
+
+        this.panel.webview.postMessage({
+          command: MessageCommand.requestEditedData,
+          data: Uint8Array.from(selectionByteData),
+          display: selectionByteData.toString(selectionEncoding),
+        })
+        // // allocate new complete array
+        // editType === 'insert'
+        //   ? (returnData = new Uint8Array(this.fileData.byteLength + 1))
+        //   : (returnData = new Uint8Array(this.fileData.byteLength - 1))
+
+        // // console.log(selectionToFileOffset)
+        // for (let i = 0; i <= selectionToFileOffset; i++) {
+        //   returnData[i] = this.fileData[i]
+        // }
+
+        // // console.log(selectionByteLength)
+        // for (let i = 0; i < selectionByteLength; i++) {
+        //   returnData[selectionToFileOffset + i] = selectionByteData[i]
+        // }
+        // // console.log(selectionToFileOffset + 1, returnData.byteLength)
+
+        // for( let i = selectionToFileOffset + selectionByteLength - 1; i < returnData.byteLength; i++ ) {
+        //   returnData[i + 1] = this.fileData[i]
+        // }
+
+        // this.fileData = Buffer.from(returnData)
+        // this.displayState.editorDisplay.end++
+        // const selectionDisplay: string = this.fileData
+        //   .subarray(
+        //     this.displayState.editorDisplay.start,
+        //     this.displayState.editorDisplay.end
+        //   )
+        //   .toString(this.displayState.editorDisplay.encoding)
+        // this.panel.webview.postMessage({
+        //   command: MessageCommand.requestEditedData,
+        //   data: new Uint8Array(returnData),
+        //   display: selectionDisplay,
+        // })
         break
     }
   }

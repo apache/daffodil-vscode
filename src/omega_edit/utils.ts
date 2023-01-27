@@ -252,3 +252,26 @@ export function checkMimeType(bytes: number[], filename: string): string {
 
   return ret
 }
+
+export async function fillRequestData(
+  preEditSegment,
+  editedSegment,
+  postEditSegment: Buffer
+): Promise<Buffer> {
+  const totalLength =
+    preEditSegment.byteLength +
+    editedSegment.byteLength +
+    postEditSegment.byteLength
+  const ret = Buffer.alloc(totalLength)
+  console.log(
+    preEditSegment.byteLength,
+    editedSegment.byteLength,
+    postEditSegment.byteLength
+  )
+  let offset = 0
+  for (const buffer of [preEditSegment, editedSegment, postEditSegment]) {
+    ret.set(Buffer.from(buffer), offset)
+    offset += buffer.byteLength
+  }
+  return ret
+}

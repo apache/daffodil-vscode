@@ -102,7 +102,6 @@ export function makeAddressRange(
     stride: number,
     radix: number
   ): string {
-    console.log(start, end, stride, radix)
     let i = start
     let result = (i * stride).toString(radix)
     for (++i; i < end; ++i) {

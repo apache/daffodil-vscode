@@ -44,6 +44,7 @@ limitations under the License.
     editedCount,
     cursorPos,
     dataViewEndianness,
+    commitErrMsg,
     int8,
     uint8,
     int16,
@@ -93,28 +94,30 @@ limitations under the License.
   const gotoOffset = writable(0)
   const gotoOffsetMax = writable(0)
   const editType = writable('')
+  const fileData = writable(new Uint8Array(0))
+  const asciiCount = derived(fileData, $fileData=>{
+    return countAscii($fileData.buffer)
+  })
   // Reactive Declarations
   $: addressText = makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue)
-  $: selectionOffsetText = setSelectionOffsetInfo('Selection', $selectionStartStore, $selectionEndStore, $editedCount, $cursorPos)
+  $: selectionOffsetText = setSelectionOffsetInfo('Selection', $selectionStartStore, $selectionEndStore, $cursorPos)
   $: {
     physicalOffsetText = getOffsetText($displayRadix, 'physical')
     logicalOffsetText = getOffsetText($displayRadix, 'logical')
   }
-  $: physicalDisplayText = encodeForDisplay($UInt8Data, $displayRadix, $bytesPerRow)
-  $: asciiCount = countAscii($UInt8Data)
+  $: physicalDisplayText = encodeForDisplay($fileData, $displayRadix, $bytesPerRow)
   $: setSelectionEncoding($editorEncoding)
   $: goTo($gotoOffset)
 
   function requestEditedData(type: string) {
     if($commitable){
+      console.log('sending msg')
       vscode.postMessage({
         command: MessageCommand.requestEditedData,
         data: {
           editType: type,
           editor: {
-            startFileOffset: $selectionStartStore,
-            selectionLength: $editorSelection.length,
-            editPos: $selectionStartStore + $byteOffsetPos
+            selectionToFileOffset: $selectionStartStore,
             editedContent: $editorSelection
           },
           encoding: $editorEncoding
@@ -148,14 +151,13 @@ limitations under the License.
     }
   }
 
-  async function loadContent(fileData: Uint8Array) {
+  async function loadContent(data: Uint8Array) {
     
-    UInt8Data.update(() => {
-      return fileData
+    fileData.update(() => {
+      return data
     })
-
     filesize.update(() => {
-      return fileData.length
+      return data.length
     })
 
     displayRadix.update(() => {
@@ -163,7 +165,7 @@ limitations under the License.
     })
 
     $gotoOffset = 0
-    $gotoOffsetMax = fileData.length
+    $gotoOffsetMax = data.length
 
   }
 
@@ -225,7 +227,7 @@ limitations under the License.
     return `${from} [${start} - ${end}] Size: ${$selectionSize} `
   }
 
-  async function handleEditorEvent(e: Event, cb: Function = requestEditedData) {
+  async function handleEditorEvent(e: Event) {
     let editedType: string
     switch(e.type) {
       case 'keyup':
@@ -237,50 +239,50 @@ limitations under the License.
             return ++pos
           })
         }
-        if(['Backspace', 'Return', 'Delete'].some((type)=> kevent.key.startsWith(type))) {
-          cursorPos.update(pos=>{
-            if(pos-1 < 0)
-              return pos
-            return --pos
-          })
+        else if(['Backspace', 'Return', 'Delete'].some((type)=> kevent.key.startsWith(type))) {
           editorSelection.update(str=>{
             return str
+          })
+          cursorPos.update(pos=>{
+            if($commitable)
+              return --pos
+            return pos
           })
           requestEditedData('remove')
         }
-        if (['Down','Left','End'].some((type) => kevent.key.includes(type))) {
+        else if (['Down','Left','End'].some((type) => kevent.key.includes(type))) {
           cursorPos.update(pos=>{
             if(pos-1 < 0)
               return pos
             return --pos
           })
         }
-        if($editorEncoding === 'hex' && (/^[0-9A-Fa-f]+$/).test(kevent.key)){
-          cursorPos.update(pos=>{
-            return ++pos
-          })
+        else {
+          console.log(kevent)
           editorSelection.update(str=>{
             return str
           })
-          requestEditedData('insert')
-        }
-        if($editorEncoding === 'ascii' && (/^[\x20-\x7Ea-zA-Z0-9]+$/).test(kevent.key)) {
           cursorPos.update(pos=>{
-            return ++pos
-          })
-          editorSelection.update(str=>{
-            return str
+            if($commitable)
+              return ++pos
+            return pos
           })
           requestEditedData('insert')
         }
-        default:
-          e.preventDefault()
-        break
+      break
+      default:
+        editorSelection.update(str=>{
+          return str
+        })
+        cursorPos.update(()=>{
+          return $selectedContent.selectionStart
+        })
+      break
       case 'click':
         cursorPos.update(()=>{
           return $selectedContent.selectionStart
         })
-        break
+      break
     }
   }
 
@@ -330,10 +332,10 @@ limitations under the License.
       selected.selectionEnd = selectionEnd < selected.value.length ? selectionEnd + 1 : selectionEnd
     }
     const selectionOffsetsByRadix = {
-      2: { start: selected.selectionStart / 9, end: (selected.selectionEnd - 8) / 9 + 1 },
-      8: { start: selected.selectionStart / 4, end: (selected.selectionEnd  - 3) / 4 + 1 },
-      10: { start: selected.selectionStart / 4, end: (selected.selectionEnd  - 3) / 4 + 1 },
-      16: { start: selected.selectionStart / 3, end: (selected.selectionEnd  - 2) / 3 + 1 },
+      2: { start: selectionStart / 9, end: Math.floor((selectionEnd - 8) / 9 + 1) },
+      8: { start: selectionStart / 4, end: Math.floor((selectionEnd - 3) / 4 + 1) },
+      10: { start: selectionStart / 4, end: Math.floor((selectionEnd  - 3) / 4 + 1) },
+      16: { start: selectionStart / 3, end: Math.floor((selectionEnd  - 2) / 3 + 1) },
     }
 
     selectionStartStore.update(()=>{
@@ -391,9 +393,22 @@ limitations under the License.
         break
       case MessageCommand.editorOnChange:
         editorSelection.update(()=>{
-          return msg.data.display.editor
+          return msg.data.display
         })
-        $editedCount = 0
+        UInt8Data.update(()=>{
+          return new Uint8Array(msg.data.data)
+        })
+        break
+      case MessageCommand.requestEditedData:
+        editorSelection.update(()=>{
+          return msg.data.display
+        })
+        UInt8Data.update(()=>{
+          return new Uint8Array(msg.data.data)
+        })
+        cursorPos.update(()=>{
+          return $selectedContent.selectionStart
+        })
         break
       case MessageCommand.addressOnChange:
         logicalDisplayText = msg.data.display.logical
@@ -476,11 +491,6 @@ limitations under the License.
   <div class="measure">
     <div>
       <span id="selected_offsets" contenteditable="true" readonly>{selectionOffsetText}
-      {#if $editedCount > 0}
-      <span style="color: green;">({$editedCount})</span>
-      {:else if $editedCount < 0}
-      <span style="color: red;">({$editedCount})</span>
-      {/if}
       {#if $cursorPos}
       <span> | cursor: {$cursorPos}</span>
       {/if}
@@ -506,6 +516,9 @@ limitations under the License.
             <br />
             Committed changes: <span id="change_cnt">0</span>
           </div>
+          {#if !$commitable}
+          <div class="errMsg">{$commitErrMsg}</div>
+          {/if}
           <div>
             <vscode-button id="add_data_breakpoint_btn" disabled
               >set breakpoint</vscode-button
@@ -592,11 +605,14 @@ limitations under the License.
   <hr>
   {$editorSelection}
   <hr>
+  <hr>
+  {$UInt8Data}
+  <hr>
   {/if}
   <h3>BytesPerRow: {$bytesPerRow}</h3>
   <h3>Radix: {$displayRadix}</h3>
   <h3>Data<br></h3><hr>
-  <subscript>{$UInt8Data}</subscript>
+  <subscript>{$fileData}</subscript>
 </div>
 
 <!-- svelte-ignore css-unused-selector -->

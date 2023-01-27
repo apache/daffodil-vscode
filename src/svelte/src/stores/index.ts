@@ -40,7 +40,7 @@ export const selectionStartStore = writable(0)
 export const disableDataView = writable(false)
 export const dataViewEndianness = writable('be')
 export const UInt8Data = writable(new Uint8Array(0))
-
+export const commitErrMsg = writable('')
 export const selectionSize = derived([selectionStartStore, selectionEndStore], ([$selectionStartStore, $selectionEndStore])=>{
     return $selectionEndStore - $selectionStartStore
 })
@@ -73,15 +73,26 @@ export const commitable = derived([editorEncoding, editorSelection, selectionAct
   if(!$selectionActive)
     return false
   if($editorEncoding === 'hex') {
-    if(($editorSelection.length) % 2 != 0){
+    let invalid = $editorSelection.match(/[^0-9a-fA-F]/gi)
+    if(invalid){
+        commitErrMsg.update(()=>{
+          return `Invalid HEX characters: ${invalid}`
+        })
+      return false
+    }
+    else if(($editorSelection.length) % 2 != 0){
+      commitErrMsg.update(()=>{
+        return "Invalid HEX editable length"
+      })
       return false
     }
   }
   return true
 })
 
-export const dataView = derived([UInt8Data, selectionStartStore, selectionEndStore, editedCount], ([$UInt8Data, $selectionStartStore, $selectionEndStore, $editedCount])=>{
-    return new DataView($UInt8Data.buffer.slice($selectionStartStore, $selectionEndStore))
+export const dataView = derived([UInt8Data, selectionStartStore, selectionEndStore, editedCount], ([$UInt8Data, $selectionStartStore, $selectionEndStore])=>{
+    // return new DataView($UInt8Data.buffer.slice($selectionStartStore, $selectionEndStore))
+    return new DataView($UInt8Data.buffer)
 })
 
 export const byteOffsetPos = derived([cursorPos, editorEncoding], ([$cursorPos, $editorEncoding]) => {
