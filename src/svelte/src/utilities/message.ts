@@ -4,8 +4,9 @@ export enum MessageCommand {
     addBreakpoint,
     editorOnChange,
     loadFile,
-    addressOnChange,
     requestEditedData,
+    setSessionFile,
+    updateLogicalDisplay,
 }
 export type LogicalDisplayState = {
     bytesPerRow: number

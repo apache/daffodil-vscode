@@ -104,7 +104,7 @@ export class OmegaEdit {
     sessionId: string,
     offset: number,
     len: number,
-    data: string = ''
+    data: string | Uint8Array
   ) {
     await omegaEditChange.replace(sessionId, offset, len, data)
   }

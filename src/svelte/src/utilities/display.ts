@@ -13,8 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { vscode } from '../utilities/vscode'
-
 export const radixOpt = [
     { name: 'HEX', value: 16 },
     { name: 'DEC', value: 10 },
@@ -96,20 +94,6 @@ export function getOffsetDisplay(radix, view: string) {
     return offsetDisplays[radix].text.replaceAll(' ', '&nbsp;'.repeat(spread))
 }
 
-export function makeAddressRange(
-    start: number,
-    end: number,
-    stride: number,
-    radix: number
-  ): string {
-    let i = start
-    let result = (i * stride).toString(radix)
-    for (++i; i < end; ++i) {
-      result += '\n' + (i * stride).toString(radix)
-    }
-    return result
-}
-
 export function encodeForDisplay(
     arr: Uint8Array,
     radix: number,
@@ -133,3 +117,17 @@ export function encodeForDisplay(
     return result
 }
 
+export function makeAddressRange(
+  start: number,
+  end: number,
+  stride: number,
+  radix: number
+): string {
+  let i = start
+  let result = (i * stride).toString(radix)
+  for (++i; i < end; ++i) {
+    result += '\n' + (i * stride).toString(radix)
+  }
+
+  return result
+}

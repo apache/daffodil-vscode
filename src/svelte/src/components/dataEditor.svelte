@@ -30,7 +30,7 @@ limitations under the License.
     fileByteStart,
     fileByteEnd,
     bytesPerRow,
-    UInt8Data,
+    selectedFileData,
     selectionStartStore,
     selectionEndStore,
     editorSelection,
@@ -45,6 +45,9 @@ limitations under the License.
     cursorPos,
     dataViewEndianness,
     commitErrMsg,
+    viewportData,
+    gotoOffset,
+    gotoOffsetMax,
     int8,
     uint8,
     int16,
@@ -64,11 +67,10 @@ limitations under the License.
     byteSizeOpt, 
     addressOpt, 
     getOffsetDisplay as getOffsetText,
-    makeAddressRange,
-    encodeForDisplay } from '../utilities/display';
+    encodeForDisplay,
+    makeAddressRange } from '../utilities/display';
   import { vscode } from '../utilities/vscode'
   import { MessageCommand } from '../utilities/message'
-  import type{ EditorDisplayState } from '../utilities/message'
   import { writable, derived, readable } from 'svelte/store';
 
   provideVSCodeDesignSystem().register(
@@ -91,12 +93,8 @@ limitations under the License.
   let physical_vwRef: HTMLTextAreaElement, address_vwRef: HTMLTextAreaElement, logical_vwRef: HTMLTextAreaElement
 
   const selectedContent = readable(document.getElementById('selectedContent') as HTMLTextAreaElement)
-  const gotoOffset = writable(0)
-  const gotoOffsetMax = writable(0)
-  const editType = writable('')
-  const fileData = writable(new Uint8Array(0))
-  const asciiCount = derived(fileData, $fileData=>{
-    return countAscii($fileData.buffer)
+  const asciiCount = derived(viewportData, $viewportData=>{
+    return countAscii($viewportData.buffer)
   })
   // Reactive Declarations
   $: addressText = makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue)
@@ -105,8 +103,9 @@ limitations under the License.
     physicalOffsetText = getOffsetText($displayRadix, 'physical')
     logicalOffsetText = getOffsetText($displayRadix, 'logical')
   }
-  $: physicalDisplayText = encodeForDisplay($fileData, $displayRadix, $bytesPerRow)
+  $: physicalDisplayText = encodeForDisplay($viewportData, $displayRadix, $bytesPerRow)
   $: setSelectionEncoding($editorEncoding)
+  $: updateLogicalDisplay($bytesPerRow)
   $: goTo($gotoOffset)
 
   function requestEditedData(type: string) {
@@ -134,27 +133,33 @@ limitations under the License.
       physical_vwRef.scrollTop = targetLine * lineHeight
     }
   }
-  
-  function setSelectionEncoding(encoding: string) {
-    if($selectionEndStore > 0) {
-      let editorMsg: EditorDisplayState = {
-        start: $selectionStartStore,
-        end: $selectionEndStore,
-        encoding: encoding as BufferEncoding,
-        cursor: $cursorPos,
+
+  function updateLogicalDisplay(bytesPerRow) {
+    vscode.postMessage({
+      command: MessageCommand.updateLogicalDisplay,
+      data: {
+        viewportData: $viewportData,
+        bytesPerRow: bytesPerRow
       } 
-      vscode.postMessage({
-        command: MessageCommand.editorOnChange,
-        data: { editor: editorMsg },
-      })
-    }
+    })
+  }
+
+  function setSelectionEncoding(encoding: string) {
+    vscode.postMessage({
+      command: MessageCommand.editorOnChange,
+      data: {
+        encoding: $editorEncoding,
+        selectionData?: $selectedFileData
+      }
+    })
   }
 
   async function loadContent(data: Uint8Array) {
     
-    fileData.update(() => {
+    viewportData.update(() => {
       return data
     })
+
     filesize.update(() => {
       return data.length
     })
@@ -166,6 +171,13 @@ limitations under the License.
     $gotoOffset = 0
     $gotoOffsetMax = data.length
 
+    vscode.postMessage({
+      command: MessageCommand.updateLogicalDisplay,
+      data: {
+        viewportData: $viewportData,
+        bytesPerRow: $bytesPerRow
+      }
+    })
   }
 
   function scrollHandle(e: Event){
@@ -257,7 +269,6 @@ limitations under the License.
           })
         }
         else {
-          console.log(kevent)
           editorSelection.update(str=>{
             return str
           })
@@ -351,18 +362,15 @@ limitations under the License.
 
   function handleSelectionEvent(e: Event){
     frameSelectedOnWhitespace(e.target as HTMLTextAreaElement)
-    $editedCount = 0
-
-    let editorMsg: EditorDisplayState = {
-      start: $selectionStartStore,
-      end: $selectionEndStore,
-      encoding: $editorEncoding as BufferEncoding,
-      cursor: $cursorPos,
-      radix: $displayRadix,
-    }
+    selectedFileData.update(()=>{
+      return Uint8Array.from($viewportData.subarray($selectionStartStore, $selectionEndStore+1))
+    })
     vscode.postMessage({
       command: MessageCommand.editorOnChange,
-      data: { editor: editorMsg },
+      data: {
+        selectionData: $selectedFileData,
+        encoding: $editorEncoding        
+      }
     })
   }
 
@@ -382,36 +390,58 @@ limitations under the License.
     }
   }
 
+  function testFunc(){
+    vscode.postMessage({
+      command: 'printChangeCount'
+    })
+  }
+
+  function commitChanges(){
+    let selectionDataByteLength: number
+    switch($editorEncoding){
+      case 'hex':
+        selectionDataByteLength = $selectedFileData.byteLength / 2
+        break
+      case 'binary':
+        selectionDataByteLength = $selectedFileData.byteLength / 8
+        break
+      default:
+        selectionDataByteLength = $selectedFileData.byteLength
+        break
+    }
+    vscode.postMessage({
+      command: MessageCommand.commit,
+      data: {
+        selectionStart: $selectionStartStore,
+        selectionData: $selectedFileData,
+        selectionDataLen: selectionDataByteLength
+      }
+    })
+  }
+
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
-      case MessageCommand.loadFile:
-        loadContent(msg.data.editor.fileData)
-        filename = msg.data.metrics.filename
-        fileType = msg.data.metrics.type
-        logicalDisplayText = msg.data.display.logical
+      case 'vpAll':
+        loadContent(msg.data.viewportData)
         break
       case MessageCommand.editorOnChange:
         editorSelection.update(()=>{
           return msg.data.display
         })
-        UInt8Data.update(()=>{
-          return new Uint8Array(msg.data.data)
-        })
         break
       case MessageCommand.requestEditedData:
         editorSelection.update(()=>{
-          console.log(msg.data.display)
           return msg.data.display
         })
-        UInt8Data.update(()=>{
+        selectedFileData.update(()=>{
           return new Uint8Array(msg.data.data)
         })
         cursorPos.update(()=>{
           return $selectedContent.selectionStart
         })
         break
-      case MessageCommand.addressOnChange:
-        logicalDisplayText = msg.data.display.logical
+      case MessageCommand.updateLogicalDisplay:
+        logicalDisplayText = msg.data.data.logicalDisplay
         break
     }
   })
@@ -506,14 +536,14 @@ limitations under the License.
     <fieldset class="box">
       <legend>Content Controls 
       {#if !$commitable}
-        (<span class='errMsg'>{$commitErrMsg}</span>)
+        <span class='errMsg'>{$commitErrMsg}</span>
       {/if}
       </legend>
       <div class="contentControls" id="content_controls">
         <div class="grid-container-two-columns">
           <div>
           {#if $commitable}
-            <vscode-button id="commit_btn">commit changes</vscode-button>
+            <vscode-button id="commit_btn" on:click={commitChanges}>Commit Changes</vscode-button>
           {:else}
             <vscode-button id="commit_btn" disabled>commit changes</vscode-button>
           {/if}
@@ -607,13 +637,16 @@ limitations under the License.
   {$editorSelection}
   <hr>
   <hr>
-  {$UInt8Data}
+  {$selectedFileData}
   <hr>
   {/if}
   <h3>BytesPerRow: {$bytesPerRow}</h3>
   <h3>Radix: {$displayRadix}</h3>
   <h3>Data<br></h3><hr>
-  <subscript>{$fileData}</subscript>
+  <subscript>{$viewportData}</subscript>
+  {#if $editorEncoding}
+  {$editorEncoding}
+  {/if}
 </div>
 
 <!-- svelte-ignore css-unused-selector -->
@@ -703,6 +736,7 @@ limitations under the License.
     user-select: none;
     cursor: not-allowed;
     pointer-events: none;
+    max-width: 100px;
   }
 
   .dataEditor textarea.physical_vw {

@@ -17,11 +17,6 @@
 
 import { writable, derived } from 'svelte/store'
 import { localStore } from './localStore'
-import { vscode } from '../utilities/vscode'
-import { MessageCommand } from '../utilities/message'
-
-import type { LogicalDisplayState } from '../utilities/message'
-import { afterUpdate } from 'svelte'
 
 const state_key = 'apache-daffodil-data-editor.state'
 
@@ -39,8 +34,13 @@ export const editorEncoding = writable('hex')
 export const selectionStartStore = writable(0)
 export const disableDataView = writable(false)
 export const dataViewEndianness = writable('be')
-export const UInt8Data = writable(new Uint8Array(0))
+export const selectedFileData = writable(new Uint8Array(0))
 export const commitErrMsg = writable('')
+export const gotoOffset = writable(0)
+export const gotoOffsetMax = writable(0)
+export const editType = writable('')
+export const viewportData = writable(new Uint8Array(0))
+
 export const selectionSize = derived([selectionStartStore, selectionEndStore, editorSelection], ([$selectionStartStore, $selectionEndStore, $editorSelection])=>{
     if($editorSelection !== '') {
       return $selectionEndStore - $selectionStartStore + 1
@@ -49,17 +49,8 @@ export const selectionSize = derived([selectionStartStore, selectionEndStore, ed
 })
 
 export const bytesPerRow = derived(displayRadix, $displayRadix=>{
-    let logicalDisplayState: LogicalDisplayState
     let newVal: number
     ($displayRadix === 2)? newVal = 8 : newVal = 16
-
-    logicalDisplayState = { bytesPerRow: newVal }
-    vscode.postMessage({
-        command: MessageCommand.addressOnChange,
-        data: {
-        state: logicalDisplayState,
-        },
-    })
 
     return newVal
 })
@@ -120,8 +111,8 @@ export const commitable = derived([editorEncoding, editorSelection, selectionAct
   return true
 })
 
-export const dataView = derived([UInt8Data, selectionStartStore, selectionEndStore, editedCount], ([$UInt8Data, $selectionStartStore, $selectionEndStore])=>{
-    return new DataView($UInt8Data.buffer)
+export const dataView = derived([selectedFileData, selectionStartStore, selectionEndStore, editedCount], ([$selectedFileData, $selectionStartStore, $selectionEndStore])=>{
+    return new DataView($selectedFileData.buffer)
 })
 
 export const byteOffsetPos = derived([cursorPos, editorEncoding], ([$cursorPos, $editorEncoding]) => {

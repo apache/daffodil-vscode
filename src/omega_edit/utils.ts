@@ -69,13 +69,17 @@ export async function setViewportDataForPanel(
     new ViewportDataRequest().setViewportId(vp),
     (err, r) => {
       let data = r?.getData_asB64()
-
       if (data) {
-        let txt = Buffer.from(data, 'base64').toString('binary')
-        panel.webview.postMessage({ command: commandViewport, text: txt })
+        let bufferData = Buffer.from(data, 'base64')
+
+        panel.webview.postMessage({
+          command: commandViewport,
+          viewportData: Uint8Array.from(bufferData),
+          displayData: bufferData.toString('hex'),
+        })
 
         if (commandHex === 'hexAll') {
-          let hex = hexy.hexy(txt)
+          let hex = hexy.hexy(bufferData)
           let offsetLines = ''
           let encodedData = ''
 
@@ -109,7 +113,7 @@ export async function setViewportDataForPanel(
             offsetText: offsetLines,
           })
         } else if (commandHex) {
-          let hxt = hexy.hexy(txt)
+          let hxt = hexy.hexy(bufferData)
           panel.webview.postMessage({ command: commandHex, text: hxt })
         }
       }
@@ -156,26 +160,27 @@ export type LogicalDisplayState = {
 }
 
 export type EditorDisplayState = {
-  encoding: BufferEncoding
-  start: number
-  end: number
-  cursor: number
-  radix: number
+  encoding: BufferEncoding | string
+  // start: number
+  // end: number
+  // cursor: number
+  // radix: number
 }
 
 export class DisplayState {
   public logicalDisplay: LogicalDisplayState
   public editorDisplay: EditorDisplayState
-
+  public editorEncoding: BufferEncoding
   constructor() {
     this.logicalDisplay = { bytesPerRow: 16 }
     this.editorDisplay = {
-      encoding: 'utf-8',
-      start: 0,
-      end: 0,
-      cursor: 0,
-      radix: 16,
+      encoding: 'hex',
+      // start: 0,
+      // end: 0,
+      // cursor: 0,
+      // radix: 16,
     }
+    this.editorEncoding = 'hex'
   }
   public updateLogicalDisplayState(state: LogicalDisplayState) {
     this.logicalDisplay = state
@@ -196,7 +201,7 @@ function latin1Undefined(c: string): boolean {
 
 export function logicalDisplay(
   bytes: ArrayBuffer,
-  logicalDisplay: LogicalDisplayState
+  bytesPerRow: number
 ): string {
   const undefinedCharStandIn = '�'
   let result = ''
@@ -204,11 +209,7 @@ export function logicalDisplay(
     const data = Buffer.from(bytes).toString('latin1').replaceAll('\n', ' ')
     let i = 0
     while (true) {
-      for (
-        let col = 0;
-        i < data.length && col < logicalDisplay.bytesPerRow;
-        ++col
-      ) {
+      for (let col = 0; i < data.length && col < bytesPerRow; ++col) {
         const c = data.charAt(i++)
         result += (latin1Undefined(c) ? undefinedCharStandIn : c) + ' '
       }
@@ -268,15 +269,7 @@ export function fillRequestData(message: EditorMessage): [Buffer, string] {
     for (let i = 0; i < selectionEdits.length; i += 2) {
       selectionByteData[i / 2] = parseInt(selectionEdits.substr(i, 2), 16)
     }
-  }
-  // else if (selectionEncoding === 'ascii') {
-  //   selectionByteLength = selectionEdits.length
-  //   selectionByteData = Buffer.alloc(selectionByteLength)
-  //   for (let i = 0; i < selectionEdits.length; i++) {
-  //     selectionByteData[i] = selectionEdits.charCodeAt(i)
-  //   }
-  // }
-  else if (selectionEncoding === 'binary') {
+  } else if (selectionEncoding === 'binary') {
     selectionByteLength = selectionEdits.length / 8
     selectionByteData = Buffer.alloc(selectionByteLength)
     for (let i = 0; i < selectionEdits.length; i += 8) {
