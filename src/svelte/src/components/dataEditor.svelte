@@ -111,7 +111,6 @@ limitations under the License.
 
   function requestEditedData(type: string) {
     if($commitable){
-      console.log('sending msg')
       vscode.postMessage({
         command: MessageCommand.requestEditedData,
         data: {
@@ -401,6 +400,7 @@ limitations under the License.
         break
       case MessageCommand.requestEditedData:
         editorSelection.update(()=>{
+          console.log(msg.data.display)
           return msg.data.display
         })
         UInt8Data.update(()=>{
@@ -504,7 +504,11 @@ limitations under the License.
     <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={$selectedContent} bind:value={$editorSelection} on:keyup|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}/>
     <!-- <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={selectedContent} bind:value={$editorSelection} on:click={storeCursorPos} on:input={storeCursorPos}/> -->
     <fieldset class="box">
-      <legend>Content Controls</legend>
+      <legend>Content Controls 
+      {#if !$commitable}
+        (<span class='errMsg'>{$commitErrMsg}</span>)
+      {/if}
+      </legend>
       <div class="contentControls" id="content_controls">
         <div class="grid-container-two-columns">
           <div>
@@ -516,9 +520,6 @@ limitations under the License.
             <br />
             Committed changes: <span id="change_cnt">0</span>
           </div>
-          {#if !$commitable}
-          <div class="errMsg">{$commitErrMsg}</div>
-          {/if}
           <div>
             <vscode-button id="add_data_breakpoint_btn" disabled
               >set breakpoint</vscode-button
@@ -727,10 +728,13 @@ limitations under the License.
     display: grid;
     grid-template-columns: 1fr 1fr;
   }
+
+  .errMsg {
+    color: red;
+  }
   #address_numbering {
     min-width: 100%;
   }
-  #edited_count {
-    color: green
-  }
+
+  
 </style>

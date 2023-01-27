@@ -41,8 +41,11 @@ export const disableDataView = writable(false)
 export const dataViewEndianness = writable('be')
 export const UInt8Data = writable(new Uint8Array(0))
 export const commitErrMsg = writable('')
-export const selectionSize = derived([selectionStartStore, selectionEndStore], ([$selectionStartStore, $selectionEndStore])=>{
-    return $selectionEndStore - $selectionStartStore
+export const selectionSize = derived([selectionStartStore, selectionEndStore, editorSelection], ([$selectionStartStore, $selectionEndStore, $editorSelection])=>{
+    if($editorSelection !== '') {
+      return $selectionEndStore - $selectionStartStore + 1
+    }
+    return 0
 })
 
 export const bytesPerRow = derived(displayRadix, $displayRadix=>{
@@ -65,44 +68,75 @@ export const fileByteEnd = derived([bytesPerRow, filesize], ([$bytesPerRow, $fil
   return $filesize / $bytesPerRow
 })
 
-export const selectionActive = derived(selectionSize, $selectionSize=>{
-  return ($selectionSize > 0)
+export const selectionActive = derived([selectionSize,editorSelection], ([$selectionSize, $editorSelection])=>{
+  return ($selectionSize >= 0 && $editorSelection !== '')
 })
 
 export const commitable = derived([editorEncoding, editorSelection, selectionActive], ([$editorEncoding, $editorSelection, $selectionActive]) => {
   if(!$selectionActive)
     return false
-  if($editorEncoding === 'hex') {
-    let invalid = $editorSelection.match(/[^0-9a-fA-F]/gi)
-    if(invalid){
+  let invalidChars: RegExpMatchArray
+  switch($editorEncoding){
+    case 'hex':
+      invalidChars = $editorSelection.match(/[^0-9a-fA-F]/gi)
+      if(invalidChars){
+          commitErrMsg.update(()=>{
+            return `Invalid HEX characters`
+          })
+        return false
+      }
+      else if(($editorSelection.length) % 2 != 0){
         commitErrMsg.update(()=>{
-          return `Invalid HEX characters: ${invalid}`
+          return "Invalid HEX editable length"
         })
-      return false
-    }
-    else if(($editorSelection.length) % 2 != 0){
-      commitErrMsg.update(()=>{
-        return "Invalid HEX editable length"
-      })
-      return false
-    }
+        return false
+      }
+      break
+    case 'binary':
+      invalidChars = $editorSelection.match(/[^0-1]/gi)
+      if(invalidChars){
+        commitErrMsg.update(()=>{
+          return `Invalid BIN characters`
+        })
+        return false
+      }
+      else if(($editorSelection.length) % 8 != 0) {
+        commitErrMsg.update(()=>{
+          return "Invalid BIN editable length"
+        })
+        return false
+      }
+      break
+    case 'base64':
+      invalidChars = $editorSelection.match(/[^A-Za-z0-9+/]+={0,2}$/gi)
+      if(invalidChars){
+        commitErrMsg.update(()=>{
+          return 'Invalid BASE64 characters'
+        })
+        return false
+      }
+      break
   }
   return true
 })
 
 export const dataView = derived([UInt8Data, selectionStartStore, selectionEndStore, editedCount], ([$UInt8Data, $selectionStartStore, $selectionEndStore])=>{
-    // return new DataView($UInt8Data.buffer.slice($selectionStartStore, $selectionEndStore))
     return new DataView($UInt8Data.buffer)
 })
 
 export const byteOffsetPos = derived([cursorPos, editorEncoding], ([$cursorPos, $editorEncoding]) => {
   let bytePOS: number
-
-  $editorEncoding === 'hex'
-    ? (bytePOS = Math.ceil(
-        ($cursorPos - 1) / 2
-      ))
-    : bytePOS = $cursorPos
+  switch($editorEncoding){
+    case 'hex':
+      bytePOS = Math.floor(($cursorPos) / 2)
+      break
+    case 'binary':
+      bytePOS = Math.floor(($cursorPos) / 8)
+      break
+    default:
+      bytePOS = $cursorPos
+      break
+  }
   
   return bytePOS
 })

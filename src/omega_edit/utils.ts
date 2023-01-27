@@ -25,6 +25,7 @@ import {
 import { getClient, ALL_EVENTS } from 'omega-edit/settings'
 import * as omegaEditServer from 'omega-edit/server'
 import { runScript } from '../utils'
+import { EditorMessage } from './messageHandler'
 
 const client = getClient()
 
@@ -253,25 +254,53 @@ export function checkMimeType(bytes: number[], filename: string): string {
   return ret
 }
 
-export async function fillRequestData(
-  preEditSegment,
-  editedSegment,
-  postEditSegment: Buffer
-): Promise<Buffer> {
-  const totalLength =
-    preEditSegment.byteLength +
-    editedSegment.byteLength +
-    postEditSegment.byteLength
-  const ret = Buffer.alloc(totalLength)
-  console.log(
-    preEditSegment.byteLength,
-    editedSegment.byteLength,
-    postEditSegment.byteLength
-  )
-  let offset = 0
-  for (const buffer of [preEditSegment, editedSegment, postEditSegment]) {
-    ret.set(Buffer.from(buffer), offset)
-    offset += buffer.byteLength
+export function fillRequestData(message: EditorMessage): [Buffer, string] {
+  let selectionEncoding = message.data.encoding
+  let selectionEdits = message.data.editor.editedContent
+
+  let selectionByteLength: number
+  let selectionByteData: Buffer
+  let selectionByteDisplay: string
+
+  if (selectionEncoding === 'hex') {
+    selectionByteLength = selectionEdits.length / 2
+    selectionByteData = Buffer.alloc(selectionByteLength)
+    for (let i = 0; i < selectionEdits.length; i += 2) {
+      selectionByteData[i / 2] = parseInt(selectionEdits.substr(i, 2), 16)
+    }
+  }
+  // else if (selectionEncoding === 'ascii') {
+  //   selectionByteLength = selectionEdits.length
+  //   selectionByteData = Buffer.alloc(selectionByteLength)
+  //   for (let i = 0; i < selectionEdits.length; i++) {
+  //     selectionByteData[i] = selectionEdits.charCodeAt(i)
+  //   }
+  // }
+  else if (selectionEncoding === 'binary') {
+    selectionByteLength = selectionEdits.length / 8
+    selectionByteData = Buffer.alloc(selectionByteLength)
+    for (let i = 0; i < selectionEdits.length; i += 8) {
+      selectionByteData[i / 8] = parseInt(selectionEdits.substr(i, 8), 2)
+    }
+  } else {
+    selectionByteLength = selectionEdits.length
+    selectionByteData = Buffer.from(selectionEdits, selectionEncoding)
+  }
+  selectionByteDisplay = getEncodedDataStr(selectionByteData, selectionEncoding)
+  return [selectionByteData, selectionByteDisplay]
+}
+
+export function getEncodedDataStr(
+  buffer: Buffer,
+  encoding: BufferEncoding
+): string {
+  let ret = ''
+  if (encoding === 'binary') {
+    for (let i = 0; i < buffer.byteLength; i++) {
+      ret += buffer[i].toString(2).padStart(8, '0')
+    }
+  } else {
+    ret = buffer.toString(encoding)
   }
   return ret
 }

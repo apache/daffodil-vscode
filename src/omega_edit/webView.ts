@@ -18,7 +18,13 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
-import { logicalDisplay, DisplayState, checkMimeType } from './utils'
+import {
+  logicalDisplay,
+  DisplayState,
+  checkMimeType,
+  fillRequestData,
+  getEncodedDataStr,
+} from './utils'
 import { EditorMessage, MessageCommand } from './messageHandler'
 
 /** Data editor message data structure for communication between Webview and VSCode. */
@@ -125,7 +131,8 @@ export class WebView implements vscode.Disposable {
         this.panel.webview.postMessage({
           command: MessageCommand.editorOnChange,
           data: Uint8Array.from(bufSlice),
-          display: Buffer.from(bufSlice).toString(
+          display: getEncodedDataStr(
+            bufSlice,
             this.displayState.editorDisplay.encoding
           ),
         })
@@ -140,73 +147,13 @@ export class WebView implements vscode.Disposable {
         break
 
       case MessageCommand.requestEditedData:
-        // let selectionToFileOffset = message.data.editor.selectionToFileOffset
-        let selectionEncoding = message.data.encoding
-        let selectionEdits = message.data.editor.editedContent
-        // let editType = message.data.editType
-
-        let selectionByteLength: number
-        // let selectionByteData: Uint8Array
-        let selectionByteData: Buffer
-
-        // let returnData: Uint8Array
-
-        if (selectionEncoding === 'hex') {
-          selectionByteLength = selectionEdits.length / 2
-          // selectionByteData = new Uint8Array(selectionByteLength)
-          selectionByteData = Buffer.alloc(selectionByteLength)
-          for (let i = 0; i < selectionEdits.length; i += 2) {
-            selectionByteData[i / 2] = parseInt(selectionEdits.substr(i, 2), 16)
-          }
-        } else if (selectionEncoding === 'ascii') {
-          selectionByteLength = selectionEdits.length
-          // selectionByteData = new Uint8Array(selectionByteLength)
-          selectionByteData = Buffer.alloc(selectionByteLength)
-          for (let i = 0; i < selectionEdits.length; i++) {
-            selectionByteData[i] = selectionEdits.charCodeAt(i)
-          }
-        } else {
-          selectionByteData = Buffer.alloc(0)
-        }
+        let [selectionData, selectionDisplay] = fillRequestData(message)
 
         this.panel.webview.postMessage({
           command: MessageCommand.requestEditedData,
-          data: Uint8Array.from(selectionByteData),
-          display: selectionByteData.toString(selectionEncoding),
+          data: Uint8Array.from(selectionData),
+          display: selectionDisplay,
         })
-        // // allocate new complete array
-        // editType === 'insert'
-        //   ? (returnData = new Uint8Array(this.fileData.byteLength + 1))
-        //   : (returnData = new Uint8Array(this.fileData.byteLength - 1))
-
-        // // console.log(selectionToFileOffset)
-        // for (let i = 0; i <= selectionToFileOffset; i++) {
-        //   returnData[i] = this.fileData[i]
-        // }
-
-        // // console.log(selectionByteLength)
-        // for (let i = 0; i < selectionByteLength; i++) {
-        //   returnData[selectionToFileOffset + i] = selectionByteData[i]
-        // }
-        // // console.log(selectionToFileOffset + 1, returnData.byteLength)
-
-        // for( let i = selectionToFileOffset + selectionByteLength - 1; i < returnData.byteLength; i++ ) {
-        //   returnData[i + 1] = this.fileData[i]
-        // }
-
-        // this.fileData = Buffer.from(returnData)
-        // this.displayState.editorDisplay.end++
-        // const selectionDisplay: string = this.fileData
-        //   .subarray(
-        //     this.displayState.editorDisplay.start,
-        //     this.displayState.editorDisplay.end
-        //   )
-        //   .toString(this.displayState.editorDisplay.encoding)
-        // this.panel.webview.postMessage({
-        //   command: MessageCommand.requestEditedData,
-        //   data: new Uint8Array(returnData),
-        //   display: selectionDisplay,
-        // })
         break
     }
   }
