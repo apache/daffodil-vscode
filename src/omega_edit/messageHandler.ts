@@ -16,6 +16,7 @@
  */
 
 export enum MessageCommand {
+  fileInfo,
   commit,
   addBreakpoint,
   editorOnChange,

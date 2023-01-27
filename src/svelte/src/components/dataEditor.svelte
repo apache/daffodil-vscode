@@ -21,8 +21,7 @@ limitations under the License.
     vsCodeCheckbox,
     vsCodeDropdown,
     vsCodeOption,
-    vsCodeTextField,
-  } from '@vscode/webview-ui-toolkit'
+    vsCodeTextField, } from '@vscode/webview-ui-toolkit'
   import {
     displayRadix, 
     addressValue,
@@ -68,7 +67,8 @@ limitations under the License.
     addressOpt, 
     getOffsetDisplay as getOffsetText,
     encodeForDisplay,
-    makeAddressRange } from '../utilities/display';
+    makeAddressRange, 
+    countAscii } from '../utilities/display';
   import { vscode } from '../utilities/vscode'
   import { MessageCommand } from '../utilities/message'
   import { writable, derived, readable } from 'svelte/store';
@@ -81,20 +81,19 @@ limitations under the License.
     vsCodeTextField()
   )
   let filename = ''
-  let fileType = ''
+  let filetype = ''
   let addressText = ''
   let physicalOffsetText = ''
   let physicalDisplayText = ''
   let logicalOffsetText = ''
   let logicalDisplayText = ''
-  let testOutput = ''
   let editorTextDisplay = ''
   let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
   let physical_vwRef: HTMLTextAreaElement, address_vwRef: HTMLTextAreaElement, logical_vwRef: HTMLTextAreaElement
 
   const selectedContent = readable(document.getElementById('selectedContent') as HTMLTextAreaElement)
   const asciiCount = derived(viewportData, $viewportData=>{
-    return countAscii($viewportData.buffer)
+    return countAscii($viewportData)
   })
   // Reactive Declarations
   $: addressText = makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue)
@@ -378,10 +377,6 @@ limitations under the License.
     return c ? ' \t\n\r\v'.indexOf(c) > -1 : false
   }
 
-  function countAscii(buf: ArrayBuffer): number {
-    return new Uint8Array(buf).reduce((a, b) => a + (b < 128 ? 1 : 0), 0)
-  }
-
   function enableAdvanced(enable: boolean) {
     const advanced_elements = document.getElementsByClassName('advanced')
     for (let i = 0; i < advanced_elements.length; ++i) {
@@ -390,31 +385,13 @@ limitations under the License.
     }
   }
 
-  function testFunc(){
-    vscode.postMessage({
-      command: 'printChangeCount'
-    })
-  }
-
   function commitChanges(){
-    let selectionDataByteLength: number
-    switch($editorEncoding){
-      case 'hex':
-        selectionDataByteLength = $selectedFileData.byteLength / 2
-        break
-      case 'binary':
-        selectionDataByteLength = $selectedFileData.byteLength / 8
-        break
-      default:
-        selectionDataByteLength = $selectedFileData.byteLength
-        break
-    }
     vscode.postMessage({
       command: MessageCommand.commit,
       data: {
         selectionStart: $selectionStartStore,
         selectionData: $selectedFileData,
-        selectionDataLen: selectionDataByteLength
+        selectionDataLen: $selectedFileData.byteLength
       }
     })
   }
@@ -439,11 +416,18 @@ limitations under the License.
         cursorPos.update(()=>{
           return $selectedContent.selectionStart
         })
+        selectionEndStore.update(()=>{
+          return $selectionStartStore + $selectedFileData.byteLength 
+        })
         break
       case MessageCommand.updateLogicalDisplay:
         logicalDisplayText = msg.data.data.logicalDisplay
         break
-    }
+      case MessageCommand.fileInfo:
+        filename = msg.data.data.filename
+        filetype = msg.data.data.filetype
+        break
+      }
   })
 
 </script>
@@ -454,9 +438,9 @@ limitations under the License.
     <div id="file_metrics_vw">
       File: <span id="file_name">{filename}</span>
       <hr />
-      Type:<span id="file_type">{fileType}</span>
+      Type:<span id="file_type">{filetype}</span>
       <br />Size: <span id="file_byte_cnt">{$filesize}</span>
-      <br />ASCII count: <span id="ascii_byte_cnt">{asciiCount}</span>
+      <br />ASCII count: <span id="ascii_byte_cnt">{$asciiCount}</span>
     </div>
   </fieldset>
   <fieldset class="box">
@@ -478,28 +462,27 @@ limitations under the License.
   <fieldset class="box">
     <legend>Search</legend>
     <div class="search">
-      <text-field id="search">
         Search:
-        <section slot="end" style="display:flex; align-items: center;">
+      <input id="search_input" disabled/>
+        <!-- <section slot="end" style="display:flex; align-items: center;">
           <vscode-button appearance="icon" aria-label="Case Sensitive">
             <span class="codicon codicon-preserve-case" />
           </vscode-button>
           <vscode-button appearance="icon" aria-label="Case Insensitive">
             <span class="codicon codicon-case-sensitive" />
           </vscode-button>
-        </section>
-      </text-field>
-      <text-field id="replace"> Replace: </text-field>
+        </section> -->
+      Replace:<input id="replace_input" disabled/> 
       <br /><vscode-button id="search_btn" disabled>Search</vscode-button>
       <vscode-button id="replace_btn" disabled>Replace</vscode-button>
     </div>
   </fieldset>
   <fieldset class="box">
-    <legend>misc</legend>
+    <legend>Misc</legend>
     <div class="misc">
       <label for="advanced_mode"
         >Advanced Mode
-        <vscode-checkbox id="advanced_mode" checked />
+        <vscode-checkbox id="advanced_mode" disabled />
     </div>
   </fieldset>
 </header>
@@ -532,7 +515,6 @@ limitations under the License.
   <textarea class="logicalView" id="logical" contenteditable="true" readonly bind:this={logical_vwRef} bind:innerHTML={logicalDisplayText} on:select={handleSelectionEvent} on:scroll={scrollHandle}/>
   <div class="editView" id="edit_view">
     <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={$selectedContent} bind:value={$editorSelection} on:keyup|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}/>
-    <!-- <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={selectedContent} bind:value={$editorSelection} on:click={storeCursorPos} on:input={storeCursorPos}/> -->
     <fieldset class="box">
       <legend>Content Controls 
       {#if !$commitable}
@@ -583,7 +565,7 @@ limitations under the License.
                 </select>
               </label>
             </div>
-            <div class="advanced">
+            <div class="advanced" hidden>
               <label for="lsb">Least significant bit:
                 <select id="lsb">
                 {#each lsbOpt as {name, value}}
@@ -592,7 +574,7 @@ limitations under the License.
                 </select>
               </label>
             </div>
-            <div class="advanced">
+            <div class="advanced" hidden>
               <label for="logical_byte_size">Logical byte size:
                 <select id="logical_byte_size">
                 {#each byteSizeOpt as {value}}
@@ -629,26 +611,6 @@ limitations under the License.
     </fieldset>
   </div>
 </main>
-
-<div contenteditable="true">
-  {#if $selectionActive}
-  <h3>Selection: {$selectionStartStore} - {$selectionEndStore} Len: {$editorSelection.length}({$selectionSize}) | Encoding: {$editorEncoding} | cursor: {$cursorPos} | bytePOS: {$byteOffsetPos}</h3>
-  <hr>
-  {$editorSelection}
-  <hr>
-  <hr>
-  {$selectedFileData}
-  <hr>
-  {/if}
-  <h3>BytesPerRow: {$bytesPerRow}</h3>
-  <h3>Radix: {$displayRadix}</h3>
-  <h3>Data<br></h3><hr>
-  <subscript>{$viewportData}</subscript>
-  {#if $editorEncoding}
-  {$editorEncoding}
-  {/if}
-</div>
-
 <!-- svelte-ignore css-unused-selector -->
 <style lang="scss">
   /* CSS reset */
@@ -766,9 +728,18 @@ limitations under the License.
   .errMsg {
     color: red;
   }
+
   #address_numbering {
     min-width: 100%;
   }
-
+  .search {
+    min-width: 200px;
+  }
+  #search_input {
+    min-width: 100px;
+  }
+  #replace_input {
+    min-width: 100px
+  }
   
 </style>

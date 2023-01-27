@@ -84,6 +84,10 @@ function radixBytePad(radix: number): number {
     return 0
 }
 
+export function countAscii(buf: Uint8Array): number {
+  return buf.reduce((a, b) => a + (b < 128 ? 1 : 0), 0)
+}
+
 export function getOffsetDisplay(radix, view: string) {
     let spread = offsetDisplays[radix].spread
     if( view === 'logical' ) {

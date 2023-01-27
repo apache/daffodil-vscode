@@ -25,6 +25,7 @@ import {
   fillRequestData,
   getEncodedDataStr,
   viewportSubscribe,
+  checkMimeType,
 } from './utils'
 import { EditorMessage, MessageCommand } from './messageHandler'
 import { v4 as uuidv4 } from 'uuid'
@@ -37,7 +38,6 @@ type Viewports = { label: string; vpid: string }[]
 export class WebView implements vscode.Disposable {
   public panel: vscode.WebviewPanel
   private svelteWebviewInitializer: SvelteWebviewInitializer
-  // private fileData: Buffer = Buffer.alloc(0)
   private displayState = new DisplayState()
   private omegaViewports: Viewports = []
   private fileToEdit: string = ''
@@ -84,6 +84,7 @@ export class WebView implements vscode.Disposable {
         if (fileUri && fileUri[0]) {
           this.fileToEdit = fileUri[0].fsPath
         }
+
         this.omegaSessionId = await omegaEditSession.createSession(
           this.fileToEdit,
           uuidv4()
@@ -104,6 +105,17 @@ export class WebView implements vscode.Disposable {
           'vpAll',
           'hexAll'
         )
+
+        this.panel.webview.postMessage({
+          command: MessageCommand.fileInfo,
+          data: {
+            filename: this.fileToEdit,
+            filesize: await omegaEditSession.getComputedFileSize(
+              this.omegaSessionId
+            ),
+            filetype: await checkMimeType(this.fileToEdit),
+          },
+        })
       })
   }
 
@@ -112,39 +124,6 @@ export class WebView implements vscode.Disposable {
   }
 
   private createPanel(title: string): vscode.WebviewPanel {
-    // vscode.window
-    //   .showOpenDialog({
-    //     canSelectMany: false,
-    //     openLabel: 'Select',
-    //     canSelectFiles: true,
-    //     canSelectFolders: false,
-    //   })
-    //   .then((fileUri) => {
-    //     if (fileUri && fileUri[0]) {
-    //       this.fileToEdit = fileUri[0].fsPath
-    //     }
-    //     let data = fs.readFileSync(this.fileToEdit)
-    //     let mimeData: number[] = Array.from(data.subarray(0, 4))
-
-    //     this.fileData = Buffer.from(data)
-    //     let msgData = new Uint8Array(data)
-
-    //     this.panel.webview.postMessage({
-    //       command: MessageCommand.loadFile,
-    //       metrics: {
-    //         filename: this.fileToEdit,
-    //         type: checkMimeType(mimeData, this.fileToEdit),
-    //       },
-    //       editor: { fileData: msgData },
-    //       display: {
-    //         logical: logicalDisplay(
-    //           this.fileData,
-    //           this.displayState.logicalDisplay
-    //         ),
-    //       },
-    //     })
-    //   })
-
     const column =
       vscode.window.activeTextEditor &&
       vscode.window.activeTextEditor.viewColumn
@@ -156,10 +135,10 @@ export class WebView implements vscode.Disposable {
   private async messageReceiver(message: EditorMessage) {
     switch (message.command) {
       case MessageCommand.updateLogicalDisplay:
-        this.displayState.logicalDisplay.bytesPerRow = message.data.bytesPerRow
+        this.displayState.bytesPerRow = message.data.bytesPerRow
         const logicalDisplayText = logicalDisplay(
           message.data.viewportData,
-          this.displayState.logicalDisplay.bytesPerRow
+          this.displayState.bytesPerRow
         )
 
         this.panel.webview.postMessage({
@@ -190,13 +169,6 @@ export class WebView implements vscode.Disposable {
         let fileOffset = message.data.selectionStart
         let data = message.data.selectionData
         let dataLen = message.data.selectionDataLen
-
-        // var fileSize = await omegaEditSession.getComputedFileSize(this.omegaSessionId)
-        vscode.window.showInformationMessage(
-          `Commit Request Received: [ ${fileOffset} - ${
-            fileOffset + dataLen
-          } ]: ${data}`
-        )
         var omegaEdit = new OmegaEdit(
           this.omegaSessionId,
           fileOffset,

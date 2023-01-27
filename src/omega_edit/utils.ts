@@ -22,6 +22,7 @@ import {
   // ObjectId,
   ViewportDataRequest,
 } from 'omega-edit/omega_edit_pb'
+import * as fs from 'fs'
 import { getClient, ALL_EVENTS } from 'omega-edit/settings'
 import * as omegaEditServer from 'omega-edit/server'
 import { runScript } from '../utils'
@@ -155,38 +156,12 @@ export async function startOmegaEditServer(
   return [terminal, true]
 }
 
-export type LogicalDisplayState = {
-  bytesPerRow: number
-}
-
-export type EditorDisplayState = {
-  encoding: BufferEncoding | string
-  // start: number
-  // end: number
-  // cursor: number
-  // radix: number
-}
-
 export class DisplayState {
-  public logicalDisplay: LogicalDisplayState
-  public editorDisplay: EditorDisplayState
+  public bytesPerRow: number
   public editorEncoding: BufferEncoding
   constructor() {
-    this.logicalDisplay = { bytesPerRow: 16 }
-    this.editorDisplay = {
-      encoding: 'hex',
-      // start: 0,
-      // end: 0,
-      // cursor: 0,
-      // radix: 16,
-    }
+    this.bytesPerRow = 16
     this.editorEncoding = 'hex'
-  }
-  public updateLogicalDisplayState(state: LogicalDisplayState) {
-    this.logicalDisplay = state
-  }
-  public updateEditorDisplayState(state: EditorDisplayState) {
-    this.editorDisplay = state
   }
 }
 
@@ -240,8 +215,14 @@ const mimeTypes = {
   XLSX: [0x50, 0x4b, 0x03, 0x04],
 } as Mimes
 
-export function checkMimeType(bytes: number[], filename: string): string {
+export async function checkMimeType(filename: string): Promise<string> {
+  let bytes: Buffer
   let ret: string
+  const file = fs.openSync(filename, 'r')
+  bytes = Buffer.alloc(5)
+  fs.readSync(file, bytes, 0, 5, null)
+  fs.close(file)
+
   for (const key in mimeTypes) {
     if (mimeTypes[key].toString() === bytes.toString()) {
       ret = key

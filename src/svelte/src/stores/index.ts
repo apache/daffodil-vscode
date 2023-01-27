@@ -111,7 +111,7 @@ export const commitable = derived([editorEncoding, editorSelection, selectionAct
   return true
 })
 
-export const dataView = derived([selectedFileData, selectionStartStore, selectionEndStore, editedCount], ([$selectedFileData, $selectionStartStore, $selectionEndStore])=>{
+export const dataView = derived(selectedFileData, $selectedFileData=>{
     return new DataView($selectedFileData.buffer)
 })
 
