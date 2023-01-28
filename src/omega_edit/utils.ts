@@ -237,12 +237,22 @@ export async function checkMimeType(filename: string): Promise<string> {
 }
 
 export function fillRequestData(message: EditorMessage): [Buffer, string] {
-  let selectionEncoding = message.data.encoding
-  let selectionEdits = message.data.editor.editedContent
-
+  let selectionByteData = encodedStrToData(
+    message.data.editor.editedContent,
+    message.data.encoding
+  )
+  let selectionByteDisplay = dataToEncodedStr(
+    selectionByteData,
+    message.data.encoding
+  )
+  return [selectionByteData, selectionByteDisplay]
+}
+export function encodedStrToData(
+  selectionEdits: string,
+  selectionEncoding: BufferEncoding
+): Buffer {
   let selectionByteLength: number
   let selectionByteData: Buffer
-  let selectionByteDisplay: string
 
   if (selectionEncoding === 'hex') {
     selectionByteLength = selectionEdits.length / 2
@@ -260,11 +270,10 @@ export function fillRequestData(message: EditorMessage): [Buffer, string] {
     selectionByteLength = selectionEdits.length
     selectionByteData = Buffer.from(selectionEdits, selectionEncoding)
   }
-  selectionByteDisplay = getEncodedDataStr(selectionByteData, selectionEncoding)
-  return [selectionByteData, selectionByteDisplay]
+  return selectionByteData
 }
 
-export function getEncodedDataStr(
+export function dataToEncodedStr(
   buffer: Buffer,
   encoding: BufferEncoding
 ): string {

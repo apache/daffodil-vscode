@@ -396,6 +396,20 @@ limitations under the License.
     })
   }
 
+  const searchData = writable('')
+  const searching = writable(false)
+  function search(){
+    vscode.postMessage({
+      command: MessageCommand.search,
+      data: {
+        searchData: $searchData,
+        filesize: $filesize,
+        caseInsensitive: false
+      }
+    })
+    $searching = true
+  }
+
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       case 'vpAll':
@@ -426,6 +440,11 @@ limitations under the License.
       case MessageCommand.fileInfo:
         filename = msg.data.data.filename
         filetype = msg.data.data.filetype
+        break
+      case MessageCommand.search:
+        let results = msg.data.searchResults
+        $searching = false
+        console.log(results)
         break
       }
   })
@@ -463,7 +482,7 @@ limitations under the License.
     <legend>Search</legend>
     <div class="search">
         Search:
-      <input id="search_input" disabled/>
+      <input id="search_input" bind:value={$searchData}/>
         <!-- <section slot="end" style="display:flex; align-items: center;">
           <vscode-button appearance="icon" aria-label="Case Sensitive">
             <span class="codicon codicon-preserve-case" />
@@ -473,8 +492,12 @@ limitations under the License.
           </vscode-button>
         </section> -->
       Replace:<input id="replace_input" disabled/> 
-      <br /><vscode-button id="search_btn" disabled>Search</vscode-button>
+      <br />
+      <vscode-button id="search_btn" on:click={search}>Search</vscode-button>
       <vscode-button id="replace_btn" disabled>Replace</vscode-button>
+      {#if $searching}
+        <sub>Searching...</sub>
+      {/if}
     </div>
   </fieldset>
   <fieldset class="box">

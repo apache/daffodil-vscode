@@ -23,7 +23,7 @@ import {
   DisplayState,
   // checkMimeType,
   fillRequestData,
-  getEncodedDataStr,
+  dataToEncodedStr,
   viewportSubscribe,
   checkMimeType,
 } from './utils'
@@ -33,7 +33,8 @@ import * as omegaEditSession from 'omega-edit/session'
 import * as omegaEditViewport from 'omega-edit/viewport'
 import { OmegaEdit } from './omega_edit'
 
-type Viewports = { label: string; vpid: string }[]
+// type Viewports = { label: string; vpid: string }[]
+type Viewports = { label: string; vpid: string; omegaEdit: OmegaEdit }[]
 
 export class WebView implements vscode.Disposable {
   public panel: vscode.WebviewPanel
@@ -105,7 +106,6 @@ export class WebView implements vscode.Disposable {
           'vpAll',
           'hexAll'
         )
-
         this.panel.webview.postMessage({
           command: MessageCommand.fileInfo,
           data: {
@@ -152,7 +152,7 @@ export class WebView implements vscode.Disposable {
           const bufSlice = Buffer.from(message.data.selectionData)
           this.panel.webview.postMessage({
             command: MessageCommand.editorOnChange,
-            display: getEncodedDataStr(
+            display: dataToEncodedStr(
               bufSlice,
               this.displayState.editorEncoding
             ),
@@ -192,6 +192,32 @@ export class WebView implements vscode.Disposable {
           command: MessageCommand.requestEditedData,
           data: Uint8Array.from(selectionData),
           display: selectionDisplay,
+        })
+        break
+      case MessageCommand.search:
+        let viewportData = await omegaEditViewport.getViewportData(
+          this.omegaViewports['vpAll']
+        )
+        let searchData = message.data.searchData
+        let filesize = viewportData.getLength()
+        let caseInsensitive = message.data.caseInsensitive
+        var omegaEdit = new OmegaEdit(
+          this.omegaSessionId,
+          viewportData.getOffset(),
+          viewportData.getData() as string,
+          filesize,
+          this.panel
+        )
+        let results = await omegaEdit.search(
+          filesize,
+          searchData,
+          caseInsensitive
+        )
+        this.panel.webview.postMessage({
+          command: MessageCommand.search,
+          data: {
+            searchResults: results,
+          },
         })
         break
     }
