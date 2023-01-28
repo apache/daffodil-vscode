@@ -237,6 +237,7 @@ limitations under the License.
     return `${from} [${start} - ${end}] Size: ${$selectionSize} `
   }
 
+  const editCount = writable(0)
   async function handleEditorEvent(e: Event) {
     let editedType: string
     switch(e.type) {
@@ -251,6 +252,7 @@ limitations under the License.
         }
         else if(['Backspace', 'Return', 'Delete'].some((type)=> kevent.key.startsWith(type))) {
           editorSelection.update(str=>{
+            $editCount -= 1
             return str
           })
           cursorPos.update(pos=>{
@@ -269,6 +271,7 @@ limitations under the License.
         }
         else {
           editorSelection.update(str=>{
+            $editCount += 1
             return str
           })
           cursorPos.update(pos=>{
@@ -410,10 +413,18 @@ limitations under the License.
     $searching = true
   }
 
+  const warningable = derived(editCount, $editCount=>{
+    if($editCount > 0){
+      return true
+    }
+    return false
+  })
+
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       case 'vpAll':
         loadContent(msg.data.viewportData)
+        $editCount = 0
         break
       case MessageCommand.editorOnChange:
         editorSelection.update(()=>{
@@ -542,6 +553,8 @@ limitations under the License.
       <legend>Content Controls 
       {#if !$commitable}
         <span class='errMsg'>{$commitErrMsg}</span>
+      {:else if $warningable}
+        <span class='warningMsg'>Commit will overwrite</span>
       {/if}
       </legend>
       <div class="contentControls" id="content_controls">
@@ -638,7 +651,7 @@ limitations under the License.
   {#if $selectionActive}
   <h3>Selection: {$selectionStartStore} - {$selectionEndStore} Len: {$editorSelection.length}({$selectionSize}) | Encoding: {$editorEncoding} | cursor: {$cursorPos} | bytePOS: {$byteOffsetPos}</h3>
   <hr>
-  {$editorSelection}
+  [ {$warningable} ]{$editorSelection}
   <hr>
   <hr>
   {$selectedFileData}
@@ -768,6 +781,10 @@ limitations under the License.
 
   .errMsg {
     color: red;
+  }
+
+  .warningMsg {
+    color: yellow;
   }
 
   #address_numbering {

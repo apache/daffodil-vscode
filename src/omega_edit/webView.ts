@@ -187,7 +187,6 @@ export class WebView implements vscode.Disposable {
 
       case MessageCommand.requestEditedData:
         let [selectionData, selectionDisplay] = fillRequestData(message)
-
         this.panel.webview.postMessage({
           command: MessageCommand.requestEditedData,
           data: Uint8Array.from(selectionData),
