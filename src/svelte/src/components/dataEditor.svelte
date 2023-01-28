@@ -354,7 +354,7 @@ limitations under the License.
     })
     selectionEndStore.update(()=>{
       if(selected.id === 'logical')
-        return (selected.selectionEnd + 1) / 2
+        return Math.floor(selected.selectionEnd / 2)
       return selectionOffsetsByRadix[$displayRadix].end
     })
   }
@@ -417,7 +417,7 @@ limitations under the License.
           return $selectedContent.selectionStart
         })
         selectionEndStore.update(()=>{
-          return $selectionStartStore + $selectedFileData.byteLength 
+          return $selectionStartStore + $selectedFileData.byteLength-1 
         })
         break
       case MessageCommand.updateLogicalDisplay:
@@ -611,6 +611,24 @@ limitations under the License.
     </fieldset>
   </div>
 </main>
+<div contenteditable="true">
+  {#if $selectionActive}
+  <h3>Selection: {$selectionStartStore} - {$selectionEndStore} Len: {$editorSelection.length}({$selectionSize}) | Encoding: {$editorEncoding} | cursor: {$cursorPos} | bytePOS: {$byteOffsetPos}</h3>
+  <hr>
+  {$editorSelection}
+  <hr>
+  <hr>
+  {$selectedFileData}
+  <hr>
+  {/if}
+  <h3>BytesPerRow: {$bytesPerRow}</h3>
+  <h3>Radix: {$displayRadix}</h3>
+  <h3>Data<br></h3><hr>
+  <subscript>{$viewportData}</subscript>
+  {#if $editorEncoding}
+  {$editorEncoding}
+  {/if}
+</div>
 <!-- svelte-ignore css-unused-selector -->
 <style lang="scss">
   /* CSS reset */

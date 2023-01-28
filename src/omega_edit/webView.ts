@@ -119,10 +119,6 @@ export class WebView implements vscode.Disposable {
       })
   }
 
-  public getOmegaSessionId(): string {
-    return this.omegaSessionId
-  }
-
   private createPanel(title: string): vscode.WebviewPanel {
     const column =
       vscode.window.activeTextEditor &&
@@ -169,6 +165,9 @@ export class WebView implements vscode.Disposable {
         let fileOffset = message.data.selectionStart
         let data = message.data.selectionData
         let dataLen = message.data.selectionDataLen
+        vscode.window.showInformationMessage(
+          `Commit Received - Offset: ${fileOffset} | Length: ${dataLen} | Data: ${data}`
+        )
         var omegaEdit = new OmegaEdit(
           this.omegaSessionId,
           fileOffset,
