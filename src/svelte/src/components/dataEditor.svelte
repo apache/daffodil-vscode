@@ -56,7 +56,8 @@ limitations under the License.
     float32,
     int64,
     uint64,
-    float64
+    float64,
+    rawEditorSelectionTxt
     } from '../stores'
   import { 
     radixOpt, 
@@ -64,7 +65,8 @@ limitations under the License.
     endiannessOpt, 
     lsbOpt, 
     byteSizeOpt, 
-    addressOpt, 
+    addressOpt,
+    dvHighlightTag, 
     getOffsetDisplay as getOffsetText,
     encodeForDisplay,
     makeAddressRange, 
@@ -91,7 +93,7 @@ limitations under the License.
   let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
   let physical_vwRef: HTMLTextAreaElement, address_vwRef: HTMLTextAreaElement, logical_vwRef: HTMLTextAreaElement
 
-  const selectedContent = readable(document.getElementById('selectedContent') as HTMLTextAreaElement)
+  const selectedContent = writable(document.getElementById('selectedContent') as HTMLTextAreaElement)
   const asciiCount = derived(viewportData, $viewportData=>{
     return countAscii($viewportData)
   })
@@ -242,12 +244,13 @@ limitations under the License.
     let editedType: string
     switch(e.type) {
       case 'keyup':
+        console.log(document.getSelection())
         const kevent = e as KeyboardEvent
         if (['Up','Right','Home'].some((type) => kevent.key.includes(type))) {
           cursorPos.update(pos=>{
             if(pos+1 > $editorSelection.length)
               return pos
-            return ++pos
+            return document.getSelection().anchorOffset
           })
         }
         else if(['Backspace', 'Return', 'Delete'].some((type)=> kevent.key.startsWith(type))) {
@@ -257,7 +260,7 @@ limitations under the License.
           })
           cursorPos.update(pos=>{
             if($commitable)
-              return --pos
+              return document.getSelection().anchorOffset
             return pos
           })
           requestEditedData('remove')
@@ -266,7 +269,7 @@ limitations under the License.
           cursorPos.update(pos=>{
             if(pos-1 < 0)
               return pos
-            return --pos
+            return document.getSelection().anchorOffset
           })
         }
         else {
@@ -276,7 +279,7 @@ limitations under the License.
           })
           cursorPos.update(pos=>{
             if($commitable)
-              return ++pos
+              return document.getSelection().anchorOffset
             return pos
           })
           requestEditedData('insert')
@@ -287,12 +290,12 @@ limitations under the License.
           return str
         })
         cursorPos.update(()=>{
-          return $selectedContent.selectionStart
+          return document.getSelection().anchorOffset
         })
       break
       case 'click':
         cursorPos.update(()=>{
-          return $selectedContent.selectionStart
+          return document.getSelection().anchorOffset
         })
       break
     }
@@ -420,6 +423,67 @@ limitations under the License.
     return false
   })
 
+  function clearDataViewHighlight(event: Event){
+    editorSelection.update(str=>{
+      return str.replaceAll(dvHighlightTag.start, '').replaceAll(dvHighlightTag.end, '')
+    })
+  }
+
+  function highlightDataView(event: Event){
+    const hoverEvent = event as MouseEvent
+    console.log(hoverEvent)
+    let highlightLenModifier: number
+    let highlightText: string[]
+    switch($editorEncoding){
+      case 'hex':
+        highlightLenModifier = 2
+        break
+      case 'binary':
+        highlightLenModifier = 8
+        break
+      default:
+        highlightLenModifier = 1
+        break
+    }
+    switch(event.target.id){
+      case 'b8_dv':
+        editorSelection.update(str=>{
+          let seg1 = str.substring(0, $byteOffsetPos * highlightLenModifier) + dvHighlightTag.start
+          let seg2 = str.substring($byteOffsetPos * highlightLenModifier, $byteOffsetPos * highlightLenModifier + ( 1 * highlightLenModifier)) + dvHighlightTag.end
+          let seg3 = str.substring($byteOffsetPos * highlightLenModifier + (1 * highlightLenModifier))
+          console.log(seg1, seg2, seg3)
+          return seg1 + seg2 + seg3
+        })
+        break
+      case 'b16_dv':
+        editorSelection.update(str=>{
+          let seg1 = str.substring(0, $byteOffsetPos * highlightLenModifier) + dvHighlightTag.start
+          let seg2 = str.substring($byteOffsetPos * highlightLenModifier, $byteOffsetPos * highlightLenModifier + ( 2 * highlightLenModifier)) + dvHighlightTag.end
+          let seg3 = str.substring($byteOffsetPos * highlightLenModifier + (2 * highlightLenModifier))
+          console.log(seg1, seg2, seg3)
+          return seg1 + seg2 + seg3
+        })
+        break
+      case 'b32_dv':
+        editorSelection.update(str=>{
+          let seg1 = str.substring(0, $byteOffsetPos * highlightLenModifier) + dvHighlightTag.start
+          let seg2 = str.substring($byteOffsetPos * highlightLenModifier, $byteOffsetPos * highlightLenModifier + ( 4 * highlightLenModifier)) + dvHighlightTag.end
+          let seg3 = str.substring($byteOffsetPos * highlightLenModifier + (4 * highlightLenModifier))
+          console.log(seg1, seg2, seg3)
+          return seg1 + seg2 + seg3
+        })
+        break
+      case 'b64_dv':
+        editorSelection.update(str=>{
+          let seg1 = str.substring(0, $byteOffsetPos * highlightLenModifier) + dvHighlightTag.start
+          let seg2 = str.substring($byteOffsetPos * highlightLenModifier, $byteOffsetPos * highlightLenModifier + ( 8 * highlightLenModifier)) + dvHighlightTag.end
+          let seg3 = str.substring($byteOffsetPos * highlightLenModifier + (8 * highlightLenModifier))
+          console.log(seg1, seg2, seg3)
+          return seg1 + seg2 + seg3
+        })
+        break
+    }
+  }
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       case 'vpAll':
@@ -548,7 +612,8 @@ limitations under the License.
   <textarea class="physical_vw" id="physical" contenteditable="true" readonly bind:this={physical_vwRef} bind:innerHTML={physicalDisplayText} on:select={handleSelectionEvent} on:scroll={scrollHandle}/>
   <textarea class="logicalView" id="logical" contenteditable="true" readonly bind:this={logical_vwRef} bind:innerHTML={logicalDisplayText} on:select={handleSelectionEvent} on:scroll={scrollHandle}/>
   <div class="editView" id="edit_view">
-    <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={$selectedContent} bind:value={$editorSelection} on:keyup|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}/>
+    <!-- <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={$selectedContent} bind:value={$editorSelection} on:keyup|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}/> -->
+    <div class="selectedContent" id="editor" contenteditable="true" bind:this={$selectedContent} on:keyup|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}>{@html $editorSelection}</div>
     <fieldset class="box">
       <legend>Content Controls 
       {#if !$commitable}
@@ -621,21 +686,21 @@ limitations under the License.
             </div>
           </div>
           <div class="grid-container-column">
-            <div id="data_vw" >&nbsp;Offset: <span id="offset_dv" contenteditable='true'>{$byteOffsetPos}</span>
-              <span id="b8_dv">
+            <div id="data_vw" >&nbsp;Offset: <span id="offset_dv" contenteditable='true' readonly>{$byteOffsetPos}</span>
+              <span id="b8_dv" on:mouseenter={highlightDataView} on:mouseleave={clearDataViewHighlight}>
                 <br /><label for="int8_dv">&nbsp;&nbsp;&nbsp;int8: <text-field id="int8_dv" contenteditable='true' bind:textContent={$int8}></text-field></label>
                 <br /><label for="uint8_dv">&nbsp;&nbsp;uint8: <text-field id="uint8_dv" contenteditable='true' bind:textContent={$uint8}></text-field></label>
               </span>
-              <span id="b16_dv">
+              <span id="b16_dv" on:mouseenter={highlightDataView} on:mouseleave={clearDataViewHighlight}>
                 <br /><label for="int16_dv">&nbsp;&nbsp;int16: <text-field id="int16_dv" contenteditable='true' bind:textContent={$int16}></text-field></label>
                 <br /><label for="uint16_dv">&nbsp;uint16: <text-field id="uint16_dv" contenteditable='true' bind:textContent={$uint16}></text-field></label>
               </span>
-              <span id="b32_dv">
+              <span id="b32_dv" on:mouseenter={highlightDataView} on:mouseleave={clearDataViewHighlight}>
                 <br /><label for="int32_dv">&nbsp;&nbsp;int32: <text-field id="int32_dv" contenteditable='true' bind:textContent={$int32}></text-field></label>
                 <br /><label for="uint32_dv">&nbsp;uint32: <text-field id="uint32_dv" contenteditable='true' bind:textContent={$uint32}></text-field></label>
                 <br /><label for="float32_dv">float32: <text-field id="float32_dv" contenteditable='true' bind:textContent={$float32}></text-field></label>
               </span>
-              <span id="b64_dv">
+              <span id="b64_dv" on:mouseenter={highlightDataView} on:mouseleave={clearDataViewHighlight}>
                 <br /><label for="int64_dv">&nbsp;&nbsp;int64: <text-field id="int64_dv" contenteditable='true' bind:textContent={$int64}></text-field></label>
                 <br /><label for="uint64_dv">&nbsp;uint64: <text-field id="uint64_dv" contenteditable='true' bind:textContent={$uint64}></text-field></label>
                 <br /><label for="float64_dv">float64: <text-field id="float64_dv" contenteditable='true' bind:textContent={$float64}></text-field></label>
@@ -651,7 +716,8 @@ limitations under the License.
   {#if $selectionActive}
   <h3>Selection: {$selectionStartStore} - {$selectionEndStore} Len: {$editorSelection.length}({$selectionSize}) | Encoding: {$editorEncoding} | cursor: {$cursorPos} | bytePOS: {$byteOffsetPos}</h3>
   <hr>
-  [ {$warningable} ]{$editorSelection}
+  <textarea>{$editorSelection}</textarea><hr>
+  [ {$warningable} ]{$rawEditorSelectionTxt}
   <hr>
   <hr>
   {$selectedFileData}
@@ -787,6 +853,19 @@ limitations under the License.
     color: yellow;
   }
 
+  .dataEditor div .selectedContent {
+    display: block;
+    word-break: break-all;
+    white-space: break-spaces;
+    box-sizing: content-box;
+    height: 100%;
+    width: 100%;
+    background: #2c2c2c;
+  }
+
+  .dv_highlight {
+    color: black;
+  }
   #address_numbering {
     min-width: 100%;
   }

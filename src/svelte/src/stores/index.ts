@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { writable, derived } from 'svelte/store'
+import { writable, derived, readable } from 'svelte/store'
 import { localStore } from './localStore'
-
+import { dvHighlightTag } from '../utilities/display'
 const state_key = 'apache-daffodil-data-editor.state'
 
 export const answer = localStore(state_key + '.answer', 42)
@@ -63,20 +63,25 @@ export const selectionActive = derived([selectionSize,editorSelection], ([$selec
   return ($selectionSize >= 0 && $editorSelection !== '')
 })
 
-export const commitable = derived([editorEncoding, editorSelection, selectionActive], ([$editorEncoding, $editorSelection, $selectionActive]) => {
+export const rawEditorSelectionTxt = derived(editorSelection, $editorSelection=>{
+  let rawDataText = $editorSelection.replaceAll(dvHighlightTag.start, '').replaceAll(dvHighlightTag.end, '')
+  return rawDataText
+})
+
+export const commitable = derived([editorEncoding, rawEditorSelectionTxt, selectionActive], ([$editorEncoding, $rawEditorSelectionTxt, $selectionActive]) => {
   if(!$selectionActive)
     return false
   let invalidChars: RegExpMatchArray
   switch($editorEncoding){
     case 'hex':
-      invalidChars = $editorSelection.match(/[^0-9a-fA-F]/gi)
+      invalidChars = $rawEditorSelectionTxt.match(/[^0-9a-fA-F]/gi)
       if(invalidChars){
           commitErrMsg.update(()=>{
             return `Invalid HEX characters`
           })
         return false
       }
-      else if(($editorSelection.length) % 2 != 0){
+      else if(($rawEditorSelectionTxt.length) % 2 != 0){
         commitErrMsg.update(()=>{
           return "Invalid HEX editable length"
         })
@@ -84,14 +89,14 @@ export const commitable = derived([editorEncoding, editorSelection, selectionAct
       }
       break
     case 'binary':
-      invalidChars = $editorSelection.match(/[^0-1]/gi)
+      invalidChars = $rawEditorSelectionTxt.match(/[^0-1]/gi)
       if(invalidChars){
         commitErrMsg.update(()=>{
           return `Invalid BIN characters`
         })
         return false
       }
-      else if(($editorSelection.length) % 8 != 0) {
+      else if(($rawEditorSelectionTxt.length) % 8 != 0) {
         commitErrMsg.update(()=>{
           return "Invalid BIN editable length"
         })
@@ -99,7 +104,7 @@ export const commitable = derived([editorEncoding, editorSelection, selectionAct
       }
       break
     case 'base64':
-      invalidChars = $editorSelection.match(/[^A-Za-z0-9+/]+={0,2}$/gi)
+      invalidChars = $rawEditorSelectionTxt.match(/[^A-Za-z0-9+/]+={0,2}$/gi)
       if(invalidChars){
         commitErrMsg.update(()=>{
           return 'Invalid BASE64 characters'
