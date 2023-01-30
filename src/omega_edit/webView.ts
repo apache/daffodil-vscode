@@ -16,12 +16,10 @@
  */
 
 import * as vscode from 'vscode'
-// import * as fs from 'fs'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
 import {
   logicalDisplay,
   DisplayState,
-  // checkMimeType,
   fillRequestData,
   dataToEncodedStr,
   viewportSubscribe,
@@ -33,7 +31,6 @@ import * as omegaEditSession from 'omega-edit/session'
 import * as omegaEditViewport from 'omega-edit/viewport'
 import { OmegaEdit } from './omega_edit'
 
-// type Viewports = { label: string; vpid: string }[]
 type Viewports = { label: string; vpid: string; omegaEdit: OmegaEdit }[]
 
 export class WebView implements vscode.Disposable {

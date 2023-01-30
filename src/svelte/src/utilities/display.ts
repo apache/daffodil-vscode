@@ -86,8 +86,23 @@ function radixBytePad(radix: number): number {
     return 0
 }
 
-export function countAscii(buf: Uint8Array): number {
-  return buf.reduce((a, b) => a + (b < 128 ? 1 : 0), 0)
+export function setSelectionOffsetInfo(from: string, start: number, end: number, size: number, cursorPos?: number):string {
+  return `${from} [${start} - ${end}] Size: ${size} `
+}
+
+export function isWhitespace(c: string | undefined): boolean {
+  return c ? ' \t\n\r\v'.indexOf(c) > -1 : false
+}
+
+export function syncScroll(from: HTMLElement, to: HTMLElement) {
+  // Scroll the "to" by the same percentage as the "from"
+  if(from && to) {
+    const sf = from.scrollHeight - from.clientHeight
+    if (sf >= 1) {
+      const st = to.scrollHeight - to.clientHeight
+      to.scrollTop = (st / 100) * ((from.scrollTop / sf) * 100)
+    }
+  }
 }
 
 export function getOffsetDisplay(radix, view: string) {

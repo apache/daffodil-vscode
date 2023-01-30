@@ -15,18 +15,24 @@
  * limitations under the License.
  */
 
-import { writable, derived, readable } from 'svelte/store'
+import { writable, derived } from 'svelte/store'
 import { localStore } from './localStore'
-import { dvHighlightTag } from '../utilities/display'
 const state_key = 'apache-daffodil-data-editor.state'
 
 export const answer = localStore(state_key + '.answer', 42)
 export const filesize = writable(0)
+export const editType = writable('')
+export const editCount = writable(0)
 export const cursorPos = writable(0)
+export const gotoOffset = writable(0)
+export const searchData = writable('')
 export const editedCount = writable(0)
 export const fileByteStart = writable(0)
 export const displayRadix = writable(16)
 export const addressValue = writable(16)
+export const gotoOffsetMax = writable(0)
+export const commitErrMsg = writable('')
+export const searching = writable(false)
 export const addressDisplay = writable('')
 export const editorSelection = writable('')
 export const selectionEndStore = writable(0)
@@ -34,12 +40,17 @@ export const editorEncoding = writable('hex')
 export const selectionStartStore = writable(0)
 export const disableDataView = writable(false)
 export const dataViewEndianness = writable('be')
+export const rawEditorSelectionTxt = writable('')
 export const selectedFileData = writable(new Uint8Array(0))
-export const commitErrMsg = writable('')
-export const gotoOffset = writable(0)
-export const gotoOffsetMax = writable(0)
-export const editType = writable('')
 export const viewportData = writable(new Uint8Array(0))
+
+export const asciiCount = derived(viewportData, $viewportData=>{
+  return countAscii($viewportData)
+})
+
+export function countAscii(buf: Uint8Array): number {
+  return buf.reduce((a, b) => a + (b < 128 ? 1 : 0), 0)
+}
 
 export const selectionSize = derived([selectionStartStore, selectionEndStore, editorSelection], ([$selectionStartStore, $selectionEndStore, $editorSelection])=>{
     if($editorSelection !== '') {
@@ -63,9 +74,11 @@ export const selectionActive = derived([selectionSize,editorSelection], ([$selec
   return ($selectionSize >= 0 && $editorSelection !== '')
 })
 
-export const rawEditorSelectionTxt = derived(editorSelection, $editorSelection=>{
-  let rawDataText = $editorSelection.replaceAll(dvHighlightTag.start, '').replaceAll(dvHighlightTag.end, '')
-  return rawDataText
+export const warningable = derived(editCount, $editCount=>{
+  if($editCount > 0){
+    return true
+  }
+  return false
 })
 
 export const commitable = derived([editorEncoding, rawEditorSelectionTxt, selectionActive], ([$editorEncoding, $rawEditorSelectionTxt, $selectionActive]) => {

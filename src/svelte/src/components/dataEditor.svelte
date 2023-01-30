@@ -57,7 +57,12 @@ limitations under the License.
     int64,
     uint64,
     float64,
-    rawEditorSelectionTxt
+    rawEditorSelectionTxt,
+    asciiCount,
+    searching,
+    searchData,
+    warningable,
+    editCount
     } from '../stores'
   import { 
     radixOpt, 
@@ -67,10 +72,12 @@ limitations under the License.
     byteSizeOpt, 
     addressOpt,
     dvHighlightTag, 
-    getOffsetDisplay as getOffsetText,
+    getOffsetDisplay,
     encodeForDisplay,
-    makeAddressRange, 
-    countAscii } from '../utilities/display';
+    makeAddressRange,
+    isWhitespace,
+    syncScroll,
+    setSelectionOffsetInfo } from '../utilities/display';
   import { vscode } from '../utilities/vscode'
   import { MessageCommand } from '../utilities/message'
   import { writable, derived, readable } from 'svelte/store';
@@ -82,6 +89,7 @@ limitations under the License.
     vsCodeOption(),
     vsCodeTextField()
   )
+
   let filename = ''
   let filetype = ''
   let addressText = ''
@@ -94,20 +102,18 @@ limitations under the License.
   let physical_vwRef: HTMLTextAreaElement, address_vwRef: HTMLTextAreaElement, logical_vwRef: HTMLTextAreaElement
 
   const selectedContent = writable(document.getElementById('selectedContent') as HTMLTextAreaElement)
-  const asciiCount = derived(viewportData, $viewportData=>{
-    return countAscii($viewportData)
-  })
   // Reactive Declarations
   $: addressText = makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue)
-  $: selectionOffsetText = setSelectionOffsetInfo('Selection', $selectionStartStore, $selectionEndStore, $cursorPos)
+  $: selectionOffsetText = setSelectionOffsetInfo('Selection', $selectionStartStore, $selectionEndStore, $selectionSize)
   $: {
-    physicalOffsetText = getOffsetText($displayRadix, 'physical')
-    logicalOffsetText = getOffsetText($displayRadix, 'logical')
+    physicalOffsetText = getOffsetDisplay($displayRadix, 'physical')
+    logicalOffsetText = getOffsetDisplay($displayRadix, 'logical')
   }
   $: physicalDisplayText = encodeForDisplay($viewportData, $displayRadix, $bytesPerRow)
   $: setSelectionEncoding($editorEncoding)
   $: updateLogicalDisplay($bytesPerRow)
   $: goTo($gotoOffset)
+  $: $rawEditorSelectionTxt = $editorSelection.replaceAll(dvHighlightTag.start, '').replaceAll(dvHighlightTag.end, '')
 
   function requestEditedData(type: string) {
     if($commitable){
@@ -117,7 +123,7 @@ limitations under the License.
           editType: type,
           editor: {
             selectionToFileOffset: $selectionStartStore,
-            editedContent: $editorSelection
+            editedContent: $rawEditorSelectionTxt
           },
           encoding: $editorEncoding
         }
@@ -224,63 +230,22 @@ limitations under the License.
     }
   }
 
-  function syncScroll(from: HTMLElement, to: HTMLElement) {
-    // Scroll the "to" by the same percentage as the "from"
-    if(from && to) {
-      const sf = from.scrollHeight - from.clientHeight
-      if (sf >= 1) {
-        const st = to.scrollHeight - to.clientHeight
-        to.scrollTop = (st / 100) * ((from.scrollTop / sf) * 100)
-      }
-    }
-  }
-
-  function setSelectionOffsetInfo(from: string, start: number, end: number, size: number, cursorPos?: number):string {
-    return `${from} [${start} - ${end}] Size: ${$selectionSize} `
-  }
-
-  const editCount = writable(0)
   async function handleEditorEvent(e: Event) {
-    let editedType: string
     switch(e.type) {
       case 'keyup':
-        console.log(document.getSelection())
         const kevent = e as KeyboardEvent
-        if (['Up','Right','Home'].some((type) => kevent.key.includes(type))) {
-          cursorPos.update(pos=>{
-            if(pos+1 > $editorSelection.length)
-              return pos
-            return document.getSelection().anchorOffset
-          })
-        }
-        else if(['Backspace', 'Return', 'Delete'].some((type)=> kevent.key.startsWith(type))) {
+        $cursorPos = document.getSelection().anchorOffset
+        if(['Backspace', 'Return', 'Delete'].some((type)=> kevent.key.startsWith(type))) {
           editorSelection.update(str=>{
             $editCount -= 1
             return str
           })
-          cursorPos.update(pos=>{
-            if($commitable)
-              return document.getSelection().anchorOffset
-            return pos
-          })
           requestEditedData('remove')
-        }
-        else if (['Down','Left','End'].some((type) => kevent.key.includes(type))) {
-          cursorPos.update(pos=>{
-            if(pos-1 < 0)
-              return pos
-            return document.getSelection().anchorOffset
-          })
         }
         else {
           editorSelection.update(str=>{
             $editCount += 1
             return str
-          })
-          cursorPos.update(pos=>{
-            if($commitable)
-              return document.getSelection().anchorOffset
-            return pos
           })
           requestEditedData('insert')
         }
@@ -289,14 +254,10 @@ limitations under the License.
         editorSelection.update(str=>{
           return str
         })
-        cursorPos.update(()=>{
-          return document.getSelection().anchorOffset
-        })
+        $cursorPos = document.getSelection().anchorOffset
       break
       case 'click':
-        cursorPos.update(()=>{
-          return document.getSelection().anchorOffset
-        })
+        $cursorPos = document.getSelection().anchorOffset
       break
     }
   }
@@ -379,10 +340,6 @@ limitations under the License.
     })
   }
 
-  function isWhitespace(c: string | undefined): boolean {
-    return c ? ' \t\n\r\v'.indexOf(c) > -1 : false
-  }
-
   function enableAdvanced(enable: boolean) {
     const advanced_elements = document.getElementsByClassName('advanced')
     for (let i = 0; i < advanced_elements.length; ++i) {
@@ -402,8 +359,6 @@ limitations under the License.
     })
   }
 
-  const searchData = writable('')
-  const searching = writable(false)
   function search(){
     vscode.postMessage({
       command: MessageCommand.search,
@@ -416,13 +371,6 @@ limitations under the License.
     $searching = true
   }
 
-  const warningable = derived(editCount, $editCount=>{
-    if($editCount > 0){
-      return true
-    }
-    return false
-  })
-
   function clearDataViewHighlight(event: Event){
     editorSelection.update(str=>{
       return str.replaceAll(dvHighlightTag.start, '').replaceAll(dvHighlightTag.end, '')
@@ -431,9 +379,10 @@ limitations under the License.
 
   function highlightDataView(event: Event){
     const hoverEvent = event as MouseEvent
-    console.log(hoverEvent)
     let highlightLenModifier: number
-    let highlightText: string[]
+    let highlightByteOffset: number
+    let pos: number
+
     switch($editorEncoding){
       case 'hex':
         highlightLenModifier = 2
@@ -447,43 +396,27 @@ limitations under the License.
     }
     switch(event.target.id){
       case 'b8_dv':
-        editorSelection.update(str=>{
-          let seg1 = str.substring(0, $byteOffsetPos * highlightLenModifier) + dvHighlightTag.start
-          let seg2 = str.substring($byteOffsetPos * highlightLenModifier, $byteOffsetPos * highlightLenModifier + ( 1 * highlightLenModifier)) + dvHighlightTag.end
-          let seg3 = str.substring($byteOffsetPos * highlightLenModifier + (1 * highlightLenModifier))
-          console.log(seg1, seg2, seg3)
-          return seg1 + seg2 + seg3
-        })
+        highlightByteOffset = 1 * highlightLenModifier
         break
       case 'b16_dv':
-        editorSelection.update(str=>{
-          let seg1 = str.substring(0, $byteOffsetPos * highlightLenModifier) + dvHighlightTag.start
-          let seg2 = str.substring($byteOffsetPos * highlightLenModifier, $byteOffsetPos * highlightLenModifier + ( 2 * highlightLenModifier)) + dvHighlightTag.end
-          let seg3 = str.substring($byteOffsetPos * highlightLenModifier + (2 * highlightLenModifier))
-          console.log(seg1, seg2, seg3)
-          return seg1 + seg2 + seg3
-        })
+        highlightByteOffset = 2 * highlightLenModifier
         break
       case 'b32_dv':
-        editorSelection.update(str=>{
-          let seg1 = str.substring(0, $byteOffsetPos * highlightLenModifier) + dvHighlightTag.start
-          let seg2 = str.substring($byteOffsetPos * highlightLenModifier, $byteOffsetPos * highlightLenModifier + ( 4 * highlightLenModifier)) + dvHighlightTag.end
-          let seg3 = str.substring($byteOffsetPos * highlightLenModifier + (4 * highlightLenModifier))
-          console.log(seg1, seg2, seg3)
-          return seg1 + seg2 + seg3
-        })
+        highlightByteOffset = 4 * highlightLenModifier
         break
       case 'b64_dv':
-        editorSelection.update(str=>{
-          let seg1 = str.substring(0, $byteOffsetPos * highlightLenModifier) + dvHighlightTag.start
-          let seg2 = str.substring($byteOffsetPos * highlightLenModifier, $byteOffsetPos * highlightLenModifier + ( 8 * highlightLenModifier)) + dvHighlightTag.end
-          let seg3 = str.substring($byteOffsetPos * highlightLenModifier + (8 * highlightLenModifier))
-          console.log(seg1, seg2, seg3)
-          return seg1 + seg2 + seg3
-        })
+        highlightByteOffset = 8 * highlightLenModifier
         break
     }
+    pos = $byteOffsetPos * highlightLenModifier
+    editorSelection.update(str=>{
+      let seg1 = str.substring(0, pos) + dvHighlightTag.start
+      let seg2 = str.substring(pos, pos + highlightByteOffset) + dvHighlightTag.end
+      let seg3 = str.substring(pos + highlightByteOffset)
+      return seg1 + seg2 + seg3
+    })
   }
+
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       case 'vpAll':
@@ -503,7 +436,7 @@ limitations under the License.
           return new Uint8Array(msg.data.data)
         })
         cursorPos.update(()=>{
-          return $selectedContent.selectionStart
+          return document.getSelection().anchorOffset
         })
         selectionEndStore.update(()=>{
           return $selectionStartStore + $selectedFileData.byteLength-1 
@@ -519,7 +452,6 @@ limitations under the License.
       case MessageCommand.search:
         let results = msg.data.searchResults
         $searching = false
-        console.log(results)
         break
       }
   })
@@ -532,7 +464,7 @@ limitations under the License.
     <div id="file_metrics_vw">
       File: <span id="file_name">{filename}</span>
       <hr />
-      Type:<span id="file_type">{filetype}</span>
+      Type: <span id="file_type">{filetype}</span>
       <br />Size: <span id="file_byte_cnt">{$filesize}</span>
       <br />ASCII count: <span id="ascii_byte_cnt">{$asciiCount}</span>
     </div>
@@ -557,18 +489,10 @@ limitations under the License.
     <legend>Search</legend>
     <div class="search">
         Search:
-      <input id="search_input" bind:value={$searchData}/>
-        <!-- <section slot="end" style="display:flex; align-items: center;">
-          <vscode-button appearance="icon" aria-label="Case Sensitive">
-            <span class="codicon codicon-preserve-case" />
-          </vscode-button>
-          <vscode-button appearance="icon" aria-label="Case Insensitive">
-            <span class="codicon codicon-case-sensitive" />
-          </vscode-button>
-        </section> -->
+      <input id="search_input" bind:value={$searchData} disabled/>
       Replace:<input id="replace_input" disabled/> 
       <br />
-      <vscode-button id="search_btn" on:click={search}>Search</vscode-button>
+      <vscode-button id="search_btn" on:click={search} disabled>Search</vscode-button>
       <vscode-button id="replace_btn" disabled>Replace</vscode-button>
       {#if $searching}
         <sub>Searching...</sub>
@@ -612,8 +536,7 @@ limitations under the License.
   <textarea class="physical_vw" id="physical" contenteditable="true" readonly bind:this={physical_vwRef} bind:innerHTML={physicalDisplayText} on:select={handleSelectionEvent} on:scroll={scrollHandle}/>
   <textarea class="logicalView" id="logical" contenteditable="true" readonly bind:this={logical_vwRef} bind:innerHTML={logicalDisplayText} on:select={handleSelectionEvent} on:scroll={scrollHandle}/>
   <div class="editView" id="edit_view">
-    <!-- <textarea class="selectedContent" id="editor" contenteditable="true" bind:this={$selectedContent} bind:value={$editorSelection} on:keyup|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}/> -->
-    <div class="selectedContent" id="editor" contenteditable="true" bind:this={$selectedContent} on:keyup|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}>{@html $editorSelection}</div>
+    <div class="selectedContent" id="editor" contenteditable="true" bind:this={$selectedContent} bind:innerHTML={$editorSelection} on:keyup|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}></div>
     <fieldset class="box">
       <legend>Content Controls 
       {#if !$commitable}
@@ -628,15 +551,13 @@ limitations under the License.
           {#if $commitable}
             <vscode-button id="commit_btn" on:click={commitChanges}>Commit Changes</vscode-button>
           {:else}
-            <vscode-button id="commit_btn" disabled>commit changes</vscode-button>
+            <vscode-button id="commit_btn" disabled>Commit Changes</vscode-button>
           {/if}
             <br />
             Committed changes: <span id="change_cnt">0</span>
           </div>
           <div>
-            <vscode-button id="add_data_breakpoint_btn" disabled
-              >set breakpoint</vscode-button
-            >
+            <vscode-button id="add_data_breakpoint_btn" disabled>Set Breakpoint</vscode-button>
             <br />
             Breakpoints: <span id="data_breakpoint_cnt">0</span>
           </div>
@@ -712,25 +633,6 @@ limitations under the License.
     </fieldset>
   </div>
 </main>
-<div contenteditable="true">
-  {#if $selectionActive}
-  <h3>Selection: {$selectionStartStore} - {$selectionEndStore} Len: {$editorSelection.length}({$selectionSize}) | Encoding: {$editorEncoding} | cursor: {$cursorPos} | bytePOS: {$byteOffsetPos}</h3>
-  <hr>
-  <textarea>{$editorSelection}</textarea><hr>
-  [ {$warningable} ]{$rawEditorSelectionTxt}
-  <hr>
-  <hr>
-  {$selectedFileData}
-  <hr>
-  {/if}
-  <h3>BytesPerRow: {$bytesPerRow}</h3>
-  <h3>Radix: {$displayRadix}</h3>
-  <h3>Data<br></h3><hr>
-  <subscript>{$viewportData}</subscript>
-  {#if $editorEncoding}
-  {$editorEncoding}
-  {/if}
-</div>
 <!-- svelte-ignore css-unused-selector -->
 <style lang="scss">
   /* CSS reset */
@@ -759,7 +661,15 @@ limitations under the License.
     width: 100%;
     flex: 0 1 auto;
   }
+  header fieldset vscode-button {
+    margin-right: 5px;
+    margin-top: 10px;
+  }
 
+  fieldset {
+    padding: 5px;
+  }
+  
   textarea {
     color: inherit;
     background-color: inherit;
@@ -768,6 +678,7 @@ limitations under the License.
     width: auto;
     border: 0;
   }
+
   .dataEditor {
     display: grid;
     /* I think this should be 32em instead of 19em for 32 characters, but that didn't work */
@@ -779,6 +690,7 @@ limitations under the License.
     height: 100%;
     font-family: monospace;
   }
+
   /* display of binary encoded data takes more space in the physical view */
   .dataEditor.binary {
     /* I think this should be 16em instead of 10em for 16 characters, but that didn't work */
@@ -810,6 +722,10 @@ limitations under the License.
 
   .dataEditor div.measure span {
     align-self: flex-end;
+  }
+
+  .dataEditor div.contentControls .grid-container-two-columns {
+    padding: 5px;
   }
 
   .dataEditor textarea.address_vw {
@@ -853,28 +769,18 @@ limitations under the License.
     color: yellow;
   }
 
-  .dataEditor div .selectedContent {
-    display: block;
-    word-break: break-all;
-    white-space: break-spaces;
-    box-sizing: content-box;
-    height: 100%;
-    width: 100%;
-    background: #2c2c2c;
-  }
-
-  .dv_highlight {
-    color: black;
-  }
   #address_numbering {
     min-width: 100%;
   }
+
   .search {
     min-width: 200px;
   }
+
   #search_input {
     min-width: 100px;
   }
+
   #replace_input {
     min-width: 100px
   }
