@@ -503,9 +503,14 @@ limitations under the License.
     <div class="search">
         Search:
       <input id="search_input" bind:value={$searchData}/>
-      Replace:<input id="replace_input" bind:value={$replaceData}/> 
+      Replace:
+      <input id="replace_input" bind:value={$replaceData}/> 
       <br />
+      {#if $searchData.length <= 0}
+      <vscode-button id="search_btn" disabled>Search</vscode-button>
+      {:else}
       <vscode-button id="search_btn" on:click={search}>Search</vscode-button>
+      {/if}
       {#if $replaceData.length <= 0}
       <vscode-button id="replace_btn" disabled>Replace</vscode-button>
       {:else}
@@ -567,7 +572,7 @@ limitations under the License.
       <div class="contentControls" id="content_controls">
         <div class="grid-container-two-columns">
           <div>
-          {#if $commitable}
+          {#if $commitable }
             <vscode-button id="commit_btn" on:click={commitChanges}>Commit Changes</vscode-button>
           {:else}
             <vscode-button id="commit_btn" disabled>Commit Changes</vscode-button>
@@ -652,6 +657,7 @@ limitations under the License.
     </fieldset>
   </div>
 </main>
+<hr>
 <!-- svelte-ignore css-unused-selector -->
 <style lang="scss">
   /* CSS reset */
@@ -680,6 +686,7 @@ limitations under the License.
     width: 100%;
     flex: 0 1 auto;
   }
+
   header fieldset vscode-button {
     margin-right: 5px;
     margin-top: 10px;
@@ -689,6 +696,17 @@ limitations under the License.
     padding: 5px;
   }
   
+  input, select {
+    background-color: #3c3c3c;
+    color: white;
+    border-width: 0;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    font-weight: bold;
+  }
+  input {
+    padding-left: 5px;
+  }
   textarea {
     color: inherit;
     background-color: inherit;
@@ -744,6 +762,7 @@ limitations under the License.
   }
 
   .dataEditor div.contentControls .grid-container-two-columns {
+    max-width: 500px;
     padding: 5px;
   }
 
@@ -769,9 +788,10 @@ limitations under the License.
     grid-template-columns: 1fr;
     grid-template-rows: 1fr max-content;
     overflow-x: scroll;
+    word-break: break-all;
   }
 
-  .dataEditor textarea.selectedContent {
+  .dataEditor div.selectedContent {
     background: #2c2c2c;
   }
 
