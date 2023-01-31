@@ -17,11 +17,11 @@
 
 import * as fs from 'fs'
 import * as vscode from 'vscode'
-import XDGAppPaths from 'xdg-app-paths'
-import { killProcess } from '../utils'
-import { startOmegaEditServer } from './utils'
-import { DataEditWebView } from './dataEditWebView'
 import * as omegaEditVersion from 'omega-edit/version'
+import {initOmegaEditClient, startOmegaEditServer,} from './utils'
+import XDGAppPaths from 'xdg-app-paths'
+import {killProcess} from '../utils'
+import {DataEditWebView} from './dataEditWebView'
 
 let serverRunning = false
 let serverTerminal: vscode.Terminal | undefined
@@ -38,15 +38,36 @@ export function getOmegaEditPackageVersion(filePath: fs.PathLike) {
 async function commonOmegaEdit(
   ctx: vscode.ExtensionContext,
   startServer: boolean,
-  omegaEditPackageVersion: string
+  omegaEditPackageVersion: string,
+  port: number
 ) {
   if (!serverRunning && startServer) {
     ;[serverTerminal, serverRunning] = await startOmegaEditServer(
       ctx,
       rootPath,
-      omegaEditPackageVersion
+      omegaEditPackageVersion,
+      port
     )
   }
+}
+
+async function getOmegaEditPort(
+  port: number | undefined = undefined
+): Promise<number> {
+  if (!port) {
+    const portEntered = await vscode.window.showInputBox({
+      prompt: 'Enter port number to run omega-edit server on',
+      value: '9000',
+    })
+
+    if (portEntered) {
+      port = +portEntered
+    } else {
+      throw Error('Bad port entered')
+    }
+  }
+
+  return port
 }
 
 export function activate(ctx: vscode.ExtensionContext) {
@@ -57,8 +78,13 @@ export function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.commands.registerCommand(
       'omega_edit.version',
-      async (startServer: boolean = true) => {
-        await commonOmegaEdit(ctx, startServer, omegaEditPackageVersion)
+      async (
+        startServer: boolean = true,
+        port: number | undefined = undefined
+      ) => {
+        port = await getOmegaEditPort(port)
+        initOmegaEditClient('127.0.0.1', port.toString())
+        await commonOmegaEdit(ctx, startServer, omegaEditPackageVersion, port)
         return await omegaEditVersion.getVersion()
       }
     ),
@@ -67,9 +93,12 @@ export function activate(ctx: vscode.ExtensionContext) {
       async (
         filePassed: string = '',
         startServer: boolean = true,
-        subscribeToViewports: boolean = true
+        subscribeToViewports: boolean = true,
+        port: number | undefined = undefined
       ) => {
-        await commonOmegaEdit(ctx, startServer, omegaEditPackageVersion)
+        port = await getOmegaEditPort(port)
+        initOmegaEditClient('127.0.0.1', port.toString())
+        await commonOmegaEdit(ctx, startServer, omegaEditPackageVersion, port)
         return await createOmegaEditWebviewPanel(
           ctx,
           filePassed,

@@ -143,7 +143,8 @@ export async function unzipFile(zipFilePath: string, extractPath: string) {
   return await new Promise((resolve, reject) => {
     let stream = fs
       .createReadStream(zipFilePath)
-      .pipe(unzip.Extract({ path: `${extractPath}` }))
+      .pipe(unzip.Extract({ path: `${extractPath}` }) as NodeJS.WritableStream)
+
     stream.on('close', () => {
       try {
         resolve(zipFilePath)
@@ -154,6 +155,16 @@ export async function unzipFile(zipFilePath: string, extractPath: string) {
   })
 }
 
+export async function displayTerminalExitStatus(terminal: vscode.Terminal) {
+  vscode.window.onDidCloseTerminal((t) => {
+    if (t.name === terminal.name && t.processId === terminal.processId) {
+      vscode.window.showInformationMessage(
+        `Terminal exited with status code: ${t.exitStatus?.code}`
+      )
+    }
+  })
+}
+
 export async function executeScript(
   name: string,
   cwd: string,
@@ -161,7 +172,7 @@ export async function executeScript(
   shellArgs: string[] = []
 ) {
   // Start server in terminal based on scriptName
-  let terminal = vscode.window.createTerminal({
+  const terminal = vscode.window.createTerminal({
     name: name,
     cwd: cwd,
     hideFromUser: false,
@@ -169,6 +180,8 @@ export async function executeScript(
     shellArgs: shellArgs,
   })
   terminal.show()
+
+  displayTerminalExitStatus(terminal)
 
   return terminal
 }
@@ -215,12 +228,13 @@ export async function runScript(
       }
     | undefined = undefined,
   type: string = '',
-  hideTerminal: boolean = false
+  hideTerminal: boolean = false,
+  port: number | undefined = undefined
 ) {
   chmodScript(scriptPath, scriptName)
 
   // Start server in terminal based on scriptName
-  let terminal = vscode.window.createTerminal({
+  const terminal = vscode.window.createTerminal({
     name: scriptName,
     cwd: path.join(scriptPath, 'bin'),
     hideFromUser: false,
@@ -231,9 +245,11 @@ export async function runScript(
 
   if (!hideTerminal) terminal.show()
 
+  displayTerminalExitStatus(terminal)
+
   type.includes('daffodil')
     ? await delay(5000).then(() => {})
-    : await wait_port({ host: '127.0.0.1', port: 9000, output: 'silent' })
+    : await wait_port({ host: '127.0.0.1', port: port, output: 'silent' })
 
   return terminal
 }

@@ -16,21 +16,20 @@
  */
 
 import * as vscode from 'vscode'
-import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
+import {SvelteWebviewInitializer} from './svelteWebviewInitializer'
 import {
-  logicalDisplay,
-  DisplayState,
-  fillRequestData,
-  dataToEncodedStr,
-  viewportSubscribe,
-  checkMimeType,
-  encodedStrToData,
+    checkMimeType,
+    dataToEncodedStr,
+    DisplayState,
+    encodedStrToData,
+    fillRequestData,
+    logicalDisplay,
+    viewportSubscribe,
 } from './utils'
-import { EditorMessage, MessageCommand } from './messageHandler'
-import { v4 as uuidv4 } from 'uuid'
+import {EditorMessage, MessageCommand} from './messageHandler'
 import * as omegaEditSession from 'omega-edit/session'
 import * as omegaEditViewport from 'omega-edit/viewport'
-import { OmegaEdit } from './omega_edit'
+import {OmegaEdit} from './omega_edit'
 
 type Viewports = { label: string; vpid: string; omegaEdit: OmegaEdit }[]
 const VIEWPORT_CAPACITY_MAX = 1048576 // Maximum viewport size in Ωedit is 1048576 (1024 * 1024)

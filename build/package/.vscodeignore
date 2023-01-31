@@ -28,7 +28,7 @@
 !src/styles/styles.css
 !src/omega_edit/omega_edit.js
 !src/omega_edit/interface.html
-!node_modules/omega-edit/omega-edit-scala-server*.zip
+!node_modules/omega-edit/omega-edit-grpc-server*.zip
 !src/language/providers/intellisense/DFDLGeneralFormat.dfdl.xsd
 !dist/styles.css
 !dist/views/dataEditor/index.js
