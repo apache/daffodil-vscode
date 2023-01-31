@@ -402,7 +402,7 @@ conditions of the following licenses.
     OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
     WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-- 'vscode-debugadapter' in extension/dist/ext/extension.js
+- '@vscode/debugadapter' in extension/dist/ext/extension.js
   This product bundles 'VS Code Debug Adapter' from the above files.
   These files are available under the MIT License:
 
@@ -431,7 +431,7 @@ conditions of the following licenses.
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
     OTHER DEALINGS IN THE SOFTWARE.
 
-- 'vscode-debugprotocol' in extension/dist/ext/extension.js
+- '@vscode/debugprotocol' in extension/dist/ext/extension.js
   This product bundles 'VS Code Debug Protocol' from the above files.
   These files are available under the MIT License:
 
@@ -7191,8 +7191,8 @@ conditions of the following licenses.
     BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT 
     OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-- 'vscode-debugadapter-testsupport' in extension/dist/ext/extension.js
-	This product bundles 'vscode-debugadapter-testsupport' from the above files.
+- '@vscode/debugadapter-testsupport' in extension/dist/ext/extension.js
+	This product bundles '@vscode/debugadapter-testsupport' from the above files.
 	This package is available under the MIT LICENSE:
 
     Copyright (c) Microsoft Corporation
