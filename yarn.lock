@@ -614,9 +614,9 @@ camelcase@^6.0.0:
   integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
 
 caniuse-lite@^1.0.30001449:
-  version "1.0.30001449"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001449.tgz#a8d11f6a814c75c9ce9d851dc53eb1d1dfbcd657"
-  integrity sha512-CPB+UL9XMT/Av+pJxCKGhdx+yg1hzplvFJQlJ2n68PyQGMz9L/E2zCyLdOL8uasbouTUgnPl+y0tccI/se+BEw==
+  version "1.0.30001450"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001450.tgz#022225b91200589196b814b51b1bbe45144cf74f"
+  integrity sha512-qMBmvmQmFXaSxexkjjfMvD5rnDL0+m+dUMZKoDYsGG8iZN29RuYh9eRoMvKsT6uMAWlyUUGDEQGJJYjzCIO9ew==
 
 chainsaw@~0.1.0:
   version "0.1.0"
@@ -1635,10 +1635,10 @@ object-inspect@^1.9.0:
   resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.12.3.tgz#ba62dffd67ee256c8c086dfae69e016cd1f198b9"
   integrity sha512-geUvdk7c+eizMNUDkRpW1wJwgfOiOeHbxBR/hLXK1aT6zmVSO0jsQcs7fj6MGw89jC/cjGfLcNOrtMYtGqm81g==
 
-omega-edit@0.9.32:
-  version "0.9.32"
-  resolved "https://registry.yarnpkg.com/omega-edit/-/omega-edit-0.9.32.tgz#29006dcb23843f644f15e9b1919a2c756e231a7b"
-  integrity sha512-zRwvq/+t6hKJafKjA9WUk76cc0SZP/CLjcLmFCi8Kx7orPxA3jRtCYWwYbgrhri3sQ3Xz0kxPFBDd+dCz47tHw==
+omega-edit@0.9.33:
+  version "0.9.33"
+  resolved "https://registry.yarnpkg.com/omega-edit/-/omega-edit-0.9.33.tgz#bae3de4316f1edd381bd84cfab552fa7ac2abf8d"
+  integrity sha512-NwqrK4x/kPmPr8DAyatIOcq/zVo/5i+3Gdml1fsAQEZyHjFCnH9cVvyZ2w+L6BdCFRC81O9OSajJ0L47EisxYw==
   dependencies:
     "@grpc/grpc-js" "^1.7.1"
     "@types/google-protobuf" "^3.15.5"
