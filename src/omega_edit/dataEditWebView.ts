@@ -190,13 +190,14 @@ export class DataEditWebView implements vscode.Disposable {
           display: selectionDisplay,
         })
         break
+      case MessageCommand.searchAndReplace:
       case MessageCommand.search:
-        let viewportData = await omegaEditViewport.getViewportData(
+        var viewportData = await omegaEditViewport.getViewportData(
           this.omegaViewports['vpAll']
         )
-        let searchData = message.data.searchData
-        let filesize = viewportData.getLength()
-        let caseInsensitive = message.data.caseInsensitive
+        var searchData = message.data.searchData
+        var filesize = viewportData.getLength()
+        var caseInsensitive = message.data.caseInsensitive
         var omegaEdit = new OmegaEdit(
           this.omegaSessionId,
           viewportData.getOffset(),
@@ -204,17 +205,40 @@ export class DataEditWebView implements vscode.Disposable {
           filesize,
           this.panel
         )
-        let results = await omegaEdit.search(
+        let searchResults = await omegaEdit.search(
           filesize,
           searchData,
           caseInsensitive
         )
-        this.panel.webview.postMessage({
-          command: MessageCommand.search,
-          data: {
-            searchResults: results,
-          },
-        })
+        if (message.command === MessageCommand.search) {
+          this.panel.webview.postMessage({
+            command: MessageCommand.search,
+            searchResults: searchResults,
+          })
+        } else {
+          if (searchResults.length < 0) {
+            vscode.window.showWarningMessage(
+              'Search request found 0 results. Could not replace.'
+            )
+          } else {
+            let replaceData = message.data.replaceData
+            await searchResults.forEach((index) => {
+              omegaEdit.replace(
+                this.omegaSessionId,
+                index,
+                searchData.length,
+                replaceData
+              )
+            })
+            await viewportSubscribe(
+              this.panel,
+              this.omegaViewports['vpAll'],
+              this.omegaViewports['vpAll'],
+              'vpAll',
+              'hexAll'
+            )
+          }
+        }
         break
     }
   }
