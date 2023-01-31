@@ -62,7 +62,9 @@ limitations under the License.
     searching,
     searchData,
     warningable,
-    editCount
+    editCount,
+    searchResults,
+    replaceData
     } from '../stores'
   import { 
     radixOpt, 
@@ -371,6 +373,18 @@ limitations under the License.
     $searching = true
   }
 
+  function searchAndReplace(){
+    vscode.postMessage({
+      command: MessageCommand.searchAndReplace,
+      data: {
+        searchData: $searchData,
+        filesize: $filesize,
+        caseInsensitive: false,
+        replaceData: $replaceData
+      }
+    })
+  }
+
   function clearDataViewHighlight(event: Event){
     editorSelection.update(str=>{
       return str.replaceAll(dvHighlightTag.start, '').replaceAll(dvHighlightTag.end, '')
@@ -450,7 +464,7 @@ limitations under the License.
         filetype = msg.data.data.filetype
         break
       case MessageCommand.search:
-        let results = msg.data.searchResults
+        $searchResults = msg.data.searchResults
         $searching = false
         break
       }
@@ -489,13 +503,19 @@ limitations under the License.
     <legend>Search</legend>
     <div class="search">
         Search:
-      <input id="search_input" bind:value={$searchData} disabled/>
-      Replace:<input id="replace_input" disabled/> 
+      <input id="search_input" bind:value={$searchData}/>
+      Replace:<input id="replace_input" bind:value={$replaceData}/> 
       <br />
-      <vscode-button id="search_btn" on:click={search} disabled>Search</vscode-button>
+      <vscode-button id="search_btn" on:click={search}>Search</vscode-button>
+      {#if $replaceData.length <= 0}
       <vscode-button id="replace_btn" disabled>Replace</vscode-button>
+      {:else}
+      <vscode-button id="replace_btn" on:click={searchAndReplace}>Replace</vscode-button>
+      {/if}
       {#if $searching}
         <sub>Searching...</sub>
+      {:else if $searchResults.length > 0}
+        <sub>Results: {$searchResults}</sub>
       {/if}
     </div>
   </fieldset>

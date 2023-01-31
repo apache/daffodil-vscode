@@ -18,6 +18,7 @@ export enum MessageCommand {
     fileInfo,
     commit,
     search,
+    searchAndReplace,
     addBreakpoint,
     editorOnChange,
     loadFile,
