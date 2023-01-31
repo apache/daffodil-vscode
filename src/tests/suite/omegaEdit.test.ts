@@ -24,6 +24,7 @@ import { unzipFile, runScript, killProcess, osCheck } from '../../utils'
 import { before, after } from 'mocha'
 import * as fs from 'fs'
 import { PROJECT_ROOT, PACKAGE_PATH, TEST_SCHEMA } from './common'
+import { initOmegaEditClient } from '../../omega_edit/utils'
 
 const wait_port = require('wait-port')
 
@@ -31,11 +32,12 @@ const omegaEditPackagePath = path.join(PROJECT_ROOT, 'node_modules/omega-edit')
 const omegaEditVersion =
   omegaEditClient.getOmegaEditPackageVersion(PACKAGE_PATH)
 const localArtifact = new Artifact(
-  'omega-edit-scala-server',
+  'omega-edit-grpc-server',
   omegaEditVersion,
   'omega-edit-grpc-server'
 )
 const extractedFolder = path.join(PROJECT_ROOT, localArtifact.name)
+const port = 9000
 
 export async function runServerForTests() {
   fs.copyFileSync(
@@ -43,7 +45,19 @@ export async function runServerForTests() {
     `${extractedFolder}.zip`
   )
   await unzipFile(`${extractedFolder}.zip`, PROJECT_ROOT)
-  return await runScript(`${extractedFolder}`, localArtifact.scriptName)
+  initOmegaEditClient('127.0.0.1', port.toString())
+  return await runScript(
+    `${extractedFolder}`,
+    localArtifact.scriptName,
+    null,
+    ['--port', port.toString()],
+    {
+      OMEGA_EDIT_SERVER_PORT: port.toString(),
+    },
+    '',
+    false,
+    port
+  )
 }
 
 suite('omega-edit Test Suite', () => {
@@ -88,7 +102,7 @@ suite('omega-edit Test Suite', () => {
   })
 
   suite('artifact attributes', () => {
-    const packageName = 'omega-edit-scala-server'
+    const packageName = 'omega-edit-grpc-server'
     const packageVersion = '1.0.0'
     const scriptName = 'omega-edit-grpc-server'
     const artifact = new Artifact(packageName, packageVersion, scriptName)
@@ -127,7 +141,7 @@ suite('omega-edit Test Suite', () => {
 
   test('running omega-edit server', async () => {
     assert.strictEqual(
-      await wait_port({ host: '127.0.0.1', port: 9000, output: 'silent' }),
+      await wait_port({ host: '127.0.0.1', port: port, output: 'silent' }),
       true
     )
   })
@@ -136,7 +150,8 @@ suite('omega-edit Test Suite', () => {
     test('omega_edit.version returns correct version', async () => {
       let version = await vscode.commands.executeCommand(
         'omega_edit.version',
-        false
+        false,
+        port
       )
 
       assert.strictEqual(
@@ -150,7 +165,8 @@ suite('omega-edit Test Suite', () => {
         'data.edit',
         TEST_SCHEMA,
         false,
-        false
+        false,
+        port
       )
 
       assert.strictEqual(panel.active, true)

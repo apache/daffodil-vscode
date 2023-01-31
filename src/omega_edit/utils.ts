@@ -24,9 +24,16 @@ import {
 } from 'omega-edit/omega_edit_pb'
 import { getClient, ALL_EVENTS } from 'omega-edit/settings'
 import * as omegaEditServer from 'omega-edit/server'
-import { runScript } from '../utils'
+import { runScript, displayTerminalExitStatus } from '../utils'
+import { EditorClient } from 'omega-edit/omega_edit_grpc_pb'
 
-const client = getClient()
+let client: EditorClient
+export function initOmegaEditClient(
+  host: string = '127.0.0.1',
+  port: string = '9000'
+) {
+  client = getClient(host, port.toString())
+}
 
 export var randomId = () => Math.floor(Math.random() * (1000 - 0 + 1))
 
@@ -138,7 +145,8 @@ export async function viewportSubscribe(
 export async function startOmegaEditServer(
   ctx: vscode.ExtensionContext,
   rootPath: string,
-  omegaEditPackageVersion: string
+  omegaEditPackageVersion: string,
+  port: number
 ): Promise<[vscode.Terminal, boolean]> {
   const [scriptName, scriptPath] = await omegaEditServer.setupServer(
     rootPath,
@@ -146,6 +154,20 @@ export async function startOmegaEditServer(
     ctx.asAbsolutePath('./node_modules/omega-edit')
   )
 
-  let terminal = await runScript(scriptPath, scriptName)
+  const terminal = await runScript(
+    scriptPath,
+    scriptName,
+    null,
+    ['--port', port.toString()],
+    {
+      OMEGA_EDIT_SERVER_PORT: port.toString(),
+    },
+    '',
+    false,
+    port
+  )
+
+  displayTerminalExitStatus(terminal)
+
   return [terminal, true]
 }
