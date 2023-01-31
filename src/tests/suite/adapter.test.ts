@@ -17,8 +17,9 @@
 
 import * as assert from 'assert'
 import * as path from 'path'
-import { DebugClient } from 'vscode-debugadapter-testsupport'
+import { DebugClient } from '@vscode/debugadapter-testsupport'
 import { TEST_SCHEMA, PROJECT_ROOT } from './common'
+import { setup } from 'mocha'
 
 suite('Daffodil Debug Adapter', () => {
   const DEBUG_ADAPTER = path.join(PROJECT_ROOT, 'out/adapter/debugAdapter.js')
