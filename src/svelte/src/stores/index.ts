@@ -33,6 +33,7 @@ export const addressValue = writable(16)
 export const gotoOffsetMax = writable(0)
 export const commitErrMsg = writable('')
 export const searching = writable(false)
+export const searchResults = writable([])
 export const addressDisplay = writable('')
 export const editorSelection = writable('')
 export const selectionEndStore = writable(0)
@@ -43,8 +44,9 @@ export const dataViewEndianness = writable('be')
 export const rawEditorSelectionTxt = writable('')
 export const selectedFileData = writable(new Uint8Array(0))
 export const viewportData = writable(new Uint8Array(0))
+export const replaceData = writable('')
 
-export const asciiCount = derived(viewportData, ($viewportData) => {
+export const asciiCount = derived(viewportData, $viewportData=>{
   return countAscii($viewportData)
 })
 
@@ -52,372 +54,206 @@ export function countAscii(buf: Uint8Array): number {
   return buf.reduce((a, b) => a + (b < 128 ? 1 : 0), 0)
 }
 
-export const selectionSize = derived(
-  [selectionStartStore, selectionEndStore, editorSelection],
-  ([$selectionStartStore, $selectionEndStore, $editorSelection]) => {
-    if ($editorSelection !== '') {
+export const selectionSize = derived([selectionStartStore, selectionEndStore, editorSelection], ([$selectionStartStore, $selectionEndStore, $editorSelection])=>{
+    if($editorSelection !== '') {
       return $selectionEndStore - $selectionStartStore + 1
     }
     return 0
-  }
-)
-
-export const bytesPerRow = derived(displayRadix, ($displayRadix) => {
-  let newVal: number
-  $displayRadix === 2 ? (newVal = 8) : (newVal = 16)
-
-  return newVal
 })
 
-export const fileByteEnd = derived(
-  [bytesPerRow, filesize],
-  ([$bytesPerRow, $filesize]) => {
-    return $filesize / $bytesPerRow
-  }
-)
+export const bytesPerRow = derived(displayRadix, $displayRadix=>{
+    let newVal: number
+    ($displayRadix === 2)? newVal = 8 : newVal = 16
 
-export const selectionActive = derived(
-  [selectionSize, editorSelection],
-  ([$selectionSize, $editorSelection]) => {
-    return $selectionSize >= 0 && $editorSelection !== ''
-  }
-)
+    return newVal
+})
 
-export const warningable = derived(editCount, ($editCount) => {
-  if ($editCount > 0) {
+export const fileByteEnd = derived([bytesPerRow, filesize], ([$bytesPerRow, $filesize])=>{
+  return $filesize / $bytesPerRow
+})
+
+export const selectionActive = derived([selectionSize,editorSelection], ([$selectionSize, $editorSelection])=>{
+  return ($selectionSize >= 0 && $editorSelection !== '')
+})
+
+export const warningable = derived(editCount, $editCount=>{
+  if($editCount > 0){
     return true
   }
   return false
 })
 
-export const commitable = derived(
-  [editorEncoding, rawEditorSelectionTxt, selectionActive],
-  ([$editorEncoding, $rawEditorSelectionTxt, $selectionActive]) => {
-    if (!$selectionActive) return false
-    let invalidChars: RegExpMatchArray
-    switch ($editorEncoding) {
-      case 'hex':
-        invalidChars = $rawEditorSelectionTxt.match(/[^0-9a-fA-F]/gi)
-        if (invalidChars) {
-          commitErrMsg.update(() => {
+export const commitable = derived([editorEncoding, rawEditorSelectionTxt, selectionActive], ([$editorEncoding, $rawEditorSelectionTxt, $selectionActive]) => {
+  if(!$selectionActive)
+    return false
+  let invalidChars: RegExpMatchArray
+  switch($editorEncoding){
+    case 'hex':
+      invalidChars = $rawEditorSelectionTxt.match(/[^0-9a-fA-F]/gi)
+      if(invalidChars){
+          commitErrMsg.update(()=>{
             return `Invalid HEX characters`
           })
-          return false
-        } else if ($rawEditorSelectionTxt.length % 2 != 0) {
-          commitErrMsg.update(() => {
-            return 'Invalid HEX editable length'
-          })
-          return false
-        }
-        break
-      case 'binary':
-        invalidChars = $rawEditorSelectionTxt.match(/[^0-1]/gi)
-        if (invalidChars) {
-          commitErrMsg.update(() => {
-            return `Invalid BIN characters`
-          })
-          return false
-        } else if ($rawEditorSelectionTxt.length % 8 != 0) {
-          commitErrMsg.update(() => {
-            return 'Invalid BIN editable length'
-          })
-          return false
-        }
-        break
-      case 'base64':
-        invalidChars = $rawEditorSelectionTxt.match(/[^A-Za-z0-9+/]+={0,2}$/gi)
-        if (invalidChars) {
-          commitErrMsg.update(() => {
-            return 'Invalid BASE64 characters'
-          })
-          return false
-        }
-        break
-    }
-    return true
+        return false
+      }
+      else if(($rawEditorSelectionTxt.length) % 2 != 0){
+        commitErrMsg.update(()=>{
+          return "Invalid HEX editable length"
+        })
+        return false
+      }
+      break
+    case 'binary':
+      invalidChars = $rawEditorSelectionTxt.match(/[^0-1]/gi)
+      if(invalidChars){
+        commitErrMsg.update(()=>{
+          return `Invalid BIN characters`
+        })
+        return false
+      }
+      else if(($rawEditorSelectionTxt.length) % 8 != 0) {
+        commitErrMsg.update(()=>{
+          return "Invalid BIN editable length"
+        })
+        return false
+      }
+      break
+    case 'base64':
+      invalidChars = $rawEditorSelectionTxt.match(/[^A-Za-z0-9+/]+={0,2}$/gi)
+      if(invalidChars){
+        commitErrMsg.update(()=>{
+          return 'Invalid BASE64 characters'
+        })
+        return false
+      }
+      break
   }
-)
-
-export const dataView = derived(selectedFileData, ($selectedFileData) => {
-  return new DataView($selectedFileData.buffer)
+  return true
 })
 
-export const byteOffsetPos = derived(
-  [cursorPos, editorEncoding],
-  ([$cursorPos, $editorEncoding]) => {
-    let bytePOS: number
-    switch ($editorEncoding) {
-      case 'hex':
-        bytePOS = Math.floor($cursorPos / 2)
-        break
-      case 'binary':
-        bytePOS = Math.floor($cursorPos / 8)
-        break
-      default:
-        bytePOS = $cursorPos
-        break
-    }
+export const dataView = derived(selectedFileData, $selectedFileData=>{
+    return new DataView($selectedFileData.buffer)
+})
 
-    return bytePOS
+export const byteOffsetPos = derived([cursorPos, editorEncoding], ([$cursorPos, $editorEncoding]) => {
+  let bytePOS: number
+  switch($editorEncoding){
+    case 'hex':
+      bytePOS = Math.floor(($cursorPos) / 2)
+      break
+    case 'binary':
+      bytePOS = Math.floor(($cursorPos) / 8)
+      break
+    default:
+      bytePOS = $cursorPos
+      break
   }
-)
+  
+  return bytePOS
+})
 
-export const dataViewLookAhead = derived(
-  [dataView, byteOffsetPos, disableDataView],
-  ([$dataView, $byteOffsetPos]) => {
-    return $dataView.byteLength - $byteOffsetPos.valueOf()
-  }
-)
+export const dataViewLookAhead = derived([dataView, byteOffsetPos, disableDataView], ([$dataView, $byteOffsetPos]) => {
+  return $dataView.byteLength - $byteOffsetPos.valueOf()
+})
 
 export const int8 = derived(
-  [byteOffsetPos, dataViewLookAhead, displayRadix, dataView, selectionActive],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $displayRadix,
-    $dataView,
-    $selectionActive,
-  ]) => {
-    try {
-      if ($dataViewLookAhead >= 1 && $selectionActive)
+    [byteOffsetPos, dataViewLookAhead, displayRadix, dataView, selectionActive], 
+    ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataView, $selectionActive])=>{
+  try{
+    if($dataViewLookAhead >= 1 && $selectionActive)
         return $dataView.getInt8($byteOffsetPos).toString($displayRadix)
-    } catch (RangeError) {}
-    return ''
-  }
-)
+  }catch(RangeError){ }
+  return ''
+})
 
 export const uint8 = derived(
-  [byteOffsetPos, dataViewLookAhead, displayRadix, dataView, selectionActive],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $displayRadix,
-    $dataView,
-    $selectionActive,
-  ]) => {
-    try {
-      if ($dataViewLookAhead >= 1 && $selectionActive)
-        return $dataView.getUint8($byteOffsetPos).toString($displayRadix)
-      return ''
-    } catch (RangeError) {}
+    [byteOffsetPos, dataViewLookAhead, displayRadix, dataView, selectionActive], 
+    ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataView, $selectionActive])=>{
+  try{
+    if($dataViewLookAhead >= 1 && $selectionActive)
+      return $dataView.getUint8($byteOffsetPos).toString($displayRadix)
     return ''
-  }
-)
+  }catch(RangeError){ }
+  return ''
+})
 
 export const int16 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    displayRadix,
-    dataView,
-    selectionActive,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $displayRadix,
-    $dataView,
-    $selectionActive,
-    $dataViewEndianness,
-  ]) => {
-    try {
-      if ($dataViewLookAhead >= 2 && $selectionActive)
-        return $dataView
-          .getInt16($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-    } catch (RangeError) {}
-    return ''
+    [byteOffsetPos, dataViewLookAhead, displayRadix, dataView, selectionActive, dataViewEndianness], 
+    ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataView, $selectionActive, $dataViewEndianness])=>{
+  try{
+    if($dataViewLookAhead >= 2 && $selectionActive)
+      return $dataView.getInt16($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
   }
-)
+  catch(RangeError){  }
+    return ''
+})
 
 export const uint16 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    displayRadix,
-    dataView,
-    selectionActive,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $displayRadix,
-    $dataView,
-    $selectionActive,
-    $dataViewEndianness,
-  ]) => {
-    try {
-      if ($dataViewLookAhead >= 2 && $selectionActive)
-        return $dataView
-          .getUint16($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-    } catch (RangeError) {}
-    return ''
-  }
-)
+    [byteOffsetPos, dataViewLookAhead, displayRadix, dataView, selectionActive, dataViewEndianness], 
+    ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataView, $selectionActive, $dataViewEndianness])=>{
+  try{
+    if($dataViewLookAhead >= 2 && $selectionActive)
+      return $dataView.getUint16($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+  }catch(RangeError){}
+  return ''
+})
 
 export const int32 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    displayRadix,
-    dataView,
-    selectionActive,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $displayRadix,
-    $dataView,
-    $selectionActive,
-    $dataViewEndianness,
-  ]) => {
-    try {
-      if ($dataViewLookAhead >= 4 && $selectionActive)
-        return $dataView
-          .getInt32($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-    } catch (RangeError) {}
-    return ''
-  }
-)
+    [byteOffsetPos, dataViewLookAhead, displayRadix, dataView, selectionActive, dataViewEndianness], 
+    ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataView, $selectionActive, $dataViewEndianness])=>{
+  try{
+    if($dataViewLookAhead >= 4 && $selectionActive)
+      return $dataView.getInt32($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+  }catch(RangeError){ }
+  return ''
+})
 
 export const uint32 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    displayRadix,
-    dataView,
-    selectionActive,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $displayRadix,
-    $dataView,
-    $selectionActive,
-    $dataViewEndianness,
-  ]) => {
-    try {
-      if ($dataViewLookAhead >= 4 && $selectionActive)
-        return $dataView
-          .getUint32($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-    } catch (RangeError) {}
-    return ''
-  }
-)
+    [byteOffsetPos, dataViewLookAhead, displayRadix, dataView, selectionActive, dataViewEndianness], 
+    ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataView, $selectionActive, $dataViewEndianness])=>{
+  try{
+  if($dataViewLookAhead >= 4 && $selectionActive)
+    return $dataView.getUint32($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+  }catch(RangeError){ }
+  return ''
+})
 
 export const float32 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    displayRadix,
-    dataView,
-    selectionActive,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $displayRadix,
-    $dataView,
-    $selectionActive,
-    $dataViewEndianness,
-  ]) => {
-    try {
-      if ($dataViewLookAhead >= 4 && $selectionActive)
-        return $dataView
-          .getFloat32($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-          .substring(0, 32)
-    } catch (RangeError) {}
-    return ''
-  }
-)
+    [byteOffsetPos, dataViewLookAhead, displayRadix, dataView, selectionActive, dataViewEndianness], 
+    ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataView, $selectionActive, $dataViewEndianness])=>{
+  try{
+  if($dataViewLookAhead >= 4 && $selectionActive)
+    return $dataView.getFloat32($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix).substring(0, 32)
+  }catch(RangeError){ }
+  return ''
+})
 
 export const int64 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    displayRadix,
-    dataView,
-    selectionActive,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $displayRadix,
-    $dataView,
-    $selectionActive,
-    $dataViewEndianness,
-  ]) => {
-    try {
-      if ($dataViewLookAhead >= 8 && $selectionActive)
-        return $dataView
-          .getBigInt64($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-    } catch (RangeError) {}
-    return ''
-  }
-)
+    [byteOffsetPos, dataViewLookAhead, displayRadix, dataView, selectionActive, dataViewEndianness], 
+    ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataView, $selectionActive, $dataViewEndianness])=>{
+  try{
+  if($dataViewLookAhead >= 8 && $selectionActive)
+    return $dataView.getBigInt64($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+  }catch(RangeError){ }
+  return ''
+})
 
 export const uint64 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    displayRadix,
-    dataView,
-    selectionActive,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $displayRadix,
-    $dataView,
-    $selectionActive,
-    $dataViewEndianness,
-  ]) => {
-    try {
-      if ($dataViewLookAhead >= 8 && $selectionActive)
-        return $dataView
-          .getBigUint64($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-    } catch (RangeError) {}
-    return ''
-  }
-)
+    [byteOffsetPos, dataViewLookAhead, displayRadix, dataView, selectionActive, dataViewEndianness], 
+    ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataView, $selectionActive, $dataViewEndianness])=>{
+  try{
+  if($dataViewLookAhead >= 8 && $selectionActive)
+    return $dataView.getBigUint64($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix)
+  }catch(RangeError){}
+  return ''
+})
 
 export const float64 = derived(
-  [
-    byteOffsetPos,
-    dataViewLookAhead,
-    displayRadix,
-    dataView,
-    selectionActive,
-    dataViewEndianness,
-  ],
-  ([
-    $byteOffsetPos,
-    $dataViewLookAhead,
-    $displayRadix,
-    $dataView,
-    $selectionActive,
-    $dataViewEndianness,
-  ]) => {
-    try {
-      if ($dataViewLookAhead >= 8 && $selectionActive)
-        return $dataView
-          .getFloat64($byteOffsetPos, $dataViewEndianness === 'le')
-          .toString($displayRadix)
-          .substring(0, 32)
-    } catch (RangeError) {}
-    return ''
-  }
-)
+    [byteOffsetPos, dataViewLookAhead, displayRadix, dataView, selectionActive, dataViewEndianness], 
+    ([$byteOffsetPos, $dataViewLookAhead, $displayRadix, $dataView, $selectionActive, $dataViewEndianness])=>{
+  try{
+  if($dataViewLookAhead >= 8 && $selectionActive)
+    return $dataView.getFloat64($byteOffsetPos, ($dataViewEndianness === 'le')).toString($displayRadix).substring(0, 32)
+  }catch(RangeError){  }
+  return ''
+})

@@ -15,17 +15,18 @@
  * limitations under the License.
  */
 export enum MessageCommand {
-  fileInfo,
-  commit,
-  search,
-  addBreakpoint,
-  editorOnChange,
-  loadFile,
-  requestEditedData,
-  setSessionFile,
-  updateLogicalDisplay,
+    fileInfo,
+    commit,
+    search,
+    searchAndReplace,
+    addBreakpoint,
+    editorOnChange,
+    loadFile,
+    requestEditedData,
+    setSessionFile,
+    updateLogicalDisplay,
 }
 export type EditorMessage = {
-  command: MessageCommand
-  data: Record<string, any>
+    command: MessageCommand
+    data: Record<string, any>
 }
