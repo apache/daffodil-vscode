@@ -161,18 +161,23 @@ export class DataEditWebView implements vscode.Disposable {
       case MessageCommand.commit:
         let fileOffset = message.data.selectionStart
         let data = message.data.selectionData
-        let dataLen = message.data.selectionDataLen
+        let originalSelectionLen = message.data.selectionDataLen + 1
         vscode.window.showInformationMessage(
-          `Commit Received - Offset: ${fileOffset} | Length: ${dataLen} | Data: ${data}`
+          `Commit Received - Offset: ${fileOffset} | Length: ${originalSelectionLen} | Data: ${data}`
         )
         var omegaEdit = new OmegaEdit(
           this.omegaSessionId,
           fileOffset,
           data,
-          dataLen,
+          originalSelectionLen,
           this.panel
         )
-        await omegaEdit.replace(this.omegaSessionId, fileOffset, dataLen, data)
+        await omegaEdit.replace(
+          this.omegaSessionId,
+          fileOffset,
+          originalSelectionLen,
+          data
+        )
         await viewportSubscribe(
           this.panel,
           this.omegaViewports['vpAll'],

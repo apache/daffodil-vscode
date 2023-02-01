@@ -64,7 +64,8 @@ limitations under the License.
     warningable,
     editCount,
     searchResults,
-    replaceData
+    replaceData,
+    selectionOriginalEnd,
     } from '../stores'
   import { 
     radixOpt, 
@@ -326,6 +327,11 @@ limitations under the License.
         return Math.floor(selected.selectionEnd / 2)
       return selectionOffsetsByRadix[$displayRadix].end
     })
+    selectionOriginalEnd.update(()=>{
+      if(selected.id === 'logical')
+        return Math.floor(selected.selectionEnd / 2)
+      return selectionOffsetsByRadix[$displayRadix].end
+    })
   }
 
   function handleSelectionEvent(e: Event){
@@ -356,7 +362,7 @@ limitations under the License.
       data: {
         selectionStart: $selectionStartStore,
         selectionData: $selectedFileData,
-        selectionDataLen: $selectedFileData.byteLength
+        selectionDataLen: $selectionOriginalEnd - $selectionStartStore
       }
     })
   }
@@ -565,8 +571,6 @@ limitations under the License.
       <legend>Content Controls 
       {#if !$commitable}
         <span class='errMsg'>{$commitErrMsg}</span>
-      {:else if $warningable}
-        <span class='warningMsg'>Commit will overwrite</span>
       {/if}
       </legend>
       <div class="contentControls" id="content_controls">
@@ -658,6 +662,7 @@ limitations under the License.
   </div>
 </main>
 <hr>
+
 <!-- svelte-ignore css-unused-selector -->
 <style lang="scss">
   /* CSS reset */
