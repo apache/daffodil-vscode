@@ -115,7 +115,12 @@ export class OmegaEdit {
     searchPattern: string,
     caseInsensitive
   ): Promise<number> {
-    var result = await this.search(fileSize, searchPattern, caseInsensitive, 1)
+    const result = await this.search(
+      fileSize,
+      searchPattern,
+      caseInsensitive,
+      1
+    )
     return result[0]
   }
 
@@ -125,7 +130,7 @@ export class OmegaEdit {
     replaceText: string,
     caseInsensitive: boolean
   ) {
-    var index = await this.singleSearch(
+    let index = await this.singleSearch(
       fileSize,
       searchPattern,
       caseInsensitive
@@ -178,7 +183,7 @@ export class OmegaEdit {
         await this.replace(this.sessionId, this.offset, this.len, this.data)
         break
       case 'search':
-        var searchResults = await this.search(
+        const searchResults = await this.search(
           fileSize,
           searchPattern,
           caseInsensitive

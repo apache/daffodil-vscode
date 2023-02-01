@@ -78,10 +78,8 @@ export const selectionActive = derived([selectionSize,editorSelection], ([$selec
 })
 
 export const warningable = derived(editCount, $editCount=>{
-  if($editCount > 0){
-    return true
-  }
-  return false
+  return $editCount > 0;
+
 })
 
 export const commitable = derived([editorEncoding, rawEditorSelectionTxt, selectionActive], ([$editorEncoding, $rawEditorSelectionTxt, $selectionActive]) => {

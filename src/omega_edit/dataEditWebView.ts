@@ -197,12 +197,12 @@ export class DataEditWebView implements vscode.Disposable {
         break
       case MessageCommand.searchAndReplace:
       case MessageCommand.search:
-        var viewportData = await omegaEditViewport.getViewportData(
+        const viewportData = await omegaEditViewport.getViewportData(
           this.omegaViewports['vpAll']
         )
-        var searchData = message.data.searchData
-        var filesize = viewportData.getLength()
-        var caseInsensitive = message.data.caseInsensitive
+        const searchData = message.data.searchData
+        const filesize = viewportData.getLength()
+        const caseInsensitive = message.data.caseInsensitive
         var omegaEdit = new OmegaEdit(
           this.omegaSessionId,
           viewportData.getOffset(),
