@@ -152,38 +152,7 @@ async function openFilePicker(description) {
       title: description,
     })
     .then(async (fileUri) => {
-      if (fileUri && fileUri[0]) {
-        let stats = fs.statSync(fileUri[0].fsPath)
-
-        if (stats.isDirectory()) {
-          let basePath = fileUri[0].fsPath
-          let fileString = ''
-
-          fs.readdirSync(basePath).forEach((file) => {
-            if (file.includes('.jar')) {
-              fileString += `${basePath}/${file},`
-            }
-          })
-
-          return fileString.substring(0, fileString.length - 1) // make sure to remove comma at the end of the string
-        }
-
-        if (fileUri.length === 1) {
-          return fileUri[0].fsPath
-        } else {
-          let files = ''
-
-          fileUri.forEach((file) => {
-            if (file.fsPath.includes('.jar')) {
-              files += `${file.fsPath},`
-            }
-          })
-
-          return files.substring(0, files.length - 1) // make sure to remove comma at the end of the string
-        }
-      }
-
-      return ''
+      return fileUri && fileUri[0] ? fileUri[0].fsPath : ''
     })
 
   if (chosenFile.includes(rootPath)) {
@@ -323,13 +292,22 @@ class LaunchWizard {
     let stopOnEntry = defaultValues.stopOnEntry ? 'checked' : ''
     let trace = defaultValues.trace ? 'checked' : ''
     let useExistingServer = defaultValues.useExistingServer ? 'checked' : ''
-    let daffodilDebugClasspathAction =
-      defaultValues.daffodilDebugClasspathAction === 'append'
-        ? defaultConf.daffodilDebugClasspath
-        : 'replace'
-    let replaceCheck =
-      daffodilDebugClasspathAction !== 'append' ? 'checked' : ''
-    let appendCheck = daffodilDebugClasspathAction === 'append' ? 'checked' : ''
+
+    let daffodilDebugClasspathList =
+      '<ul id="daffodilDebugClasspathTable" style="list-style: none; padding-left: 20px;">'
+    if (defaultValues.daffodilDebugClasspath) {
+      let itemArray = defaultValues.daffodilDebugClasspath.split(':')
+      for (var i = 0; i < itemArray.length; i++) {
+        daffodilDebugClasspathList += `
+          <li style="margin-left: -5px;" onclick="removeDebugClasspathItem(this)">
+            <p id="debug-classpath-li-${itemArray[i]}" class="debug-classpath-item">
+              <button id="remove-debug-classpath-li-${itemArray[i]}" class="minus-button" type="button">-</button>
+              ${itemArray[i]}
+            </p>
+          </li>`
+      }
+    }
+    daffodilDebugClasspathList += '</ul>'
 
     let infosetFormatSelect = ''
     let infosetFormatTypes = ['xml', 'json']
@@ -410,20 +388,13 @@ class LaunchWizard {
 
       <div id="daffodilDebugClasspathDiv" class="setting-div">
         <p>Daffodil Debugger Classpath:</p>
-        <p class="setting-description">Additional classpaths to be added to the debugger.</p>
+        <p class="setting-description">Additional classpaths to be added to the debugger:</p>
 
-        <label class="container" style="margin-top: 10px; margin-bottom: 0px;">Replace value in input box with selected files.
-          <input type="checkbox" id="daffodilDebugClasspathReplace" ${replaceCheck} onclick="daffodilDebugClassAction('replace')">
-          <span class="checkmark"></span>
-        </label>
+        ${daffodilDebugClasspathList}
 
-        <label class="container" style="margin-top: 10px; margin-bottom: 10px;">Append selected files to value in input box.
-          <input type="checkbox" id="daffodilDebugClasspathAppend" ${appendCheck} onclick="daffodilDebugClassAction('append')">
-          <span class="checkmark"></span>
-        </label>
-
-        <input class="file-input" value="${defaultValues.daffodilDebugClasspath}" id="daffodilDebugClasspath"/>
-        <button id="daffodilDebugClasspathBrowse" class="browse-button" type="button" onclick="filePicker('daffodilDebugClasspath', 'Select jar files/folder with desired jars')">Browse</button>
+        <p style="margin-left: 5px">
+          <button id="daffodilDebugClasspathBrowse" class="browse-button" type="button" onclick="filePicker('daffodilDebugClasspath', 'Select jar files/folder with desired jars')">Browse</button>
+        </p>
       </div>
 
       <div id="dataDiv" class="setting-div">

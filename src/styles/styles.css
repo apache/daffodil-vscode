@@ -30,6 +30,20 @@
   margin-left: 10px;
 }
 
+.debug-classpath-item {
+  color: white;
+  cursor: pointer;
+  background-color: rgb(80, 78, 78);
+  width: 375px;
+  height: 25px;
+  font-size: 12px;
+  border: none;
+  border-radius: 12px;
+  padding-left: 7px;
+  margin: 0px;
+  margin-top: 5px;
+}
+
 /* Hide the browser's default checkbox */
 .container input {
   position: absolute;
@@ -117,6 +131,20 @@
   cursor: pointer;
   width: 75px;
   height: 25px;
+}
+
+.minus-button {
+  background-color: lightgray;
+  border: none;
+  border-radius: 12px;
+  color: black;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  cursor: pointer;
+  width: 25px;
+  margin-top: 4px;
 }
 
 .setting-description {
