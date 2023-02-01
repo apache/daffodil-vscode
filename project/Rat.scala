@@ -29,12 +29,16 @@ object Rat {
     file("language/syntax.json"),
     file("language/syntaxes/dfdl.tmLanguage.json"),
     file("package.json"),
+    file("svelte/package.json"),
     file(".prettierrc"),
+    file("svelte/.prettierrc"),
     // ignore images - daffiodil.ico
     file("images/daffodil.ico"),
     // yarn and rpm generated files
     file("yarn.lock"),
+    file("svelte/yarn.lock"),
     file("package-lock.json"),
+    file("svelte/package-lock.json"),
     // files listing packages with no license or notice
     file("build/package/NOLICENSE"),
     file("build/package/NONOTICE")

@@ -30,3 +30,5 @@
 !src/omega_edit/interface.html
 !node_modules/omega-edit/omega-edit-scala-server*.zip
 !src/language/providers/intellisense/DFDLGeneralFormat.dfdl.xsd
+!dist/styles.css
+!dist/views/dataEditor/index.js

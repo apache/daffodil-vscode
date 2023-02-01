@@ -5,24 +5,24 @@
 
 'use strict'
 
-import * as vscode from 'vscode'
+import * as fs from 'fs'
 import * as path from 'path'
-import * as hexView from '../hexView'
+import * as vscode from 'vscode'
 import {
-  WorkspaceFolder,
+  CancellationToken,
   DebugConfiguration,
   ProviderResult,
-  CancellationToken,
+  WorkspaceFolder,
 } from 'vscode'
-import { DaffodilDebugSession } from './daffodilDebug'
-import { getDebugger, getDataFileFromFolder } from '../daffodilDebugger'
-import { FileAccessor } from './daffodilRuntime'
-import * as fs from 'fs'
+import { getDataFileFromFolder, getDebugger } from '../daffodilDebugger'
+import * as hexView from '../hexView'
 import * as infoset from '../infoset'
-import { getConfig, getCurrentConfig, setCurrentConfig } from '../utils'
+import * as dfdlLang from '../language/dfdl'
 import * as launchWizard from '../launchWizard/launchWizard'
 import * as omegaEditClient from '../omega_edit/client'
-import * as dfdlLang from '../language/dfdl'
+import { getConfig, getCurrentConfig, setCurrentConfig } from '../utils'
+import { DaffodilDebugSession } from './daffodilDebug'
+import { FileAccessor } from './daffodilRuntime'
 
 /** Method to file path for program and data
  * Details:
@@ -68,7 +68,7 @@ function createDebugRunFileConfigs(
   runLast = false
 ) {
   let targetResource = resource
-  let noDebug = runOrDebug === 'run' ? true : false
+  let noDebug = runOrDebug === 'run'
 
   if (!targetResource && vscode.window.activeTextEditor) {
     targetResource = vscode.window.activeTextEditor.document.uri
@@ -156,16 +156,10 @@ export function activateDaffodilDebug(
         'experimentalFeaturesEnabled',
         true
       )
-
-      omegaEditClient.activate(context)
-
       vscode.window.showInformationMessage(
         'DFDL: Experimental Features Enabled!'
       )
-    })
-  )
-
-  context.subscriptions.push(
+    }),
     vscode.commands.registerCommand(
       'extension.dfdl-debug.getProgramName',
       async (fileRequested = null) => {
@@ -176,10 +170,7 @@ export function activateDaffodilDebug(
           'Select DFDL schema to debug'
         )
       }
-    )
-  )
-
-  context.subscriptions.push(
+    ),
     vscode.commands.registerCommand(
       'extension.dfdl-debug.getDataName',
       async (fileRequested = null) => {
@@ -193,14 +184,11 @@ export function activateDaffodilDebug(
     )
   )
 
-  // register a configuration provider for 'dfdl' debug type
   const provider = new DaffodilConfigurationProvider(context)
   context.subscriptions.push(
-    vscode.debug.registerDebugConfigurationProvider('dfdl', provider)
-  )
-
-  // register a dynamic configuration provider for 'dfdl' debug type
-  context.subscriptions.push(
+    // register a configuration provider for 'dfdl' debug type
+    vscode.debug.registerDebugConfigurationProvider('dfdl', provider),
+    // register a dynamic configuration provider for 'dfdl' debug type
     vscode.debug.registerDebugConfigurationProvider(
       'dfdl',
       {
@@ -257,8 +245,8 @@ export function activateDaffodilDebug(
     context.subscriptions.push(factory)
   }
 
-  // override VS Code's default implementation of the debug hover
   context.subscriptions.push(
+    // override VS Code's default implementation of the debug hover
     vscode.languages.registerEvaluatableExpressionProvider('xml', {
       provideEvaluatableExpression(
         document: vscode.TextDocument,
@@ -269,11 +257,8 @@ export function activateDaffodilDebug(
           ? new vscode.EvaluatableExpression(wordRange)
           : undefined
       },
-    })
-  )
-
-  // override VS Code's default implementation of the "inline values" feature"
-  context.subscriptions.push(
+    }),
+    // override VS Code's default implementation of the "inline values" feature"
     vscode.languages.registerInlineValuesProvider('xml', {
       provideInlineValues(
         document: vscode.TextDocument,
@@ -315,6 +300,7 @@ export function activateDaffodilDebug(
 
   dfdlLang.activate(context)
   infoset.activate(context)
+  omegaEditClient.activate(context)
   launchWizard.activate(context)
 }
 
