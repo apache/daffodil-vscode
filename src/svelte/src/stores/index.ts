@@ -17,7 +17,13 @@
 
 import { writable, derived } from 'svelte/store'
 import { localStore } from './localStore'
+
 const state_key = 'apache-daffodil-data-editor.state'
+
+// data validation regex
+const binary_regex = /^[0-1]*$/
+const hex_regex = /^[0-9a-fA-F]*$/
+const base64_regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/
 
 export const answer = localStore(state_key + '.answer', 42)
 export const filesize = writable(0)
@@ -85,11 +91,9 @@ export const warningable = derived(editCount, $editCount=>{
 export const commitable = derived([editorEncoding, rawEditorSelectionTxt, selectionActive], ([$editorEncoding, $rawEditorSelectionTxt, $selectionActive]) => {
   if(!$selectionActive)
     return false
-  let invalidChars: RegExpMatchArray
   switch($editorEncoding){
     case 'hex':
-      invalidChars = $rawEditorSelectionTxt.match(/[^0-9a-fA-F]/gi)
-      if(invalidChars){
+      if(!hex_regex.test($rawEditorSelectionTxt)){
           commitErrMsg.update(()=>{
             return `Invalid HEX characters`
           })
@@ -103,8 +107,7 @@ export const commitable = derived([editorEncoding, rawEditorSelectionTxt, select
       }
       break
     case 'binary':
-      invalidChars = $rawEditorSelectionTxt.match(/[^0-1]/gi)
-      if(invalidChars){
+      if(!binary_regex.test($rawEditorSelectionTxt)){
         commitErrMsg.update(()=>{
           return `Invalid BIN characters`
         })
@@ -118,8 +121,7 @@ export const commitable = derived([editorEncoding, rawEditorSelectionTxt, select
       }
       break
     case 'base64':
-      invalidChars = $rawEditorSelectionTxt.match(/[^A-Za-z0-9+/]+={0,2}$/gi)
-      if(invalidChars){
+      if(!base64_regex.test($rawEditorSelectionTxt)){
         commitErrMsg.update(()=>{
           return 'Invalid BASE64 characters'
         })
