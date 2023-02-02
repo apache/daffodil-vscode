@@ -483,10 +483,10 @@ limitations under the License.
 <header>
   <fieldset class="box">
     <legend>File Metrics</legend>
-    <div id="file_metrics_vw">
+    <div class="file-metrics">
       File: <span id="file_name">{filename}</span>
       <hr />
-      Type:<span id="file_type">{filetype}</span>
+      Type: <span id="file_type">{filetype}</span>
       <br />Size: <span id="file_byte_cnt">{$filesize}</span>
       <br />ASCII count: <span id="ascii_byte_cnt">{$asciiCount}</span>
     </div>
@@ -520,13 +520,13 @@ limitations under the License.
       {#if $searchData.length > 0 && !$searchable}
         <span class="errMsg">{$searchErrMsg}</span>
       {/if}
-      <input id="search_input" bind:value={$searchData} />
+      <input bind:value={$searchData} />
       <br />
       Replace:
       {#if $replaceData.length > 0 && !$replaceable}
         <span class="errMsg">{$replaceErrMsg}</span>
       {/if}
-      <input id="replace_input" bind:value={$replaceData} />
+      <input bind:value={$replaceData} />
       <br />
       {#if !$searchable}
         <button id="search_btn" disabled>Search</button>
@@ -633,7 +633,7 @@ limitations under the License.
       on:click={handleEditorEvent}
       on:input={handleEditorEvent}
     />
-    <fieldset class="box">
+    <fieldset class="box margin-top">
       <legend
         >Content Controls
         {#if !$commitable}
@@ -663,29 +663,27 @@ limitations under the License.
         <hr />
         <div class="grid-container-two-columns">
           <div class="grid-container-column">
-            <div>
-              <label for="endianness"
-                >Endianness:
-                <select id="endianness" bind:value={$dataViewEndianness}>
-                  {#each endiannessOpt as { name, value }}
-                    <option {value}>{name}</option>
-                  {/each}
-                </select>
-              </label>
-            </div>
-            <div>
-              <label for="edit_encoding"
-                >Encoding:
-                <select id="edit_encoding" bind:value={$editorEncoding}>
-                  {#each encoding_groups as { group, encodings }}
-                    <optgroup label={group}>
-                      {#each encodings as { name, value }}
-                        <option {value}>{name}</option>
-                      {/each}
-                    </optgroup>
-                  {/each}
-                </select>
-              </label>
+            <div class="content-select-column">
+              <div class="content-select-container">
+                <label for="endianness">Endianness:</label>
+                  <select class="content-select" bind:value={$dataViewEndianness}>
+                    {#each endiannessOpt as { name, value }}
+                      <option {value}>{name}</option>
+                    {/each}
+                  </select>
+              </div>
+              <div class="content-select-container">
+                <label for="edit_encoding">Encoding:</label>
+                  <select class="content-select" bind:value={$editorEncoding}>
+                    {#each encoding_groups as { group, encodings }}
+                      <optgroup label={group}>
+                        {#each encodings as { name, value }}
+                          <option {value}>{name}</option>
+                        {/each}
+                      </optgroup>
+                    {/each}
+                  </select>
+              </div>
             </div>
             <div class="advanced" hidden>
               <label for="lsb"
@@ -709,104 +707,106 @@ limitations under the License.
             </div>
           </div>
           <div class="grid-container-column">
-            <div id="data_vw">
-              &nbsp;Offset: <span id="offset_dv" contenteditable="true"
-                >{$byteOffsetPos}</span
-              >
-              <span
-                id="b8_dv"
-                on:mouseenter={highlightDataView}
-                on:mouseleave={clearDataViewHighlight}
-              >
-                <br /><label for="int8_dv"
-                  >&nbsp;&nbsp;&nbsp;int8: <text-field
-                    id="int8_dv"
-                    contenteditable="true"
-                    bind:textContent={$int8}
-                  /></label
+            <div class="data-view-container">
+              <div id="data_vw">
+                &nbsp;Offset: <span id="offset_dv" contenteditable="true"
+                  >{$byteOffsetPos}</span
                 >
-                <br /><label for="uint8_dv"
-                  >&nbsp;&nbsp;uint8: <text-field
-                    id="uint8_dv"
-                    contenteditable="true"
-                    bind:textContent={$uint8}
-                  /></label
+                <span
+                  id="b8_dv"
+                  on:mouseenter={highlightDataView}
+                  on:mouseleave={clearDataViewHighlight}
                 >
-              </span>
-              <span
-                id="b16_dv"
-                on:mouseenter={highlightDataView}
-                on:mouseleave={clearDataViewHighlight}
-              >
-                <br /><label for="int16_dv"
-                  >&nbsp;&nbsp;int16: <text-field
-                    id="int16_dv"
-                    contenteditable="true"
-                    bind:textContent={$int16}
-                  /></label
+                  <br /><label for="int8_dv"
+                    >&nbsp;&nbsp;&nbsp;int8: <text-field
+                      id="int8_dv"
+                      contenteditable="true"
+                      bind:textContent={$int8}
+                    /></label
+                  >
+                  <br /><label for="uint8_dv"
+                    >&nbsp;&nbsp;uint8: <text-field
+                      id="uint8_dv"
+                      contenteditable="true"
+                      bind:textContent={$uint8}
+                    /></label
+                  >
+                </span>
+                <span
+                  id="b16_dv"
+                  on:mouseenter={highlightDataView}
+                  on:mouseleave={clearDataViewHighlight}
                 >
-                <br /><label for="uint16_dv"
-                  >&nbsp;uint16: <text-field
-                    id="uint16_dv"
-                    contenteditable="true"
-                    bind:textContent={$uint16}
-                  /></label
+                  <br /><label for="int16_dv"
+                    >&nbsp;&nbsp;int16: <text-field
+                      id="int16_dv"
+                      contenteditable="true"
+                      bind:textContent={$int16}
+                    /></label
+                  >
+                  <br /><label for="uint16_dv"
+                    >&nbsp;uint16: <text-field
+                      id="uint16_dv"
+                      contenteditable="true"
+                      bind:textContent={$uint16}
+                    /></label
+                  >
+                </span>
+                <span
+                  id="b32_dv"
+                  on:mouseenter={highlightDataView}
+                  on:mouseleave={clearDataViewHighlight}
                 >
-              </span>
-              <span
-                id="b32_dv"
-                on:mouseenter={highlightDataView}
-                on:mouseleave={clearDataViewHighlight}
-              >
-                <br /><label for="int32_dv"
-                  >&nbsp;&nbsp;int32: <text-field
-                    id="int32_dv"
-                    contenteditable="true"
-                    bind:textContent={$int32}
-                  /></label
+                  <br /><label for="int32_dv"
+                    >&nbsp;&nbsp;int32: <text-field
+                      id="int32_dv"
+                      contenteditable="true"
+                      bind:textContent={$int32}
+                    /></label
+                  >
+                  <br /><label for="uint32_dv"
+                    >&nbsp;uint32: <text-field
+                      id="uint32_dv"
+                      contenteditable="true"
+                      bind:textContent={$uint32}
+                    /></label
+                  >
+                  <br /><label for="float32_dv"
+                    >float32: <text-field
+                      id="float32_dv"
+                      contenteditable="true"
+                      bind:textContent={$float32}
+                    /></label
+                  >
+                </span>
+                <span
+                  id="b64_dv"
+                  on:mouseenter={highlightDataView}
+                  on:mouseleave={clearDataViewHighlight}
                 >
-                <br /><label for="uint32_dv"
-                  >&nbsp;uint32: <text-field
-                    id="uint32_dv"
-                    contenteditable="true"
-                    bind:textContent={$uint32}
-                  /></label
-                >
-                <br /><label for="float32_dv"
-                  >float32: <text-field
-                    id="float32_dv"
-                    contenteditable="true"
-                    bind:textContent={$float32}
-                  /></label
-                >
-              </span>
-              <span
-                id="b64_dv"
-                on:mouseenter={highlightDataView}
-                on:mouseleave={clearDataViewHighlight}
-              >
-                <br /><label for="int64_dv"
-                  >&nbsp;&nbsp;int64: <text-field
-                    id="int64_dv"
-                    contenteditable="true"
-                    bind:textContent={$int64}
-                  /></label
-                >
-                <br /><label for="uint64_dv"
-                  >&nbsp;uint64: <text-field
-                    id="uint64_dv"
-                    contenteditable="true"
-                    bind:textContent={$uint64}
-                  /></label
-                >
-                <br /><label for="float64_dv"
-                  >float64: <text-field
-                    id="float64_dv"
-                    contenteditable="true"
-                    bind:textContent={$float64}
-                  /></label
-                >
-              </span>
+                  <br /><label for="int64_dv"
+                    >&nbsp;&nbsp;int64: <text-field
+                      id="int64_dv"
+                      contenteditable="true"
+                      bind:textContent={$int64}
+                    /></label
+                  >
+                  <br /><label for="uint64_dv"
+                    >&nbsp;uint64: <text-field
+                      id="uint64_dv"
+                      contenteditable="true"
+                      bind:textContent={$uint64}
+                    /></label
+                  >
+                  <br /><label for="float64_dv"
+                    >float64: <text-field
+                      id="float64_dv"
+                      contenteditable="true"
+                      bind:textContent={$float64}
+                    /></label
+                  >
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -850,6 +850,14 @@ limitations under the License.
     margin-top: 10px;
   }
 
+  header div.file-metrics {
+    font-weight: bold;
+  }
+
+  header div.file-metrics span {
+    font-weight: normal;
+  }
+
   fieldset {
     padding: 5px;
   }
@@ -863,10 +871,12 @@ limitations under the License.
     padding-bottom: 2px;
     font-weight: bold;
   }
+
   header input {
     padding-left: 5px;
     width: 95%;
   }
+
   textarea {
     color: inherit;
     background-color: inherit;
@@ -874,6 +884,24 @@ limitations under the License.
     resize: none;
     width: auto;
     border: 0;
+  }
+
+  button {
+    padding: 5px;
+    display: inline-block;
+    border-radius: 4px;
+    border-width: 0;
+    background-color: #727272;
+    color: #FFFFFF;
+    font-weight: bold;
+    margin-bottom: 5px;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    color: #3a3838;
   }
 
   .dataEditor {
@@ -922,8 +950,27 @@ limitations under the License.
   }
 
   .dataEditor div.contentControls .grid-container-two-columns {
-    max-width: 500px;
+    display: flex;
     padding: 5px;
+  }
+  
+  .dataEditor div.contentControls .grid-container-two-columns div.grid-container-column {
+    width: 50%;
+    padding: 5px;
+  }
+
+  .dataEditor div.content-select-column {
+    width: 50%;
+  }
+
+  .dataEditor div.content-select-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+  }
+
+  .dataEditor div.content-select-container label {
+    width: 100%;
   }
 
   .dataEditor textarea.address_vw {
@@ -947,12 +994,22 @@ limitations under the License.
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr max-content;
-    overflow-x: scroll;
+    overflow-x: hidden;
     word-break: break-all;
   }
 
   .dataEditor div.selectedContent {
     background: #2c2c2c;
+  }
+
+  .dataEditor button {
+    padding: 10px;
+    transition: all 0.5s;
+  }
+
+  .dataEditor select.content-select {
+    float: right;
+    max-width: 110px;
   }
 
   .grid-container-two-columns {
@@ -970,8 +1027,8 @@ limitations under the License.
     max-width: 95%;
   }
 
-  #address_numbering {
-    min-width: 100%;
+  .margin-top {
+    margin-top: 5px;
   }
 
   .search {
@@ -979,11 +1036,7 @@ limitations under the License.
     max-width: 250px;
   }
 
-  #search_input {
-    min-width: 100px;
-  }
-
-  #replace_input {
-    min-width: 100px;
+  #address_numbering {
+    min-width: 100%;
   }
 </style>
