@@ -587,16 +587,14 @@ limitations under the License.
     </select>
   </div>
   <div class="measure">
-    <span
-      id="physical_offsets"
-    />
+    <span id="physical_offsets">
     {@html physicalOffsetText}
+    </span>
   </div>
   <div class="measure">
-    <span
-      id="logical_offsets"
-    />
+    <span id="logical_offsets">
     {@html logicalOffsetText}
+    </span>
   </div>
   <div class="measure">
     <div>
@@ -606,7 +604,7 @@ limitations under the License.
       {#if $cursorPos}
         <span> | cursor: {$cursorPos}</span>
       {/if}
-      <span id="editor_offsets" />
+      <span id="editor_offsets"></span>
     </div>
   </div>
   <textarea
@@ -616,8 +614,7 @@ limitations under the License.
     readonly
     bind:this={address_vwRef}
     bind:innerHTML={addressText}
-    on:scroll={scrollHandle}
-  />
+    on:scroll={scrollHandle}></textarea>
   <textarea
     class="physical_vw"
     id="physical"
@@ -626,8 +623,7 @@ limitations under the License.
     bind:this={physical_vwRef}
     bind:innerHTML={physicalDisplayText}
     on:select={handleSelectionEvent}
-    on:scroll={scrollHandle}
-  />
+    on:scroll={scrollHandle}></textarea>
   <textarea
     class="logicalView"
     id="logical"
@@ -636,8 +632,7 @@ limitations under the License.
     bind:this={logical_vwRef}
     bind:innerHTML={logicalDisplayText}
     on:select={handleSelectionEvent}
-    on:scroll={scrollHandle}
-  />
+    on:scroll={scrollHandle}></textarea>
   <div class="editView" id="edit_view">
     <div
       class="selectedContent"
@@ -647,8 +642,7 @@ limitations under the License.
       bind:innerHTML={$editorSelection}
       on:keyup|nonpassive={handleEditorEvent}
       on:click={handleEditorEvent}
-      on:input={handleEditorEvent}
-    />
+      on:input={handleEditorEvent}></div>
     <fieldset class="box">
       <legend
         >Content Controls
@@ -738,15 +732,13 @@ limitations under the License.
                   >&nbsp;&nbsp;&nbsp;int8: <text-field
                     id="int8_dv"
                     contenteditable="true"
-                    bind:textContent={$int8}
-                  /></label
+                    bind:textContent={$int8}></text-field></label
                 >
                 <br /><label for="uint8_dv"
                   >&nbsp;&nbsp;uint8: <text-field
                     id="uint8_dv"
                     contenteditable="true"
-                    bind:textContent={$uint8}
-                  /></label
+                    bind:textContent={$uint8}></text-field></label
                 >
               </span>
               <span
@@ -758,15 +750,13 @@ limitations under the License.
                   >&nbsp;&nbsp;int16: <text-field
                     id="int16_dv"
                     contenteditable="true"
-                    bind:textContent={$int16}
-                  /></label
+                    bind:textContent={$int16}></text-field></label
                 >
                 <br /><label for="uint16_dv"
                   >&nbsp;uint16: <text-field
                     id="uint16_dv"
                     contenteditable="true"
-                    bind:textContent={$uint16}
-                  /></label
+                    bind:textContent={$uint16}></text-field></label
                 >
               </span>
               <span
@@ -778,22 +768,19 @@ limitations under the License.
                   >&nbsp;&nbsp;int32: <text-field
                     id="int32_dv"
                     contenteditable="true"
-                    bind:textContent={$int32}
-                  /></label
+                    bind:textContent={$int32}></text-field></label
                 >
                 <br /><label for="uint32_dv"
                   >&nbsp;uint32: <text-field
                     id="uint32_dv"
                     contenteditable="true"
-                    bind:textContent={$uint32}
-                  /></label
+                    bind:textContent={$uint32}></text-field></label
                 >
                 <br /><label for="float32_dv"
                   >float32: <text-field
                     id="float32_dv"
                     contenteditable="true"
-                    bind:textContent={$float32}
-                  /></label
+                    bind:textContent={$float32}></text-field></label
                 >
               </span>
               <span
@@ -805,22 +792,19 @@ limitations under the License.
                   >&nbsp;&nbsp;int64: <text-field
                     id="int64_dv"
                     contenteditable="true"
-                    bind:textContent={$int64}
-                  /></label
+                    bind:textContent={$int64}></text-field></label
                 >
                 <br /><label for="uint64_dv"
                   >&nbsp;uint64: <text-field
                     id="uint64_dv"
                     contenteditable="true"
-                    bind:textContent={$uint64}
-                  /></label
+                    bind:textContent={$uint64}></text-field></label
                 >
                 <br /><label for="float64_dv"
                   >float64: <text-field
                     id="float64_dv"
                     contenteditable="true"
-                    bind:textContent={$float64}
-                  /></label
+                    bind:textContent={$float64}></text-field></label
                 >
               </span>
             </div>
