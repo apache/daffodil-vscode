@@ -58,6 +58,7 @@ limitations under the License.
     replaceErrMsg,
     selectionOriginalEnd,
     searchErrMsg,
+    computedFilesize,
   } from '../stores'
   import {
     radixOpt,
@@ -170,10 +171,6 @@ limitations under the License.
   async function loadContent(data: Uint8Array) {
     viewportData.update(() => {
       return data
-    })
-
-    filesize.update(() => {
-      return data.length
     })
 
     displayRadix.update(() => {
@@ -469,8 +466,18 @@ limitations under the License.
         logicalDisplayText = msg.data.data.logicalDisplay
         break
       case MessageCommand.fileInfo:
-        filename = msg.data.data.filename
-        filetype = msg.data.data.filetype
+        if (typeof msg.data.data.filename !== 'undefined') {
+          filename = msg.data.data.filename
+        }
+        if (typeof msg.data.data.filetype !== 'undefined') {
+          filetype = msg.data.data.filetype
+        }
+        if (typeof msg.data.data.filesize !== 'undefined') {
+          $filesize = msg.data.data.filesize
+        }
+        if (typeof msg.data.data.computedFilesize !== 'undefined') {
+          $computedFilesize = msg.data.data.computedFilesize
+        }
         break
       case MessageCommand.search:
         $searchResults = msg.data.searchResults
@@ -484,11 +491,20 @@ limitations under the License.
   <fieldset class="box">
     <legend>File Metrics</legend>
     <div id="file_metrics_vw">
-      File: <span id="file_name">{filename}</span>
+      <label for="file_name">File: </label><span id="file_name">{filename}</span
+      >
       <hr />
-      Type:<span id="file_type">{filetype}</span>
-      <br />Size: <span id="file_byte_cnt">{$filesize}</span>
-      <br />ASCII count: <span id="ascii_byte_cnt">{$asciiCount}</span>
+      <label for="file_type">Type: </label><span id="file_type">{filetype}</span
+      >
+      <br /><label for="file_byte_cnt">File Size: </label><span
+        id="file_byte_cnt">{$filesize}</span
+      >
+      <br /><label for="computed_byte_cnt">Computed File Size: </label><span
+        id="computed_byte_cnt">{$computedFilesize}</span
+      >
+      <br /><label for="ascii_byte_cnt">ASCII Count: </label><span
+        id="ascii_byte_cnt">{$asciiCount}</span
+      >
     </div>
   </fieldset>
   <fieldset class="box">

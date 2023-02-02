@@ -16,12 +16,10 @@
  */
 
 import { writable, derived } from 'svelte/store'
-import { localStore } from './localStore'
 import { validateEncodingStr } from '../utilities/display'
-const state_key = 'apache-daffodil-data-editor.state'
 
-export const answer = localStore(state_key + '.answer', 42)
 export const filesize = writable(0)
+export const computedFilesize = writable(0)
 export const editType = writable('')
 export const editCount = writable(0)
 export const cursorPos = writable(0)
