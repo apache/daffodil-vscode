@@ -572,29 +572,25 @@ limitations under the License.
   </div>
   <div class="measure">
     <span
-      contenteditable="true"
       id="physical_offsets"
-      bind:innerHTML={physicalOffsetText}
-      readonly
     />
+    {@html physicalOffsetText}
   </div>
   <div class="measure">
     <span
-      contenteditable="true"
       id="logical_offsets"
-      bind:innerHTML={logicalOffsetText}
-      readonly
     />
+    {@html logicalOffsetText}
   </div>
   <div class="measure">
     <div>
-      <span id="selected_offsets" contenteditable="true" readonly
+      <span id="selected_offsets"
         >{selectionOffsetText}</span
       >
       {#if $cursorPos}
         <span> | cursor: {$cursorPos}</span>
       {/if}
-      <span id="editor_offsets" readonly />
+      <span id="editor_offsets" />
     </div>
   </div>
   <textarea
@@ -714,7 +710,7 @@ limitations under the License.
           </div>
           <div class="grid-container-column">
             <div id="data_vw">
-              &nbsp;Offset: <span id="offset_dv" contenteditable="true" readonly
+              &nbsp;Offset: <span id="offset_dv" contenteditable="true"
                 >{$byteOffsetPos}</span
               >
               <span
