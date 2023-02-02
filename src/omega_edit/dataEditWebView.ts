@@ -94,7 +94,7 @@ export class DataEditWebView implements vscode.Disposable {
           '',
           this.omegaSessionId,
           0,
-            VIEWPORT_CAPACITY_MAX,
+          VIEWPORT_CAPACITY_MAX,
           false
         )
 
@@ -106,7 +106,7 @@ export class DataEditWebView implements vscode.Disposable {
           'hexAll'
         )
         const filesize = await omegaEditSession.getComputedFileSize(
-            this.omegaSessionId
+          this.omegaSessionId
         )
         this.panel.webview.postMessage({
           command: MessageCommand.fileInfo,
@@ -126,7 +126,10 @@ export class DataEditWebView implements vscode.Disposable {
       vscode.window.activeTextEditor.viewColumn
         ? vscode.window.activeTextEditor?.viewColumn
         : vscode.ViewColumn.Active
-    return vscode.window.createWebviewPanel(this.view, title, column)
+    return vscode.window.createWebviewPanel(this.view, title, column, {
+      enableScripts: true,
+      retainContextWhenHidden: true,
+    })
   }
 
   private async messageReceiver(message: EditorMessage) {
@@ -195,8 +198,8 @@ export class DataEditWebView implements vscode.Disposable {
           command: MessageCommand.fileInfo,
           data: {
             computedFilesize: await omegaEditSession.getComputedFileSize(
-                this.omegaSessionId
-            )
+              this.omegaSessionId
+            ),
           },
         })
         break
@@ -219,7 +222,7 @@ export class DataEditWebView implements vscode.Disposable {
             this.displayState.editorEncoding
           )
           const filesize = await omegaEditSession.getComputedFileSize(
-              this.omegaSessionId
+            this.omegaSessionId
           )
           const caseInsensitive = message.data.caseInsensitive
           omegaEdit = new OmegaEdit(
@@ -259,7 +262,7 @@ export class DataEditWebView implements vscode.Disposable {
             this.displayState.editorEncoding
           )
           const filesize = await omegaEditSession.getComputedFileSize(
-              this.omegaSessionId
+            this.omegaSessionId
           )
           const caseInsensitive = message.data.caseInsensitive
           omegaEdit = new OmegaEdit(
