@@ -17,13 +17,8 @@
 
 import { writable, derived } from 'svelte/store'
 import { localStore } from './localStore'
-
+import { validateEncodingStr } from '../utilities/display'
 const state_key = 'apache-daffodil-data-editor.state'
-
-// data validation regex
-const binary_regex = /^[0-1]*$/
-const hex_regex = /^[0-9a-fA-F]*$/
-const base64_regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/
 
 export const answer = localStore(state_key + '.answer', 42)
 export const filesize = writable(0)
@@ -41,6 +36,8 @@ export const gotoOffsetMax = writable(0)
 export const commitErrMsg = writable('')
 export const searching = writable(false)
 export const searchResults = writable([])
+export const searchErrMsg = writable('')
+export const replaceErrMsg = writable('')
 export const addressDisplay = writable('')
 export const editorSelection = writable('')
 export const selectionEndStore = writable(0)
@@ -89,47 +86,38 @@ export const warningable = derived(editCount, $editCount=>{
 })
 
 export const commitable = derived([editorEncoding, rawEditorSelectionTxt, selectionActive], ([$editorEncoding, $rawEditorSelectionTxt, $selectionActive]) => {
-  if(!$selectionActive)
+  if(!$selectionActive || $rawEditorSelectionTxt.length == 0)
     return false
-  switch($editorEncoding){
-    case 'hex':
-      if(!hex_regex.test($rawEditorSelectionTxt)){
-          commitErrMsg.update(()=>{
-            return `Invalid HEX characters`
-          })
-        return false
-      }
-      else if(($rawEditorSelectionTxt.length) % 2 != 0){
-        commitErrMsg.update(()=>{
-          return "Invalid HEX editable length"
-        })
-        return false
-      }
-      break
-    case 'binary':
-      if(!binary_regex.test($rawEditorSelectionTxt)){
-        commitErrMsg.update(()=>{
-          return `Invalid BIN characters`
-        })
-        return false
-      }
-      else if(($rawEditorSelectionTxt.length) % 8 != 0) {
-        commitErrMsg.update(()=>{
-          return "Invalid BIN editable length"
-        })
-        return false
-      }
-      break
-    case 'base64':
-      if(!base64_regex.test($rawEditorSelectionTxt)){
-        commitErrMsg.update(()=>{
-          return 'Invalid BASE64 characters'
-        })
-        return false
-      }
-      break
+  let [valid, errMsg] = validateEncodingStr($rawEditorSelectionTxt, $editorEncoding)
+  commitErrMsg.update(()=>{
+    return errMsg
+  })
+  return valid
+})
+
+export const searchable = derived([searchData, editorEncoding], ([$searchData, $editorEncoding])=>{
+  if($searchData.length <= 0){
+    return false
   }
-  return true
+  let [valid, errMsg] = validateEncodingStr($searchData, $editorEncoding)
+  searchErrMsg.update(()=>{
+    return errMsg
+  })
+  return valid
+})
+
+export const replaceable = derived([replaceData, editorEncoding, searchable], ([$replaceData, $editorEncoding, $searchable])=>{
+  if(!$searchable){
+    return false
+  }
+  if($replaceData.length <= 0){
+    return false
+  }
+  let [valid, errMsg] = validateEncodingStr($replaceData, $editorEncoding)
+  replaceErrMsg.update(()=>{
+    return errMsg
+  })
+  return valid
 })
 
 export const dataView = derived(selectedFileData, $selectedFileData=>{

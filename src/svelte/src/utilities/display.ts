@@ -13,6 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+const binary_regex = /^[0-1]*$/
+const hex_regex = /^[0-9a-fA-F]*$/
+const base64_regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/
+
 export const radixOpt = [
     { name: 'HEX', value: 16 },
     { name: 'DEC', value: 10 },
@@ -84,6 +89,28 @@ function radixBytePad(radix: number): number {
         return 2
     }
     return 0
+}
+
+export function validateEncodingStr(text: string, encoding: string): [boolean, string] {
+  switch(encoding){
+    case 'hex':
+      if(!hex_regex.test(text)){
+        return [false,`Invalid HEX characters`]
+      }
+      if((text.length) % 2 != 0){
+        return [false,"Invalid HEX length"]
+      }
+      break
+    case 'binary':
+      if(!binary_regex.test(text)){
+        return [false,`Invalid BIN characters`]
+      }
+      if((text.length) % 8 != 0) {
+        return [false,"Invalid BIN length"]
+      }
+      break
+  }
+  return [true,'']
 }
 
 export function setSelectionOffsetInfo(from: string, start: number, end: number, size: number, cursorPos?: number):string {

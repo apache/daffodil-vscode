@@ -86,7 +86,7 @@ export class OmegaEdit {
 
   async search(
     fileSize: number,
-    searchPattern: string,
+    searchPattern: string | Uint8Array,
     caseInsensitive: boolean,
     limit: number = 0 // unlimited for omega-edit is 0
   ): Promise<Array<number>> {
@@ -112,7 +112,7 @@ export class OmegaEdit {
   // Perform search on a single result
   async singleSearch(
     fileSize: number,
-    searchPattern: string,
+    searchPattern: string | Uint8Array,
     caseInsensitive
   ): Promise<number> {
     const result = await this.search(
@@ -126,8 +126,8 @@ export class OmegaEdit {
 
   async searchAndReplace(
     fileSize: number,
-    searchPattern: string,
-    replaceText: string,
+    searchPattern: string | Uint8Array,
+    replaceText: string | Uint8Array,
     caseInsensitive: boolean
   ) {
     let index = await this.singleSearch(

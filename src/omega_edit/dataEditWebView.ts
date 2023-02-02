@@ -24,12 +24,14 @@ import {
   dataToEncodedStr,
   viewportSubscribe,
   checkMimeType,
+  encodedStrToData,
 } from './utils'
 import { EditorMessage, MessageCommand } from './messageHandler'
 import { v4 as uuidv4 } from 'uuid'
 import * as omegaEditSession from 'omega-edit/session'
 import * as omegaEditViewport from 'omega-edit/viewport'
 import { OmegaEdit } from './omega_edit'
+import { ViewportDataResponse } from 'omega-edit/omega_edit_pb'
 
 type Viewports = { label: string; vpid: string; omegaEdit: OmegaEdit }[]
 
@@ -126,6 +128,8 @@ export class DataEditWebView implements vscode.Disposable {
   }
 
   private async messageReceiver(message: EditorMessage) {
+    let omegaEdit: OmegaEdit
+
     switch (message.command) {
       case MessageCommand.updateLogicalDisplay:
         this.displayState.bytesPerRow = message.data.bytesPerRow
@@ -165,7 +169,7 @@ export class DataEditWebView implements vscode.Disposable {
         vscode.window.showInformationMessage(
           `Commit Received - Offset: ${fileOffset} | Length: ${originalSelectionLen} | Data: ${data}`
         )
-        var omegaEdit = new OmegaEdit(
+        omegaEdit = new OmegaEdit(
           this.omegaSessionId,
           fileOffset,
           data,
@@ -196,53 +200,70 @@ export class DataEditWebView implements vscode.Disposable {
         })
         break
       case MessageCommand.searchAndReplace:
+        {
+          var viewportData = await omegaEditViewport.getViewportData(
+            this.omegaViewports['vpAll']
+          )
+          var searchDataBytes = encodedStrToData(
+            message.data.searchData,
+            this.displayState.editorEncoding
+          )
+          var filesize = viewportData.getLength()
+          var caseInsensitive = message.data.caseInsensitive
+          omegaEdit = new OmegaEdit(
+            this.omegaSessionId,
+            viewportData.getOffset(),
+            viewportData.getData() as string,
+            filesize,
+            this.panel
+          )
+          let replaceDataBytes = encodedStrToData(
+            message.data.replaceData,
+            this.displayState.editorEncoding
+          )
+          await omegaEdit.searchAndReplace(
+            filesize,
+            searchDataBytes,
+            replaceDataBytes,
+            caseInsensitive
+          )
+          await viewportSubscribe(
+            this.panel,
+            this.omegaViewports['vpAll'],
+            this.omegaViewports['vpAll'],
+            'vpAll',
+            'hexAll'
+          )
+        }
+
+        break
       case MessageCommand.search:
-        const viewportData = await omegaEditViewport.getViewportData(
-          this.omegaViewports['vpAll']
-        )
-        const searchData = message.data.searchData
-        const filesize = viewportData.getLength()
-        const caseInsensitive = message.data.caseInsensitive
-        var omegaEdit = new OmegaEdit(
-          this.omegaSessionId,
-          viewportData.getOffset(),
-          viewportData.getData() as string,
-          filesize,
-          this.panel
-        )
-        let searchResults = await omegaEdit.search(
-          filesize,
-          searchData,
-          caseInsensitive
-        )
-        if (message.command === MessageCommand.search) {
+        {
+          const viewportData = await omegaEditViewport.getViewportData(
+            this.omegaViewports['vpAll']
+          )
+          const searchDataBytes = encodedStrToData(
+            message.data.searchData,
+            this.displayState.editorEncoding
+          )
+          const filesize = viewportData.getLength()
+          const caseInsensitive = message.data.caseInsensitive
+          omegaEdit = new OmegaEdit(
+            this.omegaSessionId,
+            viewportData.getOffset(),
+            viewportData.getData() as string,
+            filesize,
+            this.panel
+          )
+          let searchResults = await omegaEdit.search(
+            filesize,
+            searchDataBytes,
+            caseInsensitive
+          )
           this.panel.webview.postMessage({
             command: MessageCommand.search,
             searchResults: searchResults,
           })
-        } else {
-          if (searchResults.length < 0) {
-            vscode.window.showWarningMessage(
-              'Search request found 0 results. Could not replace.'
-            )
-          } else {
-            let replaceData = message.data.replaceData
-            await searchResults.forEach((index) => {
-              omegaEdit.replace(
-                this.omegaSessionId,
-                index,
-                searchData.length,
-                replaceData
-              )
-            })
-            await viewportSubscribe(
-              this.panel,
-              this.omegaViewports['vpAll'],
-              this.omegaViewports['vpAll'],
-              'vpAll',
-              'hexAll'
-            )
-          }
         }
         break
     }

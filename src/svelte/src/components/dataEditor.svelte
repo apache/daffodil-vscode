@@ -57,10 +57,15 @@ limitations under the License.
     asciiCount,
     searching,
     searchData,
+    searchable,
+    warningable,
     editCount,
     searchResults,
     replaceData,
+    replaceable,
+    replaceErrMsg,
     selectionOriginalEnd,
+    searchErrMsg,
     } from '../stores'
   import { 
     radixOpt, 
@@ -368,7 +373,6 @@ limitations under the License.
       command: MessageCommand.search,
       data: {
         searchData: $searchData,
-        filesize: $filesize,
         caseInsensitive: false
       }
     })
@@ -380,7 +384,6 @@ limitations under the License.
       command: MessageCommand.searchAndReplace,
       data: {
         searchData: $searchData,
-        filesize: $filesize,
         caseInsensitive: false,
         replaceData: $replaceData
       }
@@ -503,17 +506,24 @@ limitations under the License.
   <fieldset class="box">
     <legend>Search</legend>
     <div class="search">
-        Search:
+      Search: 
+      {#if $searchData.length > 0 && !$searchable}
+      <span class='errMsg'>{$searchErrMsg}</span>
+      {/if}
       <input id="search_input" bind:value={$searchData}/>
-      Replace:
-      <input id="replace_input" bind:value={$replaceData}/> 
       <br />
-      {#if $searchData.length <= 0}
+      Replace: 
+      {#if $replaceData.length > 0 && !$replaceable}
+      <span class='errMsg'>{$replaceErrMsg}</span> 
+      {/if}
+      <input id="replace_input" bind:value={$replaceData}/>
+      <br />
+      {#if !$searchable}
       <vscode-button id="search_btn" disabled>Search</vscode-button>
       {:else}
       <vscode-button id="search_btn" on:click={search}>Search</vscode-button>
       {/if}
-      {#if $replaceData.length <= 0}
+      {#if !$replaceable}
       <vscode-button id="replace_btn" disabled>Replace</vscode-button>
       {:else}
       <vscode-button id="replace_btn" on:click={searchAndReplace}>Replace</vscode-button>
@@ -521,16 +531,15 @@ limitations under the License.
       {#if $searching}
         <sub>Searching...</sub>
       {:else if $searchResults.length > 0}
-        <sub>Results: {$searchResults}</sub>
+        <sub>{$searchResults.length} Results </sub>
       {/if}
     </div>
   </fieldset>
   <fieldset class="box">
     <legend>Misc</legend>
     <div class="misc">
-      <label for="advanced_mode"
-        >Advanced Mode
-        <vscode-checkbox id="advanced_mode" disabled />
+      <label for="advanced_mode">Advanced Mode</label>
+      <vscode-checkbox id="advanced_mode" disabled />
     </div>
   </fieldset>
 </header>
@@ -696,7 +705,7 @@ limitations under the License.
   fieldset {
     padding: 5px;
   }
-  
+
   input, select {
     background-color: #3c3c3c;
     color: white;
@@ -705,8 +714,9 @@ limitations under the License.
     padding-bottom: 2px;
     font-weight: bold;
   }
-  input {
+  header input {
     padding-left: 5px;
+    width: 95%
   }
   textarea {
     color: inherit;
@@ -803,10 +813,12 @@ limitations under the License.
 
   .errMsg {
     color: red;
+    max-width: 95%;
   }
 
   .warningMsg {
     color: yellow;
+    max-width: 95%;
   }
 
   #address_numbering {
@@ -814,7 +826,8 @@ limitations under the License.
   }
 
   .search {
-    min-width: 200px;
+    min-width: 250px;
+    max-width: 250px;
   }
 
   #search_input {
