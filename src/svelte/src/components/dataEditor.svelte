@@ -16,14 +16,7 @@ limitations under the License.
 -->
 <script lang="ts">
   import {
-    provideVSCodeDesignSystem,
-    vsCodeButton,
-    vsCodeCheckbox,
-    vsCodeDropdown,
-    vsCodeOption,
-    vsCodeTextField, } from '@vscode/webview-ui-toolkit'
-  import {
-    displayRadix, 
+    displayRadix,
     addressValue,
     filesize,
     fileByteStart,
@@ -58,7 +51,6 @@ limitations under the License.
     searching,
     searchData,
     searchable,
-    warningable,
     editCount,
     searchResults,
     replaceData,
@@ -66,32 +58,25 @@ limitations under the License.
     replaceErrMsg,
     selectionOriginalEnd,
     searchErrMsg,
-    } from '../stores'
-  import { 
-    radixOpt, 
-    encoding_groups, 
-    endiannessOpt, 
-    lsbOpt, 
-    byteSizeOpt, 
+  } from '../stores'
+  import {
+    radixOpt,
+    encoding_groups,
+    endiannessOpt,
+    lsbOpt,
+    byteSizeOpt,
     addressOpt,
-    dvHighlightTag, 
+    dvHighlightTag,
     getOffsetDisplay,
     encodeForDisplay,
     makeAddressRange,
     isWhitespace,
     syncScroll,
-    setSelectionOffsetInfo } from '../utilities/display';
+    setSelectionOffsetInfo,
+  } from '../utilities/display'
   import { vscode } from '../utilities/vscode'
   import { MessageCommand } from '../utilities/message'
-  import { writable } from 'svelte/store';
-
-  provideVSCodeDesignSystem().register(
-    vsCodeButton(),
-    vsCodeCheckbox(),
-    vsCodeDropdown(),
-    vsCodeOption(),
-    vsCodeTextField()
-  )
+  import { writable } from 'svelte/store'
 
   let filename = ''
   let filetype = ''
@@ -100,43 +85,61 @@ limitations under the License.
   let physicalDisplayText = ''
   let logicalOffsetText: string
   let logicalDisplayText = ''
-  let editorTextDisplay = ''
   let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
-  let physical_vwRef: HTMLTextAreaElement, address_vwRef: HTMLTextAreaElement, logical_vwRef: HTMLTextAreaElement
+  let physical_vwRef: HTMLTextAreaElement,
+    address_vwRef: HTMLTextAreaElement,
+    logical_vwRef: HTMLTextAreaElement
 
-  const selectedContent = writable(document.getElementById('selectedContent') as HTMLTextAreaElement)
+  const selectedContent = writable(
+    document.getElementById('selectedContent') as HTMLTextAreaElement
+  )
   // Reactive Declarations
-  $: addressText = makeAddressRange($fileByteStart, $fileByteEnd, $bytesPerRow, $addressValue)
-  $: selectionOffsetText = setSelectionOffsetInfo('Selection', $selectionStartStore, $selectionEndStore, $selectionSize)
+  $: addressText = makeAddressRange(
+    $fileByteStart,
+    $fileByteEnd,
+    $bytesPerRow,
+    $addressValue
+  )
+  $: selectionOffsetText = setSelectionOffsetInfo(
+    'Selection',
+    $selectionStartStore,
+    $selectionEndStore,
+    $selectionSize
+  )
   $: {
     physicalOffsetText = getOffsetDisplay($displayRadix, 'physical')
     logicalOffsetText = getOffsetDisplay($displayRadix, 'logical')
   }
-  $: physicalDisplayText = encodeForDisplay($viewportData, $displayRadix, $bytesPerRow)
+  $: physicalDisplayText = encodeForDisplay(
+    $viewportData,
+    $displayRadix,
+    $bytesPerRow
+  )
   $: setSelectionEncoding($editorEncoding)
   $: updateLogicalDisplay($bytesPerRow)
   $: goTo($gotoOffset)
-  $: $rawEditorSelectionTxt = $editorSelection.replaceAll(dvHighlightTag.start, '').replaceAll(dvHighlightTag.end, '')
+  $: $rawEditorSelectionTxt = $editorSelection
+    .replaceAll(dvHighlightTag.start, '')
+    .replaceAll(dvHighlightTag.end, '')
 
   function requestEditedData(type: string) {
-    if($commitable){
+    if ($commitable) {
       vscode.postMessage({
         command: MessageCommand.requestEditedData,
         data: {
           editType: type,
           editor: {
             selectionToFileOffset: $selectionStartStore,
-            editedContent: $rawEditorSelectionTxt
+            editedContent: $rawEditorSelectionTxt,
           },
-          encoding: $editorEncoding
-        }
+          encoding: $editorEncoding,
+        },
       })
     }
-
   }
 
-  function goTo(offset: number){
-    if(physical_vwRef){
+  function goTo(offset: number) {
+    if (physical_vwRef) {
       const rowCount = Math.ceil(physicalDisplayText.length / $bytesPerRow)
       const lineHeight = physical_vwRef.scrollHeight / rowCount
       const targetLine = Math.ceil(offset / $bytesPerRow)
@@ -149,8 +152,8 @@ limitations under the License.
       command: MessageCommand.updateLogicalDisplay,
       data: {
         viewportData: $viewportData,
-        bytesPerRow: bytesPerRow
-      } 
+        bytesPerRow: bytesPerRow,
+      },
     })
   }
 
@@ -159,13 +162,12 @@ limitations under the License.
       command: MessageCommand.editorOnChange,
       data: {
         encoding: $editorEncoding,
-        selectionData?: $selectedFileData
-      }
+        selectionData: $selectedFileData,
+      },
     })
   }
 
   async function loadContent(data: Uint8Array) {
-    
     viewportData.update(() => {
       return data
     })
@@ -185,47 +187,29 @@ limitations under the License.
       command: MessageCommand.updateLogicalDisplay,
       data: {
         viewportData: $viewportData,
-        bytesPerRow: $bytesPerRow
-      }
+        bytesPerRow: $bytesPerRow,
+      },
     })
   }
 
-  function scrollHandle(e: Event){
+  function scrollHandle(e: Event) {
     let element = e.target.id
-    if (!currentScrollEvt || currentScrollEvt === element){
+    if (!currentScrollEvt || currentScrollEvt === element) {
       clearTimeout(scrollSyncTimer)
       currentScrollEvt = element
-      switch(currentScrollEvt){
+      switch (currentScrollEvt) {
         case 'physical':
-          syncScroll(
-            physical_vwRef,
-            address_vwRef
-          )
-          syncScroll(
-            physical_vwRef,
-            logical_vwRef
-          )
-        break
+          syncScroll(physical_vwRef, address_vwRef)
+          syncScroll(physical_vwRef, logical_vwRef)
+          break
         case 'logical':
-          syncScroll(
-            logical_vwRef,
-            address_vwRef
-          )
-          syncScroll(
-            logical_vwRef,
-            physical_vwRef,
-          )
-        break
+          syncScroll(logical_vwRef, address_vwRef)
+          syncScroll(logical_vwRef, physical_vwRef)
+          break
         case 'address':
-          syncScroll(
-            address_vwRef,
-            physical_vwRef,
-          )
-          syncScroll(
-            address_vwRef,
-            logical_vwRef
-          )
-        break
+          syncScroll(address_vwRef, physical_vwRef)
+          syncScroll(address_vwRef, logical_vwRef)
+          break
       }
       // noinspection TypeScriptValidateTypes
       scrollSyncTimer = setTimeout(function () {
@@ -235,34 +219,37 @@ limitations under the License.
   }
 
   async function handleEditorEvent(e: Event) {
-    switch(e.type) {
+    switch (e.type) {
       case 'keyup':
         const kevent = e as KeyboardEvent
         $cursorPos = document.getSelection().anchorOffset
-        if(['Backspace', 'Return', 'Delete'].some((type)=> kevent.key.startsWith(type))) {
-          editorSelection.update(str=>{
+        if (
+          ['Backspace', 'Return', 'Delete'].some((type) =>
+            kevent.key.startsWith(type)
+          )
+        ) {
+          editorSelection.update((str) => {
             $editCount -= 1
             return str
           })
           requestEditedData('remove')
-        }
-        else {
-          editorSelection.update(str=>{
+        } else {
+          editorSelection.update((str) => {
             $editCount += 1
             return str
           })
           requestEditedData('insert')
         }
-      break
+        break
       default:
-        editorSelection.update(str=>{
+        editorSelection.update((str) => {
           return str
         })
         $cursorPos = document.getSelection().anchorOffset
-      break
+        break
       case 'click':
         $cursorPos = document.getSelection().anchorOffset
-      break
+        break
     }
   }
 
@@ -309,43 +296,57 @@ limitations under the License.
           ++selectionEnd
         }
       }
-      selected.selectionEnd = selectionEnd < selected.value.length ? selectionEnd + 1 : selectionEnd
+      selected.selectionEnd =
+        selectionEnd < selected.value.length ? selectionEnd + 1 : selectionEnd
     }
     const selectionOffsetsByRadix = {
-      2: { start: selectionStart / 9, end: Math.floor((selectionEnd - 8) / 9 + 1) },
-      8: { start: selectionStart / 4, end: Math.floor((selectionEnd - 3) / 4 + 1) },
-      10: { start: selectionStart / 4, end: Math.floor((selectionEnd  - 3) / 4 + 1) },
-      16: { start: selectionStart / 3, end: Math.floor((selectionEnd  - 2) / 3 + 1) },
+      2: {
+        start: selectionStart / 9,
+        end: Math.floor((selectionEnd - 8) / 9 + 1),
+      },
+      8: {
+        start: selectionStart / 4,
+        end: Math.floor((selectionEnd - 3) / 4 + 1),
+      },
+      10: {
+        start: selectionStart / 4,
+        end: Math.floor((selectionEnd - 3) / 4 + 1),
+      },
+      16: {
+        start: selectionStart / 3,
+        end: Math.floor((selectionEnd - 2) / 3 + 1),
+      },
     }
 
-    selectionStartStore.update(()=>{
-      if(selected.id === 'logical')
-        return selected.selectionStart / 2
+    selectionStartStore.update(() => {
+      if (selected.id === 'logical') return selected.selectionStart / 2
       return selectionOffsetsByRadix[$displayRadix].start
     })
-    selectionEndStore.update(()=>{
-      if(selected.id === 'logical')
+    selectionEndStore.update(() => {
+      if (selected.id === 'logical')
         return Math.floor(selected.selectionEnd / 2)
       return selectionOffsetsByRadix[$displayRadix].end
     })
-    selectionOriginalEnd.update(()=>{
-      if(selected.id === 'logical')
+    selectionOriginalEnd.update(() => {
+      if (selected.id === 'logical')
         return Math.floor(selected.selectionEnd / 2)
       return selectionOffsetsByRadix[$displayRadix].end
     })
   }
 
-  function handleSelectionEvent(e: Event){
+  function handleSelectionEvent(e: Event) {
     frameSelectedOnWhitespace(e.target as HTMLTextAreaElement)
-    selectedFileData.update(()=>{
-      return Uint8Array.from($viewportData.subarray($selectionStartStore, $selectionEndStore+1))
+    selectedFileData.update(() => {
+      return Uint8Array.from(
+        $viewportData.subarray($selectionStartStore, $selectionEndStore + 1)
+      )
     })
     vscode.postMessage({
       command: MessageCommand.editorOnChange,
       data: {
         selectionData: $selectedFileData,
-        encoding: $editorEncoding        
-      }
+        encoding: $editorEncoding,
+      },
     })
   }
 
@@ -357,52 +358,54 @@ limitations under the License.
     }
   }
 
-  function commitChanges(){
+  function commitChanges() {
     vscode.postMessage({
       command: MessageCommand.commit,
       data: {
         selectionStart: $selectionStartStore,
         selectionData: $selectedFileData,
-        selectionDataLen: $selectionOriginalEnd - $selectionStartStore
-      }
+        selectionDataLen: $selectionOriginalEnd - $selectionStartStore,
+      },
     })
   }
 
-  function search(){
+  function search() {
     vscode.postMessage({
       command: MessageCommand.search,
       data: {
         searchData: $searchData,
-        caseInsensitive: false
-      }
+        caseInsensitive: false,
+      },
     })
     $searching = true
   }
 
-  function searchAndReplace(){
+  function searchAndReplace() {
     vscode.postMessage({
       command: MessageCommand.searchAndReplace,
       data: {
         searchData: $searchData,
         caseInsensitive: false,
-        replaceData: $replaceData
-      }
+        replaceData: $replaceData,
+      },
     })
   }
 
-  function clearDataViewHighlight(event: Event){
-    editorSelection.update(str=>{
-      return str.replaceAll(dvHighlightTag.start, '').replaceAll(dvHighlightTag.end, '')
+  function clearDataViewHighlight(event: Event) {
+    editorSelection.update((str) => {
+      return str
+        .replaceAll(dvHighlightTag.start, '')
+        .replaceAll(dvHighlightTag.end, '')
     })
   }
 
-  function highlightDataView(event: Event){
+  function highlightDataView(event: Event) {
     const hoverEvent = event as MouseEvent
     let highlightLenModifier: number
     let highlightByteOffset: number
     let pos: number
 
-    switch($editorEncoding){
+    switch ($editorEncoding) {
       case 'hex':
         highlightLenModifier = 2
         break
@@ -413,7 +416,7 @@ limitations under the License.
         highlightLenModifier = 1
         break
     }
-    switch(event.target.id){
+    switch (event.target.id) {
       case 'b8_dv':
         highlightByteOffset = highlightLenModifier
         break
@@ -428,9 +431,10 @@ limitations under the License.
         break
     }
     pos = $byteOffsetPos * highlightLenModifier
-    editorSelection.update(str=>{
+    editorSelection.update((str) => {
       let seg1 = str.substring(0, pos) + dvHighlightTag.start
-      let seg2 = str.substring(pos, pos + highlightByteOffset) + dvHighlightTag.end
+      let seg2 =
+        str.substring(pos, pos + highlightByteOffset) + dvHighlightTag.end
       let seg3 = str.substring(pos + highlightByteOffset)
       return seg1 + seg2 + seg3
     })
@@ -443,22 +447,22 @@ limitations under the License.
         $editCount = 0
         break
       case MessageCommand.editorOnChange:
-        editorSelection.update(()=>{
+        editorSelection.update(() => {
           return msg.data.display
         })
         break
       case MessageCommand.requestEditedData:
-        editorSelection.update(()=>{
+        editorSelection.update(() => {
           return msg.data.display
         })
-        selectedFileData.update(()=>{
+        selectedFileData.update(() => {
           return new Uint8Array(msg.data.data)
         })
-        cursorPos.update(()=>{
+        cursorPos.update(() => {
           return document.getSelection().anchorOffset
         })
-        selectionEndStore.update(()=>{
-          return $selectionStartStore + $selectedFileData.byteLength-1 
+        selectionEndStore.update(() => {
+          return $selectionStartStore + $selectedFileData.byteLength - 1
         })
         break
       case MessageCommand.updateLogicalDisplay:
@@ -472,7 +476,7 @@ limitations under the License.
         $searchResults = msg.data.searchResults
         $searching = false
         break
-      }
+    }
   })
 </script>
 
@@ -482,7 +486,7 @@ limitations under the License.
     <div id="file_metrics_vw">
       File: <span id="file_name">{filename}</span>
       <hr />
-      Type: <span id="file_type">{filetype}</span>
+      Type:<span id="file_type">{filetype}</span>
       <br />Size: <span id="file_byte_cnt">{$filesize}</span>
       <br />ASCII count: <span id="ascii_byte_cnt">{$asciiCount}</span>
     </div>
@@ -490,14 +494,20 @@ limitations under the License.
   <fieldset class="box">
     <legend>Offset</legend>
     <div class="goto_offset">
-      <input type="number" id="goto_offset" min="0" max={$gotoOffsetMax} bind:value={$gotoOffset}/>
+      <input
+        type="number"
+        id="goto_offset"
+        min="0"
+        max={$gotoOffsetMax}
+        bind:value={$gotoOffset}
+      />
     </div>
   </fieldset>
   <fieldset class="box">
     <legend>Radix</legend>
     <div class="radix">
       <select id="radix" bind:value={$displayRadix}>
-        {#each radixOpt as {name, value}}
+        {#each radixOpt as { name, value }}
           <option {value}>{name}</option>
         {/each}
       </select>
@@ -506,27 +516,27 @@ limitations under the License.
   <fieldset class="box">
     <legend>Search</legend>
     <div class="search">
-      Search: 
+      Search:
       {#if $searchData.length > 0 && !$searchable}
-      <span class='errMsg'>{$searchErrMsg}</span>
+        <span class="errMsg">{$searchErrMsg}</span>
       {/if}
-      <input id="search_input" bind:value={$searchData}/>
+      <input id="search_input" bind:value={$searchData} />
       <br />
-      Replace: 
+      Replace:
       {#if $replaceData.length > 0 && !$replaceable}
-      <span class='errMsg'>{$replaceErrMsg}</span> 
+        <span class="errMsg">{$replaceErrMsg}</span>
       {/if}
-      <input id="replace_input" bind:value={$replaceData}/>
+      <input id="replace_input" bind:value={$replaceData} />
       <br />
       {#if !$searchable}
-      <vscode-button id="search_btn" disabled>Search</vscode-button>
+        <button id="search_btn" disabled>Search</button>
       {:else}
-      <vscode-button id="search_btn" on:click={search}>Search</vscode-button>
+        <button id="search_btn" on:click={search}>Search</button>
       {/if}
       {#if !$replaceable}
-      <vscode-button id="replace_btn" disabled>Replace</vscode-button>
+        <button id="replace_btn" disabled>Replace</button>
       {:else}
-      <vscode-button id="replace_btn" on:click={searchAndReplace}>Replace</vscode-button>
+        <button id="replace_btn" on:click={searchAndReplace}>Replace</button>
       {/if}
       {#if $searching}
         <sub>Searching...</sub>
@@ -539,7 +549,7 @@ limitations under the License.
     <legend>Misc</legend>
     <div class="misc">
       <label for="advanced_mode">Advanced Mode</label>
-      <vscode-checkbox id="advanced_mode" disabled />
+      <input type="checkbox" id="advanced_mode" disabled />
     </div>
   </fieldset>
 </header>
@@ -550,47 +560,106 @@ limitations under the License.
   <div class="hd">Logical</div>
   <div class="hd">Edit</div>
   <div class="measure" style="align-items: center;">
-    <select class="address_type" id="address_numbering" bind:value={$addressValue}>
-    {#each addressOpt as {name, value}}
-      <option {value}>{name}</option>
-    {/each}
+    <select
+      class="address_type"
+      id="address_numbering"
+      bind:value={$addressValue}
+    >
+      {#each addressOpt as { name, value }}
+        <option {value}>{name}</option>
+      {/each}
     </select>
   </div>
-  <div class="measure"><span contenteditable='true' id="physical_offsets" bind:innerHTML={physicalOffsetText} readonly/></div>
-  <div class="measure"><span contenteditable='true' id="logical_offsets" bind:innerHTML={logicalOffsetText} readonly/></div>
+  <div class="measure">
+    <span
+      contenteditable="true"
+      id="physical_offsets"
+      bind:innerHTML={physicalOffsetText}
+      readonly
+    />
+  </div>
+  <div class="measure">
+    <span
+      contenteditable="true"
+      id="logical_offsets"
+      bind:innerHTML={logicalOffsetText}
+      readonly
+    />
+  </div>
   <div class="measure">
     <div>
-      <span id="selected_offsets" contenteditable="true" readonly>{selectionOffsetText}
+      <span id="selected_offsets" contenteditable="true" readonly
+        >{selectionOffsetText}</span
+      >
       {#if $cursorPos}
-      <span> | cursor: {$cursorPos}</span>
+        <span> | cursor: {$cursorPos}</span>
       {/if}
-      <span id="editor_offsets" readonly/>
+      <span id="editor_offsets" readonly />
     </div>
   </div>
-  <textarea class="address_vw" id="address" contenteditable="true" readonly bind:this={address_vwRef} bind:innerHTML={addressText} on:scroll={scrollHandle}/>
-  <textarea class="physical_vw" id="physical" contenteditable="true" readonly bind:this={physical_vwRef} bind:innerHTML={physicalDisplayText} on:select={handleSelectionEvent} on:scroll={scrollHandle}/>
-  <textarea class="logicalView" id="logical" contenteditable="true" readonly bind:this={logical_vwRef} bind:innerHTML={logicalDisplayText} on:select={handleSelectionEvent} on:scroll={scrollHandle}/>
+  <textarea
+    class="address_vw"
+    id="address"
+    contenteditable="true"
+    readonly
+    bind:this={address_vwRef}
+    bind:innerHTML={addressText}
+    on:scroll={scrollHandle}
+  />
+  <textarea
+    class="physical_vw"
+    id="physical"
+    contenteditable="true"
+    readonly
+    bind:this={physical_vwRef}
+    bind:innerHTML={physicalDisplayText}
+    on:select={handleSelectionEvent}
+    on:scroll={scrollHandle}
+  />
+  <textarea
+    class="logicalView"
+    id="logical"
+    contenteditable="true"
+    readonly
+    bind:this={logical_vwRef}
+    bind:innerHTML={logicalDisplayText}
+    on:select={handleSelectionEvent}
+    on:scroll={scrollHandle}
+  />
   <div class="editView" id="edit_view">
-    <div class="selectedContent" id="editor" contenteditable="true" bind:this={$selectedContent} bind:innerHTML={$editorSelection} on:keyup|nonpassive={handleEditorEvent} on:click={handleEditorEvent} on:input={handleEditorEvent}></div>
+    <div
+      class="selectedContent"
+      id="editor"
+      contenteditable="true"
+      bind:this={$selectedContent}
+      bind:innerHTML={$editorSelection}
+      on:keyup|nonpassive={handleEditorEvent}
+      on:click={handleEditorEvent}
+      on:input={handleEditorEvent}
+    />
     <fieldset class="box">
-      <legend>Content Controls 
-      {#if !$commitable}
-        <span class='errMsg'>{$commitErrMsg}</span>
-      {/if}
+      <legend
+        >Content Controls
+        {#if !$commitable}
+          <span class="errMsg">{$commitErrMsg}</span>
+        {/if}
       </legend>
       <div class="contentControls" id="content_controls">
         <div class="grid-container-two-columns">
           <div>
-          {#if $commitable }
-            <vscode-button id="commit_btn" on:click={commitChanges}>Commit Changes</vscode-button>
-          {:else}
-            <vscode-button id="commit_btn" disabled>Commit Changes</vscode-button>
-          {/if}
+            {#if $commitable}
+              <button id="commit_btn" on:click={commitChanges}
+                >Commit Changes</button
+              >
+            {:else}
+              <button id="commit_btn" disabled>Commit Changes</button>
+            {/if}
             <br />
             Committed changes: <span id="change_cnt">0</span>
           </div>
           <div>
-            <vscode-button id="add_data_breakpoint_btn" disabled>Set Breakpoint</vscode-button>
+            <button id="add_data_breakpoint_btn" disabled>Set Breakpoint</button
+            >
             <br />
             Breakpoints: <span id="data_breakpoint_cnt">0</span>
           </div>
@@ -599,65 +668,148 @@ limitations under the License.
         <div class="grid-container-two-columns">
           <div class="grid-container-column">
             <div>
-              <label for="endianness">Endianness:
+              <label for="endianness"
+                >Endianness:
                 <select id="endianness" bind:value={$dataViewEndianness}>
-                {#each endiannessOpt as {name, value}}
-                  <option {value}>{name}</option>
-                {/each}
+                  {#each endiannessOpt as { name, value }}
+                    <option {value}>{name}</option>
+                  {/each}
                 </select>
               </label>
             </div>
             <div>
-              <label for="edit_encoding">Encoding:
+              <label for="edit_encoding"
+                >Encoding:
                 <select id="edit_encoding" bind:value={$editorEncoding}>
-                  {#each encoding_groups as {group, encodings}}
+                  {#each encoding_groups as { group, encodings }}
                     <optgroup label={group}>
-                    {#each encodings as {name, value}}
-                      <option {value}>{name}</option>
-                    {/each}
+                      {#each encodings as { name, value }}
+                        <option {value}>{name}</option>
+                      {/each}
                     </optgroup>
                   {/each}
                 </select>
               </label>
             </div>
             <div class="advanced" hidden>
-              <label for="lsb">Least significant bit:
+              <label for="lsb"
+                >Least significant bit:
                 <select id="lsb">
-                {#each lsbOpt as {name, value}}
-                <option {value}>{name}</option>
-                {/each}
+                  {#each lsbOpt as { name, value }}
+                    <option {value}>{name}</option>
+                  {/each}
                 </select>
               </label>
             </div>
             <div class="advanced" hidden>
-              <label for="logical_byte_size">Logical byte size:
+              <label for="logical_byte_size"
+                >Logical byte size:
                 <select id="logical_byte_size">
-                {#each byteSizeOpt as {value}}
-                  <option {value}>{value}</option>
-                {/each}
+                  {#each byteSizeOpt as { value }}
+                    <option {value}>{value}</option>
+                  {/each}
                 </select>
               </label>
             </div>
           </div>
           <div class="grid-container-column">
-            <div id="data_vw" >&nbsp;Offset: <span id="offset_dv" contenteditable='true' readonly>{$byteOffsetPos}</span>
-              <span id="b8_dv" on:mouseenter={highlightDataView} on:mouseleave={clearDataViewHighlight}>
-                <br /><label for="int8_dv">&nbsp;&nbsp;&nbsp;int8: <text-field id="int8_dv" contenteditable='true' bind:textContent={$int8}></text-field></label>
-                <br /><label for="uint8_dv">&nbsp;&nbsp;uint8: <text-field id="uint8_dv" contenteditable='true' bind:textContent={$uint8}></text-field></label>
+            <div id="data_vw">
+              &nbsp;Offset: <span id="offset_dv" contenteditable="true" readonly
+                >{$byteOffsetPos}</span
+              >
+              <span
+                id="b8_dv"
+                on:mouseenter={highlightDataView}
+                on:mouseleave={clearDataViewHighlight}
+              >
+                <br /><label for="int8_dv"
+                  >&nbsp;&nbsp;&nbsp;int8: <text-field
+                    id="int8_dv"
+                    contenteditable="true"
+                    bind:textContent={$int8}
+                  /></label
+                >
+                <br /><label for="uint8_dv"
+                  >&nbsp;&nbsp;uint8: <text-field
+                    id="uint8_dv"
+                    contenteditable="true"
+                    bind:textContent={$uint8}
+                  /></label
+                >
               </span>
-              <span id="b16_dv" on:mouseenter={highlightDataView} on:mouseleave={clearDataViewHighlight}>
-                <br /><label for="int16_dv">&nbsp;&nbsp;int16: <text-field id="int16_dv" contenteditable='true' bind:textContent={$int16}></text-field></label>
-                <br /><label for="uint16_dv">&nbsp;uint16: <text-field id="uint16_dv" contenteditable='true' bind:textContent={$uint16}></text-field></label>
+              <span
+                id="b16_dv"
+                on:mouseenter={highlightDataView}
+                on:mouseleave={clearDataViewHighlight}
+              >
+                <br /><label for="int16_dv"
+                  >&nbsp;&nbsp;int16: <text-field
+                    id="int16_dv"
+                    contenteditable="true"
+                    bind:textContent={$int16}
+                  /></label
+                >
+                <br /><label for="uint16_dv"
+                  >&nbsp;uint16: <text-field
+                    id="uint16_dv"
+                    contenteditable="true"
+                    bind:textContent={$uint16}
+                  /></label
+                >
               </span>
-              <span id="b32_dv" on:mouseenter={highlightDataView} on:mouseleave={clearDataViewHighlight}>
-                <br /><label for="int32_dv">&nbsp;&nbsp;int32: <text-field id="int32_dv" contenteditable='true' bind:textContent={$int32}></text-field></label>
-                <br /><label for="uint32_dv">&nbsp;uint32: <text-field id="uint32_dv" contenteditable='true' bind:textContent={$uint32}></text-field></label>
-                <br /><label for="float32_dv">float32: <text-field id="float32_dv" contenteditable='true' bind:textContent={$float32}></text-field></label>
+              <span
+                id="b32_dv"
+                on:mouseenter={highlightDataView}
+                on:mouseleave={clearDataViewHighlight}
+              >
+                <br /><label for="int32_dv"
+                  >&nbsp;&nbsp;int32: <text-field
+                    id="int32_dv"
+                    contenteditable="true"
+                    bind:textContent={$int32}
+                  /></label
+                >
+                <br /><label for="uint32_dv"
+                  >&nbsp;uint32: <text-field
+                    id="uint32_dv"
+                    contenteditable="true"
+                    bind:textContent={$uint32}
+                  /></label
+                >
+                <br /><label for="float32_dv"
+                  >float32: <text-field
+                    id="float32_dv"
+                    contenteditable="true"
+                    bind:textContent={$float32}
+                  /></label
+                >
               </span>
-              <span id="b64_dv" on:mouseenter={highlightDataView} on:mouseleave={clearDataViewHighlight}>
-                <br /><label for="int64_dv">&nbsp;&nbsp;int64: <text-field id="int64_dv" contenteditable='true' bind:textContent={$int64}></text-field></label>
-                <br /><label for="uint64_dv">&nbsp;uint64: <text-field id="uint64_dv" contenteditable='true' bind:textContent={$uint64}></text-field></label>
-                <br /><label for="float64_dv">float64: <text-field id="float64_dv" contenteditable='true' bind:textContent={$float64}></text-field></label>
+              <span
+                id="b64_dv"
+                on:mouseenter={highlightDataView}
+                on:mouseleave={clearDataViewHighlight}
+              >
+                <br /><label for="int64_dv"
+                  >&nbsp;&nbsp;int64: <text-field
+                    id="int64_dv"
+                    contenteditable="true"
+                    bind:textContent={$int64}
+                  /></label
+                >
+                <br /><label for="uint64_dv"
+                  >&nbsp;uint64: <text-field
+                    id="uint64_dv"
+                    contenteditable="true"
+                    bind:textContent={$uint64}
+                  /></label
+                >
+                <br /><label for="float64_dv"
+                  >float64: <text-field
+                    id="float64_dv"
+                    contenteditable="true"
+                    bind:textContent={$float64}
+                  /></label
+                >
               </span>
             </div>
           </div>
@@ -666,7 +818,7 @@ limitations under the License.
     </fieldset>
   </div>
 </main>
-<hr>
+<hr />
 
 <!-- svelte-ignore css-unused-selector -->
 <style lang="scss">
@@ -697,7 +849,7 @@ limitations under the License.
     flex: 0 1 auto;
   }
 
-  header fieldset vscode-button {
+  header fieldset button {
     margin-right: 5px;
     margin-top: 10px;
   }
@@ -706,7 +858,8 @@ limitations under the License.
     padding: 5px;
   }
 
-  input, select {
+  input,
+  select {
     background-color: #3c3c3c;
     color: white;
     border-width: 0;
@@ -716,7 +869,7 @@ limitations under the License.
   }
   header input {
     padding-left: 5px;
-    width: 95%
+    width: 95%;
   }
   textarea {
     color: inherit;
@@ -835,7 +988,6 @@ limitations under the License.
   }
 
   #replace_input {
-    min-width: 100px
+    min-width: 100px;
   }
-  
 </style>

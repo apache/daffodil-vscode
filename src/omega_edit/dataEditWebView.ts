@@ -31,7 +31,6 @@ import { v4 as uuidv4 } from 'uuid'
 import * as omegaEditSession from 'omega-edit/session'
 import * as omegaEditViewport from 'omega-edit/viewport'
 import { OmegaEdit } from './omega_edit'
-import { ViewportDataResponse } from 'omega-edit/omega_edit_pb'
 
 type Viewports = { label: string; vpid: string; omegaEdit: OmegaEdit }[]
 
@@ -201,15 +200,15 @@ export class DataEditWebView implements vscode.Disposable {
         break
       case MessageCommand.searchAndReplace:
         {
-          var viewportData = await omegaEditViewport.getViewportData(
+          const viewportData = await omegaEditViewport.getViewportData(
             this.omegaViewports['vpAll']
           )
-          var searchDataBytes = encodedStrToData(
+          const searchDataBytes = encodedStrToData(
             message.data.searchData,
             this.displayState.editorEncoding
           )
-          var filesize = viewportData.getLength()
-          var caseInsensitive = message.data.caseInsensitive
+          const filesize = viewportData.getLength()
+          const caseInsensitive = message.data.caseInsensitive
           omegaEdit = new OmegaEdit(
             this.omegaSessionId,
             viewportData.getOffset(),
