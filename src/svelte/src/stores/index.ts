@@ -19,6 +19,8 @@ import { writable, derived } from 'svelte/store'
 import { validateEncodingStr } from '../utilities/display'
 
 export const filesize = writable(0)
+export const filename = writable('')
+export const filetype = writable('')
 export const computedFilesize = writable(0)
 export const editType = writable('')
 export const editCount = writable(0)

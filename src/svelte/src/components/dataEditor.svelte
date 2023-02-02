@@ -18,6 +18,8 @@ limitations under the License.
   import {
     displayRadix,
     addressValue,
+    filename,
+    filetype,
     filesize,
     fileByteStart,
     fileByteEnd,
@@ -79,8 +81,6 @@ limitations under the License.
   import { MessageCommand } from '../utilities/message'
   import { writable } from 'svelte/store'
 
-  let filename = ''
-  let filetype = ''
   let addressText: string
   let physicalOffsetText: string
   let physicalDisplayText = ''
@@ -169,17 +169,10 @@ limitations under the License.
   }
 
   async function loadContent(data: Uint8Array) {
-    viewportData.update(() => {
-      return data
-    })
-
-    displayRadix.update(() => {
-      return 16
-    })
-
+    $viewportData = data
+    $displayRadix = 16
     $gotoOffset = 0
     $gotoOffsetMax = data.length
-
     vscode.postMessage({
       command: MessageCommand.updateLogicalDisplay,
       data: {
@@ -316,18 +309,13 @@ limitations under the License.
     }
 
     selectionStartStore.update(() => {
-      if (selected.id === 'logical') return selected.selectionStart / 2
-      return selectionOffsetsByRadix[$displayRadix].start
+      return (selected.id === 'logical') ? Math.floor(selectionStart / 2) : selectionOffsetsByRadix[$displayRadix].start
     })
     selectionEndStore.update(() => {
-      if (selected.id === 'logical')
-        return Math.floor(selected.selectionEnd / 2)
-      return selectionOffsetsByRadix[$displayRadix].end
+      return (selected.id === 'logical') ? Math.floor(selectionEnd / 2) : selectionOffsetsByRadix[$displayRadix].end
     })
     selectionOriginalEnd.update(() => {
-      if (selected.id === 'logical')
-        return Math.floor(selected.selectionEnd / 2)
-      return selectionOffsetsByRadix[$displayRadix].end
+      return (selected.id === 'logical') ? Math.floor(selectionEnd / 2) : selectionOffsetsByRadix[$displayRadix].end
     })
   }
 
@@ -397,10 +385,8 @@ limitations under the License.
   }
 
   function highlightDataView(event: Event) {
-    const hoverEvent = event as MouseEvent
     let highlightLenModifier: number
     let highlightByteOffset: number
-    let pos: number
 
     switch ($editorEncoding) {
       case 'hex':
@@ -427,12 +413,12 @@ limitations under the License.
         highlightByteOffset = 8 * highlightLenModifier
         break
     }
-    pos = $byteOffsetPos * highlightLenModifier
+    const pos = $byteOffsetPos * highlightLenModifier
     editorSelection.update((str) => {
-      let seg1 = str.substring(0, pos) + dvHighlightTag.start
-      let seg2 =
+      const seg1 = str.substring(0, pos) + dvHighlightTag.start
+      const seg2 =
         str.substring(pos, pos + highlightByteOffset) + dvHighlightTag.end
-      let seg3 = str.substring(pos + highlightByteOffset)
+      const seg3 = str.substring(pos + highlightByteOffset)
       return seg1 + seg2 + seg3
     })
   }
@@ -444,33 +430,23 @@ limitations under the License.
         $editCount = 0
         break
       case MessageCommand.editorOnChange:
-        editorSelection.update(() => {
-          return msg.data.display
-        })
+        $editorSelection = msg.data.display
         break
       case MessageCommand.requestEditedData:
-        editorSelection.update(() => {
-          return msg.data.display
-        })
-        selectedFileData.update(() => {
-          return new Uint8Array(msg.data.data)
-        })
-        cursorPos.update(() => {
-          return document.getSelection().anchorOffset
-        })
-        selectionEndStore.update(() => {
-          return $selectionStartStore + $selectedFileData.byteLength - 1
-        })
+        $editorSelection = msg.data.display
+        $selectedFileData = new Uint8Array(msg.data.data)
+        $cursorPos = document.getSelection().anchorOffset
+        $selectionEndStore = $selectionStartStore + $selectedFileData.byteLength - 1
         break
       case MessageCommand.updateLogicalDisplay:
         logicalDisplayText = msg.data.data.logicalDisplay
         break
       case MessageCommand.fileInfo:
         if (typeof msg.data.data.filename !== 'undefined') {
-          filename = msg.data.data.filename
+          $filename = msg.data.data.filename
         }
         if (typeof msg.data.data.filetype !== 'undefined') {
-          filetype = msg.data.data.filetype
+          $filetype = msg.data.data.filetype
         }
         if (typeof msg.data.data.filesize !== 'undefined') {
           $filesize = msg.data.data.filesize
@@ -491,12 +467,22 @@ limitations under the License.
   <fieldset class="box">
     <legend>File Metrics</legend>
     <div class="file-metrics">
-      <label for="file_name" class="file-metrics">File: </label><span id="file_name">{filename}</span>
+      <label for="file_name" class="file-metrics">File: </label><span
+        id="file_name">{$filename}</span
+      >
       <hr />
-      <label for="file_type" class="file-metrics">Type: </label><span id="file_type">{filetype}</span>
-      <br /><label for="file_size" class="file-metrics">File Size: </label><span id="file_byte_cnt">{$filesize}</span>
-      <br /><label for="computed_byte_cnt" class="file-metrics">Computed File Size: </label><span id="computed_byte_cnt">{$computedFilesize}</span>
-      <br /><label for="ascii_count" class="file-metrics">ASCII count: </label><span id="ascii_byte_cnt">{$asciiCount}</span>
+      <label for="file_type" class="file-metrics">Type: </label><span
+        id="file_type">{$filetype}</span
+      >
+      <br /><label for="file_byte_cnt" class="file-metrics"
+        >File Size:
+      </label><span id="file_byte_cnt">{$filesize}</span>
+      <br /><label for="computed_byte_cnt" class="file-metrics"
+        >Computed File Size:
+      </label><span id="computed_byte_cnt">{$computedFilesize}</span>
+      <br /><label for="ascii_byte_cnt" class="file-metrics"
+        >ASCII count:
+      </label><span id="ascii_byte_cnt">{$asciiCount}</span>
     </div>
   </fieldset>
   <fieldset class="box">
@@ -580,23 +566,21 @@ limitations under the License.
   </div>
   <div class="measure">
     <span id="physical_offsets">
-    {@html physicalOffsetText}
+      {@html physicalOffsetText}
     </span>
   </div>
   <div class="measure">
     <span id="logical_offsets">
-    {@html logicalOffsetText}
+      {@html logicalOffsetText}
     </span>
   </div>
   <div class="measure">
     <div>
-      <span id="selected_offsets"
-        >{selectionOffsetText}</span
-      >
+      <span id="selected_offsets">{selectionOffsetText}</span>
       {#if $cursorPos}
         <span> | cursor: {$cursorPos}</span>
       {/if}
-      <span id="editor_offsets"></span>
+      <span id="editor_offsets" />
     </div>
   </div>
   <textarea
@@ -606,7 +590,8 @@ limitations under the License.
     readonly
     bind:this={address_vwRef}
     bind:innerHTML={addressText}
-    on:scroll={scrollHandle}></textarea>
+    on:scroll={scrollHandle}
+  />
   <textarea
     class="physical_vw"
     id="physical"
@@ -615,7 +600,8 @@ limitations under the License.
     bind:this={physical_vwRef}
     bind:innerHTML={physicalDisplayText}
     on:select={handleSelectionEvent}
-    on:scroll={scrollHandle}></textarea>
+    on:scroll={scrollHandle}
+  />
   <textarea
     class="logicalView"
     id="logical"
@@ -624,7 +610,8 @@ limitations under the License.
     bind:this={logical_vwRef}
     bind:innerHTML={logicalDisplayText}
     on:select={handleSelectionEvent}
-    on:scroll={scrollHandle}></textarea>
+    on:scroll={scrollHandle}
+  />
   <div class="editView" id="edit_view">
     <div
       class="selectedContent"
@@ -669,23 +656,23 @@ limitations under the License.
             <div class="content-select-column">
               <div class="content-select-container">
                 <label for="endianness">Endianness:</label>
-                  <select class="content-select" bind:value={$dataViewEndianness}>
-                    {#each endiannessOpt as { name, value }}
-                      <option {value}>{name}</option>
-                    {/each}
-                  </select>
+                <select class="content-select" bind:value={$dataViewEndianness}>
+                  {#each endiannessOpt as { name, value }}
+                    <option {value}>{name}</option>
+                  {/each}
+                </select>
               </div>
               <div class="content-select-container">
                 <label for="edit_encoding">Encoding:</label>
-                  <select class="content-select" bind:value={$editorEncoding}>
-                    {#each encoding_groups as { group, encodings }}
-                      <optgroup label={group}>
-                        {#each encodings as { name, value }}
-                          <option {value}>{name}</option>
-                        {/each}
-                      </optgroup>
-                    {/each}
-                  </select>
+                <select class="content-select" bind:value={$editorEncoding}>
+                  {#each encoding_groups as { group, encodings }}
+                    <optgroup label={group}>
+                      {#each encodings as { name, value }}
+                        <option {value}>{name}</option>
+                      {/each}
+                    </optgroup>
+                  {/each}
+                </select>
               </div>
             </div>
             <div class="advanced" hidden>
@@ -723,13 +710,15 @@ limitations under the License.
                   >&nbsp;&nbsp;&nbsp;int8: <text-field
                     id="int8_dv"
                     contenteditable="true"
-                    bind:textContent={$int8}></text-field></label
+                    bind:textContent={$int8}
+                  /></label
                 >
                 <br /><label for="uint8_dv"
                   >&nbsp;&nbsp;uint8: <text-field
                     id="uint8_dv"
                     contenteditable="true"
-                    bind:textContent={$uint8}></text-field></label
+                    bind:textContent={$uint8}
+                  /></label
                 >
               </span>
               <span
@@ -741,13 +730,15 @@ limitations under the License.
                   >&nbsp;&nbsp;int16: <text-field
                     id="int16_dv"
                     contenteditable="true"
-                    bind:textContent={$int16}></text-field></label
+                    bind:textContent={$int16}
+                  /></label
                 >
                 <br /><label for="uint16_dv"
                   >&nbsp;uint16: <text-field
                     id="uint16_dv"
                     contenteditable="true"
-                    bind:textContent={$uint16}></text-field></label
+                    bind:textContent={$uint16}
+                  /></label
                 >
               </span>
               <span
@@ -759,19 +750,22 @@ limitations under the License.
                   >&nbsp;&nbsp;int32: <text-field
                     id="int32_dv"
                     contenteditable="true"
-                    bind:textContent={$int32}></text-field></label
+                    bind:textContent={$int32}
+                  /></label
                 >
                 <br /><label for="uint32_dv"
                   >&nbsp;uint32: <text-field
                     id="uint32_dv"
                     contenteditable="true"
-                    bind:textContent={$uint32}></text-field></label
+                    bind:textContent={$uint32}
+                  /></label
                 >
                 <br /><label for="float32_dv"
                   >float32: <text-field
                     id="float32_dv"
                     contenteditable="true"
-                    bind:textContent={$float32}></text-field></label
+                    bind:textContent={$float32}
+                  /></label
                 >
               </span>
               <span
@@ -783,19 +777,22 @@ limitations under the License.
                   >&nbsp;&nbsp;int64: <text-field
                     id="int64_dv"
                     contenteditable="true"
-                    bind:textContent={$int64}></text-field></label
+                    bind:textContent={$int64}
+                  /></label
                 >
                 <br /><label for="uint64_dv"
                   >&nbsp;uint64: <text-field
                     id="uint64_dv"
                     contenteditable="true"
-                    bind:textContent={$uint64}></text-field></label
+                    bind:textContent={$uint64}
+                  /></label
                 >
                 <br /><label for="float64_dv"
                   >float64: <text-field
                     id="float64_dv"
                     contenteditable="true"
-                    bind:textContent={$float64}></text-field></label
+                    bind:textContent={$float64}
+                  /></label
                 >
               </span>
             </div>
@@ -883,7 +880,7 @@ limitations under the License.
     border-radius: 4px;
     border-width: 0;
     background-color: #727272;
-    color: #FFFFFF;
+    color: #ffffff;
     font-weight: bold;
     margin-bottom: 5px;
     cursor: pointer;
@@ -944,8 +941,11 @@ limitations under the License.
     display: flex;
     padding: 5px;
   }
-  
-  .dataEditor div.contentControls .grid-container-two-columns div.grid-container-column {
+
+  .dataEditor
+    div.contentControls
+    .grid-container-two-columns
+    div.grid-container-column {
     width: 50%;
     padding: 5px;
   }

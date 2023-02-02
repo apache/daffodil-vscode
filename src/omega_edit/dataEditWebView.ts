@@ -49,7 +49,6 @@ export class DataEditWebView implements vscode.Disposable {
   ) {
     this.panel = this.createPanel(title)
     this.panel.webview.onDidReceiveMessage(this.messageReceiver, this)
-
     this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
   }
@@ -87,11 +86,11 @@ export class DataEditWebView implements vscode.Disposable {
 
         this.omegaSessionId = await omegaEditSession.createSession(
           this.fileToEdit,
-          uuidv4()
+          undefined
         )
 
         this.omegaViewports['vpAll'] = await omegaEditViewport.createViewport(
-          '',
+          undefined,
           this.omegaSessionId,
           0,
           VIEWPORT_CAPACITY_MAX,
@@ -142,7 +141,6 @@ export class DataEditWebView implements vscode.Disposable {
           message.data.viewportData,
           this.displayState.bytesPerRow
         )
-
         this.panel.webview.postMessage({
           command: MessageCommand.updateLogicalDisplay,
           data: {
@@ -153,7 +151,6 @@ export class DataEditWebView implements vscode.Disposable {
 
       case MessageCommand.editorOnChange:
         this.displayState.editorEncoding = message.data.encoding
-
         if (message.data.selectionData.length > 0) {
           const bufSlice = Buffer.from(message.data.selectionData)
           this.panel.webview.postMessage({
@@ -164,54 +161,58 @@ export class DataEditWebView implements vscode.Disposable {
             ),
           })
         }
-
         break
 
       case MessageCommand.commit:
-        let fileOffset = message.data.selectionStart
-        let data = message.data.selectionData
-        let originalSelectionLen = message.data.selectionDataLen + 1
-        vscode.window.showInformationMessage(
-          `Commit Received - Offset: ${fileOffset} | Length: ${originalSelectionLen} | Data: ${data}`
-        )
-        omegaEdit = new OmegaEdit(
-          this.omegaSessionId,
-          fileOffset,
-          data,
-          originalSelectionLen,
-          this.panel
-        )
-        await omegaEdit.replace(
-          this.omegaSessionId,
-          fileOffset,
-          originalSelectionLen,
-          data
-        )
-        await viewportSubscribe(
-          this.panel,
-          this.omegaViewports['vpAll'],
-          this.omegaViewports['vpAll'],
-          'vpAll',
-          'hexAll'
-        )
-        this.panel.webview.postMessage({
-          command: MessageCommand.fileInfo,
-          data: {
-            computedFilesize: await omegaEditSession.getComputedFileSize(
-              this.omegaSessionId
-            ),
-          },
-        })
+        {
+          const fileOffset = message.data.selectionStart
+          const data = message.data.selectionData
+          const originalSelectionLen = message.data.selectionDataLen + 1
+          vscode.window.showInformationMessage(
+            `Commit Received - Offset: ${fileOffset} | Length: ${originalSelectionLen} | Data: ${data}`
+          )
+          omegaEdit = new OmegaEdit(
+            this.omegaSessionId,
+            fileOffset,
+            data,
+            originalSelectionLen,
+            this.panel
+          )
+          await omegaEdit.replace(
+            this.omegaSessionId,
+            fileOffset,
+            originalSelectionLen,
+            data
+          )
+          await viewportSubscribe(
+            this.panel,
+            this.omegaViewports['vpAll'],
+            this.omegaViewports['vpAll'],
+            'vpAll',
+            'hexAll'
+          )
+          this.panel.webview.postMessage({
+            command: MessageCommand.fileInfo,
+            data: {
+              computedFilesize: await omegaEditSession.getComputedFileSize(
+                this.omegaSessionId
+              ),
+            },
+          })
+        }
         break
 
       case MessageCommand.requestEditedData:
-        let [selectionData, selectionDisplay] = fillRequestData(message)
-        this.panel.webview.postMessage({
-          command: MessageCommand.requestEditedData,
-          data: Uint8Array.from(selectionData),
-          display: selectionDisplay,
-        })
+        {
+          const [selectionData, selectionDisplay] = fillRequestData(message)
+          this.panel.webview.postMessage({
+            command: MessageCommand.requestEditedData,
+            data: Uint8Array.from(selectionData),
+            display: selectionDisplay,
+          })
+        }
         break
+
       case MessageCommand.searchAndReplace:
         {
           const viewportData = await omegaEditViewport.getViewportData(
@@ -232,7 +233,7 @@ export class DataEditWebView implements vscode.Disposable {
             filesize,
             this.panel
           )
-          let replaceDataBytes = encodedStrToData(
+          const replaceDataBytes = encodedStrToData(
             message.data.replaceData,
             this.displayState.editorEncoding
           )
@@ -250,8 +251,8 @@ export class DataEditWebView implements vscode.Disposable {
             'hexAll'
           )
         }
-
         break
+
       case MessageCommand.search:
         {
           const viewportData = await omegaEditViewport.getViewportData(
