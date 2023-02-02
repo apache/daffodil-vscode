@@ -58,6 +58,7 @@ limitations under the License.
     replaceErrMsg,
     selectionOriginalEnd,
     searchErrMsg,
+    computedFilesize,
   } from '../stores'
   import {
     radixOpt,
@@ -170,10 +171,6 @@ limitations under the License.
   async function loadContent(data: Uint8Array) {
     viewportData.update(() => {
       return data
-    })
-
-    filesize.update(() => {
-      return data.length
     })
 
     displayRadix.update(() => {
@@ -469,8 +466,18 @@ limitations under the License.
         logicalDisplayText = msg.data.data.logicalDisplay
         break
       case MessageCommand.fileInfo:
-        filename = msg.data.data.filename
-        filetype = msg.data.data.filetype
+        if (typeof msg.data.data.filename !== 'undefined') {
+          filename = msg.data.data.filename
+        }
+        if (typeof msg.data.data.filetype !== 'undefined') {
+          filetype = msg.data.data.filetype
+        }
+        if (typeof msg.data.data.filesize !== 'undefined') {
+          $filesize = msg.data.data.filesize
+        }
+        if (typeof msg.data.data.computedFilesize !== 'undefined') {
+          $computedFilesize = msg.data.data.computedFilesize
+        }
         break
       case MessageCommand.search:
         $searchResults = msg.data.searchResults
@@ -484,11 +491,12 @@ limitations under the License.
   <fieldset class="box">
     <legend>File Metrics</legend>
     <div class="file-metrics">
-      File: <span id="file_name">{filename}</span>
+      <label for="file_name" class="file-metrics">File: </label><span id="file_name">{filename}</span>
       <hr />
-      Type: <span id="file_type">{filetype}</span>
-      <br />Size: <span id="file_byte_cnt">{$filesize}</span>
-      <br />ASCII count: <span id="ascii_byte_cnt">{$asciiCount}</span>
+      <label for="file_type" class="file-metrics">Type: </label><span id="file_type">{filetype}</span>
+      <br /><label for="file_size" class="file-metrics">File Size: </label><span id="file_byte_cnt">{$filesize}</span>
+      <br /><label for="computed_byte_cnt" class="file-metrics">Computed File Size: </label><span id="computed_byte_cnt">{$computedFilesize}</span>
+      <br /><label for="ascii_count" class="file-metrics">ASCII count: </label><span id="ascii_byte_cnt">{$asciiCount}</span>
     </div>
   </fieldset>
   <fieldset class="box">
@@ -571,16 +579,14 @@ limitations under the License.
     </select>
   </div>
   <div class="measure">
-    <span
-      id="physical_offsets"
-    />
+    <span id="physical_offsets">
     {@html physicalOffsetText}
+    </span>
   </div>
   <div class="measure">
-    <span
-      id="logical_offsets"
-    />
+    <span id="logical_offsets">
     {@html logicalOffsetText}
+    </span>
   </div>
   <div class="measure">
     <div>
@@ -590,7 +596,7 @@ limitations under the License.
       {#if $cursorPos}
         <span> | cursor: {$cursorPos}</span>
       {/if}
-      <span id="editor_offsets" />
+      <span id="editor_offsets"></span>
     </div>
   </div>
   <textarea
@@ -600,8 +606,7 @@ limitations under the License.
     readonly
     bind:this={address_vwRef}
     bind:innerHTML={addressText}
-    on:scroll={scrollHandle}
-  />
+    on:scroll={scrollHandle}></textarea>
   <textarea
     class="physical_vw"
     id="physical"
@@ -610,8 +615,7 @@ limitations under the License.
     bind:this={physical_vwRef}
     bind:innerHTML={physicalDisplayText}
     on:select={handleSelectionEvent}
-    on:scroll={scrollHandle}
-  />
+    on:scroll={scrollHandle}></textarea>
   <textarea
     class="logicalView"
     id="logical"
@@ -620,8 +624,7 @@ limitations under the License.
     bind:this={logical_vwRef}
     bind:innerHTML={logicalDisplayText}
     on:select={handleSelectionEvent}
-    on:scroll={scrollHandle}
-  />
+    on:scroll={scrollHandle}></textarea>
   <div class="editView" id="edit_view">
     <div
       class="selectedContent"
@@ -707,106 +710,94 @@ limitations under the License.
             </div>
           </div>
           <div class="grid-container-column">
-            <div class="data-view-container">
-              <div id="data_vw">
-                &nbsp;Offset: <span id="offset_dv" contenteditable="true"
-                  >{$byteOffsetPos}</span
+            <div id="data_vw">
+              &nbsp;Offset: <span id="offset_dv" contenteditable="true"
+                >{$byteOffsetPos}</span
+              >
+              <span
+                id="b8_dv"
+                on:mouseenter={highlightDataView}
+                on:mouseleave={clearDataViewHighlight}
+              >
+                <br /><label for="int8_dv"
+                  >&nbsp;&nbsp;&nbsp;int8: <text-field
+                    id="int8_dv"
+                    contenteditable="true"
+                    bind:textContent={$int8}></text-field></label
                 >
-                <span
-                  id="b8_dv"
-                  on:mouseenter={highlightDataView}
-                  on:mouseleave={clearDataViewHighlight}
+                <br /><label for="uint8_dv"
+                  >&nbsp;&nbsp;uint8: <text-field
+                    id="uint8_dv"
+                    contenteditable="true"
+                    bind:textContent={$uint8}></text-field></label
                 >
-                  <br /><label for="int8_dv"
-                    >&nbsp;&nbsp;&nbsp;int8: <text-field
-                      id="int8_dv"
-                      contenteditable="true"
-                      bind:textContent={$int8}
-                    /></label
-                  >
-                  <br /><label for="uint8_dv"
-                    >&nbsp;&nbsp;uint8: <text-field
-                      id="uint8_dv"
-                      contenteditable="true"
-                      bind:textContent={$uint8}
-                    /></label
-                  >
-                </span>
-                <span
-                  id="b16_dv"
-                  on:mouseenter={highlightDataView}
-                  on:mouseleave={clearDataViewHighlight}
+              </span>
+              <span
+                id="b16_dv"
+                on:mouseenter={highlightDataView}
+                on:mouseleave={clearDataViewHighlight}
+              >
+                <br /><label for="int16_dv"
+                  >&nbsp;&nbsp;int16: <text-field
+                    id="int16_dv"
+                    contenteditable="true"
+                    bind:textContent={$int16}></text-field></label
                 >
-                  <br /><label for="int16_dv"
-                    >&nbsp;&nbsp;int16: <text-field
-                      id="int16_dv"
-                      contenteditable="true"
-                      bind:textContent={$int16}
-                    /></label
-                  >
-                  <br /><label for="uint16_dv"
-                    >&nbsp;uint16: <text-field
-                      id="uint16_dv"
-                      contenteditable="true"
-                      bind:textContent={$uint16}
-                    /></label
-                  >
-                </span>
-                <span
-                  id="b32_dv"
-                  on:mouseenter={highlightDataView}
-                  on:mouseleave={clearDataViewHighlight}
+                <br /><label for="uint16_dv"
+                  >&nbsp;uint16: <text-field
+                    id="uint16_dv"
+                    contenteditable="true"
+                    bind:textContent={$uint16}></text-field></label
                 >
-                  <br /><label for="int32_dv"
-                    >&nbsp;&nbsp;int32: <text-field
-                      id="int32_dv"
-                      contenteditable="true"
-                      bind:textContent={$int32}
-                    /></label
-                  >
-                  <br /><label for="uint32_dv"
-                    >&nbsp;uint32: <text-field
-                      id="uint32_dv"
-                      contenteditable="true"
-                      bind:textContent={$uint32}
-                    /></label
-                  >
-                  <br /><label for="float32_dv"
-                    >float32: <text-field
-                      id="float32_dv"
-                      contenteditable="true"
-                      bind:textContent={$float32}
-                    /></label
-                  >
-                </span>
-                <span
-                  id="b64_dv"
-                  on:mouseenter={highlightDataView}
-                  on:mouseleave={clearDataViewHighlight}
+              </span>
+              <span
+                id="b32_dv"
+                on:mouseenter={highlightDataView}
+                on:mouseleave={clearDataViewHighlight}
+              >
+                <br /><label for="int32_dv"
+                  >&nbsp;&nbsp;int32: <text-field
+                    id="int32_dv"
+                    contenteditable="true"
+                    bind:textContent={$int32}></text-field></label
                 >
-                  <br /><label for="int64_dv"
-                    >&nbsp;&nbsp;int64: <text-field
-                      id="int64_dv"
-                      contenteditable="true"
-                      bind:textContent={$int64}
-                    /></label
-                  >
-                  <br /><label for="uint64_dv"
-                    >&nbsp;uint64: <text-field
-                      id="uint64_dv"
-                      contenteditable="true"
-                      bind:textContent={$uint64}
-                    /></label
-                  >
-                  <br /><label for="float64_dv"
-                    >float64: <text-field
-                      id="float64_dv"
-                      contenteditable="true"
-                      bind:textContent={$float64}
-                    /></label
-                  >
-                </span>
-              </div>
+                <br /><label for="uint32_dv"
+                  >&nbsp;uint32: <text-field
+                    id="uint32_dv"
+                    contenteditable="true"
+                    bind:textContent={$uint32}></text-field></label
+                >
+                <br /><label for="float32_dv"
+                  >float32: <text-field
+                    id="float32_dv"
+                    contenteditable="true"
+                    bind:textContent={$float32}></text-field></label
+                >
+              </span>
+              <span
+                id="b64_dv"
+                on:mouseenter={highlightDataView}
+                on:mouseleave={clearDataViewHighlight}
+              >
+                <br /><label for="int64_dv"
+                  >&nbsp;&nbsp;int64: <text-field
+                    id="int64_dv"
+                    contenteditable="true"
+                    bind:textContent={$int64}></text-field></label
+                >
+                <br /><label for="uint64_dv"
+                  >&nbsp;uint64: <text-field
+                    id="uint64_dv"
+                    contenteditable="true"
+                    bind:textContent={$uint64}></text-field></label
+                >
+                <br /><label for="float64_dv"
+                  >float64: <text-field
+                    id="float64_dv"
+                    contenteditable="true"
+                    bind:textContent={$float64}></text-field></label
+                >
+              </span>
             </div>
           </div>
         </div>
@@ -850,7 +841,7 @@ limitations under the License.
     margin-top: 10px;
   }
 
-  header div.file-metrics {
+  header label.file-metrics {
     font-weight: bold;
   }
 

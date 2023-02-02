@@ -33,6 +33,7 @@ import * as omegaEditViewport from 'omega-edit/viewport'
 import { OmegaEdit } from './omega_edit'
 
 type Viewports = { label: string; vpid: string; omegaEdit: OmegaEdit }[]
+const VIEWPORT_CAPACITY_MAX = 1048576 // Maximum viewport size in Ωedit is 1048576 (1024 * 1024)
 
 export class DataEditWebView implements vscode.Disposable {
   public panel: vscode.WebviewPanel
@@ -93,7 +94,7 @@ export class DataEditWebView implements vscode.Disposable {
           '',
           this.omegaSessionId,
           0,
-          await omegaEditSession.getComputedFileSize(this.omegaSessionId),
+            VIEWPORT_CAPACITY_MAX,
           false
         )
 
@@ -104,13 +105,15 @@ export class DataEditWebView implements vscode.Disposable {
           'vpAll',
           'hexAll'
         )
+        const filesize = await omegaEditSession.getComputedFileSize(
+            this.omegaSessionId
+        )
         this.panel.webview.postMessage({
           command: MessageCommand.fileInfo,
           data: {
             filename: this.fileToEdit,
-            filesize: await omegaEditSession.getComputedFileSize(
-              this.omegaSessionId
-            ),
+            filesize: filesize,
+            computedFilesize: filesize,
             filetype: await checkMimeType(this.fileToEdit),
           },
         })
@@ -188,6 +191,14 @@ export class DataEditWebView implements vscode.Disposable {
           'vpAll',
           'hexAll'
         )
+        this.panel.webview.postMessage({
+          command: MessageCommand.fileInfo,
+          data: {
+            computedFilesize: await omegaEditSession.getComputedFileSize(
+                this.omegaSessionId
+            )
+          },
+        })
         break
 
       case MessageCommand.requestEditedData:
@@ -207,7 +218,9 @@ export class DataEditWebView implements vscode.Disposable {
             message.data.searchData,
             this.displayState.editorEncoding
           )
-          const filesize = viewportData.getLength()
+          const filesize = await omegaEditSession.getComputedFileSize(
+              this.omegaSessionId
+          )
           const caseInsensitive = message.data.caseInsensitive
           omegaEdit = new OmegaEdit(
             this.omegaSessionId,
@@ -245,7 +258,9 @@ export class DataEditWebView implements vscode.Disposable {
             message.data.searchData,
             this.displayState.editorEncoding
           )
-          const filesize = viewportData.getLength()
+          const filesize = await omegaEditSession.getComputedFileSize(
+              this.omegaSessionId
+          )
           const caseInsensitive = message.data.caseInsensitive
           omegaEdit = new OmegaEdit(
             this.omegaSessionId,
