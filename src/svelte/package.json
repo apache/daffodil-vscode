@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@vscode/codicons": "^0.0.32",
-    "@vscode/webview-ui-toolkit": "^1.2.1"
+    "@vscode/webview-ui-toolkit": "^1.2.1",
+    "react": "^18.2.0"
   }
 }
