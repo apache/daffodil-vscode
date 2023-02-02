@@ -93,7 +93,7 @@ export class DataEditWebView implements vscode.Disposable {
           '',
           this.omegaSessionId,
           0,
-          1000,
+          await omegaEditSession.getComputedFileSize(this.omegaSessionId),
           false
         )
 
