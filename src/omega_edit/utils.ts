@@ -31,7 +31,7 @@ import { EditorMessage } from './messageHandler'
 const client = getClient()
 
 export function randomId() {
-  return Math.floor(Math.random() * (1000 - 0 + 1))
+  return Math.floor(Math.random() * (1000 + 1))
 }
 
 export async function getFilePath(
@@ -265,7 +265,6 @@ export function encodedStrToData(
       selectionByteData[i / 8] = parseInt(selectionEdits.substr(i, 8), 2)
     }
   } else {
-    selectionByteLength = selectionEdits.length
     selectionByteData = Buffer.from(selectionEdits, selectionEncoding)
   }
   return selectionByteData

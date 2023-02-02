@@ -35,12 +35,8 @@ limitations under the License.
     editorSelection,
     editorEncoding,
     selectionSize,
-    selectionActive,
     commitable,
-    dataView, 
     byteOffsetPos,
-    dataViewLookAhead,
-    editedCount,
     cursorPos,
     dataViewEndianness,
     commitErrMsg,
@@ -61,7 +57,6 @@ limitations under the License.
     asciiCount,
     searching,
     searchData,
-    warningable,
     editCount,
     searchResults,
     replaceData,
@@ -83,7 +78,7 @@ limitations under the License.
     setSelectionOffsetInfo } from '../utilities/display';
   import { vscode } from '../utilities/vscode'
   import { MessageCommand } from '../utilities/message'
-  import { writable, derived, readable } from 'svelte/store';
+  import { writable } from 'svelte/store';
 
   provideVSCodeDesignSystem().register(
     vsCodeButton(),
@@ -95,10 +90,10 @@ limitations under the License.
 
   let filename = ''
   let filetype = ''
-  let addressText = ''
-  let physicalOffsetText = ''
+  let addressText: string
+  let physicalOffsetText: string
   let physicalDisplayText = ''
-  let logicalOffsetText = ''
+  let logicalOffsetText: string
   let logicalDisplayText = ''
   let editorTextDisplay = ''
   let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
@@ -227,6 +222,7 @@ limitations under the License.
           )
         break
       }
+      // noinspection TypeScriptValidateTypes
       scrollSyncTimer = setTimeout(function () {
         currentScrollEvt = null
       }, 100)
@@ -416,7 +412,7 @@ limitations under the License.
     }
     switch(event.target.id){
       case 'b8_dv':
-        highlightByteOffset = 1 * highlightLenModifier
+        highlightByteOffset = highlightLenModifier
         break
       case 'b16_dv':
         highlightByteOffset = 2 * highlightLenModifier
