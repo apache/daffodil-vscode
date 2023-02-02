@@ -33,7 +33,7 @@ import * as omegaEditViewport from 'omega-edit/viewport'
 import { OmegaEdit } from './omega_edit'
 
 type Viewports = { label: string; vpid: string; omegaEdit: OmegaEdit }[]
-const VIEWPORT_CAPACITY_MAX = 4000000
+const VIEWPORT_CAPACITY_MAX = 1048576 // Maximum viewport size in Ωedit is 1048576 (1024 * 1024)
 
 export class DataEditWebView implements vscode.Disposable {
   public panel: vscode.WebviewPanel
