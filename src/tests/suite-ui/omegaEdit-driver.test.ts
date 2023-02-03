@@ -65,11 +65,13 @@ describe('omega-edit Test Suite', () => {
     let cmdInput = await new Workbench().openCommandPrompt()
     expect(cmdInput).to.be.ok
 
+    // first check to see if the experimental features are disabled
     await cmdInput.clear()
     await cmdInput.setText('>Ena')
     let pick = await cmdInput.findQuickPick('Enable Experimental Features')
     expect(pick).to.not.be.undefined
 
+    // ensure that the experimental features are disabled
     await cmdInput.clear()
     await cmdInput.setText('>ome')
     pick = await cmdInput.findQuickPick('Omega Edit Version Info')
@@ -91,6 +93,7 @@ describe('omega-edit Test Suite', () => {
     cmdInput = await new Workbench().openCommandPrompt()
     expect(cmdInput).to.be.ok
 
+    // ensure that the experimental features are now enabled
     await cmdInput.clear()
     await cmdInput.setText('>ome')
     pick = await cmdInput.findQuickPick('Omega Edit Version Info')
@@ -105,7 +108,7 @@ describe('omega-edit Test Suite', () => {
   })
 
   it('gets the omega edit version', async () => {
-    // enable experimental features
+    // ensure that we can get the version of Ωedit
     await new Workbench().executeCommand('Omega Edit Version Info')
     await new Promise((res) => {
       setTimeout(res, 10000)
@@ -116,10 +119,13 @@ describe('omega-edit Test Suite', () => {
   })
 
   it('opens a data editor', async () => {
+    // ensure that we can open a data editor
     await new Workbench().executeCommand('Data Editor')
     await new Promise((res) => {
       setTimeout(res, 10000)
     })
+
+    // open package.json as sample data
     const fileInput = await InputBox.create()
     await fileInput.setText(path.resolve(repoRoot, 'package.json'))
     await fileInput.confirm()
@@ -143,6 +149,9 @@ describe('omega-edit Test Suite', () => {
 
     // switch the underlying webdriver context to the webview iframe
     await webView.switchToFrame()
+
+    // find the element with the class name 'inspector-text' and get its text,
+    // then check that it is equal to 'Data Inspector'
     const element = await webView.findWebElement(By.className('inspector-text'))
     expect(await element.getText()).to.equal('Data Inspector')
 
