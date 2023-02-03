@@ -36,11 +36,6 @@ The following binary components distributed with this project are licensed under
 	This package is available under the Apache License v2 without a NOTICE:
         Repository at: https://github.com/josdejong/workerpool
 
-- '@grpc/grpc-js' in extension/dist/ext/extension.js
-	This product bundles '@grpc/grpc-js' from the above files.
-	This package is available under the Apache License v2 without a NOTICE:
-        Repository at: https://github.com/grpc/grpc-node/tree/master
-
 - '@grpc/proto-loader' in extension/dist/ext/extension.js
 	This product bundles '@grpc/proto-loader' from the above files.
     This package is available under the Apache License v2 without a NOTICE:

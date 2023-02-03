@@ -39,12 +39,9 @@
 		"sbt": "sbt universal:packageBin"
 	},
 	"dependencies": {
-		"@grpc/grpc-js": "^1.5.4",
 		"await-notify": "1.0.1",
-		"child_process": "1.0.2",
-		"google-protobuf": "3.20.1",
 		"hexy": "0.3.4",
-		"omega-edit": "0.9.32",
+		"omega-edit": "0.9.33",
 		"unzip-stream": "0.3.1",
 		"uuid": "^9.0.0",
 		"vscode-debugadapter": "1.51.0",
@@ -59,7 +56,7 @@
 		"@vscode/test-electron": "2.1.5",
 		"glob": "8.0.3",
 		"mocha": "10.0.0",
-		"prettier": "2.7.1",
+		"prettier": "2.8.3",
 		"ts-loader": "8.1.0",
 		"typescript": "4.3.5",
 		"vsce": "2.15.0",

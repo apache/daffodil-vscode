@@ -33,6 +33,7 @@ import java.io._
 import java.net.URI
 import java.nio.file._
 import org.apache.commons.io.FileUtils
+import org.apache.daffodil.api.Diagnostic
 import org.apache.daffodil.debugger.dap.{BuildInfo => DAPBuildInfo}
 import org.apache.daffodil.debugger.Debugger
 import org.apache.daffodil.exceptions.SchemaFileLocation
@@ -40,6 +41,7 @@ import org.apache.daffodil.infoset._
 import org.apache.daffodil.processors.dfa.DFADelimiter
 import org.apache.daffodil.processors.parsers._
 import org.apache.daffodil.processors._
+import org.apache.daffodil.sapi.ValidationMode
 import org.apache.daffodil.sapi.infoset.XMLTextInfosetOutputter
 import org.apache.daffodil.sapi.infoset.JsonInfosetOutputter
 import org.apache.daffodil.sapi.io.InputSourceDataInputStream
@@ -68,7 +70,9 @@ object Parse {
       infosetFormat: String
   ): IO[Parse] =
     for {
-      dp <- Compiler().compile(schema).map(p => p.withDebugger(debugger).withDebugging(true))
+      dp <- Compiler()
+        .compile(schema)
+        .map(p => p.withDebugger(debugger).withDebugging(true).withValidationMode(ValidationMode.Limited))
       done <- Ref[IO].of(false)
       pleaseStop <- Deferred[IO, Unit]
     } yield new Parse {
@@ -434,57 +438,78 @@ object Parse {
       event: Event.StartElement,
       refs: Next[DAPodil.VariablesReference]
   ): IO[DAPodil.Frame.Scope] =
-    (refs.next, refs.next).mapN { (pouRef, delimiterStackRef) =>
-      val hidden = event.state.withinHiddenNest
-      val childIndex = if (event.state.childPos != -1) Some(event.state.childPos) else None
-      val groupIndex = if (event.state.groupPos != -1) Some(event.state.groupPos) else None
-      val occursIndex = if (event.state.arrayPos != -1) Some(event.state.arrayPos) else None
-      val foundDelimiter = for {
-        dpr <- event.state.delimitedParseResult.toScalaOption
-        dv <- dpr.matchedDelimiterValue.toScalaOption
-      } yield Misc.remapStringToVisibleGlyphs(dv)
-      val foundField = for {
-        dpr <- event.state.delimitedParseResult.toScalaOption
-        f <- dpr.field.toScalaOption
-      } yield Misc.remapStringToVisibleGlyphs(f)
+    (refs.next, refs.next, refs.next, refs.next, refs.next).mapN {
+      (pouRef, delimiterStackRef, diagnosticsRef, diagnosticsValidationsRef, diagnosticsErrorsRef) =>
+        val hidden = event.state.withinHiddenNest
+        val childIndex = if (event.state.childPos != -1) Some(event.state.childPos) else None
+        val groupIndex = if (event.state.groupPos != -1) Some(event.state.groupPos) else None
+        val occursIndex = if (event.state.arrayPos != -1) Some(event.state.arrayPos) else None
+        val foundDelimiter = for {
+          dpr <- event.state.delimitedParseResult.toScalaOption
+          dv <- dpr.matchedDelimiterValue.toScalaOption
+        } yield Misc.remapStringToVisibleGlyphs(dv)
+        val foundField = for {
+          dpr <- event.state.delimitedParseResult.toScalaOption
+          f <- dpr.field.toScalaOption
+        } yield Misc.remapStringToVisibleGlyphs(f)
 
-      val pouRootVariable =
-        new Types.Variable("points of uncertainty", "", null, pouRef.value, null)
-      val pouVariables =
-        event.pointsOfUncertainty.map(pou => new Types.Variable(s"${pou.name.value}", s"${pou.context}"))
+        val pouRootVariable =
+          new Types.Variable("Points of uncertainty", "", null, pouRef.value, null)
+        val pouVariables =
+          event.pointsOfUncertainty.map(pou => new Types.Variable(s"${pou.name.value}", s"${pou.context}"))
 
-      val delimiterStackRootVariable =
-        new Types.Variable("delimiters", "", null, delimiterStackRef.value, null)
-      val delimiterStackVariables =
-        event.delimiterStack.map(delimiter =>
-          new Types.Variable(s"${delimiter.kind}:${delimiter.value.delimType}", s"${delimiter.value.lookingFor}")
+        val delimiterStackRootVariable =
+          new Types.Variable("Delimiters", "", null, delimiterStackRef.value, null)
+        val delimiterStackVariables =
+          event.delimiterStack.map(delimiter =>
+            new Types.Variable(s"${delimiter.kind}:${delimiter.value.delimType}", s"${delimiter.value.lookingFor}")
+          )
+
+        val diagnosticsRootVariable =
+          new Types.Variable("Diagnostics", "", null, diagnosticsRef.value, null)
+        val diagnosticsValidationsVariable =
+          new Types.Variable("Validations", "", null, diagnosticsValidationsRef.value, null)
+        val diagnosticsErrorsVariable =
+          new Types.Variable("Errors", "", null, diagnosticsErrorsRef.value, null)
+        // TODO: Get better values than toString() when https://issues.apache.org/jira/browse/DAFFODIL-1200 is completed.
+        val diagnosticsValidations: List[Types.Variable] =
+          event.diagnostics.filter(_.isValidation).zipWithIndex.map { case (diag, i) =>
+            new Types.Variable(i.toString, diag.toString().replace("Validation Error: ", ""))
+          }
+        val diagnosticsErrors: List[Types.Variable] =
+          event.diagnostics.filterNot(_.isValidation).zipWithIndex.map { case (diag, i) =>
+            new Types.Variable(i.toString, diag.toString())
+          }
+
+        val parseVariables: List[Types.Variable] =
+          (List(
+            new Types.Variable("hidden", hidden.toString, "bool", 0, null),
+            pouRootVariable,
+            delimiterStackRootVariable,
+            diagnosticsRootVariable
+          ) ++ childIndex.map(ci => new Types.Variable("childIndex", ci.toString)).toList
+            ++ groupIndex
+              .map(gi => new Types.Variable("groupIndex", gi.toString))
+              .toList
+            ++ occursIndex
+              .map(oi => new Types.Variable("occursIndex", oi.toString))
+              .toList
+            ++ foundDelimiter.map(fd => new Types.Variable("foundDelimiter", fd)).toList
+            ++ foundField.map(ff => new Types.Variable("foundField", ff)).toList)
+            .sortBy(_.name)
+
+        DAPodil.Frame.Scope(
+          "Parse",
+          ref,
+          Map(
+            ref -> parseVariables,
+            pouRef -> pouVariables,
+            delimiterStackRef -> delimiterStackVariables,
+            diagnosticsRef -> List(diagnosticsValidationsVariable, diagnosticsErrorsVariable),
+            diagnosticsValidationsRef -> diagnosticsValidations,
+            diagnosticsErrorsRef -> diagnosticsErrors
+          )
         )
-
-      val parseVariables: List[Types.Variable] =
-        (List(
-          new Types.Variable("hidden", hidden.toString, "bool", 0, null),
-          pouRootVariable,
-          delimiterStackRootVariable
-        ) ++ childIndex.map(ci => new Types.Variable("childIndex", ci.toString)).toList
-          ++ groupIndex
-            .map(gi => new Types.Variable("groupIndex", gi.toString))
-            .toList
-          ++ occursIndex
-            .map(oi => new Types.Variable("occursIndex", oi.toString))
-            .toList
-          ++ foundDelimiter.map(fd => new Types.Variable("foundDelimiter", fd)).toList
-          ++ foundField.map(ff => new Types.Variable("foundField", ff)).toList)
-          .sortBy(_.name)
-
-      DAPodil.Frame.Scope(
-        "Parse",
-        ref,
-        Map(
-          ref -> parseVariables,
-          pouRef -> pouVariables,
-          delimiterStackRef -> delimiterStackVariables
-        )
-      )
     }
 
   // a.k.a. Daffodil variables
@@ -559,7 +584,8 @@ object Parse {
         name: Option[ElementName],
         schemaLocation: SchemaFileLocation,
         pointsOfUncertainty: List[PointOfUncertainty],
-        delimiterStack: List[Delimiter]
+        delimiterStack: List[Delimiter],
+        diagnostics: List[Diagnostic]
     ) extends Event {
       // PState is mutable, so we copy all the information we might need downstream.
       def this(pstate: PState, isStepping: Boolean) =
@@ -578,7 +604,8 @@ object Parse {
           ),
           pstate.mpstate.delimiters.toList.zipWithIndex.map { case (delimiter, i) =>
             Delimiter(if (i < pstate.mpstate.delimitersLocalIndexStack.top) "remote" else "local", delimiter)
-          }
+          },
+          pstate.diagnostics
         )
     }
     case class EndElement(state: StateForDebugger) extends Event
