@@ -17,18 +17,21 @@
 
 import * as vscode from 'vscode'
 import * as hexy from 'hexy'
-import {EventSubscriptionRequest, ViewportDataRequest,} from 'omega-edit/omega_edit_pb'
+import {
+  EventSubscriptionRequest,
+  ViewportDataRequest,
+} from 'omega-edit/omega_edit_pb'
 import * as fs from 'fs'
-import {ALL_EVENTS, getClient} from 'omega-edit/settings'
+import { ALL_EVENTS, getClient } from 'omega-edit/settings'
 import * as omegaEditServer from 'omega-edit/server'
-import {displayTerminalExitStatus, runScript} from '../utils'
-import {EditorMessage} from './messageHandler'
-import {EditorClient} from 'omega-edit/omega_edit_grpc_pb'
+import { displayTerminalExitStatus, runScript } from '../utils'
+import { EditorMessage } from './messageHandler'
+import { EditorClient } from 'omega-edit/omega_edit_grpc_pb'
 
 let client: EditorClient
 export function initOmegaEditClient(
   host: string = '127.0.0.1',
-  port: string = '9000'
+  port: number = 9000
 ) {
   client = getClient(host, port.toString())
 }
@@ -263,6 +266,7 @@ export function fillRequestData(message: EditorMessage): [Buffer, string] {
   )
   return [selectionByteData, selectionByteDisplay]
 }
+
 export function encodedStrToData(
   selectionEdits: string,
   selectionEncoding: BufferEncoding
@@ -274,13 +278,13 @@ export function encodedStrToData(
     selectionByteLength = selectionEdits.length / 2
     selectionByteData = Buffer.alloc(selectionByteLength)
     for (let i = 0; i < selectionEdits.length; i += 2) {
-      selectionByteData[i / 2] = parseInt(selectionEdits.substr(i, 2), 16)
+      selectionByteData[i / 2] = parseInt(selectionEdits.slice(i, i + 2), 16)
     }
   } else if (selectionEncoding === 'binary') {
     selectionByteLength = selectionEdits.length / 8
     selectionByteData = Buffer.alloc(selectionByteLength)
     for (let i = 0; i < selectionEdits.length; i += 8) {
-      selectionByteData[i / 8] = parseInt(selectionEdits.substr(i, 8), 2)
+      selectionByteData[i / 8] = parseInt(selectionEdits.slice(i, i + 8), 2)
     }
   } else {
     selectionByteData = Buffer.from(selectionEdits, selectionEncoding)

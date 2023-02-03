@@ -17,7 +17,7 @@
 
 import * as vscode from 'vscode'
 import * as omegaEditChange from 'omega-edit/change'
-import {getFilePath} from './utils'
+import { getFilePath } from './utils'
 import * as omegaEditSession from 'omega-edit/session'
 
 export class OmegaEdit {

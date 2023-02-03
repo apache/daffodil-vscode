@@ -18,10 +18,10 @@
 import * as fs from 'fs'
 import * as vscode from 'vscode'
 import * as omegaEditVersion from 'omega-edit/version'
-import {initOmegaEditClient, startOmegaEditServer,} from './utils'
+import { initOmegaEditClient, startOmegaEditServer } from './utils'
 import XDGAppPaths from 'xdg-app-paths'
-import {killProcess} from '../utils'
-import {DataEditWebView} from './dataEditWebView'
+import { killProcess } from '../utils'
+import { DataEditWebView } from './dataEditWebView'
 
 let serverRunning = false
 let serverTerminal: vscode.Terminal | undefined
@@ -61,7 +61,7 @@ async function getOmegaEditPort(
     })
 
     if (portEntered) {
-      port = +portEntered
+      port = parseInt(portEntered)
     } else {
       throw Error('Bad port entered')
     }
@@ -83,7 +83,7 @@ export function activate(ctx: vscode.ExtensionContext) {
         port: number | undefined = undefined
       ) => {
         port = await getOmegaEditPort(port)
-        initOmegaEditClient('127.0.0.1', port.toString())
+        initOmegaEditClient('127.0.0.1', port)
         await commonOmegaEdit(ctx, startServer, omegaEditPackageVersion, port)
         return await omegaEditVersion.getVersion()
       }
@@ -97,7 +97,7 @@ export function activate(ctx: vscode.ExtensionContext) {
         port: number | undefined = undefined
       ) => {
         port = await getOmegaEditPort(port)
-        initOmegaEditClient('127.0.0.1', port.toString())
+        initOmegaEditClient('127.0.0.1', port)
         await commonOmegaEdit(ctx, startServer, omegaEditPackageVersion, port)
         return await createOmegaEditWebviewPanel(
           ctx,

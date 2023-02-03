@@ -17,15 +17,15 @@
 
 import * as assert from 'assert'
 import * as fs from 'fs'
-import {after, before} from 'mocha'
+import { after, before } from 'mocha'
 import * as path from 'path'
 import * as vscode from 'vscode'
-import {Artifact, Backend} from '../../classes/artifact'
-import {DataEditWebView} from '../../omega_edit/dataEditWebView'
+import { Artifact, Backend } from '../../classes/artifact'
+import { DataEditWebView } from '../../omega_edit/dataEditWebView'
 import * as omegaEditClient from '../../omega_edit/client'
-import {killProcess, osCheck, runScript, unzipFile} from '../../utils'
-import {PACKAGE_PATH, PROJECT_ROOT, TEST_SCHEMA} from './common'
-import {initOmegaEditClient} from '../../omega_edit/utils'
+import { killProcess, osCheck, runScript, unzipFile } from '../../utils'
+import { PACKAGE_PATH, PROJECT_ROOT, TEST_SCHEMA } from './common'
+import { initOmegaEditClient } from '../../omega_edit/utils'
 import wait_port from 'wait-port'
 
 const omegaEditPackagePath = path.join(PROJECT_ROOT, 'node_modules/omega-edit')
@@ -45,7 +45,7 @@ export async function runServerForTests() {
     `${extractedFolder}.zip`
   )
   await unzipFile(`${extractedFolder}.zip`, PROJECT_ROOT)
-  initOmegaEditClient('127.0.0.1', port.toString())
+  initOmegaEditClient('127.0.0.1', port)
   return await runScript(
     `${extractedFolder}`,
     localArtifact.scriptName,
