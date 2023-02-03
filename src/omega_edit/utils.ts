@@ -111,11 +111,9 @@ export async function setViewportDataForPanel(
                     ' '
                 }
               }
-
               encodedData += '<br/>'
             }
           })
-
           panel.webview.postMessage({
             command: commandHex,
             text: encodedData,
