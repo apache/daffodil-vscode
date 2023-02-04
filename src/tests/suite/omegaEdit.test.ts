@@ -50,7 +50,7 @@ export async function runServerForTests() {
     `${extractedFolder}`,
     localArtifact.scriptName,
     null,
-    ['--port', port.toString()],
+    ['--port', port.toString(), '> /tmp/oe-test.log 2>&1'],
     {
       OMEGA_EDIT_SERVER_PORT: port.toString(),
     },
@@ -150,7 +150,8 @@ suite('omega-edit Test Suite', () => {
     test('omega_edit.version returns correct version', async () => {
       let version = await vscode.commands.executeCommand(
         'omega_edit.version',
-        false
+        false,
+        port
       )
 
       assert.strictEqual(

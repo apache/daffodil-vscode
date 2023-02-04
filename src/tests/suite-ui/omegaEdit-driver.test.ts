@@ -22,6 +22,7 @@ import {
   By,
   EditorView,
   InputBox,
+  Key,
   WebView,
   Workbench,
 } from 'vscode-extension-tester'
@@ -113,6 +114,13 @@ describe('omega-edit Test Suite', () => {
     await new Promise((res) => {
       setTimeout(res, 10000)
     })
+
+    // hit enter on input box for omega-edit port
+    await new Workbench()
+      .findElement(By.className('quick-input-box'))
+      .findElement(By.className('input'))
+      .sendKeys(Key.ENTER)
+
     const notifications = await new Workbench().getNotifications()
     expect(notifications.length).to.equal(1)
     expect(await notifications[0].getText()).contains('Ωedit')
@@ -124,6 +132,12 @@ describe('omega-edit Test Suite', () => {
     await new Promise((res) => {
       setTimeout(res, 10000)
     })
+
+    // hit enter on input box for omega-edit port
+    await new Workbench()
+      .findElement(By.className('quick-input-box'))
+      .findElement(By.className('input'))
+      .sendKeys(Key.ENTER)
 
     // open package.json as sample data
     const fileInput = await InputBox.create()
