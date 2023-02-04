@@ -158,10 +158,8 @@ export async function startOmegaEditServer(
     scriptPath,
     scriptName,
     null,
-    ['--port', port.toString()],
-    {
-      OMEGA_EDIT_SERVER_PORT: port.toString(),
-    },
+    ['--port port.toString()'],
+    {},
     '',
     false,
     port

@@ -50,10 +50,8 @@ export async function runServerForTests() {
     `${extractedFolder}`,
     localArtifact.scriptName,
     null,
-    ['--port', port.toString(), '> /tmp/oe-test.log 2>&1'],
-    {
-      OMEGA_EDIT_SERVER_PORT: port.toString(),
-    },
+    ['--port', port.toString()],
+    {},
     '',
     false,
     port
