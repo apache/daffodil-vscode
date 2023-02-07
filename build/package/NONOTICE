@@ -10,83 +10,138 @@ Based on source code originally developed by
 
 The following binary components distributed with this project are licensed under the Apache License v2 but do not include NOTICE files in their repositories:
 
-- 'detect-libc' in extension/dist/ext/extension.js
-	This product bundles 'detect-libc' from the above files.
-	This package is available under the Apache License v2 without a NOTICE:
-        Repository at: https://github.com/lovell/detect-libc
-
-- 'rc' in extension/dist/ext/extension.js
-	This product bundles 'rc' from the above files.
-	This package has 3 licenses, available under the BSD, MIT and Apache License v2 licenses.
-    Was not sure which one to apply so went with ALv2:
-        Repository at: https://github.com/dominictarr/rc
-
-- 'tunnel-agent' in extension/dist/ext/extension.js
-	This product bundles 'tunnel-agent' from the above files.
-	This package is available under the Apache License v2 without a NOTICE:
-        Repository at: https://github.com/request/tunnel-agent
-
-- 'typescript' in extension/dist/ext/extension.js
-	This product bundles 'typescript' from the above files.
-	This package is available under the Apache License v2 without a NOTICE:
-        Repository at: https://github.com/Microsoft/TypeScript
-
-- 'workerpool' in extension/dist/ext/extension.js
-	This product bundles 'workerpool' from the above files.
-	This package is available under the Apache License v2 without a NOTICE:
-        Repository at: https://github.com/josdejong/workerpool
+- '@grpc/grpc-js' in extension/dist/ext/extension.js
+  This product bundles '@grpc/grpc-js' from the above files.
+  This package is available under the Apache License v2 without a NOTICE:
+        Repository at: https://github.com/grpc/grpc-node/tree/master
 
 - '@grpc/proto-loader' in extension/dist/ext/extension.js
-	This product bundles '@grpc/proto-loader' from the above files.
+  This product bundles '@grpc/proto-loader' from the above files.
     This package is available under the Apache License v2 without a NOTICE:
         Repository at: https://github.com/grpc/grpc-node
 
-- '@xtuc/long' in extension/dist/ext/extension.js
 - 'long' in extension/dist/ext/extension.js
-	This product bundles '@xtuc/long, long' from the above files.
-	This package is available under the Apache License v2 without a NOTICE:
+  This product bundles 'long' from the above files.
+  This package is available under the Apache License v2 without a NOTICE:
         Repository at: https://github.com/dcodeIO/long.js
+
+- 'typescript' in extension/dist/ext/extension.js
+  This product bundles 'typescript' from the above files.
+  This package is available under the Apache License v2 without a NOTICE:
+        Repository at: https://github.com/Microsoft/TypeScript
 
 - com.fasterxml.woodstox.woodstox-core-<VERSION>.jar in daffodil-debugger-<VERSION>.zip
   This product bundles 'woodstox-core' from the above files.
-  This packages is available under the Apache License v2 without a NOTICE:
-	  	Repository at: https://github.com/FasterXML/woodstox
+  These packages are available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/FasterXML/woodstox
 
 - com.google.code.gson.gson-<VERSION>.jar in daffodil-debugger-<VERSION>.zip
   This product bundles 'gso' from the above files.
-  This packages is available under the Apache License v2 without a NOTICE:
-	  	Repository at: https://github.com/google/gson
+  These packages are available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/google/gson
 
 - com.monovore.decline-effect_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
 - com.monovore.decline_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
   This product bundles 'decline' from the above files.
-  This packages is available under the Apache License v2 without a NOTICE:
-	  	Repository at: https://github.com/bkirwi/decline
+  These packages are available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/bkirwi/decline
 
 - com.typesafe.config-<VERSION>.jar in daffodil-debugger-<VERSION>.zip
   This product bundles 'config' from the above files.
-  This packages is available under the Apache License v2 without a NOTICE:
-	  	Repository at: https://github.com/lightbend/config
+  These packages are available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/lightbend/config
 
 - io.reactivex.rxjava2.rxjava-<VERSION>.jar in daffodil-debugger-<VERSION>.zip
   This product bundles 'rxjava' from the above files.
-  This packages is available under the Apache License v2 without a NOTICE:
-	  	Repository at: https://github.com/ReactiveX/RxJava
+  These packages are available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/ReactiveX/RxJava
 
 - org.typelevel.cats-effect-kernel_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
 - org.typelevel.cats-effect-std_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
 - org.typelevel.cats-effect_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
   This product bundles 'cats-effect' from the above files.
-  This packages is available under the Apache License v2 without a NOTICE:
-	  	Repository at: https://github.com/typelevel/cats-effect
+  These packages are available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/typelevel/cats-effect
 
 - org.typelevel.literally_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
   This product bundles 'literally' from the above files.
-  This packages is available under the Apache License v2 without a NOTICE:
-	  	Repository at: https://github.com/typelevel/literally
+  These packages are available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/typelevel/literally
 
 - org.typelevel.log4cats-core_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
 - org.typelevel.log4cats-slf4j_<VERSION>.jar in daffodil-debugger-<VERSION>.zip
   This product bundles 'log4cats' from the above files.
-  This packages is available under the Apache License v2 without a NOTICE:
-	  	Repository at: https://github.com/typelevel/log4cats
+  These packages are available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/typelevel/log4cats
+
+- com.github.jnr.jffi-<VERSION>-native.jar in omega-edit-grpc-server-<VERSION>.zip
+- com.github.jnr.jffi-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+  This product bundles 'jffi' and 'jffi-native' from the above files.
+  These packages are available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/jnr/jffi
+
+- com.github.jnr.jnr-a64asm-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+  This product bundles 'jnr-a64asm' from the above files.
+  This package is available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/jnr/jnr-a64asm
+
+- com.github.jnr.jnr-ffi-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+  This product bundles 'jnr-a64asm' from the above files.
+  This package is available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/jnr/jnr-ffi
+
+- com.github.jnr.jnr-x86asm-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+  This product bundles 'jnr-a64asm' from the above files.
+  This package is available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/jnr/jnr-ffi
+
+- com.google.errorprone.error_prone_annotations-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+  This product bundles 'error_prone_annotations' from the above files.
+  This package is available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/google/error-prone
+
+- com.google.guava.failureaccess-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- com.google.guava.guava-<VERSION>-android.jar in omega-edit-grpc-server-<VERSION>.zip
+- com.google.guava.listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar in omega-edit-grpc-server-<VERSION>.zip
+  This product bundles 'guava.failureaccess' and 'guava.guava-android' from the above files.
+  These packages are available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/google/guava
+
+- com.google.j2objc.j2objc-annotations-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+  This product bundles 'j2objc' from the above files.
+  This package is available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/google/j2objc
+
+- com.thesamet.scalapb.lenses_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- com.thesamet.scalapb.scalapb-runtime_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+  This product bundles 'scalapb.lenser' and 'scalapb.scalapb-runtime' from the above files.
+  These packages are available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/scalapb/ScalaPB
+
+- com.lightbend.akka.grpc.akka-grpc-runtime_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+  This product bundles 'akka-grpc-runtime' from the above files.
+  After version v2.2.0-M1 the license was changed to non-compatible license Business Source License 1.1. 
+  However, we currently are using version 2.1.3 so it was licensed using the Apache License v2 without a NOTICE:
+    Repository at: https://github.com/akka/akka-grpc/tree/accf37ccc97205d588742ced4bcc7d1ed7499142
+      - This points to the last commit before the license change.
+
+- com.typesafe.akka.akka-actor_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- com.typesafe.akka.akka-discovery_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- com.typesafe.akka.akka-parsing_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- com.typesafe.akka.akka-protobuf-v3_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- com.typesafe.akka.akka-stream_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+  This product bundles 'akka-actor', 'akka-discovery', 'akka-parsing', 'akka-parsing', 'akka-protobuf', 'akka-stream' from the above files.
+  After version v2.7.0-M1 the license was changed to non-compatible license Business Source License 1.1.
+  However, we currently are using version 2.1.3 so it was licensed using the Apache License v2 without a NOTICE:
+    Repository at: https://github.com/akka/akka/tree/a646027346f7034deb3deb2a1609121aa0890a8d
+      - This points to the last commit before the license change.
+
+- com.typesafe.ssl-config-core_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+  This product bundles 'ssl-config-core' from the above files.
+  This package is available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/lightbend/ssl-config
+
+- com.google.android.annotations-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+  This product bundles 'android.annotations' from the above files.
+  This package is available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/androidannotations/androidannotations

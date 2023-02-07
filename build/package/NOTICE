@@ -152,11 +152,11 @@ The following NOTICE information applies to binary components distributed with t
   http://www.arbortext.com/customer_support/updates_and_technical_notes/catalogs/docs/README.htm
 
 - extension/dist/ext/extension.js
-- io.grpc.grpc-api-<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
-- io.grpc.grpc-context-<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
-- io.grpc.grpc-core-<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
-- io.grpc.grpc-netty-shaded-<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
-- io.grpc.grpc-stub-<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+- io.grpc.grpc-api-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- io.grpc.grpc-context-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- io.grpc.grpc-core-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- io.grpc.grpc-netty-shaded-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- io.grpc.grpc-stub-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
   Copyright 2014 gRPC authors.
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -171,9 +171,9 @@ The following NOTICE information applies to binary components distributed with t
   See the License for the specific language governing permissions and
   limitations under the License.
 
-- com.typesafe.akka.akka-http-core_<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
-- com.typesafe.akka.akka-http-_<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
-- com.typesafe.akka.akka-http-parsing_<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+- com.typesafe.akka.akka-http-core_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- com.typesafe.akka.akka-http_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- com.typesafe.akka.akka-http-parsing_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
   Akka HTTP
   =========
 
@@ -207,7 +207,7 @@ The following NOTICE information applies to binary components distributed with t
     * HOMEPAGE:
       * https://github.com/twitter/hpack
 
-- io.perfmark.perfmark-api-<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+- io.perfmark.perfmark-api-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
   Copyright 2019 Google LLC
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -249,7 +249,7 @@ The following NOTICE information applies to binary components distributed with t
     * HOMEPAGE:
       * https://asm.ow2.io/
 
-- org.scala-lang.modules.scala-collection-compat_<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+- org.scala-lang.modules.scala-collection-compat_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
   scala-collection-compat
   Copyright (c) 2002-2022 EPFL
   Copyright (c) 2011-2022 Lightbend, Inc.
@@ -265,7 +265,7 @@ The following NOTICE information applies to binary components distributed with t
   See the License for the specific language governing permissions and
   limitations under the License.
 
-- org.scala-lang.modules.scala-java8-compat_<VERSION>.jar in omega-edit-scala-server-<VERSION>.zip
+- org.scala-lang.modules.scala-java8-compat_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
   scala-java8-compat
   Copyright (c) 2002-2022 EPFL
   Copyright (c) 2011-2022 Lightbend, Inc.
@@ -295,3 +295,10 @@ The following NOTICE information applies to binary components distributed with t
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
+
+- com.ctc.omega-edit-grpc-server-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- com.ctc.omega-edit-native_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- com.ctc.omega-edit-spi-<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+- com.ctc.omega-edit_<VERSION>.jar in omega-edit-grpc-server-<VERSION>.zip
+  Ωedit
+  Copyright 2021-2022 Concurrent Technologies Corporation
