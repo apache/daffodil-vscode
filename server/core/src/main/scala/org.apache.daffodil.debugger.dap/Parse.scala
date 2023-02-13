@@ -49,6 +49,7 @@ import org.apache.daffodil.util.Misc
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import scala.util.Try
+import scala.collection.JavaConverters._
 
 trait Parse {
 
@@ -67,12 +68,19 @@ object Parse {
       schema: Path,
       data: InputStream,
       debugger: Debugger,
-      infosetFormat: String
+      infosetFormat: String,
+      variables: Map[String, String],
+      tunables: Map[String, String]
   ): IO[Parse] =
     for {
       dp <- Compiler()
-        .compile(schema)
-        .map(p => p.withDebugger(debugger).withDebugging(true).withValidationMode(ValidationMode.Limited))
+        .compile(schema, tunables)
+        .map(p =>
+          p.withDebugger(debugger)
+            .withDebugging(true)
+            .withExternalVariables(variables)
+            .withValidationMode(ValidationMode.Limited)
+        )
       done <- Ref[IO].of(false)
       pleaseStop <- Deferred[IO, Unit]
     } yield new Parse {
@@ -174,7 +182,9 @@ object Parse {
         dataPath: Path,
         stopOnEntry: Boolean,
         infosetFormat: String,
-        infosetOutput: LaunchArgs.InfosetOutput
+        infosetOutput: LaunchArgs.InfosetOutput,
+        variables: Map[String, String],
+        tunables: Map[String, String]
     ) extends Arguments {
       def data: IO[InputStream] =
         IO.blocking(FileUtils.readFileToByteArray(dataPath.toFile))
@@ -248,7 +258,17 @@ object Parse {
                       ).toEitherNel
                   }
               }
-          }
+          },
+          Option(arguments.getAsJsonObject("variables"))
+            .map(_.getAsJsonObject().entrySet().asScala.map(kv => kv.getKey -> kv.getValue.getAsString()).toMap)
+            .getOrElse(Map.empty[String, String])
+            .asRight[String]
+            .toEitherNel,
+          Option(arguments.getAsJsonObject("tunables"))
+            .map(_.getAsJsonObject().entrySet().asScala.map(kv => kv.getKey -> kv.getValue.getAsString()).toMap)
+            .getOrElse(Map.empty[String, String])
+            .asRight[String]
+            .toEitherNel
         ).parMapN(LaunchArgs.apply)
     }
   }
@@ -294,7 +314,9 @@ object Parse {
       events <- Resource.eval(Queue.bounded[IO, Option[Event]](10))
       debugger <- DaffodilDebugger
         .resource(state, events, breakpoints, control, infoset, args.infosetFormat)
-      parse <- Resource.eval(args.data.flatMap(in => Parse(args.schemaPath, in, debugger, args.infosetFormat)))
+      parse <- Resource.eval(
+        args.data.flatMap(in => Parse(args.schemaPath, in, debugger, args.infosetFormat, args.variables, args.tunables))
+      )
 
       parsing = args.infosetOutput match {
         case Debugee.LaunchArgs.InfosetOutput.None =>

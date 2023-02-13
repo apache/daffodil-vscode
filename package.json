@@ -1,491 +1,523 @@
 {
-	"name": "apache-daffodil-vscode",
-	"displayName": "Apache Daffodil™ Extension for Visual Studio Code",
-	"description": "Apache Daffodil™ Extension for Visual Studio Code providing DFDL syntax highlighting, DFDL code completion, DFDL schema debugging, and data editor",
-	"version": "1.3.0-SNAPSHOT",
-	"daffodilVersion": "3.4.0",
-	"publisher": "asf",
-	"author": "Apache Daffodil",
-	"license": "Apache-2.0",
-	"engines": {
-		"vscode": "^1.60.2"
-	},
-	"icon": "images/daffodil.ico",
-	"categories": [
-		"Debuggers",
-		"Programming Languages"
-	],
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/apache/daffodil-vscode.git"
-	},
-	"bugs": {
-		"url": "https://github.com/apache/daffodil-vscode/issues"
-	},
-	"scripts": {
-		"gen-version-ts": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
-		"precompile": "yarn gen-version-ts",
-		"compile": "tsc -p ./ && yarn sbt",
-		"lint": "yarn prettier src -c",
-		"prewatch": "yarn gen-version-ts && yarn sbt",
-		"watch": "webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js",
-		"webpack": "webpack --mode production --config ./build/extension.webpack.config.js",
-		"prepackage": "yarn install && yarn compile && yarn webpack",
-		"package": "yarn package-setup && yarn package-create",
-		"package-setup": "node -e \"require('./build/scripts/package.ts').setup()\"",
-		"package-create": "node -e \"require('./build/scripts/package.ts').create()\"",
-		"pretest": "yarn compile && yarn webpack",
-		"test": "node ./out/tests/runTest.js",
-		"sbt": "sbt universal:packageBin"
-	},
-	"dependencies": {
-		"await-notify": "1.0.1",
-		"hexy": "0.3.4",
-		"omega-edit": "0.9.40",
-		"unzip-stream": "0.3.1",
-		"uuid": "^9.0.0",
-		"@vscode/debugadapter": "1.51.0",
-		"wait-port": "^0.3.0",
-		"xdg-app-paths": "8.2.0"
-	},
-	"devDependencies": {
-		"@types/glob": "^8.0.0",
-		"@types/mocha": "^10.0.1",
-		"@types/node": "^18.0.0",
-		"@types/vscode": "^1.60.2",
-		"@vscode/test-electron": "2.1.5",
-		"glob": "8.0.3",
-		"mocha": "10.2.0",
-		"prettier": "2.8.3",
-		"ts-loader": "8.1.0",
-		"typescript": "4.3.5",
-		"@vscode/vsce": "2.15.0",
-		"@vscode/debugadapter-testsupport": "1.51.0",
-		"webpack": "5.75.0",
-		"webpack-cli": "5.0.1"
-	},
-	"extensionDependencies": [
-		"vincaslt.highlight-matching-tag",
-		"wmanth.jar-viewer"
-	],
-	"main": "./dist/ext/extension.js",
-	"activationEvents": [
-		"onLanguage:dfdl",
-		"onDebugResolve:dfdl",
-		"onDebugDynamicConfigurations:dfdl",
-		"onCommand:extension.dfdl-debug.getProgramName",
-		"onCommand:extension.dfdl-debug.getDataName",
-		"onCommand:extension.dfdl-debug.runEditorContents",
-		"onCommand:extension.dfdl-debug.debugEditorContents",
-		"onCommand:launch.config",
-		"onCommand:data.edit",
-		"onCommand:omega_edit.version",
-		"onCommand:toggle.experimental",
-		"onCommand:extension.dfdl-debug.debugLastEditorContents"
-	],
-	"workspaceTrust": {
-		"request": "never"
-	},
-	"contributes": {
-		"languages": [
-			{
-				"id": "dfdl",
-				"aliases": [
-					"dfdl"
-				],
-				"extensions": [
-					".dfdl.xsd"
-				],
-				"configuration": "./language/dfdl.json"
-			}
-		],
-		"grammars": [
-			{
-				"language": "dfdl",
-				"scopeName": "text.xml.dfdl.xsd",
-				"path": "./language/syntaxes/dfdl.tmLanguage.json"
-			}
-		],
-		"menus": {
-			"editor/title": [
-				{
-					"command": "launch.config",
-					"group": "navigation@1"
-				},
-				{
-					"command": "hexview.display",
-					"when": "resourceLangId == dfdl",
-					"group": "navigation@4"
-				},
-				{
-					"command": "infoset.display",
-					"when": "resourceLangId == dfdl",
-					"group": "navigation@2"
-				},
-				{
-					"command": "infoset.diff",
-					"when": "resourceLangId == dfdl",
-					"group": "navigation@3"
-				}
-			],
-			"editor/title/run": [
-				{
-					"command": "extension.dfdl-debug.runEditorContents",
-					"when": "resourceLangId == dfdl"
-				},
-				{
-					"command": "extension.dfdl-debug.debugEditorContents",
-					"when": "resourceLangId == dfdl"
-				},
-				{
-					"command": "extension.dfdl-debug.debugLastEditorContents",
-					"when": "resourceLangId == dfdl"
-				}
-			],
-			"commandPalette": [
-				{
-					"command": "extension.dfdl-debug.debugEditorContents",
-					"when": "resourceLangId == dfdl"
-				},
-				{
-					"command": "extension.dfdl-debug.runEditorContents",
-					"when": "resourceLangId == dfdl"
-				},
-				{
-					"command": "data.edit",
-					"enablement": "experimentalFeaturesEnabled"
-				},
-				{
-					"command": "omega_edit.version",
-					"enablement": "experimentalFeaturesEnabled"
-				},
-				{
-					"command": "toggle.experimental"
-				},
-				{
-					"command": "extension.dfdl-debug.debugLastEditorContents",
-					"when": "resourceLangId == dfdl"
-				}
-			],
-			"debug/variables/context": [
-				{
-					"command": "extension.dfdl-debug.toggleFormatting",
-					"when": "debugType == 'dfdl' && debugProtocolVariableMenuContext == 'simple'"
-				}
-			]
-		},
-		"commands": [
-			{
-				"command": "extension.dfdl-debug.debugEditorContents",
-				"title": "Debug File",
-				"category": "Daffodil Debug",
-				"enablement": "!inDebugMode",
-				"icon": "$(debug-alt)"
-			},
-			{
-				"command": "extension.dfdl-debug.runEditorContents",
-				"title": "Run File",
-				"category": "Daffodil Debug",
-				"enablement": "!inDebugMode",
-				"icon": "$(play)"
-			},
-			{
-				"command": "extension.dfdl-debug.debugLastEditorContents",
-				"title": "Debug Last File",
-				"category": "Daffodil Debug",
-				"enablement": "!inDebugMode",
-				"icon": "$(debug-alt)"
-			},
-			{
-				"command": "extension.dfdl-debug.toggleFormatting",
-				"title": "Toggle between decimal and hex formatting",
-				"category": "Daffodil Debug",
-				"enablement": "inDebugMode"
-			},
-			{
-				"command": "hexview.display",
-				"title": "Display the hex view",
-				"category": "Daffodil Debug",
-				"enablement": "inDebugMode",
-				"icon": "$(file-binary)"
-			},
-			{
-				"command": "infoset.display",
-				"title": "Display the infoset view",
-				"category": "Daffodil Debug",
-				"enablement": "inDebugMode",
-				"icon": "$(file-code)"
-			},
-			{
-				"command": "infoset.diff",
-				"title": "View infoset diff",
-				"category": "Daffodil Debug",
-				"enablement": "inDebugMode",
-				"icon": "$(diff)"
-			},
-			{
-				"command": "infoset.save",
-				"title": "Save the current infoset",
-				"category": "Daffodil Debug",
-				"enablement": "inDebugMode"
-			},
-			{
-				"command": "launch.config",
-				"title": "Configure launch.json",
-				"category": "Daffodil Debug",
-				"enablement": "!inDebugMode",
-				"icon": "$(debug-configure)"
-			},
-			{
-				"command": "toggle.experimental",
-				"title": "Enable Experimental Features",
-				"category": "Daffodil Debug"
-			},
-			{
-				"command": "omega_edit.version",
-				"title": "Omega Edit Ω Version Info",
-				"category": "OmegaEdit",
-				"enablement": "experimentalFeaturesEnabled"
-			},
-			{
-				"command": "data.edit",
-				"title": "Data Editor",
-				"category": "OmegaEdit",
-				"enablement": "experimentalFeaturesEnabled"
-			},
-			{
-				"command": "position.goto",
-				"title": "Go to position",
-				"category": "OmegaEdit",
-				"enablement": "experimentalFeaturesEnabled"
-			}
-		],
-		"keybindings": [
-			{
-				"command": "position.goto",
-				"key": "ctrl+alt+g",
-				"mac": "ctrl+cmd+g",
-				"when": "editorTextFocus"
-			}
-		],
-		"breakpoints": [
-			{
-				"language": "dfdl"
-			}
-		],
-		"debuggers": [
-			{
-				"type": "dfdl",
-				"languages": [
-					"dfdl"
-				],
-				"label": "Daffodil Debug",
-				"program": "./out/extension.js",
-				"runtime": "node",
-				"configurationAttributes": {
-					"launch": {
-						"required": [
-							"program",
-							"data"
-						],
-						"properties": {
-							"program": {
-								"type": "string",
-								"description": "Absolute path to the DFDL schema file.",
-								"default": "${command:AskForProgramName}"
-							},
-							"data": {
-								"type": "string",
-								"description": "Absolute path to the input data file.",
-								"default": "${command:AskForDataName}"
-							},
-							"infosetFormat": {
-								"type": "string",
-								"description": "Infoset format type (xml/json)",
-								"default": "xml"
-							},
-							"infosetOutput": {
-								"type": "object",
-								"description": "Destination for final Infoset (file-path | 'console' | 'none')",
-								"default": {
-									"type": "console",
-									"path": "${workspaceFolder}/infoset.xml"
-								}
-							},
-							"stopOnEntry": {
-								"type": "boolean",
-								"description": "Automatically stop after launch.",
-								"default": true
-							},
-							"trace": {
-								"type": "boolean",
-								"description": "Enable logging of the Debug Adapter Protocol.",
-								"default": true
-							},
-							"debugServer": {
-								"type": "integer",
-								"description": "Port debug server running on",
-								"default": 4711
-							},
-							"useExistingServer": {
-								"type": "boolean",
-								"description": "Enable connection to running DAP Server",
-								"default": false
-							},
-							"openHexView": {
-								"type": "boolean",
-								"description": "Open hexview on debug start",
-								"default": false
-							},
-							"openInfosetView": {
-								"type": "boolean",
-								"description": "Open hexview on debug start",
-								"default": false
-							},
-							"openInfosetDiffView": {
-								"type": "boolean",
-								"description": "Open hexview on debug start",
-								"default": false
-							},
-							"daffodilDebugClasspath": {
-								"type": "string",
-								"description": "Additional classpaths to be exported to the debugger",
-								"default": ""
-							}
-						}
-					}
-				},
-				"initialConfigurations": [
-					{
-						"type": "dfdl",
-						"request": "launch",
-						"name": "Ask for file name",
-						"program": "${command:AskForProgramName}",
-						"stopOnEntry": true,
-						"data": "${command:AskForDataName}",
-						"infosetFormat": "xml",
-						"infosetOutput": {
-							"type": "file",
-							"path": "${workspaceFolder}/infoset.xml"
-						},
-						"debugServer": 4711,
-						"openHexView": false,
-						"openInfosetView": false,
-						"openInfosetDiffView": false,
-						"daffodilDebugClasspath": ""
-					}
-				],
-				"configurationSnippets": [
-					{
-						"label": "Daffodil Debug: Launch",
-						"description": "A new configuration for 'debugging' a user selected xml file.",
-						"body": {
-							"type": "dfdl",
-							"request": "launch",
-							"name": "Ask for file name",
-							"program": "^\"\\${command:AskForProgramName}\"",
-							"stopOnEntry": true,
-							"data": "^\"\\${command:AskForDataName}\"",
-							"infosetFormat": "xml",
-							"infosetOutput": {
-								"type": "file",
-								"path": "${workspaceFolder}/infoset.xml"
-							},
-							"debugServer": 4711,
-							"openHexView": false,
-							"openInfosetView": false,
-							"openInfosetDiffView": false,
-							"daffodilDebugClasspath": ""
-						}
-					}
-				],
-				"variables": {
-					"AskForProgramName": "extension.dfdl-debug.getProgramName",
-					"AskForDataName": "extension.dfdl-debug.getDataName"
-				}
-			}
-		],
-		"configuration": [
-			{
-				"title": "Daffodil Debugger Global",
-				"properties": {
-					"type": {
-						"type": "string",
-						"default": "dfdl"
-					},
-					"program": {
-						"type": "string",
-						"description": "Absolute path to the DFDL schema file.",
-						"default": "${command:AskForProgramName}"
-					},
-					"data": {
-						"type": "string",
-						"description": "Absolute path to the input data file.",
-						"default": "${command:AskForDataName}"
-					},
-					"infosetOutputType": {
-						"type": "string",
-						"description": "Destination for final Infoset (file | 'console' | 'none')",
-						"enum": [
-							"file",
-							"console",
-							"none"
-						],
-						"default": "none"
-					},
-					"infosetOutputFilePath": {
-						"type": "string",
-						"description": "Path to output for Infoset file (req: infosetOutput=file)",
-						"default": "${workspaceFolder}/infoset.xml"
-					},
-					"stopOnEntry": {
-						"type": "boolean",
-						"description": "Automatically stop after launch.",
-						"default": true
-					},
-					"trace": {
-						"type": "boolean",
-						"description": "Enable logging of the Debug Adapter Protocol.",
-						"default": true
-					},
-					"useExistingServer": {
-						"type": "boolean",
-						"description": "Enable connection to running DAP Server",
-						"default": false
-					},
-					"debugServer": {
-						"type": "integer",
-						"description": "Port debug server running on",
-						"default": 4711
-					},
-					"openHexView": {
-						"type": "boolean",
-						"description": "Open hexview on debug start",
-						"default": false
-					},
-					"openInfosetView": {
-						"type": "boolean",
-						"description": "Open hexview on debug start",
-						"default": false
-					},
-					"openInfosetDiffView": {
-						"type": "boolean",
-						"description": "Open hexview on debug start",
-						"default": false
-					},
-					"daffodilDebugClasspath": {
-						"type": "string",
-						"description": "Additional classpaths to be exported to the debugger",
-						"default": ""
-					}
-				}
-			}
-		]
-	},
-	"__metadata": {
-		"id": "4f1304da-7e65-48f1-9126-0a143e2e5ef2",
-		"publisherDisplayName": "Apache Software Foundation",
-		"publisherId": "4dbc1d1a-d64b-46f8-8756-1c234855f645",
-		"isPreReleaseVersion": false
-	}
+  "name": "apache-daffodil-vscode",
+  "displayName": "Apache Daffodil™ Extension for Visual Studio Code",
+  "description": "Apache Daffodil™ Extension for Visual Studio Code providing DFDL syntax highlighting, DFDL code completion, DFDL schema debugging, and data editor",
+  "version": "1.3.0-SNAPSHOT",
+  "daffodilVersion": "3.4.0",
+  "publisher": "asf",
+  "author": "Apache Daffodil",
+  "license": "Apache-2.0",
+  "engines": {
+    "vscode": "^1.60.2"
+  },
+  "icon": "images/daffodil.ico",
+  "categories": [
+    "Debuggers",
+    "Programming Languages"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apache/daffodil-vscode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/apache/daffodil-vscode/issues"
+  },
+  "scripts": {
+    "gen-version-ts": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
+    "precompile": "yarn gen-version-ts",
+    "compile": "tsc -p ./ && yarn sbt",
+    "lint": "yarn prettier src -c",
+    "prewatch": "yarn gen-version-ts && yarn sbt",
+    "watch": "webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js",
+    "webpack": "webpack --mode production --config ./build/extension.webpack.config.js",
+    "prepackage": "yarn install && yarn compile && yarn webpack",
+    "package": "yarn package-setup && yarn package-create",
+    "package-setup": "node -e \"require('./build/scripts/package.ts').setup()\"",
+    "package-create": "node -e \"require('./build/scripts/package.ts').create()\"",
+    "pretest": "yarn compile && yarn webpack",
+    "test": "node ./out/tests/runTest.js",
+    "sbt": "sbt universal:packageBin"
+  },
+  "dependencies": {
+    "await-notify": "1.0.1",
+    "hexy": "0.3.4",
+    "omega-edit": "0.9.40",
+    "unzip-stream": "0.3.1",
+    "uuid": "^9.0.0",
+    "@vscode/debugadapter": "1.51.0",
+    "wait-port": "^0.3.0",
+    "xdg-app-paths": "8.2.0"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.0.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.60.2",
+    "@vscode/test-electron": "2.1.5",
+    "glob": "8.0.3",
+    "mocha": "10.2.0",
+    "prettier": "2.8.3",
+    "ts-loader": "8.1.0",
+    "typescript": "4.3.5",
+    "@vscode/vsce": "2.15.0",
+    "@vscode/debugadapter-testsupport": "1.51.0",
+    "webpack": "5.75.0",
+    "webpack-cli": "5.0.1"
+  },
+  "extensionDependencies": [
+    "vincaslt.highlight-matching-tag",
+    "wmanth.jar-viewer"
+  ],
+  "main": "./dist/ext/extension.js",
+  "activationEvents": [
+    "onLanguage:dfdl",
+    "onDebugResolve:dfdl",
+    "onDebugDynamicConfigurations:dfdl",
+    "onCommand:extension.dfdl-debug.getProgramName",
+    "onCommand:extension.dfdl-debug.getDataName",
+    "onCommand:extension.dfdl-debug.runEditorContents",
+    "onCommand:extension.dfdl-debug.debugEditorContents",
+    "onCommand:launch.config",
+    "onCommand:data.edit",
+    "onCommand:omega_edit.version",
+    "onCommand:toggle.experimental",
+    "onCommand:extension.dfdl-debug.debugLastEditorContents"
+  ],
+  "workspaceTrust": {
+    "request": "never"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "dfdl",
+        "aliases": [
+          "dfdl"
+        ],
+        "extensions": [
+          ".dfdl.xsd"
+        ],
+        "configuration": "./language/dfdl.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "dfdl",
+        "scopeName": "text.xml.dfdl.xsd",
+        "path": "./language/syntaxes/dfdl.tmLanguage.json"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "launch.config",
+          "group": "navigation@1"
+        },
+        {
+          "command": "hexview.display",
+          "when": "resourceLangId == dfdl",
+          "group": "navigation@4"
+        },
+        {
+          "command": "infoset.display",
+          "when": "resourceLangId == dfdl",
+          "group": "navigation@2"
+        },
+        {
+          "command": "infoset.diff",
+          "when": "resourceLangId == dfdl",
+          "group": "navigation@3"
+        }
+      ],
+      "editor/title/run": [
+        {
+          "command": "extension.dfdl-debug.runEditorContents",
+          "when": "resourceLangId == dfdl"
+        },
+        {
+          "command": "extension.dfdl-debug.debugEditorContents",
+          "when": "resourceLangId == dfdl"
+        },
+        {
+          "command": "extension.dfdl-debug.debugLastEditorContents",
+          "when": "resourceLangId == dfdl"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "extension.dfdl-debug.debugEditorContents",
+          "when": "resourceLangId == dfdl"
+        },
+        {
+          "command": "extension.dfdl-debug.runEditorContents",
+          "when": "resourceLangId == dfdl"
+        },
+        {
+          "command": "data.edit",
+          "enablement": "experimentalFeaturesEnabled"
+        },
+        {
+          "command": "omega_edit.version",
+          "enablement": "experimentalFeaturesEnabled"
+        },
+        {
+          "command": "toggle.experimental"
+        },
+        {
+          "command": "extension.dfdl-debug.debugLastEditorContents",
+          "when": "resourceLangId == dfdl"
+        }
+      ],
+      "debug/variables/context": [
+        {
+          "command": "extension.dfdl-debug.toggleFormatting",
+          "when": "debugType == 'dfdl' && debugProtocolVariableMenuContext == 'simple'"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "extension.dfdl-debug.debugEditorContents",
+        "title": "Debug File",
+        "category": "Daffodil Debug",
+        "enablement": "!inDebugMode",
+        "icon": "$(debug-alt)"
+      },
+      {
+        "command": "extension.dfdl-debug.runEditorContents",
+        "title": "Run File",
+        "category": "Daffodil Debug",
+        "enablement": "!inDebugMode",
+        "icon": "$(play)"
+      },
+      {
+        "command": "extension.dfdl-debug.debugLastEditorContents",
+        "title": "Debug Last File",
+        "category": "Daffodil Debug",
+        "enablement": "!inDebugMode",
+        "icon": "$(debug-alt)"
+      },
+      {
+        "command": "extension.dfdl-debug.toggleFormatting",
+        "title": "Toggle between decimal and hex formatting",
+        "category": "Daffodil Debug",
+        "enablement": "inDebugMode"
+      },
+      {
+        "command": "hexview.display",
+        "title": "Display the hex view",
+        "category": "Daffodil Debug",
+        "enablement": "inDebugMode",
+        "icon": "$(file-binary)"
+      },
+      {
+        "command": "infoset.display",
+        "title": "Display the infoset view",
+        "category": "Daffodil Debug",
+        "enablement": "inDebugMode",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "infoset.diff",
+        "title": "View infoset diff",
+        "category": "Daffodil Debug",
+        "enablement": "inDebugMode",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "infoset.save",
+        "title": "Save the current infoset",
+        "category": "Daffodil Debug",
+        "enablement": "inDebugMode"
+      },
+      {
+        "command": "launch.config",
+        "title": "Configure launch.json",
+        "category": "Daffodil Debug",
+        "enablement": "!inDebugMode",
+        "icon": "$(debug-configure)"
+      },
+      {
+        "command": "toggle.experimental",
+        "title": "Enable Experimental Features",
+        "category": "Daffodil Debug"
+      },
+      {
+        "command": "omega_edit.version",
+        "title": "Omega Edit Ω Version Info",
+        "category": "OmegaEdit",
+        "enablement": "experimentalFeaturesEnabled"
+      },
+      {
+        "command": "data.edit",
+        "title": "Data Editor",
+        "category": "OmegaEdit",
+        "enablement": "experimentalFeaturesEnabled"
+      },
+      {
+        "command": "position.goto",
+        "title": "Go to position",
+        "category": "OmegaEdit",
+        "enablement": "experimentalFeaturesEnabled"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "position.goto",
+        "key": "ctrl+alt+g",
+        "mac": "ctrl+cmd+g",
+        "when": "editorTextFocus"
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "dfdl"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "dfdl",
+        "languages": [
+          "dfdl"
+        ],
+        "label": "Daffodil Debug",
+        "program": "./out/extension.js",
+        "runtime": "node",
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program",
+              "data"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to the DFDL schema file.",
+                "default": "${command:AskForProgramName}"
+              },
+              "data": {
+                "type": "string",
+                "description": "Absolute path to the input data file.",
+                "default": "${command:AskForDataName}"
+              },
+              "infosetFormat": {
+                "type": "string",
+                "description": "Infoset format type (xml/json)",
+                "default": "xml"
+              },
+              "infosetOutput": {
+                "type": "object",
+                "description": "Destination for final Infoset (file-path | 'console' | 'none')",
+                "default": {
+                  "type": "console",
+                  "path": "${workspaceFolder}/infoset.xml"
+                }
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop after launch.",
+                "default": true
+              },
+              "trace": {
+                "type": "boolean",
+                "description": "Enable logging of the Debug Adapter Protocol.",
+                "default": true
+              },
+              "debugServer": {
+                "type": "integer",
+                "description": "Port debug server running on",
+                "default": 4711
+              },
+              "useExistingServer": {
+                "type": "boolean",
+                "description": "Enable connection to running DAP Server",
+                "default": false
+              },
+              "openHexView": {
+                "type": "boolean",
+                "description": "Open hexview on debug start",
+                "default": false
+              },
+              "openInfosetView": {
+                "type": "boolean",
+                "description": "Open hexview on debug start",
+                "default": false
+              },
+              "openInfosetDiffView": {
+                "type": "boolean",
+                "description": "Open hexview on debug start",
+                "default": false
+              },
+              "daffodilDebugClasspath": {
+                "type": "string",
+                "description": "Additional classpaths to be exported to the debugger",
+                "default": ""
+              },
+              "variables": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "default": {}
+              },
+              "tunables": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "default": {}
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "dfdl",
+            "request": "launch",
+            "name": "Ask for file name",
+            "program": "${command:AskForProgramName}",
+            "stopOnEntry": true,
+            "data": "${command:AskForDataName}",
+            "infosetFormat": "xml",
+            "infosetOutput": {
+              "type": "file",
+              "path": "${workspaceFolder}/infoset.xml"
+            },
+            "debugServer": 4711,
+            "openHexView": false,
+            "openInfosetView": false,
+            "openInfosetDiffView": false,
+            "daffodilDebugClasspath": "",
+            "variables": {},
+            "tunables": {}
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Daffodil Debug: Launch",
+            "description": "A new configuration for 'debugging' a user selected xml file.",
+            "body": {
+              "type": "dfdl",
+              "request": "launch",
+              "name": "Ask for file name",
+              "program": "^\"\\${command:AskForProgramName}\"",
+              "stopOnEntry": true,
+              "data": "^\"\\${command:AskForDataName}\"",
+              "infosetFormat": "xml",
+              "infosetOutput": {
+                "type": "file",
+                "path": "${workspaceFolder}/infoset.xml"
+              },
+              "debugServer": 4711,
+              "openHexView": false,
+              "openInfosetView": false,
+              "openInfosetDiffView": false,
+              "daffodilDebugClasspath": "",
+              "variables": {},
+              "tunables": {}
+            }
+          }
+        ],
+        "variables": {
+          "AskForProgramName": "extension.dfdl-debug.getProgramName",
+          "AskForDataName": "extension.dfdl-debug.getDataName"
+        }
+      }
+    ],
+    "configuration": [
+      {
+        "title": "Daffodil Debugger Global",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "dfdl"
+          },
+          "program": {
+            "type": "string",
+            "description": "Absolute path to the DFDL schema file.",
+            "default": "${command:AskForProgramName}"
+          },
+          "data": {
+            "type": "string",
+            "description": "Absolute path to the input data file.",
+            "default": "${command:AskForDataName}"
+          },
+          "infosetOutputType": {
+            "type": "string",
+            "description": "Destination for final Infoset (file | 'console' | 'none')",
+            "enum": [
+              "file",
+              "console",
+              "none"
+            ],
+            "default": "none"
+          },
+          "infosetOutputFilePath": {
+            "type": "string",
+            "description": "Path to output for Infoset file (req: infosetOutput=file)",
+            "default": "${workspaceFolder}/infoset.xml"
+          },
+          "stopOnEntry": {
+            "type": "boolean",
+            "description": "Automatically stop after launch.",
+            "default": true
+          },
+          "trace": {
+            "type": "boolean",
+            "description": "Enable logging of the Debug Adapter Protocol.",
+            "default": true
+          },
+          "useExistingServer": {
+            "type": "boolean",
+            "description": "Enable connection to running DAP Server",
+            "default": false
+          },
+          "debugServer": {
+            "type": "integer",
+            "description": "Port debug server running on",
+            "default": 4711
+          },
+          "openHexView": {
+            "type": "boolean",
+            "description": "Open hexview on debug start",
+            "default": false
+          },
+          "openInfosetView": {
+            "type": "boolean",
+            "description": "Open hexview on debug start",
+            "default": false
+          },
+          "openInfosetDiffView": {
+            "type": "boolean",
+            "description": "Open hexview on debug start",
+            "default": false
+          },
+          "daffodilDebugClasspath": {
+            "type": "string",
+            "description": "Additional classpaths to be exported to the debugger",
+            "default": ""
+          },
+          "variables": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {}
+          },
+          "tunables": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {}
+          }
+        }
+      }
+    ]
+  },
+  "__metadata": {
+    "id": "4f1304da-7e65-48f1-9126-0a143e2e5ef2",
+    "publisherDisplayName": "Apache Software Foundation",
+    "publisherId": "4dbc1d1a-d64b-46f8-8756-1c234855f645",
+    "isPreReleaseVersion": false
+  }
 }
