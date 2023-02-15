@@ -1668,10 +1668,10 @@ object-inspect@^1.9.0:
   resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.12.3.tgz#ba62dffd67ee256c8c086dfae69e016cd1f198b9"
   integrity sha512-geUvdk7c+eizMNUDkRpW1wJwgfOiOeHbxBR/hLXK1aT6zmVSO0jsQcs7fj6MGw89jC/cjGfLcNOrtMYtGqm81g==
 
-omega-edit@0.9.40:
-  version "0.9.40"
-  resolved "https://registry.yarnpkg.com/omega-edit/-/omega-edit-0.9.40.tgz#98fb97d035477f4b634e69a03c3500e8f00902d9"
-  integrity sha512-eDG6MjeF51Kbc90L5YXSVHQcRzVu9DQrM7ytJdT3DJz8si47hmWqn/ira8Ejt7to8pkpwT71A9NIdTxV2Qyscw==
+omega-edit@0.9.41:
+  version "0.9.41"
+  resolved "https://registry.yarnpkg.com/omega-edit/-/omega-edit-0.9.41.tgz#42b141c9e115b95eac43a1b4cc7597c05edc15fb"
+  integrity sha512-8sReO1H6/uoHG/kY6g6qoDP1g6tsmDAdjw+ISLawQrAXtvglxF7tFdoay+V14kiw+MRS4EaEI3KZRbPr1luvRQ==
   dependencies:
     "@grpc/grpc-js" "^1.7.1"
     "@types/google-protobuf" "^3.15.5"
