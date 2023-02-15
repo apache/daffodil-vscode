@@ -22,8 +22,6 @@ import * as os from 'os'
 import * as child_process from 'child_process'
 import path from 'path'
 
-const wait_port = require('wait-port')
-
 const defaultConf = vscode.workspace.getConfiguration()
 let currentConfig: vscode.DebugConfiguration
 
@@ -247,9 +245,11 @@ export async function runScript(
 
   displayTerminalExitStatus(terminal)
 
-  type.includes('daffodil')
-    ? await delay(5000).then(() => {})
-    : await wait_port({ host: '127.0.0.1', port: port, output: 'silent' })
-
+  if (type.includes('daffodil')) {
+    await delay(5000).then(() => {})
+  } else {
+    const wait_port = require('wait-port')
+    await wait_port({ host: '127.0.0.1', port: port, output: 'silent' })
+  }
   return terminal
 }

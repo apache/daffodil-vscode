@@ -26,8 +26,6 @@ import * as fs from 'fs'
 import { PROJECT_ROOT, PACKAGE_PATH, TEST_SCHEMA } from './common'
 import { initOmegaEditClient } from '../../omega_edit/utils'
 
-const wait_port = require('wait-port')
-
 const omegaEditPackagePath = path.join(PROJECT_ROOT, 'node_modules/omega-edit')
 const omegaEditVersion =
   omegaEditClient.getOmegaEditPackageVersion(PACKAGE_PATH)
@@ -140,6 +138,7 @@ suite('omega-edit Test Suite', () => {
   })
 
   test('running omega-edit server', async () => {
+    const wait_port = require('wait-port')
     assert.strictEqual(
       await wait_port({ host: '127.0.0.1', port: port, output: 'silent' }),
       true
