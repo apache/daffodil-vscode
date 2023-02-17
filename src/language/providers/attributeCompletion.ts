@@ -21,13 +21,10 @@ import {
   nearestOpen,
   checkBraceOpen,
   lineCount,
-  checkLastItemOpen,
-  checkSequenceOpen,
-  checkElementOpen,
-  checkSimpleTypeOpen,
   createCompletionItem,
   getCommonItems,
   getXsdNsPrefix,
+  getItemsOnLineCount,
 } from './utils'
 
 import { attributeCompletion } from './intellisense/attributeItems'
@@ -66,30 +63,31 @@ export function getAttributeCompletionProvider() {
         const triggerText = document
           .lineAt(position)
           .text.substring(0, position.character)
-        var nearestOpenItem = nearestOpen(document, position)
+        let nearestOpenItem = nearestOpen(document, position)
+        let itemsOnLine = getItemsOnLineCount(triggerText)
         const nsPrefix = getXsdNsPrefix(document, position)
+        let preVal = ''
+        let additionalItems = getDefinedTypes(document, nsPrefix)
 
         if (
           !checkBraceOpen(document, position) &&
           !triggerText.includes('assert') &&
           !nearestOpenItem.includes('none')
         ) {
-          if (nearestOpenItem.includes('element')) {
-            var preVal = ''
-            if (!triggerText.includes(nsPrefix + 'element')) {
-              if (lineCount(document, position) === 1) {
-                preVal = '\t'
-              } else {
-                preVal = ''
-              }
-            }
-            var additionalItems = getDefinedTypes(document, nsPrefix)
+          if (
+            !triggerText.includes('<' + nsPrefix + nearestOpenItem) &&
+            lineCount(document, position, nearestOpenItem) === 1 &&
+            itemsOnLine < 2
+          ) {
+            preVal = '\t'
+          } else {
+            preVal = ''
+          }
 
+          if (nearestOpenItem.includes('element')) {
             if (
-              checkLastItemOpen(document, position) &&
-              (triggerText.includes('<' + nsPrefix + 'element name="') ||
-                triggerText.includes('<' + nsPrefix + 'element ref="') ||
-                checkElementOpen(document, position))
+              triggerText.includes('<' + nsPrefix + 'element name="') ||
+              triggerText.includes('<' + nsPrefix + 'element ref="')
             ) {
               return getCompletionItems(
                 [
@@ -123,84 +121,64 @@ export function getAttributeCompletionProvider() {
           }
 
           if (nearestOpenItem.includes('sequence')) {
-            var preVal = ''
-            if (!triggerText.includes(nsPrefix + 'sequence')) {
-              if (lineCount(document, position) === 1) {
-                preVal = '\t'
-              } else {
-                preVal = ''
-              }
-            }
-
-            if (
-              checkLastItemOpen(document, position) &&
-              (triggerText.includes('<' + nsPrefix + 'sequence') ||
-                checkSequenceOpen(document, position))
-            ) {
-              return getCompletionItems(
-                [
-                  'dfdl:hiddenGroupRef=',
-                  'dfdl:sequenceKind=',
-                  'dfdl:separator=',
-                  'dfdl:separatorPosition=',
-                  'dfdl:separatorSuppressionPolicy',
-                ],
-                preVal,
-                undefined,
-                nsPrefix
-              )
-            }
+            return getCompletionItems(
+              [
+                'dfdl:hiddenGroupRef=',
+                'dfdl:sequenceKind=',
+                'dfdl:separator=',
+                'dfdl:separatorPosition=',
+                'dfdl:separatorSuppressionPolicy',
+              ],
+              preVal,
+              undefined,
+              nsPrefix
+            )
           }
 
-          if (triggerText.includes('choice')) {
-            if (!triggerText.includes('>')) {
-              return getCompletionItems(
-                [
-                  'dfdl:choiceLengthKind=',
-                  'dfdl:choiceLength=',
-                  'dfdl:initiatedContent=',
-                  'dfdl:choiceDispatchKey=',
-                  'dfdl:choiceBranchKey=',
-                ],
-                undefined,
-                undefined,
-                nsPrefix
-              )
-            }
-          }
-
-          if (
-            triggerText.includes('simpleType') ||
-            checkSimpleTypeOpen(document, position)
+          /*if (nearestOpenItem.includes('group ref')
           ) {
-            if (!triggerText.includes('>')) {
-              return getCompletionItems(
-                [
-                  'dfdl:length=',
-                  'dfdl:lengthKind=',
-                  'dfdl:simpleType',
-                  'dfdl:simpleType',
-                  nsPrefix + 'restriction',
-                ],
-                undefined,
-                undefined,
-                nsPrefix
+            return getCompletionItems(
+              [
+                'sequence',
+              ],
+              undefined,
+              undefined,
+              nsPrefix
               )
-            }
+          }*/
+
+          if (nearestOpenItem.includes('choice')) {
+            return getCompletionItems(
+              [
+                'dfdl:choiceLengthKind=',
+                'dfdl:choiceLength=',
+                'dfdl:initiatedContent=',
+                'dfdl:choiceDispatchKey=',
+                'dfdl:choiceBranchKey=',
+              ],
+              undefined,
+              undefined,
+              nsPrefix
+            )
           }
 
-          if (triggerText.includes('defineVariable')) {
-            var preVal = ''
-            if (!triggerText.includes('dfdl:defineVariable')) {
-              if (lineCount(document, position) === 1) {
-                preVal = '\t'
-              } else {
-                preVal = ''
-              }
-            }
-            var additionalItems = getDefinedTypes(document, nsPrefix)
+          if (nearestOpenItem.includes('simpleType')) {
+            return getCompletionItems(
+              [
+                'dfdl:length=',
+                'dfdl:lengthKind=',
+                'dfdl:simpleType',
+                'dfdl:simpleType',
+                nsPrefix + 'restriction',
+              ],
+              undefined,
+              undefined,
+              nsPrefix
+            )
+          }
 
-            var xmlItems = [
+          if (nearestOpenItem.includes('defineVariable')) {
+            let xmlItems = [
               {
                 item: 'external=',
                 snippetString: preVal + 'external="${1|true,false|}"$0',
@@ -211,44 +189,29 @@ export function getAttributeCompletionProvider() {
               },
             ]
 
-            if (!triggerText.includes('>')) {
-              let compItems: vscode.CompletionItem[] = []
-              xmlItems.forEach((e) => {
-                const completionItem = new vscode.CompletionItem(e.item)
-                completionItem.insertText = new vscode.SnippetString(
-                  e.snippetString
-                )
-
-                compItems.push(completionItem)
-              })
-
-              getCommonItems(['type='], '', additionalItems, nsPrefix).forEach(
-                (ci) => {
-                  compItems.push(ci)
-                }
+            let compItems: vscode.CompletionItem[] = []
+            xmlItems.forEach((e) => {
+              const completionItem = new vscode.CompletionItem(e.item)
+              completionItem.insertText = new vscode.SnippetString(
+                e.snippetString
               )
 
-              return compItems
-            }
+              compItems.push(completionItem)
+            })
+
+            getCommonItems(['type='], '', additionalItems, nsPrefix).forEach(
+              (ci) => {
+                compItems.push(ci)
+              }
+            )
+
+            return compItems
           }
 
           if (nearestOpenItem.includes('setVariable')) {
-            var preVal = ''
-            if (!triggerText.includes('dfdl:setVariable')) {
-              if (lineCount(document, position) === 1) {
-                preVal = '\t'
-              } else {
-                preVal = ''
-              }
-            }
-
             const xmlValue = new vscode.CompletionItem('value=')
             xmlValue.insertText = new vscode.SnippetString('value="$1"$0')
             xmlValue.documentation = new vscode.MarkdownString('')
-
-            if (!triggerText.includes('>')) {
-              return [xmlValue]
-            }
           }
         }
         return undefined
@@ -260,8 +223,8 @@ export function getAttributeCompletionProvider() {
 }
 
 function getDefinedTypes(document: vscode.TextDocument, nsPrefix: string) {
-  var additionalTypes = ''
-  var lineNum = 0
+  let additionalTypes = ''
+  let lineNum = 0
   const lineCount = document.lineCount
 
   while (lineNum !== lineCount) {
@@ -272,9 +235,9 @@ function getDefinedTypes(document: vscode.TextDocument, nsPrefix: string) {
       triggerText.includes(nsPrefix + 'simpleType Name=') ||
       triggerText.includes(nsPrefix + 'complexType Name=')
     ) {
-      var startPos = triggerText.indexOf('"', 0)
-      var endPos = triggerText.indexOf('"', startPos + 1)
-      var newType = triggerText.substring(startPos + 1, endPos)
+      let startPos = triggerText.indexOf('"', 0)
+      let endPos = triggerText.indexOf('"', startPos + 1)
+      let newType = triggerText.substring(startPos + 1, endPos)
       additionalTypes = String(additionalTypes + ',' + newType)
     }
     ++lineNum

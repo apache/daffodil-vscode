@@ -52,7 +52,7 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
         markdownString: 'dfdl assertion test',
       },
       {
-        item: 'dfdL:discriminator',
+        item: 'dfdl:discriminator',
         snippetString: '<' + nsPrefix + 'annotation>\n\t<' + nsPrefix + 'appinfo source="http://www.ogf.org/dfdl/">\n\t\t<dfdl:discriminator test="{$1}"/>\n\t</' + nsPrefix + 'appinfo>\n</' + nsPrefix + 'annotation>$0',
         markdownString: 'dfdl discriminator test',
       },
