@@ -16,114 +16,161 @@
  */
 
 import * as vscode from 'vscode'
-import { getXsdNsPrefix, insertSnippet, nearestOpen } from './utils'
+import { checkMissingCloseTag } from './closeUtils'
+import {
+  getXsdNsPrefix,
+  insertSnippet,
+  getItemsOnLineCount,
+  getItemPrefix,
+} from './utils'
 
 export function getCloseElementProvider() {
   return vscode.languages.registerCompletionItemProvider(
     'dfdl',
     {
-      provideCompletionItems(
+      async provideCompletionItems(
         document: vscode.TextDocument,
         position: vscode.Position
       ) {
-        var backpos = position.with(position.line, position.character - 1)
-        const nsPrefix = getXsdNsPrefix(document, position)
-        const nearestOpenItem = nearestOpen(document, position)
+        let backpos = position.with(position.line, position.character)
+        let backpos3 = position.with(position.line, position.character)
+
+        if (position.character > 0) {
+          backpos = position.with(position.line, position.character - 1)
+        }
+        if (position.character > 2) {
+          backpos3 = position.with(position.line, position.character - 3)
+        }
+        let nsPrefix = getXsdNsPrefix(document, position)
+        const origPrefix = nsPrefix
+
+        const nearestTagNotClosed = checkMissingCloseTag(
+          document,
+          position,
+          nsPrefix
+        )
+        nsPrefix = getItemPrefix(nearestTagNotClosed, origPrefix)
         const triggerText = document
           .lineAt(position)
           .text.substring(0, position.character)
 
+        let itemsOnLine = getItemsOnLineCount(triggerText)
+
+        if (nearestTagNotClosed.includes('none')) {
+          return undefined
+        }
+
         if (
-          !triggerText.includes('</') &&
-          triggerText.endsWith('>') &&
-          (triggerText.includes('<' + nsPrefix + 'element') ||
-            nearestOpenItem.includes('element') ||
-            triggerText.includes('<' + nsPrefix + 'group') ||
-            nearestOpenItem.includes('group') ||
-            triggerText.includes('<' + nsPrefix + 'sequence') ||
-            nearestOpenItem.includes('sequence') ||
-            triggerText.includes('<' + nsPrefix + 'simpleType') ||
-            nearestOpenItem.includes('simpleType') ||
-            triggerText.includes('<' + nsPrefix + 'choice') ||
-            nearestOpenItem.includes('choice') ||
-            triggerText.includes('dfdl:defineVariable') ||
-            nearestOpenItem.includes('Variable'))
+          (triggerText.endsWith('>') && itemsOnLine < 2) ||
+          (triggerText.endsWith('>>') && itemsOnLine > 1) ||
+          (triggerText.endsWith('.=>') && itemsOnLine === 0)
         ) {
-          var range = new vscode.Range(backpos, position)
-          vscode.window.activeTextEditor?.edit((editBuilder) => {
+          let range = new vscode.Range(backpos, position)
+
+          await vscode.window.activeTextEditor?.edit((editBuilder) => {
             editBuilder.replace(range, '')
           })
-          if (
-            triggerText.endsWith('>') &&
-            (triggerText.includes('<' + nsPrefix + 'element ref') ||
-              triggerText.includes('<' + nsPrefix + 'group ref'))
-          ) {
-            insertSnippet(' />\n$0', backpos)
-          } else if (
-            triggerText.endsWith('>') &&
-            (triggerText.includes('<' + nsPrefix + 'element') ||
-              nearestOpenItem.includes('element'))
-          ) {
-            insertSnippet('>\n\t$0\n</' + nsPrefix + 'element>', backpos)
-          } else if (
-            triggerText.endsWith('>') &&
-            (triggerText.includes('<' + nsPrefix + 'group') ||
-              nearestOpenItem.includes('group'))
-          ) {
-            insertSnippet('>\n\t$0\n</' + nsPrefix + 'group>', backpos)
-          } else if (
-            (triggerText.endsWith('>') &&
-              triggerText.includes('<' + nsPrefix + 'sequence')) ||
-            nearestOpenItem.includes('sequence')
-          ) {
-            insertSnippet('>\n\t$0\n</' + nsPrefix + 'sequence>', backpos)
-          } else if (
-            (triggerText.endsWith('>') &&
-              triggerText.includes('<' + nsPrefix + 'choice')) ||
-            nearestOpenItem.includes('choice')
-          ) {
-            insertSnippet('>\n\t$0\n</' + nsPrefix + 'choice>', backpos)
-          } else if (
-            (triggerText.endsWith('>') &&
-              triggerText.includes('<' + nsPrefix + 'simpleType')) ||
-            nearestOpenItem.includes('simpleType')
-          ) {
-            insertSnippet('>\n\t$0\n</' + nsPrefix + 'simpleType>', backpos)
-          } else if (
-            (triggerText.endsWith('>') &&
-              triggerText.includes('dfdl:defineVariable')) ||
-            nearestOpenItem.includes('defineVariable')
-          ) {
-            var startPos = document.lineAt(position).text.indexOf('<', 0)
-            var range = new vscode.Range(backpos, position)
-            vscode.window.activeTextEditor?.edit((editBuilder) => {
-              editBuilder.replace(range, '')
-            })
-            insertSnippet('>\n</dfdl:defineVariable>\n', backpos)
-            var backpos2 = position.with(position.line + 2, startPos - 2)
-            insertSnippet('</<' + nsPrefix + 'appinfo>\n', backpos2)
-            var backpos3 = position.with(position.line + 3, startPos - 4)
-            insertSnippet('</<' + nsPrefix + 'annotation>$0', backpos3)
-          } else if (
-            (triggerText.endsWith('>') &&
-              triggerText.includes('dfdl:setVariable')) ||
-            nearestOpenItem.includes('setVariable')
-          ) {
-            var startPos = document.lineAt(position).text.indexOf('<', 0)
-            var range = new vscode.Range(backpos, position)
-            vscode.window.activeTextEditor?.edit((editBuilder) => {
-              editBuilder.replace(range, '')
-            })
-            insertSnippet('>\n</dfdl:setVariable>\n', backpos)
-            var backpos2 = position.with(position.line + 2, startPos - 2)
-            insertSnippet('</' + nsPrefix + 'appinfo>\n', backpos2)
-            var backpos3 = position.with(position.line + 3, startPos - 4)
-            insertSnippet('</' + nsPrefix + 'annotation>$0', backpos3)
-          }
+
+          checkItemsOnLine(
+            document,
+            position,
+            range,
+            itemsOnLine,
+            triggerText,
+            nsPrefix,
+            nearestTagNotClosed,
+            backpos,
+            backpos3
+          )
         }
+
         return undefined
       },
     },
     '>' // triggered whenever a '>' is typed
   )
+}
+
+function checkItemsOnLine(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  range: vscode.Range,
+  itemsOnLine: number,
+  triggerText: string,
+  nsPrefix: string,
+  nearestTagNotClosed: string,
+  backpos: vscode.Position,
+  backpos3: vscode.Position
+) {
+  if (itemsOnLine == 0 && !triggerText.includes('</')) {
+    insertSnippet('</' + nsPrefix + nearestTagNotClosed + '>$0', backpos3)
+  }
+
+  if (itemsOnLine === 1 && !triggerText.includes('</')) {
+    checkNearestTagNotClosed(
+      document,
+      position,
+      range,
+      nearestTagNotClosed,
+      backpos,
+      nsPrefix
+    )
+  }
+
+  if (itemsOnLine > 1) {
+    checkTriggerText(triggerText, nsPrefix, backpos, nearestTagNotClosed)
+  }
+}
+
+function checkNearestTagNotClosed(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  range: vscode.Range,
+  nearestTagNotClosed: string,
+  backpos: vscode.Position,
+  nsPrefix: string
+) {
+  if (
+    nearestTagNotClosed.includes('defineVariable') ||
+    nearestTagNotClosed.includes('setVariable')
+  ) {
+    let startPos = document.lineAt(position).text.indexOf('<', 0)
+
+    insertSnippet('>\n</dfdl:' + nearestTagNotClosed + '>', backpos)
+
+    let backpos2 = position.with(position.line + 2, startPos - 2)
+    insertSnippet('</' + nsPrefix + 'appinfo>\n', backpos2)
+
+    let backpos3 = position.with(position.line + 3, startPos - 4)
+    insertSnippet('</' + nsPrefix + 'annotation>$0', backpos3)
+  }
+
+  if (!nearestTagNotClosed.includes('Variable')) {
+    insertSnippet('>\n</' + nsPrefix + nearestTagNotClosed + '>', backpos)
+  }
+}
+
+function checkTriggerText(
+  triggerText: string,
+  nsPrefix: string,
+  backpos: vscode.Position,
+  nearestTagNotClosed: string
+) {
+  if (triggerText.includes('<' + nsPrefix + nearestTagNotClosed)) {
+    let tagPos = triggerText.lastIndexOf('<' + nsPrefix + nearestTagNotClosed)
+    let tagEndPos = triggerText.indexOf('>', tagPos)
+    if (
+      tagPos != -1 &&
+      !triggerText.substring(tagEndPos - 1, 2).includes('/>') &&
+      !triggerText
+        .substring(tagEndPos)
+        .includes('</' + nsPrefix + nearestTagNotClosed)
+    ) {
+      if (triggerText.endsWith('>>')) {
+        insertSnippet('</' + nsPrefix + nearestTagNotClosed + '>$0', backpos)
+      } else {
+        insertSnippet('></' + nsPrefix + nearestTagNotClosed + '>$0', backpos)
+      }
+    }
+  }
 }

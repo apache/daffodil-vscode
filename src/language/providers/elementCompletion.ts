@@ -16,9 +16,17 @@
  */
 
 import * as vscode from 'vscode'
-import { checkBraceOpen, getXsdNsPrefix } from './utils'
+import { getCloseTag } from './closeUtils'
+import {
+  checkBraceOpen,
+  getXsdNsPrefix,
+  nearestOpen,
+  createCompletionItem,
+  getCommonItems,
+  nearestTag,
+  getItemsOnLineCount,
+} from './utils'
 import { elementCompletion } from './intellisense/elementItems'
-import { createCompletionItem } from './utils'
 
 export function getElementCompletionProvider(dfdlFormatString: string) {
   return vscode.languages.registerCompletionItemProvider('dfdl', {
@@ -32,57 +40,233 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
         console.log('in elementCompletionProvider - brace is showing open')
         return undefined
       }
-      var nsPrefix = getXsdNsPrefix(document, position)
-      var definedVariables = getDefinedVariables(document)
 
-      // a completion item that inserts its text as snippet,
-      // the `insertText`-property is a `SnippetString` which will be
-      // honored by the editor.
-      let compItems: vscode.CompletionItem[] = []
+      let nsPrefix = getXsdNsPrefix(document, position)
+      let [triggerLine, triggerPos] = [position.line, position.character]
+      let triggerText = document.lineAt(triggerLine).text
+      let itemsOnLine = getItemsOnLineCount(triggerText)
+      let nearestOpenItem = nearestOpen(document, position)
 
-      elementCompletion(
-        definedVariables,
-        dfdlFormatString,
-        nsPrefix
-      ).items.forEach((e) => {
-        const line = document
-          .lineAt(position)
-          .text.substring(0, position.character)
+      if (nearestOpenItem.includes('none')) {
+        let definedVariables = getDefinedVariables(document)
 
-        if (line.includes('<') && e.snippetString.startsWith('<')) {
-          e.snippetString = e.snippetString.substring(1, e.snippetString.length)
-        }
+        let tagNearestTrigger = getTagNearestTrigger(
+          document,
+          position,
+          triggerText,
+          triggerLine,
+          triggerPos,
+          itemsOnLine,
+          nsPrefix
+        )
 
-        compItems.push(createCompletionItem(e, '', nsPrefix))
-      })
-
-      return compItems
+        return checkTagNearestOpen(
+          document,
+          position,
+          tagNearestTrigger,
+          definedVariables,
+          nsPrefix
+        )
+      }
     },
   })
 }
 
+function getElementCompletionItems(
+  itemsToUse: string[],
+  preVal: string = '',
+  definedVariables: string = '',
+  nsPrefix: string
+) {
+  let compItems: vscode.CompletionItem[] = getCommonItems(
+    itemsToUse,
+    preVal,
+    definedVariables,
+    nsPrefix
+  )
+  let dfdlFormatString: string = ''
+
+  elementCompletion(definedVariables, dfdlFormatString, nsPrefix).items.forEach(
+    (e) => {
+      for (let i = 0; i < itemsToUse.length; ++i) {
+        if (e.item.includes(itemsToUse[i])) {
+          const completionItem = createCompletionItem(e, preVal, nsPrefix)
+          compItems.push(completionItem)
+        }
+      }
+    }
+  )
+
+  return compItems
+}
+
 function getDefinedVariables(document: vscode.TextDocument) {
-  var additionalTypes = ''
-  var lineNum = 0
-  var itemCnt = 0
+  let additionalTypes = ''
+  let lineNum = 0
+  let itemCnt = 0
   const lineCount = document.lineCount
+
   while (lineNum !== lineCount) {
     const triggerText = document
       .lineAt(lineNum)
       .text.substring(0, document.lineAt(lineNum).range.end.character)
+
     if (triggerText.includes('dfdl:defineVariable name=')) {
-      var startPos = triggerText.indexOf('"', 0)
-      var endPos = triggerText.indexOf('"', startPos + 1)
-      var newType = triggerText.substring(startPos + 1, endPos)
-      if (itemCnt === 0) {
-        additionalTypes = newType
-        ++itemCnt
-      } else {
-        additionalTypes = String(additionalTypes + ',' + newType)
-        ++itemCnt
-      }
+      let startPos = triggerText.indexOf('"', 0)
+      let endPos = triggerText.indexOf('"', startPos + 1)
+      let newType = triggerText.substring(startPos + 1, endPos)
+
+      additionalTypes =
+        itemCnt === 0 ? newType : String(additionalTypes + ',' + newType)
+      ++itemCnt
     }
+
     ++lineNum
   }
+
   return additionalTypes
+}
+
+function checkTagNearestOpen(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  tagNearestTrigger: string,
+  definedVariables: string,
+  nsPrefix: string
+) {
+  switch (tagNearestTrigger) {
+    case 'element':
+      return getElementCompletionItems(
+        ['complexType', 'simpleType', 'annotation'],
+        '',
+        definedVariables,
+        nsPrefix
+      )
+    case 'sequence':
+      return getElementCompletionItems(
+        ['element', 'sequence', 'choice', 'annotation', 'appinfo'],
+        '',
+        '',
+        nsPrefix
+      )
+    case 'choice':
+      return getElementCompletionItems(
+        ['element', 'group ref', 'annotation'],
+        '',
+        '',
+        nsPrefix
+      )
+    case 'group':
+      return getElementCompletionItems(
+        ['sequence', 'annotation'],
+        '',
+        '',
+        nsPrefix
+      )
+    case 'complexType':
+      return getElementCompletionItems(['sequence'], '', '', nsPrefix)
+    case 'simpleType':
+      return getElementCompletionItems(
+        ['annotation', 'restriction'],
+        '',
+        '',
+        nsPrefix
+      )
+    case 'annotation':
+      return getElementCompletionItems(['appinfo'], '', '', nsPrefix)
+    case 'appinfo':
+      return getElementCompletionItems(
+        [
+          'assert',
+          'discriminator',
+          'defineFormat',
+          'format',
+          'defineVariable',
+          'setVariable',
+        ],
+        '',
+        '',
+        nsPrefix
+      )
+    case 'defineFormat':
+      return getElementCompletionItems(['format'], '', '', nsPrefix)
+    case 'schema':
+      return getElementCompletionItems(
+        [
+          'sequence',
+          'element',
+          'group',
+          'complexType',
+          'simpleType',
+          'annotation',
+        ],
+        '',
+        '',
+        nsPrefix
+      )
+    default:
+      return undefined
+  }
+}
+
+export function getTagNearestTrigger(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  triggerText: string,
+  triggerLine: number,
+  triggerPos: number,
+  itemsOnLine: number,
+  nsPrefix: string
+): string {
+  let [startLine, startPos] = [triggerLine, triggerPos]
+  let tagNearestTrigger = 'none'
+
+  if (
+    itemsOnLine > 1 &&
+    (triggerPos === triggerText.indexOf('<') ||
+      triggerPos === triggerText.lastIndexOf('>') + 1)
+  ) {
+    return tagNearestTrigger
+  }
+  while (true) {
+    let [foundTag, foundLine, foundPos] = nearestTag(
+      document,
+      position,
+      nsPrefix,
+      startLine,
+      startPos
+    )
+
+    startLine = foundLine
+
+    let [endTag, endTagLine, endTagPos] = getCloseTag(
+      document,
+      position,
+      nsPrefix,
+      foundTag,
+      foundLine,
+      foundPos
+    )
+
+    if (itemsOnLine > 1 && foundLine === triggerLine) {
+      if (foundTag === endTag && endTagPos >= triggerPos) {
+        tagNearestTrigger = foundTag
+        return tagNearestTrigger
+      }
+      if (endTag === 'none') {
+        startLine = foundLine - 1
+      } else {
+        startPos = foundPos - 1
+      }
+    }
+
+    if (itemsOnLine < 2) {
+      if (foundTag === endTag && endTagLine >= triggerLine) {
+        tagNearestTrigger = foundTag
+        return tagNearestTrigger
+      }
+
+      startLine = foundLine - 1
+    }
+  }
 }

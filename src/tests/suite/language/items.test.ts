@@ -23,30 +23,34 @@ import { elementCompletion } from '../../../language/providers/intellisense/elem
 suite('Items Test Suite', () => {
   const expectedElementItems = [
     'xml version',
-    'xs:schema',
-    'xs:element name',
-    'xs:element ref',
-    'xs:group name',
-    'xs:group ref',
+    'schema',
+    'element name',
+    'element ref',
+    'group name',
+    'group ref',
     'dfdl:assert',
-    'dfdL:discriminator',
+    'dfdl:discriminator',
     'dfdl:hiddenGroupRef',
     'dfdl:format',
-    'xs:annotation',
-    'xs:appinfo',
-    'xs:complexType',
-    'xs:complexType name=',
-    'xs:simpleType',
-    'xs:simpleType name=',
-    'xs:sequence',
-    'xs:choice',
+    'annotation',
+    'appinfo',
+    'complexType',
+    'complexType name=',
+    'simpleType',
+    'simpleType name=',
+    'sequence',
+    'choice',
     'dfdl:defineVariable',
     'dfdl:setVariable',
+    'dfdl:defineFormat',
+    'dfdl:defineEscapeScheme',
   ]
   const expectedAttributeItems = [
     'dfdl:defineFormat',
     'dfdl:defineEscapeScheme',
     'type=',
+    'name=',
+    'ref=',
     'minOccurs=',
     'maxOccurs=',
     'dfdl:occursCount=',
@@ -75,7 +79,7 @@ suite('Items Test Suite', () => {
     'dfdl:initiatedContent=',
     'dfdl:choiceDispatchKey=',
     'dfdl:simpleType',
-    'xs:restriction',
+    'restriction',
   ]
 
   test('all commonItems available', async () => {
@@ -85,13 +89,13 @@ suite('Items Test Suite', () => {
   })
 
   test('all elementItems available', async () => {
-    elementCompletion('', '', 'xs:').items.forEach((item) => {
+    elementCompletion('', '', '').items.forEach((item) => {
       assert.strictEqual(expectedElementItems.includes(item.item), true)
     })
   })
 
   test('all attributeItems available', async () => {
-    attributeCompletion('', 'xs:').items.forEach((item) => {
+    attributeCompletion('', '').items.forEach((item) => {
       assert.strictEqual(expectedAttributeItems.includes(item.item), true)
     })
   })

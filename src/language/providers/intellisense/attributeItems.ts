@@ -20,14 +20,12 @@ export const attributeCompletion = (additionalItems, nsPrefix: string) => {
   return {
     items: [
       {
-        item: 'dfdl:defineFormat',
-        snippetString: '<dfdl:defineFormat name="$1" >\n\t$2\n</dfdl:defineFormat>\n$0',
-        markdownString: 'dfdl format name and configuration',
+        item: 'name=',
+        snippetString: 'name="$1"$0',
       },
       {
-        item: 'dfdl:defineEscapeScheme',
-        snippetString: '<dfdl:defineEscapeScheme name=$1 >\n\t$0,/dfdl:defineEscapeScheme>\n',
-        markdownString: 'dfdl escape character definition',
+        item: 'ref=',
+        snippetString: 'ref="$1"$0',
       },
       {
         item: 'minOccurs=',

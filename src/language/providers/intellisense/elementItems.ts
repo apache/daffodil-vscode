@@ -25,7 +25,7 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
       },
       {
         item: nsPrefix + 'schema',
-        snippetString: '<' + nsPrefix + 'schema xmlns:xs="http://www.w3.org/2001/xmlSchema"\n\t\txmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"\n\t\txmlns:daf="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext"\n\t\txmlns:fn="http:/www.w3.org/2005/xpath-functions"\n\t\txmlns:math="www.w3.org/2005/xpath-functions/math" elementFormDefault="qualified">\n$0\n</' + nsPrefix + 'schema>',
+        snippetString: '<' + nsPrefix + 'schema xmlns:xs="http://www.w3.org/2001/xmlSchema"\n\t\txmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"\n\t\txmlns:daf="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext"\n\t\txmlns:fn="http:/www.w3.org/2005/xpath-functions"\n\t\t elementFormDefault="unqualified">\n$0\n</' + nsPrefix + 'schema>',
       },
       {
         item: nsPrefix + 'element name',
@@ -48,12 +48,12 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
       },
       {
         item: 'dfdl:assert',
-        snippetString: '<' + nsPrefix + 'annotation>\n\t<' + nsPrefix + 'appinfo source="http://www.ogf.org/dfdl/">\n\t\t<dfdl:assert>"<$1>"</dfdl:assert>\n\t</' + nsPrefix + 'appinfo>\n</' + nsPrefix + 'annotation>$0',
+        snippetString: '<dfdl:assert>"<$1>"</dfdl:assert>$0',
         markdownString: 'dfdl assertion test',
       },
       {
-        item: 'dfdL:discriminator',
-        snippetString: '<' + nsPrefix + 'annotation>\n\t<' + nsPrefix + 'appinfo source="http://www.ogf.org/dfdl/">\n\t\t<dfdl:discriminator test="{$1}"/>\n\t</' + nsPrefix + 'appinfo>\n</' + nsPrefix + 'annotation>$0',
+        item: 'dfdl:discriminator',
+        snippetString: '<dfdl:discriminator test="{$1}"/>$0',
         markdownString: 'dfdl discriminator test',
       },
       {
@@ -62,15 +62,15 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
       },
       {
         item: 'dfdl:format',
-        snippetString: dfdlFormatString,
+        snippetString: '<dfdl:format $0/>',
       },
       {
         item: nsPrefix + 'annotation',
-        snippetString: '<' + nsPrefix + 'annotation>\n\t<' + nsPrefix + 'appinfo source="http://www.ogf.org/dfdl/">\n\t\t$0\n\t</' + nsPrefix + 'appinfo>\n</' + nsPrefix + 'annotation>',
+        snippetString: '<' + nsPrefix + 'annotation>\n\t$0\n\</' + nsPrefix + 'annotation>',
       },
       {
         item: nsPrefix + 'appinfo',
-        snippetString: '<' + nsPrefix + 'annotation>\n\t<' + nsPrefix + 'appinfo source="http://www.ogf.org/dfdl/">\n\t\t$0\n\t</' + nsPrefix + 'appinfo>\n</' + nsPrefix + 'annotation>',
+        snippetString: '<' + nsPrefix + 'appinfo source="http://www.ogf.org/dfdl/">\n\t$0\n</' + nsPrefix + 'appinfo>',
       },
       {
         item: nsPrefix + 'complexType',
@@ -102,12 +102,42 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
       },
       {
         item: 'dfdl:defineVariable',
-        snippetString: '<' + nsPrefix + 'annotation>\n\t<' + nsPrefix + 'appinfo source="http://www.ogf.org/dfdl/">\n\t\t<dfdl:defineVariable name="$1"$0',
+        snippetString: '\t<dfdl:defineVariable name="$1"$0',
       },
       {
         item: 'dfdl:setVariable',
-        snippetString: '<' + nsPrefix + 'annotation>\n\t<' + nsPrefix + 'appinfo source="http://www.ogf.org/dfdl/">\n\t\t<dfdl:setVariable ref="${1|' + definedVariables + '|}"$0',
+        snippetString: '\t<dfdl:setVariable ref="${1|' + definedVariables + '"|}, value="$2"$0',
       },
+      {
+        item: 'dfdl:defineFormat',
+        snippetString: '<dfdl:defineFormat name="$1" >\n\t$2\n</dfdl:defineFormat>$0',
+        markdownString: 'dfdl format name and configuration',
+      },
+      {
+        item: 'dfdl:defineEscapeScheme',
+        snippetString: '<dfdl:defineEscapeScheme name=$1 >\n\t$0,/dfdl:defineEscapeScheme>',
+        markdownString: 'dfdl escape character definition',
+      },
+      /*TODO not sure how to make dfdl:element work without braking xs:element 
+      {
+        item: 'dfdl:element',
+        snippetString: '\t<dfdl:defineVariable name="$1"$0',
+      },
+      //these items have been separated into individual tags... not sure if I should keep this code around
+      */
+      /*{
+        item: nsPrefix + 'annotation+appinfo',
+        snippetString: '<' + nsPrefix + 'annotation>\n\t<' + nsPrefix + 'appinfo source="http://www.ogf.org/dfdl/">\n\t\t$0\n\t</' + nsPrefix + 'appinfo>\n</' + nsPrefix + 'annotation>',
+      },
+      item: 'dfdl:assert+appinfo+annotation',
+        snippetString: '<' + nsPrefix + 'annotation>\n\t<' + nsPrefix + 'appinfo source="http://www.ogf.org/dfdl/">\n\t\t<dfdl:assert>"<$1>"</dfdl:assert>\n\t</' + nsPrefix + 'appinfo>\n</' + nsPrefix + 'annotation>$0',
+        markdownString: 'dfdl assertion test',
+      },
+      {
+        item: 'dfdl:discriminator+appinfo+annotation',
+        snippetString: '<' + nsPrefix + 'annotation>\n\t<' + nsPrefix + 'appinfo source="http://www.ogf.org/dfdl/">\n\t\t<dfdl:discriminator test="{$1}"/>\n\t</' + nsPrefix + 'appinfo>\n</' + nsPrefix + 'annotation>$0',
+        markdownString: 'dfdl discriminator test',
+      },*/
     ],
   }
 }
