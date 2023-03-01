@@ -41,7 +41,7 @@
   "dependencies": {
     "await-notify": "1.0.1",
     "hexy": "0.3.4",
-    "omega-edit": "0.9.41",
+    "omega-edit": "0.9.49",
     "unzip-stream": "0.3.1",
     "uuid": "^9.0.0",
     "@vscode/debugadapter": "1.51.0",
