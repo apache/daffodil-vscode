@@ -37,6 +37,7 @@ const items = [
   'defineVariable',
   'setVariable',
   'schema',
+  'xml version',
 ]
 
 export function getItems() {
@@ -44,7 +45,7 @@ export function getItems() {
 }
 
 // default namespace in the event that a namespace was not found
-const defaultXsdNsPrefix = 'xs'
+const defaultXsdNsPrefix = ''
 
 // Function to insert snippet to active editor
 export function insertSnippet(snippetString: string, backpos: vscode.Position) {
@@ -81,6 +82,9 @@ export function nearestOpen(
   document: vscode.TextDocument,
   position: vscode.Position
 ) {
+  if (document.lineCount === 1 && position.character === 0) {
+    return 'none'
+  }
   const nsPrefix = getXsdNsPrefix(document, position)
   for (let i = 0; i < items.length; ++i) {
     if (checkTagOpen(document, position, nsPrefix, items[i])) {
@@ -141,7 +145,10 @@ export function nearestTag(
         if (!currentText.includes('</') && !currentText.includes('/>')) {
           for (let i = 0; i < items.length; ++i) {
             nsPrefix = getItemPrefix(items[i], origPrefix)
-            if (currentText.includes('<' + nsPrefix + items[i])) {
+            if (
+              currentText.includes('<' + nsPrefix + items[i]) ||
+              (lineNum === 0 && currentText.includes(items[i]))
+            ) {
               return [items[i], lineNum, startPos]
             }
           }
@@ -260,7 +267,7 @@ export function getXsdNsPrefix(
     ++lineNum
   }
   //returns the standard prefix plus a colon in the case of missing schema tag
-  return defaultXsdNsPrefix + ':'
+  return defaultXsdNsPrefix
 }
 
 export function getItemsOnLineCount(triggerText: String) {

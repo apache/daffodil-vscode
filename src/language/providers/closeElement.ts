@@ -60,12 +60,13 @@ export function getCloseElementProvider() {
           return undefined
         }
 
+        let range = new vscode.Range(position, position)
         if (
           (triggerText.endsWith('>') && itemsOnLine < 2) ||
           (triggerText.endsWith('>>') && itemsOnLine > 1) ||
           (triggerText.endsWith('.=>') && itemsOnLine === 0)
         ) {
-          let range = new vscode.Range(backpos, position)
+          range = new vscode.Range(backpos, position)
 
           await vscode.window.activeTextEditor?.edit((editBuilder) => {
             editBuilder.replace(range, '')
@@ -83,7 +84,6 @@ export function getCloseElementProvider() {
             backpos3
           )
         }
-
         return undefined
       },
     },
@@ -102,11 +102,18 @@ function checkItemsOnLine(
   backpos: vscode.Position,
   backpos3: vscode.Position
 ) {
-  if (itemsOnLine == 0 && !triggerText.includes('</')) {
+  if (
+    itemsOnLine == 0 &&
+    !triggerText.includes('</') &&
+    nearestTagNotClosed !== 'schema'
+  ) {
     insertSnippet('</' + nsPrefix + nearestTagNotClosed + '>$0', backpos3)
   }
 
-  if (itemsOnLine === 1 && !triggerText.includes('</')) {
+  if (
+    (itemsOnLine === 1 && !triggerText.includes('</')) ||
+    nearestTagNotClosed === 'schema'
+  ) {
     checkNearestTagNotClosed(
       document,
       position,
@@ -134,19 +141,11 @@ function checkNearestTagNotClosed(
     nearestTagNotClosed.includes('defineVariable') ||
     nearestTagNotClosed.includes('setVariable')
   ) {
-    let startPos = document.lineAt(position).text.indexOf('<', 0)
-
-    insertSnippet('>\n</dfdl:' + nearestTagNotClosed + '>', backpos)
-
-    let backpos2 = position.with(position.line + 2, startPos - 2)
-    insertSnippet('</' + nsPrefix + 'appinfo>\n', backpos2)
-
-    let backpos3 = position.with(position.line + 3, startPos - 4)
-    insertSnippet('</' + nsPrefix + 'annotation>$0', backpos3)
+    insertSnippet('>\n</' + nsPrefix + nearestTagNotClosed + '>$0', backpos)
   }
 
   if (!nearestTagNotClosed.includes('Variable')) {
-    insertSnippet('>\n</' + nsPrefix + nearestTagNotClosed + '>', backpos)
+    insertSnippet('>\n\t$0\n</' + nsPrefix + nearestTagNotClosed + '>', backpos)
   }
 }
 

@@ -104,7 +104,9 @@ export function getCloseTag(
     }
   } else {
     let endPos = triggerText.indexOf('>', startPos)
-
+    if (triggerText.includes('?xml version')) {
+      return [tag, 0, 0]
+    }
     if (
       (triggerText.includes('</') || triggerText.includes('/>')) &&
       triggerText.includes(tag) &&
