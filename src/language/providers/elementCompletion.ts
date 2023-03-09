@@ -16,7 +16,7 @@
  */
 
 import * as vscode from 'vscode'
-import { getCloseTag } from './closeUtils'
+import { checkMissingCloseTag, getCloseTag } from './closeUtils'
 import {
   checkBraceOpen,
   getXsdNsPrefix,
@@ -37,7 +37,6 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
       context: vscode.CompletionContext
     ) {
       if (checkBraceOpen(document, position)) {
-        console.log('in elementCompletionProvider - brace is showing open')
         return undefined
       }
 
@@ -48,6 +47,10 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
       let nearestOpenItem = nearestOpen(document, position)
 
       if (nearestOpenItem.includes('none')) {
+        if (checkMissingCloseTag(document, position, nsPrefix) !== 'none') {
+          return undefined
+        }
+
         let definedVariables = getDefinedVariables(document)
 
         let tagNearestTrigger = getTagNearestTrigger(
@@ -144,14 +147,14 @@ function checkTagNearestOpen(
       )
     case 'sequence':
       return getElementCompletionItems(
-        ['element', 'sequence', 'choice', 'annotation', 'appinfo'],
+        ['element', 'sequence', 'choice', 'annotation'],
         '',
         '',
         nsPrefix
       )
     case 'choice':
       return getElementCompletionItems(
-        ['element', 'group ref', 'annotation'],
+        ['element', 'sequence', 'group', 'annotation'],
         '',
         '',
         nsPrefix
@@ -164,7 +167,12 @@ function checkTagNearestOpen(
         nsPrefix
       )
     case 'complexType':
-      return getElementCompletionItems(['sequence'], '', '', nsPrefix)
+      return getElementCompletionItems(
+        ['sequence', 'group', 'choice'],
+        '',
+        '',
+        nsPrefix
+      )
     case 'simpleType':
       return getElementCompletionItems(
         ['annotation', 'restriction'],
@@ -195,6 +203,7 @@ function checkTagNearestOpen(
         [
           'sequence',
           'element',
+          'choice',
           'group',
           'complexType',
           'simpleType',
@@ -204,6 +213,10 @@ function checkTagNearestOpen(
         '',
         nsPrefix
       )
+    case 'xml version':
+      return getElementCompletionItems(['schema'], '', '', '')
+    case 'emptySchema':
+      return getElementCompletionItems(['xml version'], '', '', '')
     default:
       return undefined
   }
@@ -220,6 +233,14 @@ export function getTagNearestTrigger(
 ): string {
   let [startLine, startPos] = [triggerLine, triggerPos]
   let tagNearestTrigger = 'none'
+
+  if (
+    itemsOnLine === 0 &&
+    document.lineCount === 1 &&
+    position.character === 0
+  ) {
+    return 'emptySchema'
+  }
 
   if (
     itemsOnLine > 1 &&
@@ -261,7 +282,10 @@ export function getTagNearestTrigger(
     }
 
     if (itemsOnLine < 2) {
-      if (foundTag === endTag && endTagLine >= triggerLine) {
+      if (
+        (foundTag === endTag && endTagLine >= triggerLine) ||
+        endTag === 'xml version'
+      ) {
         tagNearestTrigger = foundTag
         return tagNearestTrigger
       }

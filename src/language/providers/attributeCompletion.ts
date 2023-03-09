@@ -133,28 +133,28 @@ function checkNearestOpenItem(
     case 'element':
       return getCompletionItems(
         [
-          'name=',
-          'ref=',
+          'name',
+          'ref',
           'dfdl:defineFormat',
           'dfdl:defineEscapeScheme',
-          'type=',
-          'minOccurs=',
-          'maxOccurs=',
-          'dfdl:occursCount=',
-          'dfdl:byteOrder=',
-          'dfdl:occursCountKind=',
-          'dfdl:length=',
-          'dfdl:lengthKind=',
-          'dfdl:encoding=',
-          'dfdl:alignment=',
-          'dfdl:lengthUnits=',
-          'dfdl:lengthPattern=',
-          'dfdl:inputValueCalc=',
-          'dfdl:outputValueCalc=',
-          'dfdl:alignmentUnits=',
-          'dfdl:terminator=',
-          'dfdl:outputNewLine=',
-          'dfdl:choiceBranchKey=',
+          'type',
+          'minOccurs',
+          'maxOccurs',
+          'dfdl:occursCount',
+          'dfdl:byteOrder',
+          'dfdl:occursCountKind',
+          'dfdl:length',
+          'dfdl:lengthKind',
+          'dfdl:encoding',
+          'dfdl:alignment',
+          'dfdl:lengthUnits',
+          'dfdl:lengthPattern',
+          'dfdl:inputValueCalc',
+          'dfdl:outputValueCalc',
+          'dfdl:alignmentUnits',
+          'dfdl:terminator',
+          'dfdl:outputNewLine',
+          'dfdl:choiceBranchKey',
           'dfdl:representation',
         ],
         preVal,
@@ -164,71 +164,116 @@ function checkNearestOpenItem(
     case 'sequence':
       return getCompletionItems(
         [
-          'dfdl:hiddenGroupRef=',
-          'dfdl:sequenceKind=',
-          'dfdl:separator=',
-          'dfdl:separatorPosition=',
+          'dfdl:hiddenGroupRef',
+          'dfdl:sequenceKind',
+          'dfdl:separator',
+          'dfdl:separatorPosition',
           'dfdl:separatorSuppressionPolicy',
         ],
         preVal,
-        undefined,
+        '',
         nsPrefix
       )
     case 'choice':
       return getCompletionItems(
         [
-          'dfdl:choiceLengthKind=',
-          'dfdl:choiceLength=',
-          'dfdl:initiatedContent=',
-          'dfdl:choiceDispatchKey=',
-          'dfdl:choiceBranchKey=',
+          'dfdl:choiceLengthKind',
+          'dfdl:choiceLength',
+          'dfdl:initiatedContent',
+          'dfdl:choiceDispatchKey',
+          'dfdl:choiceBranchKey',
         ],
-        undefined,
-        undefined,
+        '',
+        '',
         nsPrefix
       )
     case 'group':
-      return getCompletionItems(
-        ['ref=', 'name='],
-        undefined,
-        undefined,
-        nsPrefix
-      )
+      return getCompletionItems(['ref', 'name'], '', '', nsPrefix)
 
     case 'simpleType':
       return getCompletionItems(
         [
-          'dfdl:length=',
-          'dfdl:lengthKind=',
+          'dfdl:length',
+          'dfdl:lengthKind',
           'dfdl:simpleType',
           'dfdl:simpleType',
           nsPrefix + 'restriction',
         ],
-        undefined,
-        undefined,
+        '',
+        '',
         nsPrefix
       )
     case 'format':
       return getCompletionItems(
         [
-          'dfdl:byteOrder=',
-          'dfdl:bitOrder=',
-          'dfdl:encoding=',
-          'dfdl:initiator=',
-          'dfdl:outputNewLine=',
-          'dfdl:separator=',
-          'dfdl:terminator=',
-          nsPrefix + 'restriction',
+          'dfdl:byteOrder',
+          'dfdl:bitOrder',
+          'dfdl:binaryNumberRep',
+          'dfdl:binaryFloatingRep',
+          'dfdl:encoding',
+          'dfdl:errorEndcodingPolicy',
+          'dfdl:initiator',
+          'dfdl:length',
+          'dfdl:lengthKind',
+          'dfdl:lengthUnits',
+          'dfdl:utf16Width',
+          'dfdl:nillKind',
+          'dfdl:nilValueDelimiterPolicy',
+          'dfdl:lengthPattern',
+          'dfdl:outputNewLine',
+          'dfdl:separator',
+          'dfdl:separatorPosition',
+          'dfdl:separatorSuppressionPolicy',
+          'dfdl:terminator',
+          'dfdl:occursCountKind',
+          'dfdl:textStandRdZeroRep',
+          'dfdl:textStandardInifinityRep',
+          'dfdl:textStandardExponentRep',
+          'dfdl:textStandardNaNRep',
+          'dfdl:textNumberPattern',
+          'dfdl:textNumberRep',
+          'dfdl:textNumberRoundingMode',
+          'dfdl:textStandardRoundingIncrement',
+          'dfdl:textNumberRounding',
+          'dfdl:textNumberCheckPolicy',
+          'dfdl:textPolicyOutputMinLength',
+          'dfdl:textStandardGroupingSeporator',
+          'dfdl:textPadKind',
+          'dfdl:textstandardBase',
+          'dfdl:textTrimKind',
+          'dfdl:trailingSkip',
+          'dfdl:truncateSpecifiedLengthString',
+          'dfdl:sequenceKind',
+          'dfdl:textBidi',
+          'dfdl:choiceLengthKind',
+          'dfdl:choiceLength',
+          'dfdl:fillByte',
+          'dfdl:ignoreCase',
+          'dfdl:initiatedContent',
+          'dfdl:initiator',
+          'dfdl:floating',
+          'dfdl:inputValueCalc',
+          'dfdl:outputValueCalc',
+          'dfdl:alignment',
+          'dfdl:alignmentUnits',
+          'dfdl:terminator',
+          'dfdl:outputNewLine',
+          'dfdl:representation',
+          'dfdl:defineEscapeScheme',
+          'dfdl:calendarPatternKind',
+          'dfdl:documentFinalTerminatorCanBeMissing',
+          'dfdl:emptyValueDelimiterPolicy',
+          //nsPrefix + 'restriction',
         ],
-        undefined,
-        undefined,
+        '',
+        '',
         nsPrefix
       )
 
     case 'defineVariable':
       return getDefineVariableCompletionItems(preVal, additionalItems, nsPrefix)
     case 'setVariable':
-      const xmlValue = new vscode.CompletionItem('value=')
+      const xmlValue = new vscode.CompletionItem('value')
       xmlValue.insertText = new vscode.SnippetString('value="$1"$0')
       xmlValue.documentation = new vscode.MarkdownString('')
       return undefined
@@ -244,11 +289,11 @@ function getDefineVariableCompletionItems(
 ): vscode.CompletionItem[] {
   let xmlItems = [
     {
-      item: 'external=',
+      item: 'external',
       snippetString: preVal + 'external="${1|true,false|}"$0',
     },
     {
-      item: 'defaultValue=',
+      item: 'defaultValue',
       snippetString: preVal + 'defaultValue="0$1"$0',
     },
   ]
@@ -261,7 +306,7 @@ function getDefineVariableCompletionItems(
     compItems.push(completionItem)
   })
 
-  getCommonItems(['type='], '', additionalItems, nsPrefix).forEach((ci) => {
+  getCommonItems(['type'], '', additionalItems, nsPrefix).forEach((ci) => {
     compItems.push(ci)
   })
 
