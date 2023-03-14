@@ -176,27 +176,6 @@ export async function displayTerminalExitStatus(terminal: vscode.Terminal) {
   })
 }
 
-export async function executeScript(
-  name: string,
-  cwd: string,
-  shellPath: string,
-  shellArgs: string[] = []
-) {
-  // Start server in terminal based on scriptName
-  const terminal = vscode.window.createTerminal({
-    name: name,
-    cwd: cwd,
-    hideFromUser: false,
-    shellPath: shellPath,
-    shellArgs: shellArgs,
-  })
-  terminal.show()
-
-  displayTerminalExitStatus(terminal)
-
-  return terminal
-}
-
 /*
  * Check if OS is windows, if so return windows option else return the mac and linux option.
  * This method is used to elimate a lot duplicated code we had check if the os was windows related.
@@ -217,17 +196,6 @@ export async function killProcess(id: number | undefined) {
 
 export const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
 
-export function chmodScript(scriptPath: string, scriptName: string) {
-  if (!os.platform().toLowerCase().startsWith('win')) {
-    child_process.execSync(
-      `chmod +x ${scriptPath.replace(' ', '\\ ')}/bin/${scriptName.replace(
-        './',
-        ''
-      )}`
-    )
-  }
-}
-
 export async function runScript(
   scriptPath: string,
   scriptName: string,
@@ -242,21 +210,35 @@ export async function runScript(
   hideTerminal: boolean = false,
   port: number | undefined = undefined
 ) {
-  chmodScript(scriptPath, scriptName)
+  // Get the full path to the script
+  const scriptFullPath = path.join(scriptPath, 'bin', scriptName)
+
+  // Make sure the path exists
+  if (!fs.existsSync(scriptFullPath)) {
+    vscode.window.showErrorMessage(
+      `Script path ${scriptFullPath} does not exist`
+    )
+  } else {
+    // Make sure the script is executable
+    if (!os.platform().toLowerCase().startsWith('win')) {
+      fs.chmodSync(scriptFullPath, 0o755)
+    }
+  }
 
   // Start server in terminal based on scriptName
   const terminal = vscode.window.createTerminal({
     name: scriptName,
     cwd: path.join(scriptPath, 'bin'),
-    hideFromUser: false,
+    hideFromUser: hideTerminal,
     shellPath: shellPath !== null ? shellPath : scriptName,
     shellArgs: shellArgs,
     env: env,
   })
 
-  if (!hideTerminal) terminal.show()
-
-  displayTerminalExitStatus(terminal)
+  if (!hideTerminal) {
+    terminal.show()
+    await displayTerminalExitStatus(terminal)
+  }
 
   if (type.includes('daffodil')) {
     await delay(5000).then(() => {})
@@ -265,4 +247,30 @@ export async function runScript(
     await wait_port({ host: '127.0.0.1', port: port, output: 'silent' })
   }
   return terminal
+}
+
+/**
+ * Search for an existing Omega Edit server and kill if desired.
+ * @param killOnFind Kill any OmegaEdit server found that is running. Defaults to True.
+ * @returns PID of the process found and/or killed. 0 if no server is found. -1 if a child_process error occurred.
+ */
+export async function findExistingOmegaEditServer(
+  killOnFind: boolean = true
+): Promise<number> {
+  let ret: number
+  const pid: string = child_process
+    .execSync(
+      osCheck('', "ps -a | grep omega-edit | grep -v grep | awk '{print $1}'")
+    )
+    .toString('ascii')
+
+  pid === '' ? (ret = 0) : (ret = parseInt(pid))
+
+  if (ret > 0 && killOnFind) {
+    vscode.window.showWarningMessage(
+      `Existing Omega Edit server found | Killing PID: ${ret} and restarting server.`
+    )
+    await killProcess(ret)
+  }
+  return ret
 }

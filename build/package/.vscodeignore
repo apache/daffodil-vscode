@@ -30,3 +30,6 @@
 !src/omega_edit/interface.html
 !node_modules/omega-edit/omega-edit-grpc-server*.zip
 !src/language/providers/intellisense/DFDLGeneralFormat.dfdl.xsd
+!dist/styles.css
+!dist/views/dataEditor/index.js
+!src/svelte/package.json

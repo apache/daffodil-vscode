@@ -15,24 +15,20 @@
  * limitations under the License.
  */
 
-import * as vscode from 'vscode'
 import * as fs from 'fs'
-import * as omegaEditSession from 'omega-edit/session'
-import * as omegaEditViewport from 'omega-edit/viewport'
+import { createSimpleFileLogger, setLogger } from 'omega-edit/logger'
+import { startServer, stopServerUsingPID } from 'omega-edit/server'
 import * as omegaEditVersion from 'omega-edit/version'
-import {
-  startOmegaEditServer,
-  viewportSubscribe,
-  initOmegaEditClient,
-} from './utils'
-import { OmegaEdit } from './omega_edit'
-import { v4 as uuidv4 } from 'uuid'
+import { setAutoFixViewportDataLength } from 'omega-edit/viewport'
+import path from 'path'
+import * as vscode from 'vscode'
 import XDGAppPaths from 'xdg-app-paths'
-import { killProcess } from '../utils'
-let serverRunning = false
-let serverTerminal: vscode.Terminal | undefined
-const xdgAppPaths = XDGAppPaths({ name: 'omega_edit' })
-let rootPath = xdgAppPaths.data()
+import { DataEditWebView } from './dataEditWebView'
+import { initOmegaEditClient } from './utils'
+
+export let serverPort: number = 9000
+
+const appDataPath = XDGAppPaths({ name: 'omega_edit' }).data()
 
 // Method to get omega-edit version from a JSON file
 export function getOmegaEditPackageVersion(filePath: fs.PathLike) {
@@ -41,89 +37,143 @@ export function getOmegaEditPackageVersion(filePath: fs.PathLike) {
   ]
 }
 
-async function cleanupViewportSession(
-  sessionId: string,
-  viewportIds: Array<string>
-) {
-  viewportIds.forEach(async (vid) => {
-    await omegaEditViewport.destroyViewport(vid)
-  })
-  await omegaEditSession.destroySession(sessionId)
+function getServerPidFile() {
+  return path.join(appDataPath, `serv-${serverPort}.pid`)
 }
 
-async function commonOmegaEdit(
-  ctx: vscode.ExtensionContext,
-  startServer: boolean,
-  omegaEditPackageVersion: string,
-  port: number
-) {
-  if (!serverRunning && startServer) {
-    ;[serverTerminal, serverRunning] = await startOmegaEditServer(
-      ctx,
-      rootPath,
-      omegaEditPackageVersion,
-      port
-    )
-  }
-}
-
-async function getOmegaEditPort(
-  port: number | undefined = undefined
-): Promise<number> {
+async function getOmegaEditPort(port: number | undefined = undefined) {
   if (!port) {
+    const defaultServerPort = vscode.workspace
+      .getConfiguration('dataEditor')
+      .get<number>('defaultServerPort', serverPort)
     const portEntered = await vscode.window.showInputBox({
       prompt: 'Enter port number to run omega-edit server on',
-      value: '9000',
+      value: defaultServerPort.toString(),
     })
 
     if (portEntered) {
-      port = +portEntered
+      serverPort = parseInt(portEntered)
     } else {
+      serverPort = 0
       throw Error('Bad port entered')
     }
+  } else {
+    serverPort = port
   }
+}
 
-  return port
+function setupLogging() {
+  const config = vscode.workspace.getConfiguration('dataEditor')
+  const logFile = config
+    .get<string>('logFile', '${workspaceFolder}/dataEditor-${serverPort}.log')
+    ?.replace('${workspaceFolder}', appDataPath)
+    .replace('${serverPort}', serverPort.toString())
+  const logLevel =
+    process.env.OMEGA_EDIT_CLIENT_LOG_LEVEL ||
+    config.get<string>('logLevel', 'info')
+  setLogger(createSimpleFileLogger(logFile, logLevel))
+  vscode.window.showInformationMessage(
+    `Logging to '${logFile}', at level '${logLevel}'`
+  )
+}
+
+async function serverStop() {
+  const pidFile = getServerPidFile()
+
+  if (fs.existsSync(pidFile)) {
+    const pid = parseInt(fs.readFileSync(pidFile).toString())
+    if (await stopServerUsingPID(pid)) {
+      fs.unlinkSync(pidFile)
+      vscode.window.setStatusBarMessage(
+        `Ωedit server stopped on port ${serverPort} with PID ${pid}`,
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(true)
+          }, 1000)
+        })
+      )
+    } else {
+      vscode.window.showErrorMessage(
+        `Ωedit server on port ${serverPort} with PID ${pid} failed to stop`
+      )
+    }
+  }
+}
+
+async function serverStart(ctx, version) {
+  const pidFile = getServerPidFile()
+  await serverStop()
+  const serverStartingText = `Ωedit server v${version} starting on port ${serverPort}`
+  const statusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left
+  )
+  statusBarItem.text = serverStartingText
+  statusBarItem.show()
+  let animationFrame = 0
+  const animationInterval = 400 // ms per frame
+  const animationFrames = ['', '.', '..', '...']
+  const animationIntervalId = setInterval(() => {
+    const frame = animationFrames[animationFrame % animationFrames.length]
+    statusBarItem.text = `${serverStartingText} ${frame}`
+    ++animationFrame
+  }, animationInterval)
+  const serverPid = await startServer(
+    ctx.asAbsolutePath('node_modules/omega-edit'),
+    version,
+    serverPort
+  )
+  if (serverPid) {
+    fs.writeFileSync(pidFile, serverPid.toString())
+  }
+  clearInterval(animationIntervalId)
+  statusBarItem.text = `Ωedit server v${version} started on port ${serverPort} with PID ${serverPid}`
+  setTimeout(() => {
+    statusBarItem.dispose()
+  }, 1000)
 }
 
 export function activate(ctx: vscode.ExtensionContext) {
   const omegaEditPackageVersion = getOmegaEditPackageVersion(
     ctx.asAbsolutePath('./package.json')
   )
+  fs.mkdirSync(appDataPath, { recursive: true })
 
   ctx.subscriptions.push(
     vscode.commands.registerCommand(
       'omega_edit.version',
       async (
-        startServer: boolean = true,
+        startServ: boolean = true,
         port: number | undefined = undefined
       ) => {
-        port = await getOmegaEditPort(port)
-        initOmegaEditClient('127.0.0.1', port.toString())
-        await commonOmegaEdit(ctx, startServer, omegaEditPackageVersion, port)
-        return await omegaEditVersion.getVersion()
+        await getOmegaEditPort(port)
+        if (startServ) {
+          await serverStart(ctx, omegaEditPackageVersion)
+        }
+        await initOmegaEditClient(serverPort)
+        const version = await omegaEditVersion.getServerVersion()
+        vscode.window.showInformationMessage(`Ωedit server version ${version}`)
+        if (startServ) {
+          serverStop()
+        }
+        return version
       }
-    )
-  )
+    ),
 
-  ctx.subscriptions.push(
     vscode.commands.registerCommand(
       'data.edit',
       async (
-        filePassed: string = '',
-        startServer: boolean = true,
-        subscribeToViewports: boolean = true,
-        port: number | undefined = undefined
+        startServ: boolean = true,
+        port: number | undefined = undefined,
+        fileToEdit: string = ''
       ) => {
-        port = await getOmegaEditPort(port)
-        initOmegaEditClient('127.0.0.1', port.toString())
-        await commonOmegaEdit(ctx, startServer, omegaEditPackageVersion, port)
-
-        return await createOmegaEditWebviewPanel(
-          ctx,
-          filePassed,
-          subscribeToViewports
-        )
+        await getOmegaEditPort(port)
+        setupLogging()
+        setAutoFixViewportDataLength(true)
+        if (startServ) {
+          await serverStart(ctx, omegaEditPackageVersion)
+        }
+        await initOmegaEditClient(serverPort)
+        return await createOmegaEditWebviewPanel(ctx, startServ, fileToEdit)
       }
     )
   )
@@ -131,127 +181,29 @@ export function activate(ctx: vscode.ExtensionContext) {
 
 async function createOmegaEditWebviewPanel(
   ctx: vscode.ExtensionContext,
-  filePassed: string,
-  subscribeToViewports: boolean
+  startServ: boolean,
+  fileToEdit: string
 ) {
-  let panel = vscode.window.createWebviewPanel(
-    'viewport',
+  const dataEditorView = new DataEditWebView(
+    ctx,
+    'dataEditor',
     'Data Editor',
-    vscode.ViewColumn.One,
-    {
-      enableScripts: true,
-    }
+    fileToEdit
   )
 
-  let fileToEdit =
-    filePassed !== ''
-      ? filePassed
-      : await vscode.window
-          .showOpenDialog({
-            canSelectMany: false,
-            openLabel: 'Select',
-            canSelectFiles: true,
-            canSelectFolders: false,
-          })
-          .then((fileUri) => {
-            if (fileUri && fileUri[0]) {
-              return fileUri[0].fsPath
-            }
-          })
+  await dataEditorView.initialize()
+  dataEditorView.show()
 
-  panel.webview.html = getWebviewContent(ctx)
-
-  let s = await omegaEditSession.createSession(fileToEdit, uuidv4())
-  panel.webview.postMessage({
-    command: 'setSessionFile',
-    filePath: fileToEdit,
-  })
-
-  let vpAll = await omegaEditViewport.createViewport('', s, 0, 1000, false)
-  let vp1 = await omegaEditViewport.createViewport('', s, 0, 64, false)
-  let vp2 = await omegaEditViewport.createViewport('', s, 64, 64, false)
-  let vp3 = await omegaEditViewport.createViewport('', s, 128, 64, false)
-
-  // This break CI so option was added to skip it during CI
-  if (subscribeToViewports) {
-    await viewportSubscribe(panel, vpAll, vpAll, 'vpAll', 'hexAll')
-    await viewportSubscribe(panel, vpAll, vp1, 'viewport1', null)
-    await viewportSubscribe(panel, vpAll, vp2, 'viewport2', null)
-    await viewportSubscribe(panel, vpAll, vp3, 'viewport3', null)
-  }
-
-  panel.webview.onDidReceiveMessage(
-    async (message) => {
-      if (message.command === 'printChangeCount') {
-        vscode.window.showInformationMessage(message.changeCount)
-        return
-      }
-
-      var omegaEdit = new OmegaEdit(
-        s,
-        message.offset,
-        message.data,
-        message.len,
-        panel
-      )
-
-      var fileSize = await omegaEditSession.getComputedFileSize(s)
-      var searchPattern = message.searchPattern ? message.searchPattern : ''
-
-      // If the search pattern exceeds the length of the file, matches are
-      // not possible.  Ωedit (as implemented currently) considers
-      // patterns that are longer than the length of the file to be an
-      // error (it will return a null pointer instead of an empty list).
-      if (searchPattern !== '' && fileSize < searchPattern.length) {
-        throw new Error("Search pattern can't be larger than file")
-      }
-
-      omegaEdit.execute(
-        message.command,
-        message.sessionFile ? message.sessionFile : '',
-        message.overwrite ? message.overwrite : false,
-        message.newFile ? message.newFile : false,
-        fileSize,
-        searchPattern,
-        message.replaceText ? message.replaceText : '',
-        message.caseInsensitive ? message.caseInsensitive : false
-      )
-    },
-    undefined,
-    ctx.subscriptions
-  )
-
-  panel.onDidDispose(
+  dataEditorView.panel.onDidDispose(
     async () => {
-      await cleanupViewportSession(s, [vpAll, vp1, vp2, vp3])
-      panel.dispose()
-      await serverTerminal?.processId.then(async (id) => await killProcess(id))
-      serverRunning = false
-      vscode.window.showInformationMessage('omega-edit server stopped!')
+      if (startServ) {
+        await serverStop()
+      }
+      await dataEditorView.dispose()
     },
     undefined,
     ctx.subscriptions
   )
 
-  return panel
-}
-
-function getWebviewContent(ctx: vscode.ExtensionContext) {
-  const scriptUri = vscode.Uri.parse(
-    ctx.asAbsolutePath('./src/omega_edit/omega_edit.js')
-  )
-  const styleUri = vscode.Uri.parse(
-    ctx.asAbsolutePath('./src/styles/styles.css')
-  )
-  const uiUri = vscode.Uri.parse(
-    ctx.asAbsolutePath('./src/omega_edit/interface.html')
-  )
-  const scriptData = fs.readFileSync(scriptUri.fsPath)
-  const styleData = fs.readFileSync(styleUri.fsPath)
-  const uiData = fs.readFileSync(uiUri.fsPath)
-
-  return uiData
-    .toString()
-    .replace("'<SCRIPT_DATA>'", `${scriptData}`)
-    .replace('<style></style>', `<style>${styleData}</style>`)
+  return dataEditorView
 }

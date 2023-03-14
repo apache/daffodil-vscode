@@ -15,18 +15,17 @@
  * limitations under the License.
  */
 
-import * as vscode from 'vscode'
 import * as assert from 'assert'
+import { after, before } from 'mocha'
 import * as path from 'path'
+import * as vscode from 'vscode'
 import { Artifact, Backend } from '../../classes/artifact'
+import { DataEditWebView } from '../../omega_edit/dataEditWebView'
 import * as omegaEditClient from '../../omega_edit/client'
-import { unzipFile, runScript, killProcess, osCheck } from '../../utils'
-import { before, after } from 'mocha'
-import * as fs from 'fs'
-import { PROJECT_ROOT, PACKAGE_PATH, TEST_SCHEMA } from './common'
+import { killProcess, osCheck, runScript } from '../../utils'
+import { PACKAGE_PATH, PROJECT_ROOT, TEST_SCHEMA } from './common'
 import { initOmegaEditClient } from '../../omega_edit/utils'
 
-const omegaEditPackagePath = path.join(PROJECT_ROOT, 'node_modules/omega-edit')
 const omegaEditVersion =
   omegaEditClient.getOmegaEditPackageVersion(PACKAGE_PATH)
 const localArtifact = new Artifact(
@@ -34,18 +33,17 @@ const localArtifact = new Artifact(
   omegaEditVersion,
   'omega-edit-grpc-server'
 )
-const extractedFolder = path.join(PROJECT_ROOT, localArtifact.name)
+const omegaEditServerPath = path.join(
+  PROJECT_ROOT,
+  'node_modules/omega-edit',
+  localArtifact.name
+)
 const port = 9000
 
 export async function runServerForTests() {
-  fs.copyFileSync(
-    `${omegaEditPackagePath}/${localArtifact.name}.zip`,
-    `${extractedFolder}.zip`
-  )
-  await unzipFile(`${extractedFolder}.zip`, PROJECT_ROOT)
-  initOmegaEditClient('127.0.0.1', port.toString())
+  await initOmegaEditClient(port, '127.0.0.1')
   return await runScript(
-    `${extractedFolder}`,
+    omegaEditServerPath,
     localArtifact.scriptName,
     null,
     ['--port', port.toString()],
@@ -67,32 +65,16 @@ suite('omega-edit Test Suite', () => {
 
   after(async () => {
     await terminal.processId.then(async (id) => await killProcess(id))
-    fs.rmSync(`${PROJECT_ROOT}/${localArtifact.name}.zip`)
-    fs.rmSync(`${PROJECT_ROOT}/${localArtifact.name}`, {
-      recursive: true,
-      force: true,
-    })
   })
 
-  test('Test toggle.experimental', async () => {
-    // omega-edit related commands should be hidden
-    assert.strictEqual(
-      (await vscode.commands.getCommands()).includes('omega_edit.version'),
-      false
-    )
-    assert.strictEqual(
-      (await vscode.commands.getCommands()).includes('data.edit'),
-      false
-    )
-
-    // Toggle experimental features to be enabled
-    await vscode.commands.executeCommand('toggle.experimental', true)
-
-    // omega-edit related commands should not longer be hidden
+  test('Ωedit version command exists', async () => {
     assert.strictEqual(
       (await vscode.commands.getCommands()).includes('omega_edit.version'),
       true
     )
+  })
+
+  test('data edit command exists', async () => {
     assert.strictEqual(
       (await vscode.commands.getCommands()).includes('data.edit'),
       true
@@ -147,28 +129,30 @@ suite('omega-edit Test Suite', () => {
 
   suite('omega-edit commands', () => {
     test('omega_edit.version returns correct version', async () => {
-      let version = await vscode.commands.executeCommand(
+      const version = await vscode.commands.executeCommand(
         'omega_edit.version',
         false,
         port
       )
-
+      assert.ok(version)
       assert.strictEqual(
         version,
-        'v' + omegaEditClient.getOmegaEditPackageVersion(PACKAGE_PATH)
+        omegaEditClient.getOmegaEditPackageVersion(PACKAGE_PATH)
       )
     })
 
     test('data editor opens', async () => {
-      const panel: vscode.WebviewPanel = await vscode.commands.executeCommand(
-        'data.edit',
-        TEST_SCHEMA,
-        false,
-        false,
-        port
-      )
+      const dataEditWebView: DataEditWebView =
+        await vscode.commands.executeCommand(
+          'data.edit',
+          false,
+          port,
+          TEST_SCHEMA
+        )
 
-      assert.strictEqual(panel.active, true)
+      assert.ok(dataEditWebView)
+      assert.strictEqual(dataEditWebView.panel.active, true)
+      assert.strictEqual(dataEditWebView.panel.title, 'Data Editor')
     })
   })
 })

@@ -23,12 +23,15 @@
     "url": "https://github.com/apache/daffodil-vscode/issues"
   },
   "scripts": {
+    "postinstall": "cd src/svelte && yarn install",
     "gen-version-ts": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
-    "precompile": "yarn gen-version-ts",
+    "precompile": "yarn gen-version-ts && cd src/svelte && yarn build",
     "compile": "tsc -p ./ && yarn sbt",
-    "lint": "yarn prettier src -c",
+    "lint": "yarn prettier src -c && cd src/svelte && yarn lint",
+    "lint:fix": "yarn prettier src -w && cd src/svelte && yarn lint:fix",
     "prewatch": "yarn gen-version-ts && yarn sbt",
-    "watch": "webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js",
+    "watch": "concurrently --kill-others \"webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js\" \"yarn watch:svelte\"",
+    "watch:svelte": "cd src/svelte && yarn dev",
     "webpack": "webpack --mode production --config ./build/extension.webpack.config.js",
     "prepackage": "yarn install && yarn compile && yarn webpack",
     "package": "yarn package-setup && yarn package-create",
@@ -39,28 +42,33 @@
     "sbt": "sbt universal:packageBin"
   },
   "dependencies": {
+    "@vscode/debugadapter": "1.51.0",
     "await-notify": "1.0.1",
     "hexy": "0.3.4",
-    "omega-edit": "0.9.41",
+    "omega-edit": "0.9.53",
+    "pino": "^8.11.0",
     "unzip-stream": "0.3.1",
     "uuid": "^9.0.0",
-    "@vscode/debugadapter": "1.51.0",
     "wait-port": "^0.3.0",
-    "xdg-app-paths": "8.2.0"
+    "xdg-app-paths": "^8.2.0"
   },
   "devDependencies": {
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.0.0",
     "@types/vscode": "^1.60.2",
+    "@vscode/debugadapter-testsupport": "1.51.0",
     "@vscode/test-electron": "2.1.5",
+    "@vscode/vsce": "2.17.0",
+    "chai": "^4.3.7",
+    "concurrently": "^7.0.0",
     "glob": "8.0.3",
     "mocha": "10.2.0",
     "prettier": "2.8.3",
     "ts-loader": "8.1.0",
-    "typescript": "4.3.5",
-    "@vscode/vsce": "2.15.0",
-    "@vscode/debugadapter-testsupport": "1.51.0",
+    "ts-node": "^10.9.1",
+    "typescript": "4.6.2",
+    "vscode-extension-tester": "^5.2.1",
     "webpack": "5.75.0",
     "webpack-cli": "5.0.1"
   },
@@ -87,7 +95,6 @@
     "onCommand:launch.config",
     "onCommand:data.edit",
     "onCommand:omega_edit.version",
-    "onCommand:toggle.experimental",
     "onCommand:extension.dfdl-debug.debugLastEditorContents"
   ],
   "workspaceTrust": {
@@ -183,15 +190,10 @@
           "when": "resourceLangId == dfdl"
         },
         {
-          "command": "data.edit",
-          "enablement": "experimentalFeaturesEnabled"
+          "command": "data.edit"
         },
         {
-          "command": "omega_edit.version",
-          "enablement": "experimentalFeaturesEnabled"
-        },
-        {
-          "command": "toggle.experimental"
+          "command": "omega_edit.version"
         },
         {
           "command": "extension.dfdl-debug.debugLastEditorContents",
@@ -286,27 +288,19 @@
         "icon": "$(debug-configure)"
       },
       {
-        "command": "toggle.experimental",
-        "title": "Enable Experimental Features",
-        "category": "Daffodil Debug"
-      },
-      {
         "command": "omega_edit.version",
-        "title": "Omega Edit Ω Version Info",
-        "category": "OmegaEdit",
-        "enablement": "experimentalFeaturesEnabled"
+        "title": "Ωedit Version Info",
+        "category": "OmegaEdit"
       },
       {
         "command": "data.edit",
         "title": "Data Editor",
-        "category": "OmegaEdit",
-        "enablement": "experimentalFeaturesEnabled"
+        "category": "OmegaEdit"
       },
       {
         "command": "position.goto",
         "title": "Go to position",
-        "category": "OmegaEdit",
-        "enablement": "experimentalFeaturesEnabled"
+        "category": "OmegaEdit"
       }
     ],
     "keybindings": [
@@ -610,6 +604,28 @@
               "type": "string"
             },
             "default": {}
+          },
+          "dataEditor.defaultServerPort": {
+            "type": "integer",
+            "description": "Editor server default port",
+            "default": 9000
+          },
+          "dataEditor.logFile": {
+            "type": "string",
+            "description": "Path to log file for data editor",
+            "default": "${workspaceFolder}/dataEditor-${serverPort}.log"
+          },
+          "dataEditor.logLevel": {
+            "type": "string",
+            "description": "Log level for data editor",
+            "enum": [
+              "error",
+              "warn",
+              "info",
+              "debug",
+              "trace"
+            ],
+            "default": "info"
           }
         }
       }
