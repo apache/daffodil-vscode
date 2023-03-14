@@ -16,158 +16,198 @@
  */
 
 import * as vscode from 'vscode'
-import * as hexy from 'hexy'
 import {
   EventSubscriptionRequest,
-  // ObjectId,
   ViewportDataRequest,
+  ViewportDataResponse,
 } from 'omega-edit/omega_edit_pb'
-import { getClient, ALL_EVENTS } from 'omega-edit/settings'
-import * as omegaEditServer from 'omega-edit/server'
-import { runScript, displayTerminalExitStatus } from '../utils'
+import * as fs from 'fs'
+import { ALL_EVENTS, getClient } from 'omega-edit/client'
+import { EditorMessage, MessageCommand } from '../svelte/src/utilities/message'
 import { EditorClient } from 'omega-edit/omega_edit_grpc_pb'
+import { getLogger } from 'omega-edit/logger'
 
 let client: EditorClient
-export function initOmegaEditClient(
-  host: string = '127.0.0.1',
-  port: string = '9000'
+export async function initOmegaEditClient(
+  port: number,
+  host: string = '127.0.0.1'
 ) {
-  client = getClient(host, port.toString())
-}
-
-export var randomId = () => Math.floor(Math.random() * (1000 - 0 + 1))
-
-export async function getFilePath(
-  sessionFile: string,
-  overwrite: boolean,
-  newFile: boolean
-): Promise<string | undefined> {
-  // Get file path for saved file
-  let filePath: string | undefined
-
-  if (overwrite) {
-    filePath = sessionFile
-  } else if (newFile) {
-    let fileName = sessionFile.split('/')[sessionFile.split('/').length - 1]
-    let path = sessionFile.replace(`/${fileName}`, '')
-    let fileNameStart = fileName
-      .split('.')
-      .slice(0, fileName.split('.').length - 1)
-      .join('')
-    let fileNameEnd = fileName.split('.')[fileName.split('.').length - 1]
-    filePath = `${path}/${fileNameStart}-${randomId().toString()}.${fileNameEnd}`
-  } else {
-    filePath = await vscode.window.showInputBox({
-      placeHolder: 'Save session as:',
-    })
-  }
-
-  return filePath
+  client = getClient(port, host)
 }
 
 export async function setViewportDataForPanel(
   panel: vscode.WebviewPanel,
-  vp: string,
-  commandViewport: string,
-  commandHex: string | null
+  viewportId: string
 ) {
   client.getViewportData(
-    new ViewportDataRequest().setViewportId(vp),
-    (err, r) => {
-      let data = r?.getData_asB64()
-
-      if (data) {
-        let txt = Buffer.from(data, 'base64').toString('binary')
-        panel.webview.postMessage({ command: commandViewport, text: txt })
-
-        if (commandHex === 'hexAll') {
-          let hex = hexy.hexy(txt)
-          let offsetLines = ''
-          let encodedData = ''
-
-          let hexLines = hex.split('\n')
-
-          // Format hex code to make the file look nicer
-          hexLines.forEach((h) => {
-            if (h) {
-              let splitHex = h.split(':')
-              let dataLocations = splitHex[1].split(' ')
-
-              offsetLines += splitHex[0] + '<br/>'
-              if (dataLocations.length > 9) {
-                for (var i = 1; i < 9; i++) {
-                  let middle = Math.floor(dataLocations[i].length / 2)
-                  encodedData +=
-                    dataLocations[i].substring(0, middle).toUpperCase() +
-                    '' +
-                    dataLocations[i].substring(middle).toUpperCase() +
-                    ' '
-                }
-              }
-
-              encodedData += '<br/>'
-            }
-          })
-
-          panel.webview.postMessage({
-            command: commandHex,
-            text: encodedData,
-            offsetText: offsetLines,
-          })
-        } else if (commandHex) {
-          let hxt = hexy.hexy(txt)
-          panel.webview.postMessage({ command: commandHex, text: hxt })
-        }
-      }
+    new ViewportDataRequest().setViewportId(viewportId),
+    async (err, r: ViewportDataResponse) => {
+      const bufferData: Uint8Array = r.getData_asU8()
+      panel.webview.postMessage({
+        command: MessageCommand.viewportSubscribe,
+        data: {
+          viewportData: bufferData,
+          displayData: Buffer.from(bufferData).toString('hex'),
+        },
+      })
     }
   )
 }
 
 export async function viewportSubscribe(
   panel: vscode.WebviewPanel,
-  vp1: string,
-  vp2: string,
-  commandViewport: string,
-  commandHex: string | null
+  viewportId: string
 ) {
-  var request = new EventSubscriptionRequest()
-    .setId(vp1)
-    .setInterest(ALL_EVENTS)
+  // initial viewport population
+  await setViewportDataForPanel(panel, viewportId)
 
-  client.subscribeToViewportEvents(request).on('data', async (ve) => {
-    await setViewportDataForPanel(panel, vp2, commandViewport, commandHex)
-  })
-
-  // data request not ran right away, so this ensures the views are populated
-  await setViewportDataForPanel(panel, vp2, commandViewport, commandHex)
+  // subscribe to all viewport events
+  client
+    .subscribeToViewportEvents(
+      new EventSubscriptionRequest().setId(viewportId).setInterest(ALL_EVENTS)
+    )
+    .on('data', async () => {
+      getLogger().debug(`viewport event received: ${viewportId}`)
+      await setViewportDataForPanel(panel, viewportId)
+    })
 }
 
-export async function startOmegaEditServer(
-  ctx: vscode.ExtensionContext,
-  rootPath: string,
-  omegaEditPackageVersion: string,
-  port: number
-): Promise<[vscode.Terminal, boolean]> {
-  const [scriptName, scriptPath] = await omegaEditServer.setupServer(
-    rootPath,
-    omegaEditPackageVersion,
-    ctx.asAbsolutePath('./node_modules/omega-edit')
-  )
+export class DisplayState {
+  public bytesPerRow: number
+  public editorEncoding: BufferEncoding
+  constructor() {
+    this.bytesPerRow = 16
+    this.editorEncoding = 'hex'
+  }
+}
 
-  const terminal = await runScript(
-    scriptPath,
-    scriptName,
-    null,
-    ['--port', port.toString()],
-    {
-      OMEGA_EDIT_SERVER_PORT: port.toString(),
-    },
-    '',
-    false,
-    port
-  )
+function latin1Undefined(c: string): boolean {
+  const charCode = c.charCodeAt(0)
+  return charCode < 32 || (charCode > 126 && charCode < 160)
+}
 
-  displayTerminalExitStatus(terminal)
+export function logicalDisplay(
+  bytes: ArrayBuffer,
+  bytesPerRow: number
+): string {
+  const undefinedCharStandIn = '�'
+  let result = ''
+  if (bytes.byteLength > 0) {
+    // TODO: How does this affect the simple editor?
+    // replace newlines with spaces for the logical display
+    const data = Buffer.from(bytes).toString('latin1').replace('\n', ' ')
+    let i = 0
+    while (true) {
+      for (let col = 0; i < data.length && col < bytesPerRow; ++col) {
+        const c = data.charAt(i++)
+        result += (latin1Undefined(c) ? undefinedCharStandIn : c) + ' '
+      }
+      result = result.slice(0, result.length - 1)
+      if (i === data.length) {
+        break
+      }
+      result += '\n'
+    }
+  }
+  return result
+}
 
-  return [terminal, true]
+export function fillRequestData(message: EditorMessage): [Buffer, string] {
+  let selectionByteData: Buffer
+  let selectionByteDisplay: string
+  if (message.data.editMode === 'full') {
+    selectionByteData = encodedStrToData(
+      message.data.editedContent,
+      message.data.encoding
+    )
+    selectionByteDisplay = dataToEncodedStr(
+      selectionByteData,
+      message.data.encoding
+    )
+  } else {
+    selectionByteData =
+      message.data.viewport === 'logical'
+        ? encodedStrToData(message.data.editedContent, 'latin1')
+        : radixStrToData(message.data.editedContent, message.data.radix)
+
+    selectionByteDisplay =
+      message.data.viewport === 'logical'
+        ? message.data.editedContent
+        : dataToRadixStr(selectionByteData, message.data.radix)
+  }
+
+  return [selectionByteData, selectionByteDisplay]
+}
+export function radixStrToData(
+  selectionEdits: string,
+  selectionRadix: number
+): Buffer {
+  return Buffer.from([parseInt(selectionEdits, selectionRadix)])
+}
+
+export function encodedStrToData(
+  selectionEdits: string,
+  selectionEncoding?: BufferEncoding
+): Buffer {
+  let selectionByteData: Buffer
+  switch (selectionEncoding) {
+    case 'hex':
+      selectionByteData = Buffer.alloc(selectionEdits.length / 2)
+      for (let i = 0; i < selectionEdits.length; i += 2) {
+        selectionByteData[i / 2] = parseInt(selectionEdits.slice(i, i + 2), 16)
+      }
+      return selectionByteData
+    case 'binary':
+      selectionByteData = Buffer.alloc(selectionEdits.length / 8)
+      for (let i = 0; i < selectionEdits.length; i += 8) {
+        selectionByteData[i / 8] = parseInt(selectionEdits.slice(i, i + 8), 2)
+      }
+      return selectionByteData
+    default:
+      return Buffer.from(selectionEdits, selectionEncoding)
+  }
+}
+
+export function dataToEncodedStr(
+  buffer: Buffer,
+  encoding: BufferEncoding
+): string {
+  return encoding === 'binary'
+    ? dataToRadixStr(buffer, 2)
+    : buffer.toString(encoding)
+}
+
+export function dataToRadixStr(buffer: Buffer, radix: number): string {
+  const padLen = radixBytePad(radix)
+  let ret = ''
+  for (let i = 0; i < buffer.byteLength; i++) {
+    ret += buffer[i].toString(radix).padStart(padLen, '0')
+  }
+  return ret
+}
+
+export function radixBytePad(radix: number): number {
+  switch (radix) {
+    case 2:
+      return 8
+    case 8:
+      return 3
+    case 10:
+      return 3
+    case 16:
+      return 2
+  }
+  return 0
+}
+
+export async function getOnDiskFileSize(filePath: string): Promise<number> {
+  return new Promise((resolve, reject) => {
+    fs.stat(filePath, (err, stats) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(stats.size)
+      }
+    })
+  })
 }

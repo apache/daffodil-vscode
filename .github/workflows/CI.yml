@@ -41,7 +41,7 @@ jobs:
             }
 
   code-format:
-    name: TypeScript/Scala Formatting
+    name: TypeScript/Scala/Svelte Formatting
     runs-on: ubuntu-20.04
     defaults:
       run:

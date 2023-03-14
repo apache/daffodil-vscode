@@ -44,6 +44,8 @@
 	},
 	"exclude": [
 		"node_modules",
-		"build/scripts"
+		"build/scripts",
+		"src/svelte",
+		"test-resources"
 	]
 }
