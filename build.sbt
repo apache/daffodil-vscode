@@ -18,6 +18,9 @@
 import com.github.retronym.sbtxjc.SbtXjcPlugin
 import Classpaths.managedJars
 
+//Fixes build issues on java11+
+run / fork := true
+
 val packageJsonStr = scala.io.Source.fromFile("package.json").mkString
 
 val daffodilVer = {
