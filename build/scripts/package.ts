@@ -33,6 +33,18 @@ async function copyGlob(pattern, dir = '.') {
       fs.mkdirSync(dstDir, { recursive: true })
 
       if (fs.statSync(src).isFile()) {
+        if (src.toString() == 'package.json') {
+          let updatedLines = fs
+            .readFileSync(src, 'utf-8')
+            .replace(
+              '\t\t"postinstall": "cd src/svelte && yarn install",\n',
+              ''
+            )
+
+          fs.writeFileSync(dst, updatedLines, 'utf-8')
+          continue
+        }
+
         fs.copyFileSync(src, dst)
       }
     }

@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import * as vscode from 'vscode'
 import * as fs from 'fs'
+import * as vscode from 'vscode'
 import { getConfig, osCheck } from '../utils'
 
 const defaultConf = getConfig('Wizard Config', 'launch', 'dfdl')
@@ -96,7 +96,7 @@ async function createUpdateConfigFile(data, updateOrCreate) {
     // Update selected config in launch.json
     let configIndex = -1
 
-    for (var i = 0; i < fileData.configurations.length; i++) {
+    for (let i = 0; i < fileData.configurations.length; i++) {
       if (fileData.configurations[i].name === newConf.name) {
         configIndex = i
         break
@@ -140,8 +140,8 @@ async function openFilePicker(description) {
     ? vscode.workspace.workspaceFolders[0].uri.fsPath
     : vscode.Uri.parse('').fsPath
 
-  let canSelectMany = description.includes('jar files/folder') ? true : false
-  let canSelectFolders = description.includes('jar files/folder') ? true : false
+  let canSelectMany = !!description.includes('jar files/folder')
+  let canSelectFolders = !!description.includes('jar files/folder')
 
   let chosenFile = await vscode.window
     .showOpenDialog({
@@ -264,9 +264,7 @@ class LaunchWizard {
       : vscode.Uri.parse('').fsPath
 
     let configSelect = ''
-    let newConfig = fs.existsSync(`${rootPath}/.vscode/launch.json`)
-      ? false
-      : true
+    let newConfig = !fs.existsSync(`${rootPath}/.vscode/launch.json`)
     let configIndex = fs.existsSync(`${rootPath}/.vscode/launch.json`) ? 0 : -1
     let fileData = JSON.parse('{}')
 
@@ -299,7 +297,7 @@ class LaunchWizard {
       '<ul id="daffodilDebugClasspathTable" style="list-style: none; padding-left: 20px;">'
     if (defaultValues.daffodilDebugClasspath) {
       let itemArray = defaultValues.daffodilDebugClasspath.split(':')
-      for (var i = 0; i < itemArray.length; i++) {
+      for (let i = 0; i < itemArray.length; i++) {
         daffodilDebugClasspathList += `
           <li style="margin-left: -5px;" onclick="removeDebugClasspathItem(this)">
             <p id="debug-classpath-li-${itemArray[i]}" class="debug-classpath-item">
@@ -380,7 +378,7 @@ class LaunchWizard {
   <html lang="en">
     <head>
       <meta charset="UTF-8">
-      <meta name="viewport" content=width=device-width, initial-scale=1.0">
+      <meta name="viewport" content="width=device-width," initial-scale=1.0">
       <title>Launch Config Wizard</title>
     </head>
     <body>
