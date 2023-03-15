@@ -70,6 +70,10 @@ export async function viewportSubscribe(
       getLogger().debug(`viewport event received: ${viewportId}`)
       await setViewportDataForPanel(panel, viewportId)
     })
+    .on('error', (err) => {
+      // Call cancelled thrown sometimes when server is shutdown
+      if (!err.message.includes('Call cancelled')) throw err
+    })
 }
 
 export class DisplayState {
