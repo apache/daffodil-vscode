@@ -283,12 +283,12 @@
   dependencies:
     "@types/node" "*"
 
-"@vscode/debugadapter-testsupport@1.51.0":
-  version "1.51.0"
-  resolved "https://registry.yarnpkg.com/@vscode/debugadapter-testsupport/-/debugadapter-testsupport-1.51.0.tgz#6311ef18bab254d6bbc2be583da9eec0b857d449"
-  integrity sha512-dRrJaSjT+4ay8VinylRZycjc5F+LptI5e0EL5kN+8Ap2KsIYAWzOsAxP/2f4DGN8QvE8gaPw2khtMZLrQYR5rQ==
+"@vscode/debugadapter-testsupport@1.59.0":
+  version "1.59.0"
+  resolved "https://registry.yarnpkg.com/@vscode/debugadapter-testsupport/-/debugadapter-testsupport-1.59.0.tgz#d29b89f6285424435499e9bb5ad42e5db01f3a11"
+  integrity sha512-Q25IHmZCTHispSg/h3kBa8M2EGPFgZGbwt3hlGA53ydWlF0TUEJ12oW9ODMEBO+VAk+GGrHW/C6iCLgyLvcPPw==
   dependencies:
-    "@vscode/debugprotocol" "1.51.0"
+    "@vscode/debugprotocol" "1.59.0"
 
 "@vscode/debugadapter@1.51.0":
   version "1.51.0"
@@ -302,6 +302,11 @@
   version "1.51.0"
   resolved "https://registry.yarnpkg.com/@vscode/debugprotocol/-/debugprotocol-1.51.0.tgz#1d28a8581f8ea74b8e2fd465d4448717589a0ae3"
   integrity sha512-39ShbKzI+0r53haLZQVEhY4XhdMJVSqfcliaDFigQjqiWattno5Ex0jXq2WRHrAtPf+W5Un9/HtED0K3pAiqZg==
+
+"@vscode/debugprotocol@1.59.0":
+  version "1.59.0"
+  resolved "https://registry.yarnpkg.com/@vscode/debugprotocol/-/debugprotocol-1.59.0.tgz#f173ff725f60e4ff1002f089105634900c88bd77"
+  integrity sha512-Ks8NiZrCvybf9ebGLP8OUZQbEMIJYC8X0Ds54Q/szpT/SYEDjTksPvZlcWGTo7B9t5abjvbd0jkNH3blYaSuVw==
 
 "@vscode/test-electron@2.1.5":
   version "2.1.5"
