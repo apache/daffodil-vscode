@@ -345,6 +345,10 @@
               "infosetFormat": {
                 "type": "string",
                 "description": "Infoset format type (xml/json)",
+                "enum": [
+                  "xml",
+                  "json"
+                ],
                 "default": "xml"
               },
               "infosetOutput": {
