@@ -211,7 +211,8 @@ export async function getDebugger(
       await runDebugger(
         rootPath,
         daffodilDebugClasspath,
-        context.asAbsolutePath('./package.json')
+        context.asAbsolutePath('./package.json'),
+        config.debugServer
       )
     }
   }

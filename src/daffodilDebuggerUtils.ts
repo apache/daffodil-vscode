@@ -62,7 +62,7 @@ export async function runDebugger(
   rootPath: string,
   daffodilDebugClasspath: string,
   filePath: string,
-  serverPort: number = 4711
+  serverPort: number
 ): Promise<vscode.Terminal> {
   const dfdlVersion = daffodilVersion(filePath)
   const artifact = daffodilArtifact(dfdlVersion)
