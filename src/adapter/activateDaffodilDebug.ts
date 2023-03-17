@@ -406,6 +406,10 @@ class DaffodilConfigurationProvider
       config = getConfig('Launch', 'launch', 'dfdl')
     }
 
+    if (!config.debugServer) {
+      config.debugServer = 4711
+    }
+
     if (!config.program) {
       return vscode.window
         .showInformationMessage('Cannot find a program to debug')
