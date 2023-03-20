@@ -76,22 +76,76 @@ export const addressOpt = [
 
 export const dvHighlightTag = { start: '<mark>', end: '</mark>' }
 
+// address, followed by radix
 const offsetDisplays = {
   16: {
-    text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F  ',
-    spread: 2,
+    // address are in hex
+    16: {
+      // radix is hex
+      text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F  ',
+      spread: 2,
+    },
+    10: {
+      // radix is decimal
+      text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F  ',
+      spread: 3,
+    },
+    8: {
+      // radix is octal
+      text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F  ',
+      spread: 3,
+    },
+    2: {
+      // radix is binary
+      text: '00000000 00000000 11111111 11111111 22222222 22222222 33333333 33333333  <br/>01234567 89ABCDEF 01234567 89ABCDEF 01234567 89ABCDEF 01234567 89ABCDEF  ',
+      spread: 1,
+    },
   },
   10: {
-    text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5  ',
-    spread: 3,
+    // address are in decimal
+    16: {
+      // radix is hex
+      text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1  <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5  ',
+      spread: 2,
+    },
+    10: {
+      // radix is decimal
+      text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5  ',
+      spread: 3,
+    },
+    8: {
+      // radix is octal
+      text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7  ',
+      spread: 3,
+    },
+    2: {
+      // radix is binary
+      text: '00000000 00111111 11112222 22222233 33333333 44444444 44555555 55556666  <br/>01234567 89012345 67890123 45678901 23456789 01234567 89012345 67890123  ',
+      spread: 1,
+    },
   },
   8: {
-    text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7  ',
-    spread: 3,
-  },
-  2: {
-    text: '00000000 00111111 11112222 22222233 33333333 44444444 44555555 55556666  <br/>01234567 89012345 67890123 45678901 23456789 01234567 89012345 67890123  ',
-    spread: 1,
+    // address are in octal
+    16: {
+      // radix is hex
+      text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1  <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7  ',
+      spread: 2,
+    },
+    10: {
+      // radix is decimal
+      text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1  <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7  ',
+      spread: 3,
+    },
+    8: {
+      // radix is octal
+      text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1  <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7  ',
+      spread: 3,
+    },
+    2: {
+      // radix is binary
+      text: '00000000 11111111 22222222 33333333 44444444 55555555 66666666 77777777  <br/>01234567 01234567 01234567 01234567 01234567 01234567 01234567 01234567  ',
+      spread: 1,
+    },
   },
 }
 
@@ -240,8 +294,8 @@ export function syncScroll(from: HTMLElement, to: HTMLElement) {
   }
 }
 
-export function getOffsetDisplay(radix, view: string) {
-  let spread = offsetDisplays[radix].spread
+export function getOffsetDisplay(address: number, radix: number, view: string) {
+  let spread = offsetDisplays[address][radix].spread
   if (view === 'logical') {
     if (radix === 2)
       return '0 0 0 0 0 0 0 0 <br>0 1 2 3 4 5 6 7  '.replaceAll(
@@ -250,7 +304,10 @@ export function getOffsetDisplay(radix, view: string) {
       )
     spread = 1
   }
-  return offsetDisplays[radix].text.replaceAll(' ', '&nbsp;'.repeat(spread))
+  return offsetDisplays[address][radix].text.replaceAll(
+    ' ',
+    '&nbsp;'.repeat(spread)
+  )
 }
 
 export function encodeForDisplay(
