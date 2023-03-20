@@ -15,7 +15,14 @@
  * limitations under the License.
  */
 
+import * as omegaEditChange from 'omega-edit/change'
+import { getServerHeartbeat, IServerHeartbeat } from 'omega-edit/server'
+import * as omegaEditSession from 'omega-edit/session'
+import { CountKind } from 'omega-edit/session'
+import * as omegaEditViewport from 'omega-edit/viewport'
 import * as vscode from 'vscode'
+import { EditorMessage, MessageCommand } from '../svelte/src/utilities/message'
+import { serverPort } from './client'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
 import {
   dataToEncodedStr,
@@ -27,13 +34,6 @@ import {
   setViewportDataForPanel,
   viewportSubscribe,
 } from './utils'
-import { EditorMessage, MessageCommand } from '../svelte/src/utilities/message'
-import * as omegaEditSession from 'omega-edit/session'
-import { CountKind } from 'omega-edit/session'
-import * as omegaEditViewport from 'omega-edit/viewport'
-import * as omegaEditChange from 'omega-edit/change'
-import { getServerHeartbeat, IServerHeartbeat } from 'omega-edit/server'
-import { serverPort } from './client'
 
 const VIEWPORT_CAPACITY_MAX = 1000000 // Maximum viewport size in Ωedit is 1048576 (1024 * 1024)
 const HEARTBEAT_INTERVAL_MS = 1000 // 1 second (1000 ms)
@@ -211,36 +211,6 @@ export class DataEditWebView implements vscode.Disposable {
       })
   }
 
-  private async saveSession(sessionId: string, overwrite: boolean) {
-    let filePath = await vscode.window.showInputBox({
-      placeHolder: 'Save session as:',
-    })
-    if (filePath) {
-      let rootPath = vscode.workspace.workspaceFolders
-        ? vscode.workspace.workspaceFolders[0].uri.fsPath
-        : ''
-      if (rootPath !== '' && !filePath.includes(rootPath)) {
-        filePath = `${rootPath}/${filePath}`
-      }
-
-      await omegaEditSession
-        .saveSession(sessionId, filePath, overwrite)
-        .then(() => {
-          vscode.window.showInformationMessage(`Session saved to ${filePath}`)
-        })
-
-      // the session has been cleared after saving if overwrite is true and the change transaction count is 0
-      // this happens if the file is saved to the same location as the original file
-      await omegaEditChange
-        .getChangeTransactionCount(sessionId)
-        .then((count) => {
-          if (count === 0) {
-            vscode.window.showInformationMessage('Session cleared')
-          }
-        })
-    }
-  }
-
   // handle messages from the webview
   private async messageReceiver(message: EditorMessage) {
     switch (message.command) {
@@ -334,25 +304,17 @@ export class DataEditWebView implements vscode.Disposable {
           })
           .then(async (uri) => {
             if (uri && uri.fsPath) {
-              if (uri.path === this.fileToEdit) {
-                await this.saveSession(this.omegaSessionId, true).catch(() => {
-                  vscode.window.showErrorMessage('Failed to save')
+              await omegaEditSession
+                .saveSession(this.omegaSessionId, uri.path, true)
+                .then(async (fp) => {
+                  vscode.window.showInformationMessage(`Saved to file: ${fp}`)
+                  if (fp === this.fileToEdit) {
+                    await this.sendChangesInfo()
+                  }
                 })
-                await this.sendChangesInfo()
-              } else {
-                await omegaEditSession
-                  .saveSession(this.omegaSessionId, uri.path, true)
-                  .then(async () => {
-                    vscode.window.showInformationMessage(
-                      `Saved to file: ${uri.path}`
-                    )
-                  })
-                  .catch(() => {
-                    vscode.window.showErrorMessage(
-                      `Failed to save: ${uri.path}`
-                    )
-                  })
-              }
+                .catch(() => {
+                  vscode.window.showErrorMessage(`Failed to save: ${uri.path}`)
+                })
             }
           })
         break
