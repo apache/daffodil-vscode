@@ -56,7 +56,7 @@ export async function runServerForTests() {
   )
 }
 
-suite('omega-edit Test Suite', () => {
+suite('Data Editor Test Suite', () => {
   let terminal: vscode.Terminal
 
   before(async () => {
@@ -67,16 +67,9 @@ suite('omega-edit Test Suite', () => {
     await terminal.processId.then(async (id) => await killProcess(id))
   })
 
-  test('Ωedit version command exists', async () => {
-    assert.strictEqual(
-      (await vscode.commands.getCommands()).includes('omega_edit.version'),
-      true
-    )
-  })
-
   test('data edit command exists', async () => {
     assert.strictEqual(
-      (await vscode.commands.getCommands()).includes('data.edit'),
+      (await vscode.commands.getCommands()).includes('extension.data.edit'),
       true
     )
   })
@@ -130,24 +123,11 @@ suite('omega-edit Test Suite', () => {
     assert.strictEqual(result.open, true)
   })
 
-  suite('omega-edit commands', () => {
-    test('omega_edit.version returns correct version', async () => {
-      const version = await vscode.commands.executeCommand(
-        'omega_edit.version',
-        false,
-        port
-      )
-      assert.ok(version)
-      assert.strictEqual(
-        version,
-        omegaEditClient.getOmegaEditPackageVersion(PACKAGE_PATH)
-      )
-    })
-
+  suite('Data Editor', () => {
     test('data editor opens', async () => {
       const dataEditWebView: DataEditWebView =
         await vscode.commands.executeCommand(
-          'data.edit',
+          'extension.data.edit',
           false,
           port,
           TEST_SCHEMA

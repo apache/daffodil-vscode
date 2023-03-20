@@ -18,7 +18,6 @@
 import * as fs from 'fs'
 import { createSimpleFileLogger, setLogger } from 'omega-edit/logger'
 import { startServer, stopServerUsingPID } from 'omega-edit/server'
-import * as omegaEditVersion from 'omega-edit/version'
 import { setAutoFixViewportDataLength } from 'omega-edit/viewport'
 import path from 'path'
 import * as vscode from 'vscode'
@@ -140,27 +139,7 @@ export function activate(ctx: vscode.ExtensionContext) {
 
   ctx.subscriptions.push(
     vscode.commands.registerCommand(
-      'omega_edit.version',
-      async (
-        startServ: boolean = true,
-        port: number | undefined = undefined
-      ) => {
-        await getOmegaEditPort(port)
-        if (startServ) {
-          await serverStart(ctx, omegaEditPackageVersion)
-        }
-        await initOmegaEditClient(serverPort)
-        const version = await omegaEditVersion.getServerVersion()
-        vscode.window.showInformationMessage(`Ωedit server version ${version}`)
-        if (startServ) {
-          serverStop()
-        }
-        return version
-      }
-    ),
-
-    vscode.commands.registerCommand(
-      'data.edit',
+      'extension.data.edit',
       async (
         startServ: boolean = true,
         port: number | undefined = undefined,
