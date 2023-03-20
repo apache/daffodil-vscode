@@ -1373,7 +1373,7 @@ limitations under the License.
 </main>
 <hr />
 <div class="omega-latency flex-container row center">
-  <div>Ωedit v{serverVersion} on port {serverPort}</div>
+  <div>Powered by Ωedit v{serverVersion} on port {serverPort}</div>
   <div class="latency-group flex-container row center">
     <svg class="latency-indicator">
       {#if serverLatency < 20}

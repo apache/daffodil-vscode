@@ -92,8 +92,7 @@
     "onCommand:extension.dfdl-debug.getTDMLPath",
     "onCommand:extension.dfdl-debug.getValidatedTDMLPath",
     "onCommand:launch.config",
-    "onCommand:data.edit",
-    "onCommand:omega_edit.version",
+    "onCommand:extension.data.edit",
     "onCommand:extension.dfdl-debug.debugLastEditorContents"
   ],
   "workspaceTrust": {
@@ -189,10 +188,7 @@
           "when": "resourceLangId == dfdl"
         },
         {
-          "command": "data.edit"
-        },
-        {
-          "command": "omega_edit.version"
+          "command": "extension.data.edit"
         },
         {
           "command": "extension.dfdl-debug.debugLastEditorContents",
@@ -287,19 +283,14 @@
         "icon": "$(debug-configure)"
       },
       {
-        "command": "omega_edit.version",
-        "title": "Ωedit Version Info",
-        "category": "OmegaEdit"
-      },
-      {
-        "command": "data.edit",
+        "command": "extension.data.edit",
         "title": "Data Editor",
-        "category": "OmegaEdit"
+        "category": "Daffodil Debug"
       },
       {
         "command": "position.goto",
         "title": "Go to position",
-        "category": "OmegaEdit"
+        "category": "Daffodil Debug"
       }
     ],
     "keybindings": [
