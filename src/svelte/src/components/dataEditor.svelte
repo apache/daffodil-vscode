@@ -138,8 +138,16 @@ limitations under the License.
   )
 
   $: {
-    physicalOffsetText = getOffsetDisplay($displayRadix, 'physical')
-    logicalOffsetText = getOffsetDisplay($displayRadix, 'logical')
+    physicalOffsetText = getOffsetDisplay(
+      $addressValue,
+      $displayRadix,
+      'physical'
+    )
+    logicalOffsetText = getOffsetDisplay(
+      $addressValue,
+      $displayRadix,
+      'logical'
+    )
     if (logical_vwRef) {
       logical_vwRef.style.maxWidth = $displayRadix === 2 ? '105pt' : ''
     }
@@ -886,7 +894,7 @@ limitations under the License.
         </div>
         <div class="col-item flex-container row center">
           <div class="two-row-items">
-            <label for="radix">Viewport Radix: </label>
+            <label for="radix">Byte Display Radix: </label>
           </div>
           <div class="two-row-items">
             <select
