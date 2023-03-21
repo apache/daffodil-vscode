@@ -34,39 +34,37 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
       {
         item: nsPrefix + 'element name',
         snippetString: '<' + nsPrefix + 'element name="$1"$0',
-        markdownString: 'A new xs element',
+        markdownString: 'Defines an xs element',
       },
       {
         item: nsPrefix + 'element ref',
         snippetString: '<' + nsPrefix + 'element ref="$1"$0',
-        markdownString: 'A new dfdl reference to an item',
+        markdownString: 'Defines a reference to a declared element',
       },
       {
         item: nsPrefix + 'group name',
         snippetString: '<' + nsPrefix + 'group name = "$1">\n\t$0\n</' + nsPrefix + 'group>',
+        markdownString: 'Defines a named model group to be reused later',
       },
       {
         item: nsPrefix + 'group ref',
         snippetString: '<' + nsPrefix + 'group ref="$1"$0',
-        markdownString: 'A new dfdl reference to an item',
+        markdownString: 'Defines a reference to a group declaration',
       },
       {
         item: 'dfdl:assert',
         snippetString: '<dfdl:assert>$1\n</dfdl:assert>$0',
-        markdownString: 'dfdl assertion test',
+        markdownString: 'Used to assert truths about a DFDL model',
       },
       {
         item: 'dfdl:discriminator',
         snippetString: '<dfdl:discriminator test="{$1}"/>$0',
-        markdownString: 'dfdl discriminator test',
-      },
-      {
-        item: 'dfdl:hiddenGroupRef',
-        snippetString: '<' + nsPrefix + 'sequence dfdl:hiddenGroupRef="$1"/>\n$0',
+        markdownString: 'Used during parsing to resolve points or uncertainity, remove ambiguity during speculative parsing, improve diagnostic behavior',
       },
       {
         item: 'dfdl:format',
         snippetString: '<dfdl:format $0/>',
+        markdownString: 'Defines the physical data format properties for multiple DFDL schema constructs',
       },
       {
         item: nsPrefix + 'annotation',
@@ -79,54 +77,89 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
       {
         item: nsPrefix + 'complexType',
         snippetString: '<' + nsPrefix + 'complexType>\n\t$0\n</' + nsPrefix + 'complexType>',
-        markdownString: 'Starts a complex type definition',
+        markdownString: 'Defines a complex type definition',
       },
       {
         item: nsPrefix + 'complexType name=',
-        snippetString: '<' + nsPrefix + 'complexType Name="$1">\n\t$0\n</' + nsPrefix + 'complexType>',
-        markdownString: 'Starts a complex type definition',
+        snippetString: '<' + nsPrefix + 'complexType name="$1">\n\t$0\n</' + nsPrefix + 'complexType>',
+        markdownString: 'Defines a complex type definition',
       },
       {
         item: nsPrefix + 'simpleType',
-        snippetString: '<' + nsPrefix + 'simpleType>\n\t$0\n</' + nsPrefix + 'simpleType>',
-        markdownString: 'Starts a simple type definition',
+        snippetString: '<' + nsPrefix + 'simpleType$1>\n\t$0\n</' + nsPrefix + 'simpleType>',
+        markdownString: 'Defines a simple type definition',
       },
       {
         item: nsPrefix + 'simpleType name=',
-        snippetString: '<' + nsPrefix + 'simpleType Name="$1"$0',
-        markdownString: 'Starts a simple type definition',
+        snippetString: '<' + nsPrefix + 'simpleType name="$1"$0',
+        markdownString: 'Defines simple type definition',
       },
       {
         item: nsPrefix + 'sequence',
         snippetString: '<' + nsPrefix + 'sequence',
+        markdownString: 'Specifies that the child elements must appear in a sequence',
       },
       {
         item: nsPrefix + 'choice',
         snippetString: '<' + nsPrefix + 'choice',
+        markdownString: 'Define group of mutually exclusive elements that resolve points of uncertainty that cannot be resolved by speculative parsing',
       },
       {
         item: 'dfdl:defineVariable',
         snippetString: '<dfdl:defineVariable name="$1"$0',
+        markdownString: 'Defines the name, type, and optionally default value for the variable.',
       },
       {
         item: 'dfdl:setVariable',
         snippetString: '<dfdl:setVariable ref="${1|' + definedVariables + '"|}, value="$2"$0',
+        markdownString: 'Sets the value of a variable whose declaration is in scope',
       },
       {
         item: 'dfdl:defineFormat',
         snippetString: '<dfdl:defineFormat name="$1">\n\t$2\n</dfdl:defineFormat>$0',
-        markdownString: 'dfdl format name and configuration',
+        markdownString: 'Defines a named reusable format definition',
       },
       {
         item: 'dfdl:defineEscapeScheme',
         snippetString: '<dfdl:defineEscapeScheme name=$1 >\n\t$0,/dfdl:defineEscapeScheme>',
-        markdownString: 'dfdl escape character definition',
+        markdownString: 'Defines a named, reusable escapeScheme',
       },
-      /*TODO not sure how to make dfdl:element work without braking xs:element 
+      {
+        item: 'dfdl:simpleType',
+        snippetString: '<dfdl:simpleType $1/>$0',
+        markdownString: 'Defines the physical data format properties of an xs:simpleType',
+      },
       {
         item: 'dfdl:element',
-        snippetString: '\t<dfdl:defineVariable name="$1"$0',
-      },*/
+        snippetString: '<dfdl:element $1/>$0',
+        markdownString: 'Defines the physical data format properties of an xs:element and xs:element reference',
+      },
+      {
+        item: 'restriction',
+        // use the "xs:" prefix for primitive types to differentiate them from custom simple types
+        snippetString: '<' + nsPrefix + 'restriction base="${1|xs:string,xs:decimal,xs:float,xs:double,xs:integer,xs:nonNegativeInteger,xs:int,xs:unsignedInt,xs:short,xs:unsignedShort,xs:long,xs:unsignedLong,xs:byte,xs:unsignedByte,xs:hexBinary,xs:boolean|}"$0',
+        markdownString: 'Specify type the element is restricted to',
+      },
+      {
+        item: 'minInclusive',
+        snippetString: '<' + nsPrefix + 'minInclusive value="$1"/>$0',
+        markdownString: 'Used to check the validity of an element'
+      },
+      {
+        item: 'minExclusive',
+        snippetString: '<' + nsPrefix + 'minExclusive value="$1"/>$0',
+        markdownString: 'Used to check the validity of an element'
+      },
+      {
+        item: 'maxInclusive',
+        snippetString: '<' + nsPrefix + 'maxInclusive value="$1"/>$0',
+        markdownString: 'Used to check the validity of an element'
+      },
+      {
+        item: 'maxExclusive',
+        snippetString: '<' + nsPrefix + 'maxExclusive value="$1"/>$0',
+        markdownString: 'Used to check the validity of an element'
+      },
     ],
   }
 }

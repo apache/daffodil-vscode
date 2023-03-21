@@ -36,6 +36,9 @@ const items = [
   'format',
   'defineVariable',
   'setVariable',
+  'dfdl:element',
+  'dfdl:simpleType',
+  'restriction',
   'schema',
   'xml version',
 ]
@@ -134,8 +137,8 @@ export function nearestTag(
     }
   } else {
     if (
-      (startLine === triggerLine && tagPos === startPos) ||
-      triggerText.trim() === ''
+      startLine === triggerLine &&
+      (tagPos === startPos || triggerText.trim() === '')
     ) {
       --lineNum
     }
@@ -171,14 +174,18 @@ export function checkTagOpen(
   let triggerLine = position.line
   let triggerText = document.lineAt(triggerLine).text
   let itemsOnLine = getItemsOnLineCount(triggerText)
-  const origTriggerText = triggerText
+  let isMultiLineTag = false
+  let origTriggerText = triggerText
+  let origTriggerLine = triggerLine
   while (itemsOnLine < 2 && triggerText.indexOf('<') === -1) {
     triggerText = document.lineAt(--triggerLine).text
   }
-
+  if (!(triggerText.endsWith('>') && triggerText.includes('<'))) {
+    isMultiLineTag = true
+  }
   const triggerPos = position.character
   const textBeforeTrigger = triggerText.substring(0, triggerPos)
-  const tagPos = textBeforeTrigger.lastIndexOf('<' + nsPrefix + tag)
+  let tagPos = textBeforeTrigger.lastIndexOf('<' + nsPrefix + tag)
   const nextTagPos = triggerText.indexOf('<', tagPos + 1)
   let tagEndPos = triggerText.indexOf('>', tagPos)
   if (tagPos > -1 && itemsOnLine > 1) {
@@ -191,21 +198,37 @@ export function checkTagOpen(
       return true
     }
   }
-  if (tagPos > -1 && itemsOnLine < 2) {
+
+  while (origTriggerText.trim() === '') {
+    origTriggerText = document.lineAt(--origTriggerLine).text
+  }
+  tagPos = triggerText.indexOf('<' + nsPrefix + tag)
+  if (itemsOnLine < 2 && tagPos > -1) {
     if (triggerText !== origTriggerText) {
       tagEndPos = origTriggerText.indexOf('>')
     }
-    if (triggerPos > tagPos && (triggerPos <= tagEndPos || tagEndPos === -1)) {
+    if (
+      (triggerPos > tagPos &&
+        triggerPos <= tagEndPos &&
+        triggerLine === position.line) ||
+      (origTriggerLine == position.line && triggerPos <= tagEndPos) ||
+      position.line < origTriggerLine
+    ) {
       return true
     }
   }
+  if (!isMultiLineTag) {
+    return false
+  }
   //if this tag is part of a multi line set of annotations return true
   //else this tag is not open return false
-  return checkMultiLineAnnotations(
+  return checkMultiLineTag(
     document,
     position,
     itemsOnLine,
     nsPrefix,
+    tagPos,
+    triggerLine,
     tag
   )
 }
@@ -221,31 +244,57 @@ export function getItemPrefix(item: string, nsPrefix: string) {
   ) {
     itemPrefix = 'dfdl:'
   }
+  if (item === 'xml version') {
+    itemPrefix = '?'
+  }
+  if (item === 'dfdl:element' || item === 'dfdl:simpleType') {
+    itemPrefix = ''
+  }
   return itemPrefix
 }
 
-export function checkMultiLineAnnotations(
+export function checkMultiLineTag(
   document: vscode.TextDocument,
   position: vscode.Position,
   itemsOnLine: number,
   nsPrefix: string,
+  tagPos: number,
+  tagLine: number,
   tag: string
 ) {
-  if (itemsOnLine > 1 || tag === 'schema') {
+  if (itemsOnLine > 1) {
     return false
   }
   let currentLine = position.line
   let currentText = document.lineAt(currentLine).text
 
-  while (currentText.trim() === '' || !currentText.includes('<')) {
-    --currentLine
-    currentText = document.lineAt(currentLine).text
+  //the current line doesn't have the self close symbol
+  if (!currentText.endsWith('/>')) {
+    while (currentText.trim() === '' || !currentText.includes('<')) {
+      --currentLine
+      currentText = document.lineAt(currentLine).text
+      if (!currentText.endsWith('/>')) {
+        break
+      }
+    }
+    if (
+      currentText.indexOf('<' + nsPrefix + tag) !== -1 &&
+      currentText.indexOf('>') === -1 &&
+      currentText.indexOf('<' + nsPrefix + tag) < position.character
+    ) {
+      return true
+    }
   }
-  if (
-    currentText.indexOf('<' + nsPrefix + tag) !== -1 &&
-    currentText.indexOf('>') === -1
-  ) {
-    return true
+  if (currentText.endsWith('/>')) {
+    let triggerPos = position.character
+    let tagEndPos = currentText.indexOf('/>')
+    let triggerLine = position.line
+    if (
+      (triggerLine <= currentLine && triggerPos < tagEndPos) ||
+      (triggerLine === tagLine && triggerPos > tagPos && tagPos !== -1)
+    ) {
+      return true
+    }
   }
   return false
 }
@@ -290,7 +339,9 @@ export function getItemsOnLineCount(triggerText: String) {
       if (
         !testForCloseTag.includes('</') &&
         !testForCloseTag.includes('<!--') &&
-        !testForCloseTag.includes('-->')
+        !testForCloseTag.includes('-->') &&
+        !testForCloseTag.includes('<[') &&
+        !testForCloseTag.includes('<![')
       ) {
         ++itemsOnLine
       }
@@ -301,52 +352,71 @@ export function getItemsOnLineCount(triggerText: String) {
   return itemsOnLine
 }
 
+export function cursorWithinBraces(
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
+  let startLine = position.line
+  let currentText = document.lineAt(startLine).text
+  let braceStartLine = startLine
+  let braceStartPos = -1
+  while (
+    braceStartLine > 0 &&
+    (braceStartPos = currentText.indexOf('{')) === -1
+  ) {
+    currentText = document.lineAt(--braceStartLine).text
+  }
+  let braceEndLine = braceStartLine
+  let braceEndPos = -1
+  if (braceStartPos > -1) {
+    while (
+      braceEndLine < document.lineCount &&
+      (braceEndPos = currentText.indexOf('}')) === -1
+    ) {
+      currentText = document.lineAt(++braceEndLine).text
+    }
+    if (braceEndPos > -1) {
+      if (
+        (position.line > braceStartLine && position.line < braceEndLine) ||
+        (braceEndLine === braceStartLine &&
+          position.character > braceStartPos &&
+          position.character <= braceEndPos) ||
+        (position.line === braceStartLine &&
+          position.character > braceStartPos &&
+          position.line < braceEndLine) ||
+        (position.line === braceEndLine &&
+          position.character <= braceEndPos &&
+          position.line > braceStartLine)
+      ) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
 export function checkBraceOpen(
   document: vscode.TextDocument,
   position: vscode.Position
 ) {
   let lineNum = position.line
+  let triggerText = document.lineAt(lineNum).text
 
-  while (lineNum !== 0) {
-    const triggerText = document.lineAt(lineNum).text
-    //.text.substring(0, document.lineAt(lineNum).range.end.character)
-
+  if (triggerText.includes('{')) {
+    while (!triggerText.includes('}') && lineNum < document.lineCount) {
+      triggerText = document.lineAt(++lineNum).text
+    }
+    if (!triggerText.includes('}')) {
+      return true
+    }
+  }
+  if (triggerText.includes('}')) {
+    while (!triggerText.includes('{') && lineNum > 0) {
+      triggerText = document.lineAt(--lineNum).text
+    }
     if (!triggerText.includes('{')) {
-      return false
-    }
-    if (
-      triggerText.includes('"{') &&
-      triggerText.includes('}"') &&
-      (triggerText.includes('..') || triggerText.includes('.')) &&
-      !triggerText.includes('}"/') &&
-      !triggerText.includes('>')
-    ) {
       return true
     }
-    if (
-      triggerText.includes('"{') &&
-      !triggerText.includes('}"') &&
-      !triggerText.includes('}"/') &&
-      !triggerText.includes('>')
-    ) {
-      return true
-    }
-    if (
-      triggerText.includes('}"') &&
-      !triggerText.includes('}"/') &&
-      !triggerText.includes('>')
-    ) {
-      return true
-    }
-    if (
-      triggerText.includes('}"') &&
-      (triggerText.includes('}"/') ||
-        triggerText.includes('>') ||
-        triggerText.includes('/>'))
-    ) {
-      return false
-    }
-    --lineNum
   }
   return false
 }
@@ -373,7 +443,7 @@ export function createCompletionItem(
     'dfdl:representation',
     'dfdl:choiceDispatchKey=',
     'dfdl:simpleType',
-    nsPrefix + 'restriction',
+    'restriction',
   ]
 
   if (preVal !== '' && !noPreVals.includes(e.item)) {

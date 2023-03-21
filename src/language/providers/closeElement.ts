@@ -17,6 +17,7 @@
 
 import * as vscode from 'vscode'
 import { checkMissingCloseTag } from './closeUtils'
+import { checkBraceOpen, cursorWithinBraces } from './utils'
 import {
   getXsdNsPrefix,
   insertSnippet,
@@ -32,6 +33,12 @@ export function getCloseElementProvider() {
         document: vscode.TextDocument,
         position: vscode.Position
       ) {
+        if (
+          checkBraceOpen(document, position) ||
+          cursorWithinBraces(document, position)
+        ) {
+          return undefined
+        }
         let backpos = position.with(position.line, position.character)
         let backpos3 = position.with(position.line, position.character)
 
@@ -102,18 +109,42 @@ function checkItemsOnLine(
   backpos: vscode.Position,
   backpos3: vscode.Position
 ) {
-  if (
-    itemsOnLine == 0 &&
-    !triggerText.includes('</') &&
-    nearestTagNotClosed !== 'schema'
-  ) {
-    insertSnippet('</' + nsPrefix + nearestTagNotClosed + '>$0', backpos3)
+  if (itemsOnLine == 0 && !triggerText.includes('</')) {
+    if (triggerText.trim() === '>') {
+      insertSnippet('</' + nsPrefix + nearestTagNotClosed + '>', backpos)
+    } else {
+      switch (nearestTagNotClosed) {
+        case 'schema':
+          if (triggerText.endsWith('>>')) {
+            insertSnippet(
+              '\n\t$0\n</' + nsPrefix + nearestTagNotClosed + '>',
+              backpos
+            )
+          } else {
+            insertSnippet(
+              '>\n\t$0\n</' + nsPrefix + nearestTagNotClosed + '>',
+              backpos
+            )
+          }
+          break
+        default:
+          if (triggerText.endsWith('>>')) {
+            insertSnippet(
+              '</' + nsPrefix + nearestTagNotClosed + '>$0',
+              backpos
+            )
+          } else {
+            insertSnippet(
+              '>$1</' + nsPrefix + nearestTagNotClosed + '>',
+              backpos
+            )
+          }
+          break
+      }
+    }
   }
 
-  if (
-    (itemsOnLine === 1 && !triggerText.includes('</')) ||
-    nearestTagNotClosed === 'schema'
-  ) {
+  if (itemsOnLine === 1 && !triggerText.includes('</')) {
     checkNearestTagNotClosed(
       document,
       position,
@@ -137,15 +168,30 @@ function checkNearestTagNotClosed(
   backpos: vscode.Position,
   nsPrefix: string
 ) {
-  if (
-    nearestTagNotClosed.includes('defineVariable') ||
-    nearestTagNotClosed.includes('setVariable')
-  ) {
-    insertSnippet('>\n</' + nsPrefix + nearestTagNotClosed + '>$0', backpos)
-  }
-
-  if (!nearestTagNotClosed.includes('Variable')) {
-    insertSnippet('>\n\t$0\n</' + nsPrefix + nearestTagNotClosed + '>', backpos)
+  const triggerText = document.lineAt(position.line).text
+  switch (nearestTagNotClosed) {
+    case 'defineVariable':
+    case 'setVariable':
+      insertSnippet('>\n</' + nsPrefix + nearestTagNotClosed + '>$0', backpos)
+      break
+    case 'assert':
+    case 'discriminator':
+      if (triggerText.endsWith('>')) {
+        insertSnippet('</' + nsPrefix + nearestTagNotClosed + '>', backpos)
+      } else {
+        insertSnippet('></' + nsPrefix + nearestTagNotClosed + '>$0', backpos)
+      }
+      break
+    default:
+      if (triggerText.trim() === '') {
+        insertSnippet('</' + nsPrefix + nearestTagNotClosed + '>', backpos)
+      } else {
+        insertSnippet(
+          '>\n\t$0\n</' + nsPrefix + nearestTagNotClosed + '>',
+          backpos
+        )
+      }
+      break
   }
 }
 
