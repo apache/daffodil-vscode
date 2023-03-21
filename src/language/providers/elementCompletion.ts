@@ -25,6 +25,7 @@ import {
   getCommonItems,
   nearestTag,
   getItemsOnLineCount,
+  cursorWithinBraces,
 } from './utils'
 import { elementCompletion } from './intellisense/elementItems'
 
@@ -36,7 +37,10 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
       token: vscode.CancellationToken,
       context: vscode.CompletionContext
     ) {
-      if (checkBraceOpen(document, position)) {
+      if (
+        checkBraceOpen(document, position) ||
+        cursorWithinBraces(document, position)
+      ) {
         return undefined
       }
 
@@ -93,8 +97,13 @@ function getElementCompletionItems(
     (e) => {
       for (let i = 0; i < itemsToUse.length; ++i) {
         if (e.item.includes(itemsToUse[i])) {
-          const completionItem = createCompletionItem(e, preVal, nsPrefix)
-          compItems.push(completionItem)
+          if (
+            (e.item.includes('dfdl:') && itemsToUse[i].includes('dfdl:')) ||
+            !e.item.includes('dfdl')
+          ) {
+            const completionItem = createCompletionItem(e, preVal, nsPrefix)
+            compItems.push(completionItem)
+          }
         }
       }
     }
@@ -180,17 +189,27 @@ function checkTagNearestOpen(
         '',
         nsPrefix
       )
+    case 'restriction':
+      return getElementCompletionItems(
+        ['maxInclusive', 'maxExclusive', 'minInclusive', 'minExclusive'],
+        '',
+        '',
+        nsPrefix
+      )
     case 'annotation':
       return getElementCompletionItems(['appinfo'], '', '', nsPrefix)
     case 'appinfo':
       return getElementCompletionItems(
         [
-          'assert',
-          'discriminator',
-          'defineFormat',
-          'format',
-          'defineVariable',
-          'setVariable',
+          'dfdl:assert',
+          'dfdl:discriminator',
+          'dfdl:defineFormat',
+          'dfdl:format',
+          'dfdl:defineVariable',
+          'dfdl:setVariable',
+          'dfdl:defineEscapeScheme',
+          'dfdl:element',
+          'dfdl:simpleType',
         ],
         '',
         '',
@@ -242,13 +261,6 @@ export function getTagNearestTrigger(
     return 'emptySchema'
   }
 
-  if (
-    itemsOnLine > 1 &&
-    (triggerPos === triggerText.indexOf('<') ||
-      triggerPos === triggerText.lastIndexOf('>') + 1)
-  ) {
-    return tagNearestTrigger
-  }
   while (true) {
     let [foundTag, foundLine, foundPos] = nearestTag(
       document,
@@ -257,6 +269,15 @@ export function getTagNearestTrigger(
       startLine,
       startPos
     )
+
+    if (itemsOnLine > 1) {
+      let afterTrigger =
+        triggerText.substring(triggerPos).indexOf('<') + triggerPos
+      let beforeTrigger = triggerText.substring(0, triggerPos).lastIndexOf('>')
+      if (triggerPos === afterTrigger && triggerPos === beforeTrigger + 1)
+        tagNearestTrigger = foundTag
+      return tagNearestTrigger
+    }
 
     startLine = foundLine
 

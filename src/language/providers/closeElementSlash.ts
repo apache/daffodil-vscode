@@ -23,6 +23,7 @@ import {
   getXsdNsPrefix,
   getItemPrefix,
   getItemsOnLineCount,
+  cursorWithinBraces,
 } from './utils'
 
 export function getCloseElementSlashProvider() {
@@ -45,7 +46,10 @@ export function getCloseElementSlashProvider() {
         )
         const itemsOnLine = getItemsOnLineCount(triggerText)
 
-        if (checkBraceOpen(document, position)) {
+        if (
+          checkBraceOpen(document, position) ||
+          cursorWithinBraces(document, position)
+        ) {
           return undefined
         }
 
@@ -86,31 +90,17 @@ function checkItemsOnLine(
 ) {
   nsPrefix = getItemPrefix(nearestTagNotClosed, nsPrefix)
   if (itemsOnLine == 1 || itemsOnLine == 0) {
-    if (itemsOnLine == 1) {
-      insertSnippet('/>$0', backpos)
-    }
-    if (itemsOnLine == 0) {
-      const backpos3 = position.with(position.line, position.character - 3)
-      insertSnippet('</' + nsPrefix + nearestTagNotClosed + '>$0', backpos3)
-    }
-
+    insertSnippet('/>$0', backpos)
     if (
       nearestTagNotClosed.includes('defineVariable') ||
       nearestTagNotClosed.includes('setVariable')
     ) {
-      let startPos = document.lineAt(position).text.indexOf('<', 0)
       let range = new vscode.Range(backpos, position)
       vscode.window.activeTextEditor?.edit((editBuilder) => {
         editBuilder.replace(range, '')
       })
 
       insertSnippet('/>\n', backpos)
-
-      let backpos2 = position.with(position.line + 1, startPos - 2)
-      insertSnippet('</' + nsPrefix + 'appinfo>\n', backpos2)
-
-      let backpos3 = position.with(position.line + 2, startPos - 4)
-      insertSnippet('</' + nsPrefix + 'annotation>$0', backpos3)
     }
   }
 

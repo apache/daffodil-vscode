@@ -21,7 +21,6 @@ import { getElementCompletionProvider } from './providers/elementCompletion'
 import { getAttributeCompletionProvider } from './providers/attributeCompletion'
 import { getCloseElementProvider } from './providers/closeElement'
 import { getCloseElementSlashProvider } from './providers/closeElementSlash'
-import { getEndSingleBraceProvider } from './providers/endSingleBrace'
 
 export function activate(context: vscode.ExtensionContext) {
   let dfdlFormat = fs
@@ -36,7 +35,6 @@ export function activate(context: vscode.ExtensionContext) {
     getElementCompletionProvider(dfdlFormat),
     getAttributeCompletionProvider(),
     getCloseElementProvider(),
-    getCloseElementSlashProvider(),
-    getEndSingleBraceProvider()
+    getCloseElementSlashProvider()
   )
 }

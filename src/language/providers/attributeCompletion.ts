@@ -25,6 +25,7 @@ import {
   getCommonItems,
   getXsdNsPrefix,
   getItemsOnLineCount,
+  cursorWithinBraces,
 } from './utils'
 
 import { attributeCompletion } from './intellisense/attributeItems'
@@ -69,25 +70,26 @@ export function getAttributeCompletionProvider() {
         let additionalItems = getDefinedTypes(document, nsPrefix)
 
         if (
-          !checkBraceOpen(document, position) &&
-          !triggerText.includes('assert') &&
-          !nearestOpenItem.includes('none')
+          checkBraceOpen(document, position) ||
+          cursorWithinBraces(document, position) ||
+          nearestOpenItem.includes('none')
         ) {
-          let preVal =
-            !triggerText.includes('<' + nsPrefix + nearestOpenItem) &&
-            lineCount(document, position, nearestOpenItem) === 1 &&
-            itemsOnLine < 2
-              ? '\t'
-              : ''
-
-          return checkNearestOpenItem(
-            nearestOpenItem,
-            triggerText,
-            nsPrefix,
-            preVal,
-            additionalItems
-          )
+          return undefined
         }
+        let preVal =
+          !triggerText.includes('<' + nsPrefix + nearestOpenItem) &&
+          lineCount(document, position, nearestOpenItem) === 1 &&
+          itemsOnLine < 2
+            ? '\t'
+            : ''
+
+        return checkNearestOpenItem(
+          nearestOpenItem,
+          triggerText,
+          nsPrefix,
+          preVal,
+          additionalItems
+        )
       },
     },
     ' ',
@@ -106,8 +108,8 @@ function getDefinedTypes(document: vscode.TextDocument, nsPrefix: string) {
       .text.substring(0, document.lineAt(lineNum).range.end.character)
 
     if (
-      triggerText.includes(nsPrefix + 'simpleType Name=') ||
-      triggerText.includes(nsPrefix + 'complexType Name=')
+      triggerText.includes(nsPrefix + 'simpleType name=') ||
+      triggerText.includes(nsPrefix + 'complexType name=')
     ) {
       let startPos = triggerText.indexOf('"', 0)
       let endPos = triggerText.indexOf('"', startPos + 1)
@@ -155,6 +157,8 @@ function checkNearestOpenItem(
           'dfdl:terminator',
           'dfdl:outputNewLine',
           'dfdl:choiceBranchKey',
+          'dfdl:prefixIncludesPrefixLength',
+          'dfdl:prefixLengthType',
           'dfdl:representation',
         ],
         preVal,
@@ -193,31 +197,40 @@ function checkNearestOpenItem(
     case 'simpleType':
       return getCompletionItems(
         [
+          'dfdl:binaryNumberRep',
           'dfdl:length',
           'dfdl:lengthKind',
-          'dfdl:simpleType',
-          'dfdl:simpleType',
-          nsPrefix + 'restriction',
+          'dfdl:representation',
         ],
         '',
         '',
         nsPrefix
       )
+    case 'assert':
+      return getCompletionItems(
+        ['testKind', 'test', 'testPattern', 'message', 'failureType'],
+        '',
+        '',
+        nsPrefix
+      )
+    case 'discriminator':
+      return getCompletionItems(['message'], '', '', nsPrefix)
     case 'format':
       return getCompletionItems(
         [
           'dfdl:byteOrder',
           'dfdl:bitOrder',
           'dfdl:binaryNumberRep',
-          'dfdl:binaryFloatingRep',
+          'dfdl:binaryFloatRep',
           'dfdl:encoding',
-          'dfdl:errorEndcodingPolicy',
+          'dfdl:encodingErrorPolicy',
           'dfdl:initiator',
           'dfdl:length',
           'dfdl:lengthKind',
           'dfdl:lengthUnits',
           'dfdl:utf16Width',
-          'dfdl:nillKind',
+          'dfdl:nilKind',
+          'dfdl:nilValue',
           'dfdl:nilValueDelimiterPolicy',
           'dfdl:lengthPattern',
           'dfdl:outputNewLine',
@@ -226,21 +239,25 @@ function checkNearestOpenItem(
           'dfdl:separatorSuppressionPolicy',
           'dfdl:terminator',
           'dfdl:occursCountKind',
-          'dfdl:textStandRdZeroRep',
-          'dfdl:textStandardInifinityRep',
+          'dfdl:textStandardZeroRep',
+          'dfdl:textStandardInfinityRep',
           'dfdl:textStandardExponentRep',
           'dfdl:textStandardNaNRep',
           'dfdl:textNumberPattern',
           'dfdl:textNumberRep',
+          'dfdl:textNumberRoundingIncrement',
           'dfdl:textNumberRoundingMode',
           'dfdl:textStandardRoundingIncrement',
           'dfdl:textNumberRounding',
           'dfdl:textNumberCheckPolicy',
+          'dfdl:textOutputMinLength',
           'dfdl:textPolicyOutputMinLength',
-          'dfdl:textStandardGroupingSeporator',
+          'dfdl:textStandardGroupingSeparator',
+          'dfdl:textStringJustification',
           'dfdl:textPadKind',
-          'dfdl:textstandardBase',
+          'dfdl:textStandardBase',
           'dfdl:textTrimKind',
+          'dfdl:leadingSkip',
           'dfdl:trailingSkip',
           'dfdl:truncateSpecifiedLengthString',
           'dfdl:sequenceKind',
@@ -259,17 +276,15 @@ function checkNearestOpenItem(
           'dfdl:terminator',
           'dfdl:outputNewLine',
           'dfdl:representation',
-          'dfdl:defineEscapeScheme',
+          'dfdl:escapeSchemeRef',
           'dfdl:calendarPatternKind',
           'dfdl:documentFinalTerminatorCanBeMissing',
           'dfdl:emptyValueDelimiterPolicy',
-          //nsPrefix + 'restriction',
         ],
         '',
         '',
         nsPrefix
       )
-
     case 'defineVariable':
       return getDefineVariableCompletionItems(preVal, additionalItems, nsPrefix)
     case 'setVariable':

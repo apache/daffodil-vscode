@@ -61,13 +61,31 @@ export function checkMissingCloseTag(
         i
       )
 
-      if (lt2res != undefined) {
+      if (lt2res != 'none') {
         return lt2res
       }
     }
   }
 
   return 'none'
+}
+
+export function cursorInsideCloseTag(
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
+  const triggerText = document.lineAt(position.line).text
+  const triggerPos = position.character
+  const closeTagStart = triggerText.lastIndexOf('</')
+  const closeTagEnd = triggerText.lastIndexOf('>')
+  if (
+    triggerPos > closeTagStart &&
+    triggerPos <= closeTagEnd &&
+    closeTagStart !== -1
+  ) {
+    return true
+  }
+  return false
 }
 
 export function getCloseTag(
@@ -86,6 +104,11 @@ export function getCloseTag(
   const itemsOnLine = getItemsOnLineCount(document.lineAt(lineNum).text)
   let endPos = triggerText.lastIndexOf('>')
   nsPrefix = getItemPrefix(tag, nsPrefix)
+
+  if (itemsOnLine === 1) {
+    if (cursorInsideCloseTag(document, position))
+      return ['none', lineNum, startPos]
+  }
 
   if (itemsOnLine > 1 && startPos < endPos) {
     while (tagOpen > -1 && tagOpen <= triggerPos) {
@@ -118,14 +141,23 @@ export function getCloseTag(
 
     while (lineNum > -1 && lineNum < document.lineCount) {
       let currentText = document.lineAt(lineNum).text
+      let isMultiLineTag = false
+
+      //skip any comment lines
+      if (currentText.includes('<!--')) {
+        while (!currentText.includes('-->')) {
+          currentText = document.lineAt(++lineNum).text
+        }
+        currentText = document.lineAt(++lineNum).text
+      }
+
       startPos = currentText.indexOf('<')
 
       if (getItemsOnLineCount(currentText) < 2) {
         //skip lines until the close tag for this item
         if (
           currentText.includes('<' + nsPrefix + tag) &&
-          (currentText.includes('>') || tag === 'schema') &&
-          !currentText.includes('/>')
+          currentText.endsWith('>')
         ) {
           //skipping to closing tag
           while (!currentText.includes('</' + nsPrefix + tag)) {
@@ -136,7 +168,31 @@ export function getCloseTag(
           }
         }
 
-        if (currentText.includes('</' + nsPrefix + tag)) {
+        //if end tag symbol is on a different line
+        if (
+          currentText.includes('<' + nsPrefix + tag) &&
+          !currentText.includes('>')
+        ) {
+          isMultiLineTag = true
+          //skip to the end tag symbol
+          while (!currentText.includes('>')) {
+            currentText = document.lineAt(++lineNum).text
+          }
+          //if the tag isn't self closing, skip to the closing tag
+          if (!currentText.includes('/>')) {
+            while (!currentText.includes('</' + nsPrefix + tag)) {
+              currentText = document.lineAt(++lineNum).text
+            }
+          }
+        }
+
+        if (
+          currentText.includes('</' + nsPrefix + tag) ||
+          (currentText.includes('/>') && isMultiLineTag)
+        ) {
+          if (isMultiLineTag) {
+            startPos = triggerPos
+          }
           //if the cursor is after the closing tag
           if (
             lineNum == triggerLine &&
@@ -213,10 +269,15 @@ export function getItemsForLineLT2(
   i: number
 ) {
   let [currentText, currentLine] = [triggerText, triggerLine]
-  let [lineBefore, lineAfter] = [triggerLine, triggerLine]
+  let [lineBefore, lineAfter, testLine] = [
+    triggerLine,
+    triggerLine,
+    triggerLine,
+  ]
   let openTagArray: number[] = []
   let closeTagArray: number[] = []
 
+  nsPrefix = getItemPrefix(items[i], nsPrefix)
   while (
     currentText.indexOf('<' + nsPrefix + items[i]) === -1 &&
     currentLine > -1
@@ -239,8 +300,17 @@ export function getItemsForLineLT2(
         if (currentText.indexOf('<' + nsPrefix + items[i]) > -1) {
           openTagArray.push(lineBefore)
 
+          //if multi line tag
+          let testText = currentText
+          if (!testText.includes('>')) {
+            testLine = lineBefore
+            while (!testText.includes('>')) {
+              testText = document.lineAt(++testLine).text
+            }
+          }
+
           //if selfclosing remove from the array
-          if (currentText.indexOf('/>') > -1) {
+          if (testText.indexOf('/>') > -1 || testText.includes('xml version')) {
             openTagArray.splice(openTagArray.length - 1, 1)
           }
         }
@@ -262,6 +332,11 @@ export function getItemsForLineLT2(
         if (currentText.indexOf('<' + nsPrefix + items[i]) > -1) {
           openTagArray.push(lineAfter)
 
+          //if multi line tag
+          while (!currentText.includes('>')) {
+            currentText = document.lineAt(++lineAfter).text
+          }
+
           //if selfclosing remove from the array
           if (currentText.indexOf('/>') > -1) {
             openTagArray.splice(openTagArray.length - 1, 1)
@@ -281,5 +356,5 @@ export function getItemsForLineLT2(
     }
   }
 
-  return undefined
+  return 'none'
 }
