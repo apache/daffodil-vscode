@@ -874,7 +874,7 @@ limitations under the License.
       </div>
     </fieldset>
     <fieldset class="box">
-      <legend>Misc</legend>
+      <legend>Settings</legend>
       <div class="flex-container col">
         <div class="col-item flex-container row center">
           <div class="two-row-items">
@@ -888,7 +888,7 @@ limitations under the License.
               on:change={closeEphemeralWindows}
             >
               <option value="simple">Single</option>
-              <option value="full">Multi</option>
+              <option value="full">Multiple</option>
             </select>
           </div>
         </div>
