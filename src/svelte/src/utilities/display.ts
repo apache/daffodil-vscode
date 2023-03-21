@@ -82,22 +82,22 @@ const offsetDisplays = {
     // address are in hex
     16: {
       // radix is hex
-      text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F  ',
+      text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F ',
       spread: 2,
     },
     10: {
       // radix is decimal
-      text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F  ',
+      text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F ',
       spread: 3,
     },
     8: {
       // radix is octal
-      text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F  ',
+      text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F ',
       spread: 3,
     },
     2: {
       // radix is binary
-      text: '00000000 00000000 11111111 11111111 22222222 22222222 33333333 33333333  <br/>01234567 89ABCDEF 01234567 89ABCDEF 01234567 89ABCDEF 01234567 89ABCDEF  ',
+      text: '0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br/><em><b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567</em> ',
       spread: 1,
     },
   },
@@ -105,22 +105,22 @@ const offsetDisplays = {
     // address are in decimal
     16: {
       // radix is hex
-      text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1  <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5  ',
+      text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 ',
       spread: 2,
     },
     10: {
       // radix is decimal
-      text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5  ',
+      text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 ',
       spread: 3,
     },
     8: {
       // radix is octal
-      text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7  ',
+      text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
       spread: 3,
     },
     2: {
       // radix is binary
-      text: '00000000 00111111 11112222 22222233 33333333 44444444 44555555 55556666  <br/>01234567 89012345 67890123 45678901 23456789 01234567 89012345 67890123  ',
+      text: '0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br/><em><b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567</em> ',
       spread: 1,
     },
   },
@@ -128,22 +128,22 @@ const offsetDisplays = {
     // address are in octal
     16: {
       // radix is hex
-      text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1  <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7  ',
+      text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
       spread: 2,
     },
     10: {
       // radix is decimal
-      text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1  <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7  ',
+      text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
       spread: 3,
     },
     8: {
       // radix is octal
-      text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1  <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7  ',
+      text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
       spread: 3,
     },
     2: {
       // radix is binary
-      text: '00000000 11111111 22222222 33333333 44444444 55555555 66666666 77777777  <br/>01234567 01234567 01234567 01234567 01234567 01234567 01234567 01234567  ',
+      text: '0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br/><em><b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567</em> ',
       spread: 1,
     },
   },
@@ -298,15 +298,17 @@ export function getOffsetDisplay(address: number, radix: number, view: string) {
   let spread = offsetDisplays[address][radix].spread
   if (view === 'logical') {
     if (radix === 2)
-      return '0 0 0 0 0 0 0 0 <br>0 1 2 3 4 5 6 7  '.replaceAll(
-        ' ',
-        '&nbsp;'.repeat(spread)
+      return (
+        '0 0 0 0 0 0 0 0 <br>0 1 2 3 4 5 6 7 '.replaceAll(' ', '&nbsp;') +
+        '&nbsp'
       )
     spread = 1
   }
-  return offsetDisplays[address][radix].text.replaceAll(
-    ' ',
-    '&nbsp;'.repeat(spread)
+  return (
+    offsetDisplays[address][radix].text.replaceAll(
+      ' ',
+      '&nbsp;'.repeat(spread)
+    ) + '&nbsp'
   )
 }
 
