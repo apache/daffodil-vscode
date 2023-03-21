@@ -129,7 +129,6 @@ suite('Data Editor Test Suite', () => {
         await vscode.commands.executeCommand(
           'extension.data.edit',
           false,
-          port,
           TEST_SCHEMA
         )
 

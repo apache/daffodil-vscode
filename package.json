@@ -599,7 +599,7 @@
             },
             "default": {}
           },
-          "dataEditor.defaultServerPort": {
+          "dataEditor.serverPort": {
             "type": "integer",
             "description": "Editor server default port",
             "default": 9000

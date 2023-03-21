@@ -25,7 +25,8 @@ import XDGAppPaths from 'xdg-app-paths'
 import { DataEditWebView } from './dataEditWebView'
 import { initOmegaEditClient } from './utils'
 
-export let serverPort: number = 9000
+const defaultServerPort: number = 9000
+export let serverPort: number = 0
 
 const appDataPath = XDGAppPaths({ name: 'omega_edit' }).data()
 
@@ -36,29 +37,21 @@ export function getOmegaEditPackageVersion(filePath: fs.PathLike) {
   ]
 }
 
-function getServerPidFile() {
+function getServerPidFile(port?: number) {
   return path.join(appDataPath, `serv-${serverPort}.pid`)
 }
 
-async function getOmegaEditPort(port: number | undefined = undefined) {
-  if (!port) {
-    const defaultServerPort = vscode.workspace
+async function getOmegaEditPort() {
+  if (serverPort === 0) {
+    serverPort = vscode.workspace
       .getConfiguration('dataEditor')
-      .get<number>('defaultServerPort', serverPort)
-    const portEntered = await vscode.window.showInputBox({
-      prompt: 'Enter port number to run omega-edit server on',
-      value: defaultServerPort.toString(),
-    })
+      .get<number>('serverPort', defaultServerPort)
 
-    if (portEntered) {
-      serverPort = parseInt(portEntered)
-    } else {
+    if (serverPort <= 1024 || serverPort > 65535) {
       serverPort = 0
-      throw Error('Bad port entered')
+      throw 'Invalid port'
     }
-  } else {
-    serverPort = port
-  }
+  } else throw 'Data Editor currently only supports a single instance.'
 }
 
 function setupLogging() {
@@ -91,6 +84,7 @@ async function serverStop() {
           }, 1000)
         })
       )
+      serverPort = 0
     } else {
       vscode.window.showErrorMessage(
         `Ωedit server on port ${serverPort} with PID ${pid} failed to stop`
@@ -102,12 +96,14 @@ async function serverStop() {
 async function serverStart(ctx, version) {
   const pidFile = getServerPidFile()
   await serverStop()
+
   const serverStartingText = `Ωedit server v${version} starting on port ${serverPort}`
   const statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left
   )
   statusBarItem.text = serverStartingText
   statusBarItem.show()
+
   let animationFrame = 0
   const animationInterval = 400 // ms per frame
   const animationFrames = ['', '.', '..', '...']
@@ -116,6 +112,7 @@ async function serverStart(ctx, version) {
     statusBarItem.text = `${serverStartingText} ${frame}`
     ++animationFrame
   }, animationInterval)
+
   const serverPid = await startServer(
     ctx.asAbsolutePath('node_modules/omega-edit'),
     version,
@@ -124,6 +121,7 @@ async function serverStart(ctx, version) {
   if (serverPid) {
     fs.writeFileSync(pidFile, serverPid.toString())
   }
+
   clearInterval(animationIntervalId)
   statusBarItem.text = `Ωedit server v${version} started on port ${serverPort} with PID ${serverPid}`
   setTimeout(() => {
@@ -140,12 +138,8 @@ export function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.commands.registerCommand(
       'extension.data.edit',
-      async (
-        startServ: boolean = true,
-        port: number | undefined = undefined,
-        fileToEdit: string = ''
-      ) => {
-        await getOmegaEditPort(port)
+      async (startServ: boolean = true, fileToEdit: string = '') => {
+        await getOmegaEditPort()
         setupLogging()
         setAutoFixViewportDataLength(true)
         if (startServ) {
