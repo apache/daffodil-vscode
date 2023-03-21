@@ -111,8 +111,11 @@ jobs:
       - run: $SBT compile # used to initialize sbt, if not done sbt universal:packageBin ran by yarn package times out -- windows only
         if: runner.os == 'Windows'
       - run: yarn install
-      - run: yarn package
       - run: xvfb-run -a yarn test
         if: runner.os == 'Linux'
       - run: yarn test
         if: runner.os != 'Linux'
+      - name: Package
+        run: |
+          rm -rf **/target
+          yarn package
