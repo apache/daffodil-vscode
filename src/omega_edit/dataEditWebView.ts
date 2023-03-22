@@ -288,14 +288,22 @@ export class DataEditWebView implements vscode.Disposable {
         break
 
       case MessageCommand.clear:
-        await omegaEditChange
-          .clear(this.omegaSessionId)
-          .then(async () => {
-            await this.sendChangesInfo()
-          })
-          .catch(() => {
-            vscode.window.showErrorMessage('Failed to clear changes')
-          })
+        const confirmation = await vscode.window.showInformationMessage(
+          'Are you sure you want to revert all changes?',
+          { modal: true },
+          'Yes',
+          'No'
+        )
+        if (confirmation === 'Yes') {
+          await omegaEditChange
+            .clear(this.omegaSessionId)
+            .then(async () => {
+              await this.sendChangesInfo()
+            })
+            .catch(() => {
+              vscode.window.showErrorMessage('Failed to revert all changes')
+            })
+        }
         break
 
       case MessageCommand.save:
