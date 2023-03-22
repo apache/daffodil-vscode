@@ -50,6 +50,7 @@ export const viewportData = writable(new Uint8Array(0))
 export const editorSelection = writable('')
 export const selectionEndOffset = writable(0)
 export const selectionOriginalEnd = writable(0)
+export const selectionActive = writable(false)
 export const editorEncoding = writable('latin1')
 export const selectionStartOffset = writable(0)
 export const rawEditorSelectionTxt = writable('')
@@ -61,6 +62,7 @@ export const replacing = writable(false)
 export const replacementsCount = writable(0)
 export const searchIndex = writable(0)
 export const headerHidden = writable(false)
+
 export const editByte = derived(
   [
     displayRadix,
@@ -177,6 +179,7 @@ export const commitable = derived(
     selectionOriginalEnd,
     selectionEndOffset,
     selectionSize,
+    editMode,
     editedByteIsOriginalByte,
   ],
   ([
@@ -187,9 +190,11 @@ export const commitable = derived(
     $selectionOriginalEnd,
     $selectionEndOffset,
     $selectionSize,
+    $editMode,
     $editedByteIsOriginalByte,
   ]) => {
-    if (!$requestable || $editedByteIsOriginalByte) return false
+    if (!$requestable || ($editedByteIsOriginalByte && $editMode === 'simple'))
+      return false
     const originalLength = $selectionOriginalEnd - $selectionStartOffset
     const editedLength = $selectionEndOffset - $selectionStartOffset
 
@@ -198,6 +203,7 @@ export const commitable = derived(
       if ($viewportData[i + $selectionStartOffset] !== $selectedFileData[i])
         return true
     }
+
     return false
   }
 )
@@ -217,11 +223,27 @@ export const searchable = derived(
 )
 
 export const replaceable = derived(
-  [replaceData, editorEncoding, searchable, replacing],
-  ([$replaceData, $editorEncoding, $searchable, $replacing]) => {
+  [replaceData, editorEncoding, searchable, replacing, selectionActive],
+  ([
+    $replaceData,
+    $editorEncoding,
+    $searchable,
+    $replacing,
+    $selectionActive,
+  ]) => {
     if ($replaceData.length <= 0 || !$searchable || $replacing) {
+      replaceErrMsg.update(() => {
+        return ''
+      })
       return false
     }
+    if ($selectionActive) {
+      replaceErrMsg.update(() => {
+        return 'Cannot replace with selected data'
+      })
+      return false
+    }
+
     const ret = validEncodingStr($replaceData, $editorEncoding)
     replaceErrMsg.update(() => {
       return ret.errMsg
