@@ -1227,9 +1227,9 @@ limitations under the License.
               <button disabled>Undo</button>
             {/if}
             {#if $undoCount + $changeCount > 0}
-              <button on:click={clearChangeStack}>Clear</button>
+              <button on:click={clearChangeStack}>Revert All</button>
             {:else}
-              <button disabled>Clear</button>
+              <button disabled>Revert All</button>
             {/if}
           </span>
         </div>
@@ -1325,9 +1325,9 @@ limitations under the License.
               <button disabled>Undo</button>
             {/if}
             {#if $undoCount + $changeCount > 0}
-              <button on:click={clearChangeStack}>Clear</button>
+              <button on:click={clearChangeStack}>Revert All</button>
             {:else}
-              <button disabled>Clear</button>
+              <button disabled>Revert All</button>
             {/if}
           </span>
         </div>
