@@ -34,6 +34,7 @@ import {
   setViewportDataForPanel,
   viewportSubscribe,
 } from './utils'
+import path from 'path'
 
 const VIEWPORT_CAPACITY_MAX = 1000000 // Maximum viewport size in Ωedit is 1048576 (1024 * 1024)
 const HEARTBEAT_INTERVAL_MS = 1000 // 1 second (1000 ms)
@@ -96,6 +97,7 @@ export class DataEditWebView implements vscode.Disposable {
         .then(async (fileUri) => {
           if (fileUri && fileUri[0]) {
             this.fileToEdit = fileUri[0].fsPath
+            this.panel.title = path.basename(this.fileToEdit)
             await this.setupDataEditor()
           }
         })
