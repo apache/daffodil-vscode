@@ -1095,6 +1095,13 @@ limitations under the License.
         on:click={moveEditByteWindow}>&#8647;</button
       >
     {/if}
+    {#if !$commitable && $commitErrMsg.length > 0}
+      <div
+        style="background-color: black; opacity: 0.75; border-radius: 5px; margin: 4px; padding: 4px;"
+      >
+        <span class="errMsg">{$commitErrMsg}</span>
+      </div>
+    {/if}
   </div>
   <textarea
     class="address_vw"
@@ -1161,7 +1168,11 @@ limitations under the License.
         on:input={handleEditorEvent}
       />
     {:else}
-      <div class="selectedContent" id="editor" />
+      <div class="selectedContent" id="editor">
+        <em class="instructions" style="opacity: 0.5;"
+          >Multiple Byte Editing is <u>disabled</u> in Single Byte Editing Mode</em
+        >
+      </div>
     {/if}
     <!-- Full Mode Content Controls -->
     {#if $editMode === 'full'}
@@ -1275,12 +1286,7 @@ limitations under the License.
       <!-- Simple Mode Content Controls -->
     {:else}
       <fieldset class="box margin-top">
-        <legend
-          >Content Controls
-          {#if !$commitable}
-            <span class="errMsg">{$commitErrMsg}</span>
-          {/if}
-        </legend>
+        <legend>Content Controls </legend>
         <div class="contentControls" id="content_controls">
           <span>
             {#if $undoCount > 0}
