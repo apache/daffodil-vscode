@@ -76,6 +76,7 @@ limitations under the License.
     headerHidden,
     originalDataSegment,
     editedByteIsOriginalByte,
+    selectionActive,
   } from '../stores'
   import {
     radixOpt,
@@ -411,6 +412,8 @@ limitations under the License.
       selected.id === 'logical'
         ? Math.floor(selectionEnd / 2)
         : selectionOffsetsByRadix[$displayRadix].end
+
+    $selectionActive = true
   }
 
   /**
@@ -661,6 +664,7 @@ limitations under the License.
     $selectionOriginalEnd = 0
     $cursorPos = 0
     $editorSelection = ''
+    $selectionActive = false
     $editedDataSegment = new Uint8Array(0)
   }
 
@@ -999,14 +1003,35 @@ limitations under the License.
       {@html logicalOffsetText}
     </span>
   </div>
-  <div class="measure">
+  <div class="measure selection">
     {#if $editMode === 'full'}
+      {#if $selectionActive}
+        <div
+          class="clear-selection"
+          title="Clear selection data"
+          on:click={clearDataDisplays}
+          on:keypress={clearDataDisplays}
+        >
+          &#10006;
+        </div>
+        <!-- on:keypress is needed to silence warning from Svelte A11y, see below
+              == (!) Plugin svelte: A11y: visible, non-interactive elements with an on:click event must be accompanied by an on:keydown, on:keyup, or on:keypress event. ==
+          -->
+      {:else}
+        <div class="clear-selection" />
+      {/if}
       <div>
-        <span id="selected_offsets">{selectionOffsetText}</span>
-        {#if $cursorPos}
-          <span> | cursor: {$cursorPos}</span>
-        {/if}
-        <span id="editor_offsets" />
+        {selectionOffsetText}{#if $cursorPos} | cursor: {$cursorPos} {/if}
+      </div>
+    {:else}
+      <div>
+        <sub
+          ><i
+            >The pop-up, single byte, edit window is available upon byte
+            selection, press ESC to close.<br />The edit window below is
+            deactivated in single byte edit mode.</i
+          ></sub
+        >
       </div>
     {/if}
   </div>
@@ -1174,7 +1199,7 @@ limitations under the License.
         </legend>
         <div class="contentControls" id="content_controls">
           <!-- Commitable was not reactable to selection data zeroing -->
-          {#if $commitable && $selectionOriginalEnd + 1 - $selectionStartOffset > 0}
+          {#if $commitable}
             <button id="commit_btn" on:click={commitChanges}>Commit</button>
           {:else}
             <button id="commit_btn" disabled>Commit</button>
@@ -1595,8 +1620,8 @@ limitations under the License.
     min-width: 200px;
   }
   fieldset.search-replace {
-    min-width: 200pt;
-    max-width: 250pt;
+    width: 215pt;
+    overflow: scroll;
   }
 
   input,
@@ -1662,8 +1687,33 @@ limitations under the License.
     display: flex;
   }
 
+  .dataEditor div.measure.selection {
+    flex-direction: row;
+  }
+
+  .dataEditor div.measure.selection sub {
+    opacity: 0.6;
+  }
+
   .dataEditor div.measure span {
     align-self: flex-end;
+  }
+  .dataEditor div.measure div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .dataEditor div.measure div.clear-selection {
+    width: 20pt;
+    font-size: 11pt;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+
+  .dataEditor div.measure div.clear-selection:hover {
+    font-size: 14pt;
   }
 
   .dataEditor div.contentControls .grid-container-two-columns {
