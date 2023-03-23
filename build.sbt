@@ -48,6 +48,7 @@ lazy val commonSettings =
       "org.apache.commons" % "commons-lang3" % "3.12.0"
     ),
     licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
+    maintainer := "Apache Daffodil <dev@daffodil.apache.org>",
     organization := "org.apache.daffodil",
     // scala-steward:off
     scalaVersion := "2.12.15",
