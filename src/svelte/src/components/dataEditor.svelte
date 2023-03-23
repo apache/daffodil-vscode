@@ -115,7 +115,7 @@ limitations under the License.
   let isScrolledToEnd = false
 
   const selectedContent = writable(
-    document.getElementById('selectedContent') as HTMLDivElement
+    document.getElementById('selectedContent') as HTMLTextAreaElement
   )
   const editByteWindow = writable(
     document.getElementById('editByteWindow') as HTMLDivElement
@@ -1182,7 +1182,7 @@ limitations under the License.
   {/if}
   <div class="editView" id="edit_view">
     {#if $editMode === 'full'}
-      <div
+      <textarea
         class="selectedContent"
         id="editor"
         contenteditable="true"
@@ -1193,11 +1193,7 @@ limitations under the License.
         on:input={handleEditorEvent}
       />
     {:else}
-      <div class="selectedContent" id="editor">
-        <em class="instructions" style="opacity: 0.5;"
-          >Multiple Byte Editing is <u>disabled</u> in Single Byte Editing Mode</em
-        >
-      </div>
+      <textarea class="selectedContent" id="editor" disabled />
     {/if}
     <!-- Full Mode Content Controls -->
     {#if $editMode === 'full'}
@@ -1826,8 +1822,11 @@ limitations under the License.
     word-break: break-all;
   }
 
-  .dataEditor div.selectedContent {
+  .dataEditor textarea.selectedContent {
     background: #2c2c2c;
+  }
+  .dataEditor textarea.selectedContent:disabled {
+    background: #252526;
   }
 
   .dataEditor button {
