@@ -26,6 +26,7 @@ github:
     rebase:   true
   collaborators:
     - michael-hoke
+    - rthomas320
     - stricklandrbls
 notifications:
     commits:      commits@daffodil.apache.org
