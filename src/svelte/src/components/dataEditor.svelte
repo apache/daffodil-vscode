@@ -105,7 +105,7 @@ limitations under the License.
   let logicalOffsetText: string
   let logicalDisplayText: string = ''
   let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
-  let serverPort: number
+  let omegaEditPort: number
   let serverVersion: string = 'Connecting...'
   let serverLatency: number
   let physical_vwRef: HTMLTextAreaElement
@@ -722,7 +722,7 @@ limitations under the License.
         break
 
       case MessageCommand.heartBeat:
-        serverPort = msg.data.data.serverPort
+        omegaEditPort = msg.data.data.omegaEditPort
         serverVersion = msg.data.data.serverVersion
         serverLatency = msg.data.data.serverLatency
         break
@@ -1408,7 +1408,7 @@ limitations under the License.
 </main>
 <hr />
 <div class="omega-latency flex-container row center">
-  <div>Powered by Ωedit v{serverVersion} on port {serverPort}</div>
+  <div>Powered by Ωedit v{serverVersion} on port {omegaEditPort}</div>
   <div class="latency-group flex-container row center">
     <svg class="latency-indicator">
       {#if serverLatency < 20}

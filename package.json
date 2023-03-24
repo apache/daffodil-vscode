@@ -599,7 +599,7 @@
             },
             "default": {}
           },
-          "dataEditor.serverPort": {
+          "dataEditor.omegaEditPort": {
             "type": "integer",
             "description": "Editor server default port",
             "default": 9000
@@ -607,7 +607,7 @@
           "dataEditor.logFile": {
             "type": "string",
             "description": "Path to log file for data editor",
-            "default": "${workspaceFolder}/dataEditor-${serverPort}.log"
+            "default": "${workspaceFolder}/dataEditor-${omegaEditPort}.log"
           },
           "dataEditor.logLevel": {
             "type": "string",
