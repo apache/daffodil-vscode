@@ -25,8 +25,11 @@ import XDGAppPaths from 'xdg-app-paths'
 import { DataEditWebView } from './dataEditWebView'
 import { initOmegaEditClient } from './utils'
 
-const defaultServerPort: number = 9000
-export let serverPort: number = 0
+const DEFAULT_OMEGA_EDIT_PORT: number = 9000
+const OMEGA_EDIT_MIN_PORT: number = 1024
+const OMEGA_EDIT_MAX_PORT: number = 65535
+
+export let omegaEditPort: number = 0
 
 const appDataPath = XDGAppPaths({ name: 'omega_edit' }).data()
 
@@ -38,17 +41,20 @@ export function getOmegaEditPackageVersion(filePath: fs.PathLike) {
 }
 
 function getServerPidFile(port?: number) {
-  return path.join(appDataPath, `serv-${serverPort}.pid`)
+  return path.join(appDataPath, `serv-${omegaEditPort}.pid`)
 }
 
 async function getOmegaEditPort() {
-  if (serverPort === 0) {
-    serverPort = vscode.workspace
+  if (omegaEditPort === 0) {
+    omegaEditPort = vscode.workspace
       .getConfiguration('dataEditor')
-      .get<number>('serverPort', defaultServerPort)
+      .get<number>('oemgaEditServerPort', DEFAULT_OMEGA_EDIT_PORT)
 
-    if (serverPort <= 1024 || serverPort > 65535) {
-      serverPort = 0
+    if (
+      omegaEditPort <= OMEGA_EDIT_MIN_PORT ||
+      omegaEditPort > OMEGA_EDIT_MAX_PORT
+    ) {
+      omegaEditPort = 0
       throw 'Invalid port'
     }
   } else throw 'Data Editor currently only supports a single instance.'
@@ -57,9 +63,12 @@ async function getOmegaEditPort() {
 function setupLogging() {
   const config = vscode.workspace.getConfiguration('dataEditor')
   const logFile = config
-    .get<string>('logFile', '${workspaceFolder}/dataEditor-${serverPort}.log')
+    .get<string>(
+      'logFile',
+      '${workspaceFolder}/dataEditor-${omegaEditPort}.log'
+    )
     ?.replace('${workspaceFolder}', appDataPath)
-    .replace('${serverPort}', serverPort.toString())
+    .replace('${omegaEditPort}', omegaEditPort.toString())
   const logLevel =
     process.env.OMEGA_EDIT_CLIENT_LOG_LEVEL ||
     config.get<string>('logLevel', 'info')
@@ -77,17 +86,16 @@ async function serverStop() {
     if (await stopServerUsingPID(pid)) {
       fs.unlinkSync(pidFile)
       vscode.window.setStatusBarMessage(
-        `Ωedit server stopped on port ${serverPort} with PID ${pid}`,
+        `Ωedit server stopped on port ${omegaEditPort} with PID ${pid}`,
         new Promise((resolve) => {
           setTimeout(() => {
             resolve(true)
           }, 1000)
         })
       )
-      serverPort = 0
     } else {
       vscode.window.showErrorMessage(
-        `Ωedit server on port ${serverPort} with PID ${pid} failed to stop`
+        `Ωedit server on port ${omegaEditPort} with PID ${pid} failed to stop`
       )
     }
   }
@@ -97,7 +105,7 @@ async function serverStart(ctx, version) {
   const pidFile = getServerPidFile()
   await serverStop()
 
-  const serverStartingText = `Ωedit server v${version} starting on port ${serverPort}`
+  const serverStartingText = `Ωedit server v${version} starting on port ${omegaEditPort}`
   const statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left
   )
@@ -116,14 +124,14 @@ async function serverStart(ctx, version) {
   const serverPid = await startServer(
     ctx.asAbsolutePath('node_modules/omega-edit'),
     version,
-    serverPort
+    omegaEditPort
   )
   if (serverPid) {
     fs.writeFileSync(pidFile, serverPid.toString())
   }
 
   clearInterval(animationIntervalId)
-  statusBarItem.text = `Ωedit server v${version} started on port ${serverPort} with PID ${serverPid}`
+  statusBarItem.text = `Ωedit server v${version} started on port ${omegaEditPort} with PID ${serverPid}`
   setTimeout(() => {
     statusBarItem.dispose()
   }, 1000)
@@ -145,7 +153,7 @@ export function activate(ctx: vscode.ExtensionContext) {
         if (startServ) {
           await serverStart(ctx, omegaEditPackageVersion)
         }
-        await initOmegaEditClient(serverPort)
+        await initOmegaEditClient(omegaEditPort)
         return await createOmegaEditWebviewPanel(ctx, startServ, fileToEdit)
       }
     )
@@ -173,6 +181,7 @@ async function createOmegaEditWebviewPanel(
         await serverStop()
       }
       await dataEditorView.dispose()
+      omegaEditPort = 0
     },
     undefined,
     ctx.subscriptions

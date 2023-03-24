@@ -22,7 +22,7 @@ import { CountKind } from 'omega-edit/session'
 import * as omegaEditViewport from 'omega-edit/viewport'
 import * as vscode from 'vscode'
 import { EditorMessage, MessageCommand } from '../svelte/src/utilities/message'
-import { serverPort } from './client'
+import { omegaEditPort } from './client'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
 import {
   dataToEncodedStr,
@@ -144,7 +144,7 @@ export class DataEditWebView implements vscode.Disposable {
         this.panel.webview.postMessage({
           command: MessageCommand.heartBeat,
           data: {
-            serverPort: serverPort,
+            omegaEditPort: omegaEditPort,
             serverVersion: heartbeat.resp,
             serverLatency: heartbeat.latency,
           },
