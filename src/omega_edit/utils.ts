@@ -72,7 +72,11 @@ export async function viewportSubscribe(
     })
     .on('error', (err) => {
       // Call cancelled thrown sometimes when server is shutdown
-      if (!err.message.includes('Call cancelled')) throw err
+      if (
+        !err.message.includes('Call cancelled') &&
+        !err.message.includes('UNAVAILABLE')
+      )
+        throw err
     })
 }
 
@@ -94,7 +98,7 @@ export function logicalDisplay(
   bytes: ArrayBuffer,
   bytesPerRow: number
 ): string {
-  const undefinedCharStandIn = '�'
+  const undefinedCharStandIn = 9617
   let result = ''
   if (bytes.byteLength > 0) {
     // TODO: How does this affect the simple editor?
@@ -104,7 +108,9 @@ export function logicalDisplay(
     while (true) {
       for (let col = 0; i < data.length && col < bytesPerRow; ++col) {
         const c = data.charAt(i++)
-        result += (latin1Undefined(c) ? undefinedCharStandIn : c) + ' '
+        result +=
+          (latin1Undefined(c) ? String.fromCharCode(undefinedCharStandIn) : c) +
+          ' '
       }
       result = result.slice(0, result.length - 1)
       if (i === data.length) {
