@@ -77,6 +77,7 @@ limitations under the License.
     originalDataSegment,
     editedByteIsOriginalByte,
     selectionActive,
+    dataViewOffsetText,
   } from '../stores'
   import {
     radixOpt,
@@ -1249,7 +1250,7 @@ limitations under the License.
                 <label for="offset_dv"
                   >&nbsp;Offset: <text-field
                     id="offset_dv"
-                  />{$selectionStartOffset + $byteOffsetPos}</label
+                  />{$dataViewOffsetText}</label
                 >
                 <span id="b8_dv">
                   <br /><label for="int8_dv"
@@ -1348,7 +1349,7 @@ limitations under the License.
                 <label for="offset_dv"
                   >&nbsp;Offset: <text-field
                     id="offset_dv"
-                  />{$selectionStartOffset + $byteOffsetPos}</label
+                  />{$dataViewOffsetText}</label
                 >
                 <span id="b8_dv">
                   <br /><label for="int8_dv"
