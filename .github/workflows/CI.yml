@@ -117,5 +117,4 @@ jobs:
         if: runner.os != 'Linux'
       - name: Package
         run: |
-          rm -rf **/target
           yarn package

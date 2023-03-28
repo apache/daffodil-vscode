@@ -177,7 +177,7 @@ lazy val xjcSettings =
       //   foreach throws an error when the type of resources is a Seq[File] rather than an Array[File]
       moved_resources toSeq
     }.taskValue,
-    Test / xjc / sources := (Compile / xjc / sources).value,
-    Test / doc / sources := (Compile / doc / sources).value,
-    Test / sourceGenerators := (Compile / sourceGenerators).value
+//    Test / xjc / sources := (Compile / xjc / sources).value,
+//   Test / doc / sources := (Compile / doc / sources).value,
+//    Test / sourceGenerators := (Compile / sourceGenerators).value
   )
