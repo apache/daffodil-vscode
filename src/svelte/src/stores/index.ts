@@ -16,6 +16,7 @@
  */
 
 import { writable, derived } from 'svelte/store'
+import { ThemeType } from '../utilities/colorScheme'
 import {
   validEncodingStr,
   validRequestableData,
@@ -62,6 +63,7 @@ export const replacing = writable(false)
 export const replacementsCount = writable(0)
 export const searchIndex = writable(0)
 export const headerHidden = writable(false)
+export const UITheme = writable(ThemeType.Dark)
 
 export const editByte = derived(
   [
