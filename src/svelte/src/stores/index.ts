@@ -264,10 +264,6 @@ export const gotoable = derived(
   }
 )
 
-export const dataView = derived(editedDataSegment, ($selectedFileData) => {
-  return new DataView($selectedFileData.buffer)
-})
-
 export const byteOffsetPos = derived(
   [cursorPos, editorEncoding],
   ([$cursorPos, $editorEncoding]) => {
@@ -279,6 +275,17 @@ export const byteOffsetPos = derived(
       default:
         return $cursorPos
     }
+  }
+)
+
+export const dataView = derived(editedDataSegment, ($selectedFileData) => {
+  return new DataView($selectedFileData.buffer)
+})
+
+export const dataViewOffsetText = derived(
+  [selectionStartOffset, byteOffsetPos, addressValue],
+  ([$selectionStartOffset, $byteOffsetPos, $addressValue]) => {
+    return ($selectionStartOffset + $byteOffsetPos).toString($addressValue)
   }
 )
 
