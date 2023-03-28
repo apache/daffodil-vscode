@@ -14,30 +14,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// import * as vscode from 'vscode'
 
-export enum MessageCommand {
-  viewportSubscribe,
-  save,
-  undo,
-  redo,
-  clear,
-  fileInfo,
-  commit,
-  search,
-  searchAndReplace,
-  addBreakpoint,
-  editorOnChange,
-  loadFile,
-  requestEditedData,
-  setSessionFile,
-  updateLogicalDisplay,
-  populateSelectionData,
-  heartBeat,
-  replacementsResults,
-  setUITheme,
+import { writable } from 'svelte/store'
+
+export enum ColorPalette {
+  PrimaryDarker = '#02060B',
+  PrimaryDark = '#101821',
+  PrimaryMid = '#2F3E4F',
+  PrimaryLight = '#687483',
+  PrimaryLighter = '#E1E3E5',
+  SecondaryDarker = '#110B02',
+  SecondaryDark = '#322716',
+  SecondaryMid = '#796444',
+  SecondaryLight = '#C8B69B',
+  SecondaryLighter = '#FFFDFA',
 }
-export type EditorMessage = {
-  command: MessageCommand
-  data: Record<string, any>
+
+export enum ThemeType {
+  Dark = 2,
+  Light = 3,
 }
+export enum CSSThemeClass {
+  Dark = 'dark',
+  Light = 'light',
+}
+
+export const darkUITheme = writable(true)
+
+export const UIThemeCSSClass = writable(CSSThemeClass.Dark)

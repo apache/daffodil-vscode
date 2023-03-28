@@ -83,9 +83,26 @@ export async function viewportSubscribe(
 export class DisplayState {
   public bytesPerRow: number
   public editorEncoding: BufferEncoding
-  constructor() {
+  public colorThemeKind: vscode.ColorThemeKind
+  private panel: vscode.WebviewPanel
+
+  constructor(editorPanel: vscode.WebviewPanel) {
     this.bytesPerRow = 16
     this.editorEncoding = 'hex'
+    this.colorThemeKind = vscode.window.activeColorTheme.kind
+    this.panel = editorPanel
+
+    vscode.window.onDidChangeActiveColorTheme((event) => {
+      this.colorThemeKind = event.kind
+      this.sendUIThemeUpdate()
+    })
+    this.sendUIThemeUpdate()
+  }
+  private sendUIThemeUpdate() {
+    this.panel.webview.postMessage({
+      command: MessageCommand.setUITheme,
+      theme: this.colorThemeKind,
+    })
   }
 }
 

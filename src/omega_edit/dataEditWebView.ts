@@ -42,7 +42,7 @@ const HEARTBEAT_INTERVAL_MS = 1000 // 1 second (1000 ms)
 export class DataEditWebView implements vscode.Disposable {
   public panel: vscode.WebviewPanel
   private svelteWebviewInitializer: SvelteWebviewInitializer
-  private displayState = new DisplayState()
+  private displayState: DisplayState
   private currentViewportId: string
   private fileToEdit: string = ''
   private omegaSessionId = ''
@@ -61,6 +61,7 @@ export class DataEditWebView implements vscode.Disposable {
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
     this.currentViewportId = ''
     this.fileToEdit = fileToEdit
+    this.displayState = new DisplayState(this.panel)
   }
 
   async dispose(): Promise<void> {

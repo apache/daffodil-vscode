@@ -95,6 +95,11 @@ limitations under the License.
     setSelectionOffsetInfo,
     radixBytePad,
   } from '../utilities/display'
+  import {
+    CSSThemeClass,
+    UIThemeCSSClass,
+    darkUITheme,
+  } from '../utilities/colorScheme'
   import { vscode } from '../utilities/vscode'
   import { MessageCommand } from '../utilities/message'
   import { writable } from 'svelte/store'
@@ -175,6 +180,8 @@ limitations under the License.
     }
     $rawEditorSelectionTxt = $editorSelection
   }
+  $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
+
   function clearOnEditModeChange(_: string) {
     closeEphemeralWindows()
     clearDataDisplays()
@@ -774,658 +781,713 @@ limitations under the License.
           scrollSearchResults(false)
         }
         break
+      case MessageCommand.setUITheme:
+        $darkUITheme = msg.data.theme === 2
+        break
     }
   })
 </script>
 
 <svelte:window on:keydown|nonpassive={handleKeybind} />
-<header>
-  <div class="header-container">
-    <fieldset class="box file-metrics">
-      <legend>File Metrics</legend>
-      <div class="flex-container row wrap">
-        <div class="row-item flex-container col">
-          <label for="file_name" class="col-item file-metrics">Path</label>
-          <div id="file_name" class="col-item file-name">{$fileName}</div>
-        </div>
-      </div>
-      <hr />
-      <div class="flex-container row" style="padding-top: 5pt;">
-        <div class="two-row-items flex-container col">
-          <label class="col-item file-metrics" for="disk_file_size"
-            >Disk Size</label
-          >
-          <div class="col-item" id="disk_file_size">{$diskFileSize}</div>
-        </div>
-        <div class="two-row-item flex-container col">
-          <label class="col-item file-metrics" for="computed_file_size"
-            >Computed Size</label
-          >
-          <div class="col-item" id="computed_file_size">
-            {$computedFileSize}
-          </div>
-        </div>
-      </div>
-      <hr />
-      <div>
-        {#if $saveable}
-          <button on:click={saveToDisk}>Save</button>
-        {:else}
-          <button disabled>Save</button>
-        {/if}
-      </div>
-    </fieldset>
-    <fieldset class="box search-replace">
-      <legend>Search</legend>
-      <div class="flex-container col">
-        <div class="col-item">
-          Search:
-          {#if $searchData.length > 0 && !$searchable}
-            <span class="errMsg">{$searchErrMsg}</span>
-          {/if}
-          <input bind:value={$searchData} />
-        </div>
-        {#if $allowCaseInsensitiveSearch}
-          <div class="case col-item flex-container row center">
-            <label for="search_case_insensitive" class="row-item search-case"
-              >Case Insensitive:</label
-            >
-            <input
-              type="checkbox"
-              id="search_case_insensitive"
-              class="row-item search-case"
-              bind:checked={$searchCaseInsensitive}
-            />
-          </div>
-        {/if}
-        <div class="col-item">
-          Replace:
-          {#if $replaceData.length > 0 && !$replaceable}
-            <span class="errMsg">{$replaceErrMsg}</span>
-          {/if}
-          <input bind:value={$replaceData} />
-        </div>
-        <div class="col-item flex-container row center">
-          {#if !$searchable}
-            <button id="search_btn" disabled>Search</button>
-          {:else}
-            <button id="search_btn" on:click={search}>Search</button>
-          {/if}
-          {#if !$replaceable}
-            <button id="replace_btn" disabled>Replace</button>
-          {:else}
-            <button id="replace_btn" on:click={searchAndReplace}>Replace</button
-            >
-          {/if}
-          {#if $searching || $replacing}
-            <svg class="loader sm" viewBox="0 0 50 50">
-              <circle cx="25" cy="25" r="20" />
-            </svg>
-          {/if}
-        </div>
-        <div class="col-item flex-container row center">
-          {#if $searchResults.length > 0}
-            <button id="search_next" on:click={scrollSearchNext}>Next</button>
-            <button id="search_prev" on:click={scrollSearchPrev}>Prev</button>
-            <sub>{$searchIndex + 1} / {$searchResults.length} Results </sub>
-          {:else if $replacementsCount > 0}
-            <sub>{$replacementsCount} Replacements</sub>
-          {/if}
-        </div>
-      </div>
-    </fieldset>
-    <fieldset class="box">
-      <legend>Settings</legend>
-      <div class="flex-container col">
-        <div class="col-item flex-container row center">
-          <div class="two-row-items">
-            <label for="edit_mode">Byte Edit Mode:</label>
-          </div>
-          <div class="two-row-items">
-            <select
-              id="edit_mode"
-              class="row-item"
-              bind:value={$editMode}
-              on:change={closeEphemeralWindows}
-            >
-              <option value="simple">Single</option>
-              <option value="full">Multiple</option>
-            </select>
-          </div>
-        </div>
-        <div class="col-item flex-container row center">
-          <div class="two-row-items">
-            <label for="radix">Byte Display Radix: </label>
-          </div>
-          <div class="two-row-items">
-            <select
-              id="radix"
-              class="row-item"
-              bind:value={$displayRadix}
-              on:change={closeEphemeralWindows}
-            >
-              {#each radixOpt as { name, value }}
-                <option {value}>{name}</option>
-              {/each}
-            </select>
-          </div>
-        </div>
-        <div class="col-item flex-container row center">
-          <div class="two-row-items">
-            <label for="radix" class="row-item">Edit Encoding: </label>
-          </div>
-          <div class="two-row-items">
-            <select
-              class="row-item"
-              id="edit_encoding"
-              bind:value={$editorEncoding}
-            >
-              {#each encoding_groups as { group, encodings }}
-                <optgroup label={group}>
-                  {#each encodings as { name, value }}
-                    <option {value}>{name}</option>
-                  {/each}
-                </optgroup>
-              {/each}
-            </select>
+<body class={$UIThemeCSSClass}>
+  <header>
+    <div class="header-container">
+      <fieldset class="box file-metrics">
+        <legend>File Metrics</legend>
+        <div class="flex-container row wrap">
+          <div class="row-item flex-container col">
+            <label for="file_name" class="col-item file-metrics">Path</label>
+            <div id="file_name" class="col-item file-name">{$fileName}</div>
           </div>
         </div>
         <hr />
-        <div class="col-item flex-container row center">
-          <div class="two-row-items">Offset:</div>
-          <div class="two-row-items">
-            <input
-              class="row-item"
-              type="text"
-              id="goto_offset"
-              bind:value={$gotoOffsetInput}
-            />
+        <div class="flex-container row" style="padding-top: 5pt;">
+          <div class="two-row-items flex-container col">
+            <label class="col-item file-metrics" for="disk_file_size"
+              >Disk Size</label
+            >
+            <div class="col-item" id="disk_file_size">{$diskFileSize}</div>
+          </div>
+          <div class="two-row-item flex-container col">
+            <label class="col-item file-metrics" for="computed_file_size"
+              >Computed Size</label
+            >
+            <div class="col-item" id="computed_file_size">
+              {$computedFileSize}
+            </div>
           </div>
         </div>
-        <div
-          class="col-item flex-container row center"
-          style="justify-content: flex-end;"
-        >
-          <div
-            class="two-row-items row-item"
-            style="font-size: 9pt; text-align: right;"
-          >
-            {#if !$gotoable.valid}
-              {$gotoable.gotoErrMsg}
-            {:else if isScrolledToTop}
-              Top
-            {:else if isScrolledToEnd}
-              End
-            {/if}
-          </div>
-        </div>
-      </div>
-    </fieldset>
-  </div>
-  {#if $headerHidden}
-    <div
-      class="display-icons flex-container row center"
-      style="width: 100%;justify-content: space-between;"
-    >
-      <div>{$fileName}</div>
-      <button class="minmax-icon" on:click={elementMinMax}>&#8691;</button>
-    </div>
-  {:else}
-    <div class="display-icons">
-      <button class="minmax-icon" on:click={elementMinMax}>&#8691;</button>
-    </div>
-  {/if}
-</header>
-
-<main class="dataEditor" id="data_editor">
-  <div class="hd">Address</div>
-  <div class="hd">Physical</div>
-  <div class="hd">Logical</div>
-  <div class="hd">Edit</div>
-  <div class="measure" style="align-items: center;">
-    <select
-      class="address_type"
-      id="address_numbering"
-      on:change={updateAddressValue}
-    >
-      {#each addressOpt as { name, value }}
-        <option {value}>{name}</option>
-      {/each}
-    </select>
-  </div>
-  <div class="measure">
-    <span id="physical_offsets">
-      {@html physicalOffsetText}
-    </span>
-  </div>
-  <div class="measure">
-    <span id="logical_offsets">
-      {@html logicalOffsetText}
-    </span>
-  </div>
-  <div class="measure selection">
-    {#if $editMode === 'full'}
-      {#if $selectionActive}
-        <div
-          class="clear-selection"
-          title="Clear selection data"
-          on:click={clearDataDisplays}
-          on:keypress={clearDataDisplays}
-        >
-          &#10006;
-        </div>
-        <!-- on:keypress is needed to silence warning from Svelte A11y, see below
-              == (!) Plugin svelte: A11y: visible, non-interactive elements with an on:click event must be accompanied by an on:keydown, on:keyup, or on:keypress event. ==
-          -->
-      {:else}
-        <div class="clear-selection" />
-      {/if}
-      <div>
-        {selectionOffsetText}{#if $cursorPos} | cursor: {$cursorPos} {/if}
-      </div>
-    {:else}
-      <div>
-        <sub
-          ><i
-            >The pop-up, single byte, edit window is available upon byte
-            selection, press ESC to close.<br />The edit window below is
-            deactivated in single byte edit mode.</i
-          ></sub
-        >
-      </div>
-    {/if}
-  </div>
-  <div
-    class="flex-container col edit-byte-window ephemeral"
-    id="editByteWindow"
-    bind:this={$editByteWindow}
-  >
-    <div class="flex-container row col-item">
-      <input
-        title="byte position {$selectionStartOffset.toString(
-          $addressValue
-        )} {radixToString($addressValue)}"
-        type="text"
-        id="editByteInput"
-        bind:value={$editorSelection}
-        on:input={handleEditorEvent}
-      />
-      {#if $commitable}
-        <button
-          title="insert byte before this location"
-          id="insert-before"
-          class="insert"
-          on:click={commitChanges}>&#8676;</button
-        >
-        <button
-          title="replace byte at this location"
-          id="insert-replace"
-          class="submit"
-          on:click={commitChanges}>&#8645;</button
-        >
-        <button
-          title="insert byte after this location"
-          id="insert-after"
-          class="insert"
-          on:click={commitChanges}>&#8677;</button
-        >
-        <button
-          title="delete this byte"
-          id="insert-delete"
-          class="delete"
-          on:click={commitChanges}>✖</button
-        >
-      {:else if $editedByteIsOriginalByte}
-        <button
-          title="insert byte before this location"
-          id="insert-before"
-          class="insert"
-          on:click={commitChanges}>&#8676;</button
-        >
-        <button class="submit" disabled>&#8645;</button>
-        <button
-          title="insert byte after this location"
-          id="insert-after"
-          class="insert"
-          on:click={commitChanges}>&#8677;</button
-        >
-        <button
-          title="delete this byte"
-          id="insert-delete"
-          class="delete"
-          on:click={commitChanges}>✖</button
-        >
-      {:else}
-        <button
-          title="delete this byte"
-          id="insert-delete"
-          class="delete"
-          on:click={commitChanges}>✖</button
-        >
-        <button class="insert" disabled>&#8676;</button>
-        <button class="submit" disabled>&#8645;</button>
-        <button class="insert" disabled>&#8677;</button>
-      {/if}
-    </div>
-    {#if $focusedViewportId === 'physical'}
-      <button
-        class="flex-container row col-item switch-viewport"
-        title="Show in Logical View"
-        on:click={moveEditByteWindow}>&#8649;</button
-      >
-    {:else}
-      <button
-        class="flex-container row col-item switch-viewport"
-        title="Show in Physical View"
-        on:click={moveEditByteWindow}>&#8647;</button
-      >
-    {/if}
-    {#if !$commitable && $commitErrMsg.length > 0}
-      <div
-        style="background-color: black; opacity: 0.75; border-radius: 5px; margin: 4px; padding: 4px;"
-      >
-        <span class="errMsg">{$commitErrMsg}</span>
-      </div>
-    {/if}
-  </div>
-  <textarea
-    class="address_vw"
-    id="address"
-    contenteditable="true"
-    readonly
-    bind:this={address_vwRef}
-    bind:innerHTML={addressText}
-    on:scroll={scrollHandle}
-  />
-  {#if $editMode === 'simple'}
-    <textarea
-      class="physical_vw"
-      id="physical"
-      contenteditable="true"
-      readonly
-      bind:this={physical_vwRef}
-      bind:innerHTML={physicalDisplayText}
-      on:scroll={scrollHandle}
-      on:click={handleViewportClickEvent}
-    />
-    <textarea
-      class="logicalView"
-      id="logical"
-      contenteditable="true"
-      readonly
-      bind:this={logical_vwRef}
-      bind:innerHTML={logicalDisplayText}
-      on:scroll={scrollHandle}
-      on:click={handleViewportClickEvent}
-    />
-  {:else}
-    <textarea
-      class="physical_vw"
-      id="physical"
-      contenteditable="true"
-      readonly
-      bind:this={physical_vwRef}
-      bind:innerHTML={physicalDisplayText}
-      on:select={handleSelectionEvent}
-      on:scroll={scrollHandle}
-    />
-    <textarea
-      class="logicalView"
-      id="logical"
-      contenteditable="true"
-      readonly
-      bind:this={logical_vwRef}
-      bind:innerHTML={logicalDisplayText}
-      on:select={handleSelectionEvent}
-      on:scroll={scrollHandle}
-    />
-  {/if}
-  <div class="editView" id="edit_view">
-    {#if $editMode === 'full'}
-      <textarea
-        class="selectedContent"
-        id="selectedContent"
-        contenteditable="true"
-        bind:value={$editorSelection}
-        on:keyup|nonpassive={handleEditorEvent}
-        on:click={handleEditorEvent}
-        on:input={handleEditorEvent}
-      />
-    {:else}
-      <textarea class="selectedContent" id="selectedContent" disabled />
-    {/if}
-    <!-- Full Mode Content Controls -->
-    {#if $editMode === 'full'}
-      <fieldset class="box margin-top">
-        <legend
-          >Content Controls
-          {#if !$commitable}
-            <span class="errMsg">{$commitErrMsg}</span>
-          {/if}
-        </legend>
-        <div class="contentControls" id="content_controls">
-          <!-- Commitable was not reactable to selection data zeroing -->
-          {#if $commitable}
-            <button id="commit_btn" on:click={commitChanges}>Commit</button>
+        <hr />
+        <div>
+          {#if $saveable}
+            <button class={$UIThemeCSSClass} on:click={saveToDisk}>Save</button>
           {:else}
-            <button id="commit_btn" disabled>Commit</button>
+            <button class={$UIThemeCSSClass} disabled>Save</button>
           {/if}
-          <span>
-            {#if $undoCount > 0}
-              <button on:click={redo}>Redo ({$undoCount})</button>
-            {:else}
-              <button disabled>Redo</button>
-            {/if}
-            {#if $changeCount > 0}
-              <button on:click={undo}>Undo ({$changeCount})</button>
-            {:else}
-              <button disabled>Undo</button>
-            {/if}
-            {#if $undoCount + $changeCount > 0}
-              <button on:click={clearChangeStack}>Revert All</button>
-            {:else}
-              <button disabled>Revert All</button>
-            {/if}
-          </span>
         </div>
       </fieldset>
-      <fieldset class="box margin-top">
-        <legend>Data View</legend>
+      <fieldset class="box search-replace">
+        <legend>Search</legend>
         <div class="flex-container col">
-          <div class="flex-container col-item center row">
-            <div class="flex-container row center row-item">
-              <label for="endianness">Endianness: </label>
-              <select id="endianness" bind:value={$dataViewEndianness}>
-                {#each endiannessOpt as { name, value }}
+          <div class="col-item">
+            Search:
+            {#if $searchData.length > 0 && !$searchable}
+              <span class="errMsg">{$searchErrMsg}</span>
+            {/if}
+            <input class={$UIThemeCSSClass} bind:value={$searchData} />
+          </div>
+          {#if $allowCaseInsensitiveSearch}
+            <div class="case col-item flex-container row center">
+              <label for="search_case_insensitive" class="row-item search-case"
+                >Case Insensitive:</label
+              >
+              <input
+                type="checkbox"
+                id="search_case_insensitive"
+                class={$UIThemeCSSClass + ' row-item search-case'}
+                bind:checked={$searchCaseInsensitive}
+              />
+            </div>
+          {/if}
+          <div class="col-item">
+            Replace:
+            {#if $replaceData.length > 0 && !$replaceable}
+              <span class="errMsg">{$replaceErrMsg}</span>
+            {/if}
+            <input class={$UIThemeCSSClass} bind:value={$replaceData} />
+          </div>
+          <div class="col-item flex-container row center">
+            {#if !$searchable}
+              <button class={$UIThemeCSSClass} id="search_btn" disabled
+                >Search</button
+              >
+            {:else}
+              <button class={$UIThemeCSSClass} id="search_btn" on:click={search}
+                >Search</button
+              >
+            {/if}
+            {#if !$replaceable}
+              <button class={$UIThemeCSSClass} id="replace_btn" disabled
+                >Replace</button
+              >
+            {:else}
+              <button
+                class={$UIThemeCSSClass}
+                id="replace_btn"
+                on:click={searchAndReplace}>Replace</button
+              >
+            {/if}
+            {#if $searching || $replacing}
+              <svg class="loader sm" viewBox="0 0 50 50">
+                <circle cx="25" cy="25" r="20" />
+              </svg>
+            {/if}
+          </div>
+          <div class="col-item flex-container row center">
+            {#if $searchResults.length > 0}
+              <button
+                class={$UIThemeCSSClass}
+                id="search_next"
+                on:click={scrollSearchNext}>Next</button
+              >
+              <button
+                class={$UIThemeCSSClass}
+                id="search_prev"
+                on:click={scrollSearchPrev}>Prev</button
+              >
+              <sub>{$searchIndex + 1} / {$searchResults.length} Results </sub>
+            {:else if $replacementsCount > 0}
+              <sub>{$replacementsCount} Replacements</sub>
+            {/if}
+          </div>
+        </div>
+      </fieldset>
+      <fieldset class="box">
+        <legend>Settings</legend>
+        <div class="flex-container col">
+          <div class="col-item flex-container row center">
+            <div class="two-row-items">
+              <label for="edit_mode">Byte Edit Mode:</label>
+            </div>
+            <div class="two-row-items">
+              <select
+                id="edit_mode"
+                class={$UIThemeCSSClass + ' row-item'}
+                bind:value={$editMode}
+                on:change={closeEphemeralWindows}
+              >
+                <option value="simple">Single</option>
+                <option value="full">Multiple</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-item flex-container row center">
+            <div class="two-row-items">
+              <label for="radix">Byte Display Radix: </label>
+            </div>
+            <div class="two-row-items">
+              <select
+                id="radix"
+                class={$UIThemeCSSClass + ' row-item'}
+                bind:value={$displayRadix}
+                on:change={closeEphemeralWindows}
+              >
+                {#each radixOpt as { name, value }}
                   <option {value}>{name}</option>
                 {/each}
               </select>
             </div>
           </div>
-          <div class="flex-container col-item center row">
-            <div class="grid-container-column">
-              <div id="data_vw">
-                <label for="offset_dv"
-                  >&nbsp;Offset: <text-field
-                    id="offset_dv"
-                  />{$dataViewOffsetText}</label
-                >
-                <span id="b8_dv">
-                  <br /><label for="int8_dv"
-                    >&nbsp;&nbsp;&nbsp;int8: <text-field
-                      id="int8_dv"
-                    />{$int8}</label
-                  >
-                  <br /><label for="uint8_dv"
-                    >&nbsp;&nbsp;uint8: <text-field
-                      id="uint8_dv"
-                    />{$uint8}</label
-                  >
-                </span>
-                <span id="b16_dv">
-                  <br /><label for="int16_dv"
-                    >&nbsp;&nbsp;int16: <text-field
-                      id="int16_dv"
-                    />{$int16}</label
-                  >
-                  <br /><label for="uint16_dv"
-                    >&nbsp;uint16: <text-field id="uint16_dv" />{$uint16}</label
-                  >
-                </span>
-                <span id="b32_dv">
-                  <br /><label for="int32_dv"
-                    >&nbsp;&nbsp;int32: <text-field
-                      id="int32_dv"
-                    />{$int32}</label
-                  >
-                  <br /><label for="uint32_dv"
-                    >&nbsp;uint32: <text-field id="uint32_dv" />{$uint32}</label
-                  >
-                  <br /><label for="float32_dv"
-                    >float32: <text-field id="float32_dv" />{$float32}</label
-                  >
-                </span>
-                <span id="b64_dv">
-                  <br /><label for="int64_dv"
-                    >&nbsp;&nbsp;int64: <text-field
-                      id="int64_dv"
-                    />{$int64}</label
-                  >
-                  <br /><label for="uint64_dv"
-                    >&nbsp;uint64: <text-field id="uint64_dv" />{$uint64}</label
-                  >
-                  <br /><label for="float64_dv"
-                    >float64: <text-field id="float64_dv" />{$float64}</label
-                  >
-                </span>
-              </div>
+          <div class="col-item flex-container row center">
+            <div class="two-row-items">
+              <label for="radix" class="row-item">Edit Encoding: </label>
+            </div>
+            <div class="two-row-items">
+              <select
+                class={$UIThemeCSSClass + ' row-item'}
+                id="edit_encoding"
+                bind:value={$editorEncoding}
+              >
+                {#each encoding_groups as { group, encodings }}
+                  <optgroup label={group}>
+                    {#each encodings as { name, value }}
+                      <option {value}>{name}</option>
+                    {/each}
+                  </optgroup>
+                {/each}
+              </select>
+            </div>
+          </div>
+          <hr />
+          <div class="col-item flex-container row center">
+            <div class="two-row-items">Offset:</div>
+            <div class="two-row-items">
+              <input
+                class={$UIThemeCSSClass + ' row-item'}
+                type="text"
+                id="goto_offset"
+                bind:value={$gotoOffsetInput}
+              />
             </div>
           </div>
         </div>
       </fieldset>
-      <!-- Simple Mode Content Controls -->
+    </div>
+    {#if $headerHidden}
+      <div class="display-icons flex-container row center">
+        <div>{$fileName}</div>
+        <button
+          class={$UIThemeCSSClass + ' minmax-icon'}
+          on:click={elementMinMax}>&#8691;</button
+        >
+      </div>
     {:else}
-      <fieldset class="box margin-top">
-        <legend>Content Controls </legend>
-        <div class="contentControls" id="content_controls">
-          <span>
-            {#if $undoCount > 0}
-              <button on:click={redo}>Redo ({$undoCount})</button>
-            {:else}
-              <button disabled>Redo</button>
-            {/if}
-            {#if $changeCount > 0}
-              <button on:click={undo}>Undo ({$changeCount})</button>
-            {:else}
-              <button disabled>Undo</button>
-            {/if}
-            {#if $undoCount + $changeCount > 0}
-              <button on:click={clearChangeStack}>Revert All</button>
-            {:else}
-              <button disabled>Revert All</button>
-            {/if}
-          </span>
-        </div>
-      </fieldset>
-      <fieldset class="box margin-top">
-        <legend>Data View</legend>
+      <div class="display-icons">
+        <button
+          class={$UIThemeCSSClass + ' minmax-icon'}
+          on:click={elementMinMax}>&#8691;</button
+        >
+      </div>
+    {/if}
+  </header>
 
-        <div class="grid-container-single-column">
-          <div class="grid-container-column">
+  <main class="dataEditor" id="data_editor">
+    <div class={$UIThemeCSSClass + ' hd'}>Address</div>
+    <div class={$UIThemeCSSClass + ' hd'}>Physical</div>
+    <div class={$UIThemeCSSClass + ' hd'}>Logical</div>
+    <div class={$UIThemeCSSClass + ' hd'}>Edit</div>
+    <div class={$UIThemeCSSClass + ' measure'} style="align-items: center;">
+      <select
+        class={$UIThemeCSSClass + ' address_type'}
+        id="address_numbering"
+        on:change={updateAddressValue}
+      >
+        {#each addressOpt as { name, value }}
+          <option {value}>{name}</option>
+        {/each}
+      </select>
+    </div>
+    <div class={$UIThemeCSSClass + ' measure'}>
+      <span id="physical_offsets">
+        {@html physicalOffsetText}
+      </span>
+    </div>
+    <div class={$UIThemeCSSClass + ' measure'}>
+      <span id="logical_offsets">
+        {@html logicalOffsetText}
+      </span>
+    </div>
+    <div class={$UIThemeCSSClass + ' measure selection'}>
+      {#if $editMode === 'full'}
+        {#if $selectionActive}
+          <div
+            class="clear-selection"
+            title="Clear selection data"
+            on:click={clearDataDisplays}
+            on:keypress={clearDataDisplays}
+          >
+            &#10006;
+          </div>
+          <!-- on:keypress is needed to silence warning from Svelte A11y, see below
+              == (!) Plugin svelte: A11y: visible, non-interactive elements with an on:click event must be accompanied by an on:keydown, on:keyup, or on:keypress event. ==
+          -->
+        {:else}
+          <div class="clear-selection" />
+        {/if}
+        <div>
+          {selectionOffsetText}{#if $cursorPos} | cursor: {$cursorPos} {/if}
+        </div>
+      {:else}
+        <div>
+          <sub
+            ><i
+              >The pop-up, single byte, edit window is available upon byte
+              selection, press ESC to close.<br />The edit window below is
+              deactivated in single byte edit mode.</i
+            ></sub
+          >
+        </div>
+      {/if}
+    </div>
+    <div
+      class="flex-container col edit-byte-window ephemeral"
+      id="editByteWindow"
+      bind:this={$editByteWindow}
+    >
+      <div class="flex-container row col-item">
+        <input
+          title="byte position {$selectionStartOffset.toString(
+            $addressValue
+          )} {radixToString($addressValue)}"
+          type="text"
+          id="editByteInput"
+          class={$UIThemeCSSClass}
+          bind:value={$editorSelection}
+          on:input={handleEditorEvent}
+        />
+        {#if $commitable}
+          <button
+            title="insert byte before this location"
+            id="insert-before"
+            class="insert"
+            on:click={commitChanges}>&#8676;</button
+          >
+          <button
+            title="replace byte at this location"
+            id="insert-replace"
+            class="submit"
+            on:click={commitChanges}>&#8645;</button
+          >
+          <button
+            title="insert byte after this location"
+            id="insert-after"
+            class="insert"
+            on:click={commitChanges}>&#8677;</button
+          >
+          <button
+            title="delete this byte"
+            id="insert-delete"
+            class="delete"
+            on:click={commitChanges}>✖</button
+          >
+        {:else if $editedByteIsOriginalByte}
+          <button
+            title="insert byte before this location"
+            id="insert-before"
+            class="insert"
+            on:click={commitChanges}>&#8676;</button
+          >
+          <button class="submit" disabled>&#8645;</button>
+          <button
+            title="insert byte after this location"
+            id="insert-after"
+            class="insert"
+            on:click={commitChanges}>&#8677;</button
+          >
+          <button
+            title="delete this byte"
+            id="insert-delete"
+            class="delete"
+            on:click={commitChanges}>✖</button
+          >
+        {:else}
+          <button
+            title="delete this byte"
+            id="insert-delete"
+            class="delete"
+            on:click={commitChanges}>✖</button
+          >
+          <button class="insert" disabled>&#8676;</button>
+          <button class="submit" disabled>&#8645;</button>
+          <button class="insert" disabled>&#8677;</button>
+        {/if}
+      </div>
+      {#if $focusedViewportId === 'physical'}
+        <button
+          class={$UIThemeCSSClass +
+            ' flex-container row col-item switch-viewport'}
+          title="Show in Logical View"
+          on:click={moveEditByteWindow}>&#8649;</button
+        >
+      {:else}
+        <button
+          class={$UIThemeCSSClass +
+            ' flex-container row col-item switch-viewport'}
+          title="Show in Physical View"
+          on:click={moveEditByteWindow}>&#8647;</button
+        >
+      {/if}
+      {#if !$commitable && $commitErrMsg.length > 0}
+        <div
+          style="background-color: black; opacity: 0.75; border-radius: 5px; margin: 4px; padding: 4px;"
+        >
+          <span class="errMsg">{$commitErrMsg}</span>
+        </div>
+      {/if}
+    </div>
+    <textarea
+      class={$UIThemeCSSClass + ' address_vw'}
+      id="address"
+      contenteditable="true"
+      readonly
+      bind:this={address_vwRef}
+      bind:innerHTML={addressText}
+      on:scroll={scrollHandle}
+    />
+    {#if $editMode === 'simple'}
+      <textarea
+        class={$UIThemeCSSClass}
+        id="physical"
+        contenteditable="true"
+        readonly
+        bind:this={physical_vwRef}
+        bind:innerHTML={physicalDisplayText}
+        on:scroll={scrollHandle}
+        on:click={handleViewportClickEvent}
+      />
+      <textarea
+        class={$UIThemeCSSClass}
+        id="logical"
+        contenteditable="true"
+        readonly
+        bind:this={logical_vwRef}
+        bind:innerHTML={logicalDisplayText}
+        on:scroll={scrollHandle}
+        on:click={handleViewportClickEvent}
+      />
+    {:else}
+      <textarea
+        class={$UIThemeCSSClass}
+        id="physical"
+        contenteditable="true"
+        readonly
+        bind:this={physical_vwRef}
+        bind:innerHTML={physicalDisplayText}
+        on:select={handleSelectionEvent}
+        on:scroll={scrollHandle}
+      />
+      <textarea
+        class={$UIThemeCSSClass}
+        id="logical"
+        contenteditable="true"
+        readonly
+        bind:this={logical_vwRef}
+        bind:innerHTML={logicalDisplayText}
+        on:select={handleSelectionEvent}
+        on:scroll={scrollHandle}
+      />
+    {/if}
+    <div class="editView" id="edit_view">
+      {#if $editMode === 'full'}
+        <textarea
+          class={$UIThemeCSSClass}
+          id="selectedContent"
+          contenteditable="true"
+          bind:value={$editorSelection}
+          on:keyup|nonpassive={handleEditorEvent}
+          on:click={handleEditorEvent}
+          on:input={handleEditorEvent}
+        />
+      {:else}
+        <textarea class={$UIThemeCSSClass} id="selectedContent" disabled />
+      {/if}
+      <!-- Full Mode Content Controls -->
+      {#if $editMode === 'full'}
+        <fieldset class="box margin-top">
+          <legend
+            >Content Controls
+            {#if !$commitable}
+              <span class="errMsg">{$commitErrMsg}</span>
+            {/if}
+          </legend>
+          <div class="contentControls" id="content_controls">
+            <!-- Commitable was not reactable to selection data zeroing -->
+            {#if $commitable}
+              <button
+                class={$UIThemeCSSClass}
+                id="commit_btn"
+                on:click={commitChanges}>Commit</button
+              >
+            {:else}
+              <button class={$UIThemeCSSClass} id="commit_btn" disabled
+                >Commit</button
+              >
+            {/if}
+            <span>
+              {#if $undoCount > 0}
+                <button class={$UIThemeCSSClass} on:click={redo}
+                  >Redo ({$undoCount})</button
+                >
+              {:else}
+                <button class={$UIThemeCSSClass} disabled>Redo</button>
+              {/if}
+              {#if $changeCount > 0}
+                <button class={$UIThemeCSSClass} on:click={undo}
+                  >Undo ({$changeCount})</button
+                >
+              {:else}
+                <button class={$UIThemeCSSClass} disabled>Undo</button>
+              {/if}
+              {#if $undoCount + $changeCount > 0}
+                <button class={$UIThemeCSSClass} on:click={clearChangeStack}
+                  >Revert All</button
+                >
+              {:else}
+                <button class={$UIThemeCSSClass} disabled>Revert All</button>
+              {/if}
+            </span>
+          </div>
+        </fieldset>
+        <fieldset class="box margin-top">
+          <legend>Data View</legend>
+          <div class="flex-container col">
             <div class="flex-container col-item center row">
               <div class="flex-container row center row-item">
                 <label for="endianness">Endianness: </label>
-                <select id="endianness" bind:value={$dataViewEndianness}>
+                <select
+                  id="endianness"
+                  class={$UIThemeCSSClass}
+                  bind:value={$dataViewEndianness}
+                >
                   {#each endiannessOpt as { name, value }}
                     <option {value}>{name}</option>
                   {/each}
                 </select>
               </div>
             </div>
-            <div class="grid-container-column">
-              <div id="data_vw">
-                <label for="offset_dv"
-                  >&nbsp;Offset: <text-field
-                    id="offset_dv"
-                  />{$dataViewOffsetText}</label
-                >
-                <span id="b8_dv">
-                  <br /><label for="int8_dv"
-                    >&nbsp;&nbsp;&nbsp;int8: <text-field
-                      id="int8_dv"
-                    />{$int8}</label
+            <div class="flex-container col-item center row">
+              <div class="grid-container-column">
+                <div id="data_vw">
+                  <label for="offset_dv"
+                    >&nbsp;Offset: <text-field
+                      id="offset_dv"
+                    />{$dataViewOffsetText}</label
                   >
-                  <br /><label for="uint8_dv"
-                    >&nbsp;&nbsp;uint8: <text-field
-                      id="uint8_dv"
-                    />{$uint8}</label
-                  >
-                </span>
-                <span id="b16_dv">
-                  <br /><label for="int16_dv"
-                    >&nbsp;&nbsp;int16: <text-field
-                      id="int16_dv"
-                    />{$int16}</label
-                  >
-                  <br /><label for="uint16_dv"
-                    >&nbsp;uint16: <text-field id="uint16_dv" />{$uint16}</label
-                  >
-                </span>
-                <span id="b32_dv">
-                  <br /><label for="int32_dv"
-                    >&nbsp;&nbsp;int32: <text-field
-                      id="int32_dv"
-                    />{$int32}</label
-                  >
-                  <br /><label for="uint32_dv"
-                    >&nbsp;uint32: <text-field id="uint32_dv" />{$uint32}</label
-                  >
-                  <br /><label for="float32_dv"
-                    >float32: <text-field id="float32_dv" />{$float32}</label
-                  >
-                </span>
-                <span id="b64_dv">
-                  <br /><label for="int64_dv"
-                    >&nbsp;&nbsp;int64: <text-field
-                      id="int64_dv"
-                    />{$int64}</label
-                  >
-                  <br /><label for="uint64_dv"
-                    >&nbsp;uint64: <text-field id="uint64_dv" />{$uint64}</label
-                  >
-                  <br /><label for="float64_dv"
-                    >float64: <text-field id="float64_dv" />{$float64}</label
-                  >
-                </span>
+                  <span id="b8_dv">
+                    <br /><label for="int8_dv"
+                      >&nbsp;&nbsp;&nbsp;int8: <text-field
+                        id="int8_dv"
+                      />{$int8}</label
+                    >
+                    <br /><label for="uint8_dv"
+                      >&nbsp;&nbsp;uint8: <text-field
+                        id="uint8_dv"
+                      />{$uint8}</label
+                    >
+                  </span>
+                  <span id="b16_dv">
+                    <br /><label for="int16_dv"
+                      >&nbsp;&nbsp;int16: <text-field
+                        id="int16_dv"
+                      />{$int16}</label
+                    >
+                    <br /><label for="uint16_dv"
+                      >&nbsp;uint16: <text-field
+                        id="uint16_dv"
+                      />{$uint16}</label
+                    >
+                  </span>
+                  <span id="b32_dv">
+                    <br /><label for="int32_dv"
+                      >&nbsp;&nbsp;int32: <text-field
+                        id="int32_dv"
+                      />{$int32}</label
+                    >
+                    <br /><label for="uint32_dv"
+                      >&nbsp;uint32: <text-field
+                        id="uint32_dv"
+                      />{$uint32}</label
+                    >
+                    <br /><label for="float32_dv"
+                      >float32: <text-field id="float32_dv" />{$float32}</label
+                    >
+                  </span>
+                  <span id="b64_dv">
+                    <br /><label for="int64_dv"
+                      >&nbsp;&nbsp;int64: <text-field
+                        id="int64_dv"
+                      />{$int64}</label
+                    >
+                    <br /><label for="uint64_dv"
+                      >&nbsp;uint64: <text-field
+                        id="uint64_dv"
+                      />{$uint64}</label
+                    >
+                    <br /><label for="float64_dv"
+                      >float64: <text-field id="float64_dv" />{$float64}</label
+                    >
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </fieldset>
-    {/if}
-  </div>
-</main>
-<hr />
-<div class="omega-latency flex-container row center">
-  <div>Powered by Ωedit v{serverVersion} on port {omegaEditPort}</div>
-  <div class="latency-group flex-container row center">
-    <svg class="latency-indicator">
-      {#if serverLatency < 20}
-        <circle cx="50%" cy="50%" r="4pt" fill="green" />
-      {:else if serverLatency < 35}
-        <circle cx="50%" cy="50%" r="4pt" fill="yellow" />
-      {:else if serverLatency > 50}
-        <circle cx="50%" cy="50%" r="4pt" fill="red" />
+        </fieldset>
+        <!-- Simple Mode Content Controls -->
       {:else}
-        <circle cx="50%" cy="50%" r="4pt" fill="grey" />
+        <fieldset class="box margin-top">
+          <legend>Content Controls </legend>
+          <div class="contentControls" id="content_controls">
+            <span>
+              {#if $undoCount > 0}
+                <button class={$UIThemeCSSClass} on:click={redo}
+                  >Redo ({$undoCount})</button
+                >
+              {:else}
+                <button class={$UIThemeCSSClass} disabled>Redo</button>
+              {/if}
+              {#if $changeCount > 0}
+                <button class={$UIThemeCSSClass} on:click={undo}
+                  >Undo ({$changeCount})</button
+                >
+              {:else}
+                <button class={$UIThemeCSSClass} disabled>Undo</button>
+              {/if}
+              {#if $undoCount + $changeCount > 0}
+                <button class={$UIThemeCSSClass} on:click={clearChangeStack}
+                  >Revert All</button
+                >
+              {:else}
+                <button class={$UIThemeCSSClass} disabled>Revert All</button>
+              {/if}
+            </span>
+          </div>
+        </fieldset>
+        <fieldset class="box margin-top">
+          <legend>Data View</legend>
+
+          <div class="grid-container-single-column">
+            <div class="grid-container-column">
+              <div class="flex-container col-item center row">
+                <div class="flex-container row center row-item">
+                  <label for="endianness">Endianness: </label>
+                  <select
+                    id="endianness"
+                    class={$UIThemeCSSClass}
+                    bind:value={$dataViewEndianness}
+                  >
+                    {#each endiannessOpt as { name, value }}
+                      <option {value}>{name}</option>
+                    {/each}
+                  </select>
+                </div>
+              </div>
+              <div class="grid-container-column">
+                <div id="data_vw">
+                  <label for="offset_dv"
+                    >&nbsp;Offset: <text-field
+                      id="offset_dv"
+                    />{$dataViewOffsetText}</label
+                  >
+                  <span id="b8_dv">
+                    <br /><label for="int8_dv"
+                      >&nbsp;&nbsp;&nbsp;int8: <text-field
+                        id="int8_dv"
+                      />{$int8}</label
+                    >
+                    <br /><label for="uint8_dv"
+                      >&nbsp;&nbsp;uint8: <text-field
+                        id="uint8_dv"
+                      />{$uint8}</label
+                    >
+                  </span>
+                  <span id="b16_dv">
+                    <br /><label for="int16_dv"
+                      >&nbsp;&nbsp;int16: <text-field
+                        id="int16_dv"
+                      />{$int16}</label
+                    >
+                    <br /><label for="uint16_dv"
+                      >&nbsp;uint16: <text-field
+                        id="uint16_dv"
+                      />{$uint16}</label
+                    >
+                  </span>
+                  <span id="b32_dv">
+                    <br /><label for="int32_dv"
+                      >&nbsp;&nbsp;int32: <text-field
+                        id="int32_dv"
+                      />{$int32}</label
+                    >
+                    <br /><label for="uint32_dv"
+                      >&nbsp;uint32: <text-field
+                        id="uint32_dv"
+                      />{$uint32}</label
+                    >
+                    <br /><label for="float32_dv"
+                      >float32: <text-field id="float32_dv" />{$float32}</label
+                    >
+                  </span>
+                  <span id="b64_dv">
+                    <br /><label for="int64_dv"
+                      >&nbsp;&nbsp;int64: <text-field
+                        id="int64_dv"
+                      />{$int64}</label
+                    >
+                    <br /><label for="uint64_dv"
+                      >&nbsp;uint64: <text-field
+                        id="uint64_dv"
+                      />{$uint64}</label
+                    >
+                    <br /><label for="float64_dv"
+                      >float64: <text-field id="float64_dv" />{$float64}</label
+                    >
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </fieldset>
       {/if}
-    </svg>
-    <div class="latency-text">{serverLatency}ms</div>
+    </div>
+  </main>
+  <hr />
+  <div class="omega-latency flex-container row center">
+    <div>Powered by Ωedit v{serverVersion} on port {omegaEditPort}</div>
+    <div class="latency-group flex-container row center">
+      <svg class="latency-indicator">
+        {#if serverLatency < 20}
+          <circle cx="50%" cy="50%" r="4pt" fill="green" />
+        {:else if serverLatency < 35}
+          <circle cx="50%" cy="50%" r="4pt" fill="yellow" />
+        {:else if serverLatency > 50}
+          <circle cx="50%" cy="50%" r="4pt" fill="red" />
+        {:else}
+          <circle cx="50%" cy="50%" r="4pt" fill="grey" />
+        {/if}
+      </svg>
+      <div class="latency-text">{serverLatency}ms</div>
+    </div>
   </div>
-</div>
+</body>
 
 <!-- svelte-ignore css-unused-selector -->
 <style lang="scss">
+  body.light {
+    color: #02060b;
+  }
+  body.dark {
+    color: #e1e3e5;
+  }
   div.flex-container {
     display: flex;
   }
@@ -1583,9 +1645,7 @@ limitations under the License.
     font-size: 15px;
     padding: 0;
     font-weight: normal;
-    border-color: white;
     border-width: 1px;
-    background-color: #22272e;
   }
 
   header div.flex-container-col {
@@ -1634,12 +1694,26 @@ limitations under the License.
 
   input,
   select {
-    background-color: #3c3c3c;
-    color: white;
     border-width: 0;
     padding-top: 2px;
     padding-bottom: 2px;
     font-weight: bold;
+  }
+  input.dark {
+    background-color: #101821;
+    color: #e1e3e5;
+  }
+  select.dark {
+    background-color: #101821;
+    color: #e1e3e5;
+  }
+  input.light {
+    background-color: #e1e3e5;
+    color: #02060b;
+  }
+  select.light {
+    background-color: #e1e3e5;
+    color: #02060b;
   }
 
   textarea {
@@ -1656,13 +1730,18 @@ limitations under the License.
     display: inline-block;
     border-radius: 4px;
     border-width: 0;
-    background-color: #727272;
-    color: #ffffff;
     font-weight: bold;
     margin-bottom: 5px;
     cursor: pointer;
   }
-
+  button.dark {
+    background-color: #322716;
+    color: #fffdfa;
+  }
+  button.light {
+    background-color: #c8b69b;
+    color: #322716;
+  }
   .dataEditor {
     display: grid;
     /* I think this should be 32em instead of 19em for 32 characters, but that didn't work */
@@ -1686,13 +1765,29 @@ limitations under the License.
   }
 
   .dataEditor div.hd {
-    background: #767676;
     text-align: center;
     font-weight: bold;
   }
-
+  .dataEditor div.hd.dark {
+    background-color: #2f3e4f;
+    color: #02060b;
+  }
+  .dataEditor div.hd.light {
+    background-color: #687483;
+    color: #110b02;
+  }
   .dataEditor div.measure {
     display: flex;
+  }
+  .dataEditor div.measure.dark {
+    display: flex;
+    background-color: #101821;
+    color: #e1e3e5;
+  }
+  .dataEditor div.measure.light {
+    display: flex;
+    background-color: #e1e3e5;
+    color: #02060b;
   }
 
   .dataEditor div.measure.selection {
@@ -1782,17 +1877,20 @@ limitations under the License.
   }
   button.submit {
     background: green;
+    color: #e1e3e5;
   }
   button.delete {
     background: red;
+    color: #e1e3e5;
   }
   button.insert {
     background: darkorchid;
+    color: #e1e3e5;
   }
   button:disabled {
     opacity: 0.3;
     cursor: not-allowed;
-    color: #3a3838;
+    color: var(--vscode-button-foreground);
   }
   .dataEditor textarea {
     display: block;
@@ -1811,13 +1909,16 @@ limitations under the License.
     pointer-events: none;
     max-width: 100px;
   }
-
-  .dataEditor textarea.physical_vw {
-    background: #4c4c4c;
+  .dataEditor select.address_type {
+    height: 100%;
   }
-
-  .dataEditor textarea.logicalView {
-    background: #3c3c3c;
+  .dataEditor textarea.dark {
+    background-color: #101821;
+    color: #fffdfa;
+  }
+  .dataEditor textarea.light {
+    background-color: #e1e3e5;
+    color: #02060b;
   }
 
   .dataEditor div.editView {
@@ -1826,13 +1927,6 @@ limitations under the License.
     grid-template-rows: 1fr max-content;
     overflow-x: hidden;
     word-break: break-all;
-  }
-
-  .dataEditor textarea.selectedContent {
-    background: #2c2c2c;
-  }
-  .dataEditor textarea.selectedContent:disabled {
-    background: #252526;
   }
 
   .dataEditor button {
