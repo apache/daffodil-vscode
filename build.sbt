@@ -20,6 +20,7 @@ import Classpaths.managedJars
 
 //Fixes build issues on java11+
 run / fork := true
+Global / lintUnusedKeysOnLoad := false
 
 val packageJsonStr = scala.io.Source.fromFile("package.json").mkString
 
@@ -176,8 +177,5 @@ lazy val xjcSettings =
       // Return a Seq[File] containing the created resources. This cast can't happen before this point because the
       //   foreach throws an error when the type of resources is a Seq[File] rather than an Array[File]
       moved_resources toSeq
-    }.taskValue,
-//    Test / xjc / sources := (Compile / xjc / sources).value,
-//   Test / doc / sources := (Compile / doc / sources).value,
-//    Test / sourceGenerators := (Compile / sourceGenerators).value
+    }.taskValue
   )
