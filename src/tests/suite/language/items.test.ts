@@ -140,7 +140,7 @@ suite('Items Test Suite', () => {
   })
 
   test('all attributeItems available', async () => {
-    attributeCompletion('', '').items.forEach((item) => {
+    attributeCompletion('', '', 'dfdl:').items.forEach((item) => {
       assert.strictEqual(expectedAttributeItems.includes(item.item), true)
     })
   })

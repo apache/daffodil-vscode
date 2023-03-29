@@ -26,6 +26,7 @@ import {
   getXsdNsPrefix,
   getItemsOnLineCount,
   cursorWithinBraces,
+  dfdlDefaultPrefix,
 } from './utils'
 
 import { attributeCompletion } from './intellisense/attributeItems'
@@ -34,7 +35,8 @@ function getCompletionItems(
   itemsToUse: string[],
   preVal: string = '',
   additionalItems: string = '',
-  nsPrefix: string
+  nsPrefix: string,
+  dfdlPrefix: string
 ) {
   let compItems: vscode.CompletionItem[] = getCommonItems(
     itemsToUse,
@@ -43,12 +45,14 @@ function getCompletionItems(
     nsPrefix
   )
 
-  attributeCompletion(additionalItems, nsPrefix).items.forEach((e) => {
-    if (itemsToUse.includes(e.item)) {
-      const completionItem = createCompletionItem(e, preVal, nsPrefix)
-      compItems.push(completionItem)
+  attributeCompletion(additionalItems, nsPrefix, dfdlPrefix).items.forEach(
+    (e) => {
+      if (itemsToUse.includes(e.item)) {
+        const completionItem = createCompletionItem(e, preVal, nsPrefix)
+        compItems.push(completionItem)
+      }
     }
-  })
+  )
 
   return compItems
 }
@@ -163,7 +167,8 @@ function checkNearestOpenItem(
         ],
         preVal,
         additionalItems,
-        nsPrefix
+        nsPrefix,
+        dfdlDefaultPrefix
       )
     case 'sequence':
       return getCompletionItems(
@@ -176,7 +181,8 @@ function checkNearestOpenItem(
         ],
         preVal,
         '',
-        nsPrefix
+        nsPrefix,
+        dfdlDefaultPrefix
       )
     case 'choice':
       return getCompletionItems(
@@ -189,10 +195,17 @@ function checkNearestOpenItem(
         ],
         '',
         '',
-        nsPrefix
+        nsPrefix,
+        dfdlDefaultPrefix
       )
     case 'group':
-      return getCompletionItems(['ref', 'name'], '', '', nsPrefix)
+      return getCompletionItems(
+        ['ref', 'name'],
+        '',
+        '',
+        nsPrefix,
+        dfdlDefaultPrefix
+      )
 
     case 'simpleType':
       return getCompletionItems(
@@ -204,17 +217,19 @@ function checkNearestOpenItem(
         ],
         '',
         '',
-        nsPrefix
+        nsPrefix,
+        dfdlDefaultPrefix
       )
     case 'assert':
       return getCompletionItems(
         ['testKind', 'test', 'testPattern', 'message', 'failureType'],
         '',
         '',
-        nsPrefix
+        nsPrefix,
+        ''
       )
     case 'discriminator':
-      return getCompletionItems(['message'], '', '', nsPrefix)
+      return getCompletionItems(['message'], '', '', nsPrefix, '')
     case 'format':
       return getCompletionItems(
         [
@@ -283,7 +298,8 @@ function checkNearestOpenItem(
         ],
         '',
         '',
-        nsPrefix
+        nsPrefix,
+        ''
       )
     case 'defineVariable':
       return getDefineVariableCompletionItems(preVal, additionalItems, nsPrefix)
