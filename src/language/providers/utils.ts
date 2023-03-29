@@ -48,7 +48,10 @@ export function getItems() {
 }
 
 // default namespace in the event that a namespace was not found
-const defaultXsdNsPrefix = ''
+export const defaultXsdNsPrefix = ''
+
+// dfdl namespace for dfdl format element in non dfdl tags
+export const dfdlDefaultPrefix = 'dfdl:'
 
 // Function to insert snippet to active editor
 export function insertSnippet(snippetString: string, backpos: vscode.Position) {
@@ -443,6 +446,7 @@ export function createCompletionItem(
     'dfdl:representation',
     'dfdl:choiceDispatchKey=',
     'dfdl:simpleType',
+    'dfdl:element',
     'restriction',
   ]
 
