@@ -115,13 +115,9 @@ limitations under the License.
   let isScrolledToTop = true
   let isScrolledToEnd = false
 
-  const selectedContent = writable(
-    document.getElementById('selectedContent') as HTMLTextAreaElement
-  )
   const editByteWindow = writable(
     document.getElementById('editByteWindow') as HTMLDivElement
   )
-
   // Reactive Declarations - ORDER MATTERS
   $: clearOnEditModeChange($editMode)
 
@@ -1185,16 +1181,15 @@ limitations under the License.
     {#if $editMode === 'full'}
       <textarea
         class="selectedContent"
-        id="editor"
+        id="selectedContent"
         contenteditable="true"
-        bind:this={$selectedContent}
-        bind:innerHTML={$editorSelection}
+        bind:value={$editorSelection}
         on:keyup|nonpassive={handleEditorEvent}
         on:click={handleEditorEvent}
         on:input={handleEditorEvent}
       />
     {:else}
-      <textarea class="selectedContent" id="editor" disabled />
+      <textarea class="selectedContent" id="selectedContent" disabled />
     {/if}
     <!-- Full Mode Content Controls -->
     {#if $editMode === 'full'}
