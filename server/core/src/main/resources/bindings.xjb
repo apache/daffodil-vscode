@@ -23,7 +23,7 @@
     <jxb:globalBindings>
         <jxb:serializable uid="1" />
     </jxb:globalBindings>
-    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/DFDL_part3_model.xsd" version="1.0">
+    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/org/apache/daffodil/xsd/DFDL_part3_model.xsd" version="1.0">
         <jxb:bindings node="//xs:attributeGroup[@name='SetVariableAG']/xs:attribute[@name='value']">
             <jxb:property name="ValueAttribute"/>
         </jxb:bindings>
@@ -43,12 +43,12 @@
             <jxb:class name="elementClass"/>
         </jxb:bindings>
     </jxb:bindings>
-    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/DFDL_part2_attributes.xsd" version="1.0">
+    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/org/apache/daffodil/xsd/DFDL_part2_attributes.xsd" version="1.0">
         <jxb:bindings node="//xs:attributeGroup[@name='BaseAGQualified']/xs:attribute[@name='ref']">
             <jxb:property name="RefAttribute"/>
         </jxb:bindings>
     </jxb:bindings>
-    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/DFDL_part1_simpletypes.xsd" version="1.0">
+    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/org/apache/daffodil/xsd/DFDL_part1_simpletypes.xsd" version="1.0">
         <jxb:bindings node="//xs:simpleType[@name='ByteOrderEnum']">
             <jxb:typesafeEnumClass name="ByteOrderEnumType"/>
         </jxb:bindings>
@@ -56,7 +56,7 @@
             <jxb:typesafeEnumClass name="BitOrderEnumType"/>
         </jxb:bindings>
     </jxb:bindings>
-    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/dafext.xsd" version="1.0">
+    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/org/apache/daffodil/xsd/dafext.xsd" version="1.0">
         <jxb:bindings node="//xs:attribute[@name='parseUnparsePolicy']">
             <jxb:property name="ParseUnparsePolicyExt"/>
         </jxb:bindings>
@@ -70,7 +70,7 @@
             <jxb:class name="propertyClass"/>
         </jxb:bindings>
     </jxb:bindings>
-    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/dfdlx.xsd" version="1.0">
+    <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/org/apache/daffodil/xsd/dfdlx.xsd" version="1.0">
         <jxb:bindings node="//xs:simpleType[@name='PropertyNameType']">
             <jxb:typesafeEnumClass name="PropertyNameTypeX"/>
         </jxb:bindings>
