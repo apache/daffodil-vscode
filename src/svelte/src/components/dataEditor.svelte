@@ -783,27 +783,27 @@ limitations under the License.
   <div class="header-container">
     <fieldset class="box file-metrics">
       <legend>File Metrics</legend>
-      <div class="grid-container-single-column">
-        <label for="file_name" class="file-metrics">Path: </label><span
-          class="x-hidden"
-          id="file_name">{$fileName}</span
-        >
-        <hr />
-      </div>
-      <div class="flex-container col">
-        <div class="col-item flex-container row center">
-          <label for="disk_file_size" class="two-row-items file-metrics"
-            >Disk Size:
-            <div class="two-row-items" id="disk_file_size">{$diskFileSize}</div>
-          </label>
+      <div class="flex-container row wrap">
+        <div class="row-item flex-container col">
+          <label for="file_name" class="col-item file-metrics">Path</label>
+          <div id="file_name" class="col-item file-name">{$fileName}</div>
         </div>
-        <div class="col-item flex-container row center">
-          <label for="computed_file_size" class="two-row-items file-metrics"
-            >Computed Size:
-            <div class="two-row-items" id="computed_file_size">
-              {$computedFileSize}
-            </div>
-          </label>
+      </div>
+      <hr />
+      <div class="flex-container row" style="padding-top: 5pt;">
+        <div class="two-row-items flex-container col">
+          <label class="col-item file-metrics" for="disk_file_size"
+            >Disk Size</label
+          >
+          <div class="col-item" id="disk_file_size">{$diskFileSize}</div>
+        </div>
+        <div class="two-row-item flex-container col">
+          <label class="col-item file-metrics" for="computed_file_size"
+            >Computed Size</label
+          >
+          <div class="col-item" id="computed_file_size">
+            {$computedFileSize}
+          </div>
         </div>
       </div>
       <hr />
@@ -963,7 +963,10 @@ limitations under the License.
     </fieldset>
   </div>
   {#if $headerHidden}
-    <div class="display-icons flex-container row center">
+    <div
+      class="display-icons flex-container row center"
+      style="width: 100%;justify-content: space-between;"
+    >
       <div>{$fileName}</div>
       <button class="minmax-icon" on:click={elementMinMax}>&#8691;</button>
     </div>
@@ -1426,6 +1429,9 @@ limitations under the License.
   div.flex-container {
     display: flex;
   }
+  div.flex-container.wrap {
+    flex-wrap: wrap;
+  }
   div.flex-container.row {
     flex-direction: row;
   }
@@ -1474,7 +1480,10 @@ limitations under the License.
     border-color: white;
     border-style: solid;
   }
-
+  div.file-name {
+    hyphens: none;
+    overflow-wrap: anywhere;
+  }
   /* CSS reset */
   *,
   *:before,
@@ -1538,7 +1547,9 @@ limitations under the License.
     flex: 0 1 auto;
     transition: all 0.5s;
   }
-
+  header fieldset {
+    width: 100%;
+  }
   header label.file-metrics {
     font-weight: bold;
   }
@@ -1553,6 +1564,7 @@ limitations under the License.
   header div.header-container {
     display: flex;
     justify-content: center;
+    width: 100%;
     transition: all 0.5s;
   }
   header div.display-icons {
@@ -1614,11 +1626,9 @@ limitations under the License.
   }
 
   fieldset.file-metrics {
-    max-width: 250px;
-    min-width: 200px;
+    min-width: 200pt;
   }
   fieldset.search-replace {
-    width: 215pt;
     overflow: scroll;
   }
 
