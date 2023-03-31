@@ -20,7 +20,7 @@ import Classpaths.managedJars
 
 //Fixes build issues on java11+
 run / fork := true
-
+Global / lintUnusedKeysOnLoad := false
 val packageJsonStr = scala.io.Source.fromFile("package.json").mkString
 
 val daffodilVer = {
@@ -158,26 +158,6 @@ lazy val xjcSettings =
       }
 
       // Get File objects for each DFDL schema file that was extracted.
-      val resources =
-        new File(Seq(xsdDir, "org", "apache", "daffodil", "xsd").mkString("/")).listFiles()
-
-      // Flatten the extracted files so that the directory structure created by the extraction process is deleted
-      resources.foreach { f: File => IO.move(f, new File(Seq(xsdDir, f.getName).mkString(java.io.File.separator))) }
-
-      // Delete the directory structure created during extraction
-      IO.delete(new File(Seq(xsdDir, "org").mkString(java.io.File.separator)))
-
-      // The files have been moved, but the paths have not been updated. We need to point the File objects
-      //   to the new file locations
-      val moved_resources = resources map { f: File =>
-        new File(Seq(xsdDir, f.getName).mkString(java.io.File.separator))
-      }
-
-      // Return a Seq[File] containing the created resources. This cast can't happen before this point because the
-      //   foreach throws an error when the type of resources is a Seq[File] rather than an Array[File]
-      moved_resources toSeq
-    }.taskValue,
-    Test / xjc / sources := (Compile / xjc / sources).value,
-    Test / doc / sources := (Compile / doc / sources).value,
-    Test / sourceGenerators := (Compile / sourceGenerators).value
+      new File(Seq(xsdDir, "org", "apache", "daffodil", "xsd").mkString("/")).listFiles().toSeq
+    }.taskValue
   )
