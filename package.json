@@ -42,7 +42,7 @@
     "sbt": "sbt universal:packageBin"
   },
   "dependencies": {
-    "@vscode/debugadapter": "1.51.0",
+    "@vscode/debugadapter": "1.59.0",
     "await-notify": "1.0.1",
     "hexy": "0.3.4",
     "omega-edit": "0.9.55",
