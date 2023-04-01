@@ -112,14 +112,14 @@ lazy val xjcSettings =
       "com.sun.xml.bind" % "jaxb-impl" % "2.2.11",
       "javax.activation" % "activation" % "1.1.1",
       "org.apache.daffodil" %% "daffodil-lib" % daffodilVer % Test,
-      "org.glassfish.jaxb" % "jaxb-xjc" % "2.2.11"
+      "org.glassfish.jaxb" % "jaxb-xjc" % "2.3.8"
     ),
     xjcCommandLine += "-nv",
     xjcCommandLine += "-p",
     xjcCommandLine += "org.apache.daffodil.tdml",
     xjcBindings += "server/core/src/main/resources/bindings.xjb",
     xjcLibs := Seq(
-      "org.glassfish.jaxb" % "jaxb-xjc" % "2.2.11",
+      "org.glassfish.jaxb" % "jaxb-xjc" % "2.3.8",
       "com.sun.xml.bind" % "jaxb-impl" % "2.2.11",
       "javax.activation" % "activation" % "1.1.1"
     ),
