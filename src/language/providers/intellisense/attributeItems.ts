@@ -281,7 +281,7 @@ export const attributeCompletion = (additionalItems, nsPrefix: string, dfdlPrefi
       },
       {
         item: 'dfdl:hiddenGroupRef',
-        snippetString: '<' + nsPrefix + 'dfdl:hiddenGroupRef="$1"\n$0',
+        snippetString: 'dfdl:hiddenGroupRef="$1"$0',
         markdownString: 'Reference to a global model group definition',
       },
       {

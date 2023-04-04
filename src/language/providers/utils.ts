@@ -220,7 +220,7 @@ export function checkTagOpen(
       return true
     }
   }
-  if (!isMultiLineTag) {
+  if (!isMultiLineTag || tagPos === -1) {
     return false
   }
   //if this tag is part of a multi line set of annotations return true
@@ -276,14 +276,12 @@ export function checkMultiLineTag(
     while (currentText.trim() === '' || !currentText.includes('<')) {
       --currentLine
       currentText = document.lineAt(currentLine).text
-      if (!currentText.endsWith('/>')) {
-        break
-      }
     }
     if (
       currentText.indexOf('<' + nsPrefix + tag) !== -1 &&
       currentText.indexOf('>') === -1 &&
-      currentText.indexOf('<' + nsPrefix + tag) < position.character
+      (currentText.indexOf('<' + nsPrefix + tag) < position.character ||
+        currentLine < position.line)
     ) {
       return true
     }
@@ -293,8 +291,9 @@ export function checkMultiLineTag(
     let tagEndPos = currentText.indexOf('/>')
     let triggerLine = position.line
     if (
-      (triggerLine <= currentLine && triggerPos < tagEndPos) ||
-      (triggerLine === tagLine && triggerPos > tagPos && tagPos !== -1)
+      (triggerLine === currentLine && triggerPos < tagEndPos) ||
+      (triggerLine === tagLine && triggerPos > tagPos && tagPos !== -1) ||
+      triggerLine < currentLine
     ) {
       return true
     }
