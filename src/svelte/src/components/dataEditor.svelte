@@ -168,10 +168,8 @@ limitations under the License.
 
   $: updateLogicalDisplay($bytesPerRow)
 
-  $: {
-    $gotoOffset = parseInt($gotoOffsetInput, $addressValue)
-    if ($gotoable.valid) goTo($gotoOffset)
-  }
+  $: $gotoOffset = parseInt($gotoOffsetInput, $addressValue)
+
   $: {
     if ($editorSelection.includes(dvHighlightTag.start)) {
       $editorSelection = $editorSelection
@@ -221,6 +219,11 @@ limitations under the License.
       physical_vwRef.scrollTop =
         (targetLine == 0 ? 0 : targetLine - 1) * lineHeight
     }
+    closeEphemeralWindows()
+  }
+
+  function goToEventHandler(_: Event) {
+    goTo($gotoOffset)
   }
 
   function scrollSearchResults(isNext: boolean) {
@@ -887,13 +890,13 @@ limitations under the License.
             {#if $searchResults.length > 0}
               <button
                 class={$UIThemeCSSClass}
-                id="search_next"
-                on:click={scrollSearchNext}>Next</button
+                id="search_prev"
+                on:click={scrollSearchPrev}>Prev</button
               >
               <button
                 class={$UIThemeCSSClass}
-                id="search_prev"
-                on:click={scrollSearchPrev}>Prev</button
+                id="search_next"
+                on:click={scrollSearchNext}>Next</button
               >
               <sub>{$searchIndex + 1} / {$searchResults.length} Results </sub>
             {:else if $replacementsCount > 0}
@@ -959,15 +962,37 @@ limitations under the License.
             </div>
           </div>
           <hr />
-          <div class="col-item flex-container row center">
-            <div class="two-row-items">Offset:</div>
-            <div class="two-row-items">
-              <input
-                class={$UIThemeCSSClass + ' row-item'}
-                type="text"
-                id="goto_offset"
-                bind:value={$gotoOffsetInput}
-              />
+          <div
+            class="col-item flex-container row center"
+            style="justify-content: flex-end;flex-wrap: wrap;"
+          >
+            <div class="col-item flex-container row center" style="width:100%;">
+              <div class="two-row-items">Offset:</div>
+              <div class="two-row-items">
+                <input
+                  class={$UIThemeCSSClass + ' row-item'}
+                  type="text"
+                  id="goto_offset"
+                  bind:value={$gotoOffsetInput}
+                />
+              </div>
+            </div>
+            <div class="col-item" style="font-size: 9pt; text-align: right;">
+              <div class="row-item flex-container row end center-items">
+                {#if !$gotoable.valid}
+                  <div class="margin-right" style="color: red;">
+                    {$gotoable.gotoErrMsg}
+                  </div>
+                  <button class={$UIThemeCSSClass + ' no-margin goto'} disabled
+                    >Go To</button
+                  >
+                {:else}
+                  <button
+                    class={$UIThemeCSSClass + ' no-margin goto'}
+                    on:click={goToEventHandler}>Go To</button
+                  >
+                {/if}
+              </div>
             </div>
           </div>
         </div>
@@ -1491,48 +1516,69 @@ limitations under the License.
   div.flex-container {
     display: flex;
   }
+
   div.flex-container.wrap {
     flex-wrap: wrap;
   }
+
   div.flex-container.row {
     flex-direction: row;
   }
+
   div.flex-container.row .row-item {
     width: 100%;
   }
+
   div.flex-container.row .two-row-items {
     width: 50%;
   }
+
   div.flex-container.row .row-item.search-case {
     width: 50%;
   }
+
   div.flex-container.row .row-item.search-case input {
     width: 0;
     width: 50%;
   }
+
   div.flex-container.col {
     flex-direction: column;
   }
+
   div.col-item {
     margin-top: 2pt;
   }
+
   div.flex-container.center {
     align-items: center;
   }
+
+  div.flex-container.end {
+    justify-content: flex-end;
+  }
+
+  div.flex-container.center-items {
+    align-items: center;
+  }
+
   div.omega-latency {
     width: 100%;
     height: 25pt;
     font-style: italic;
     opacity: 0.8;
   }
+
   div.omega-latency div.latency-group div.latency-text {
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
   }
+
   div.omega-latency div.latency-group {
     width: auto;
     height: 100%;
   }
+
   div.omega-latency div.latency-group:hover div.latency-text {
     opacity: 1;
   }
@@ -1542,6 +1588,7 @@ limitations under the License.
     border-color: white;
     border-style: solid;
   }
+
   div.file-name {
     hyphens: none;
     overflow-wrap: anywhere;
@@ -1561,6 +1608,7 @@ limitations under the License.
       rotate: 360deg;
     }
   }
+
   @keyframes dash {
     0% {
       stroke-dasharray: 1, 150;
@@ -1575,11 +1623,13 @@ limitations under the License.
       stroke-dashoffset: -124;
     }
   }
+
   svg.loader.sm {
     width: 20px;
     height: 20px;
     animation: spin 1s linear infinite;
   }
+
   svg.loader circle {
     fill: none;
     stroke: #727272;
@@ -1587,6 +1637,7 @@ limitations under the License.
     stroke-linecap: round;
     animation: dash 0.75s ease-in-out infinite;
   }
+
   svg.latency-indicator {
     height: 100%;
     width: 15pt;
@@ -1609,9 +1660,11 @@ limitations under the License.
     flex: 0 1 auto;
     transition: all 0.5s;
   }
+
   header fieldset {
     width: 100%;
   }
+
   header label.file-metrics {
     font-weight: bold;
   }
@@ -1629,16 +1682,19 @@ limitations under the License.
     width: 100%;
     transition: all 0.5s;
   }
+
   header div.display-icons {
     margin-top: 5px;
     transition: all 0.4s ease 0s;
     align-items: center;
   }
+
   header div.display-icons div {
     margin-right: 10pt;
     font-size: 10pt;
     letter-spacing: 1pt;
   }
+
   header div.display-icons button {
     width: 20px;
     height: 20px;
@@ -1688,6 +1744,7 @@ limitations under the License.
   fieldset.file-metrics {
     min-width: 200pt;
   }
+
   fieldset.search-replace {
     overflow: scroll;
   }
@@ -1801,6 +1858,7 @@ limitations under the License.
   .dataEditor div.measure span {
     align-self: flex-end;
   }
+
   .dataEditor div.measure div {
     display: flex;
     flex-direction: column;
@@ -1867,31 +1925,42 @@ limitations under the License.
     height: 100%;
     width: 20pt;
   }
+
   .dataEditor div.edit-byte-window button.switch-viewport {
     padding: 1pt;
     background-color: lightyellow;
     color: darkslategrey;
   }
+
   .dataEditor div.edit-byte-window button:disabled {
     opacity: 0.6;
   }
+
   button.submit {
     background: green;
     color: #e1e3e5;
   }
+
   button.delete {
     background: red;
     color: #e1e3e5;
   }
+
   button.insert {
     background: darkorchid;
     color: #e1e3e5;
   }
+
+  button.goto {
+    max-width: 15pt;
+  }
+
   button:disabled {
     opacity: 0.3;
     cursor: not-allowed;
     color: var(--vscode-button-foreground);
   }
+
   .dataEditor textarea {
     display: block;
     word-break: break-all;
@@ -1908,6 +1977,8 @@ limitations under the License.
     cursor: not-allowed;
     pointer-events: none;
     max-width: 100px;
+    padding-right: 10pt;
+    font-weight: 700;
   }
   .dataEditor select.address_type {
     height: 100%;
@@ -1927,6 +1998,14 @@ limitations under the License.
     grid-template-rows: 1fr max-content;
     overflow-x: hidden;
     word-break: break-all;
+  }
+
+  .dataEditor textarea.selectedContent {
+    background: #2c2c2c;
+  }
+
+  .dataEditor textarea.selectedContent:disabled {
+    background: #252526;
   }
 
   .dataEditor button {
@@ -1966,6 +2045,14 @@ limitations under the License.
 
   .x-hidden {
     overflow-x: hidden;
+  }
+
+  .no-margin {
+    margin: 0 0 0 0;
+  }
+
+  .margin-right {
+    margin-right: 5pt;
   }
 
   #address_numbering {
