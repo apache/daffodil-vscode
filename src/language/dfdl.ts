@@ -20,6 +20,7 @@ import * as fs from 'fs'
 import { getElementCompletionProvider } from './providers/elementCompletion'
 import { getAttributeCompletionProvider } from './providers/attributeCompletion'
 import { getCloseElementProvider } from './providers/closeElement'
+import { getAttributeValueCompletionProvider } from './providers/attributeValueCompletion'
 import { getCloseElementSlashProvider } from './providers/closeElementSlash'
 
 export function activate(context: vscode.ExtensionContext) {
@@ -34,6 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     getElementCompletionProvider(dfdlFormat),
     getAttributeCompletionProvider(),
+    getAttributeValueCompletionProvider(),
     getCloseElementProvider(),
     getCloseElementSlashProvider()
   )

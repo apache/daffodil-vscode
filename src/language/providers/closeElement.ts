@@ -17,7 +17,12 @@
 
 import * as vscode from 'vscode'
 import { checkMissingCloseTag } from './closeUtils'
-import { checkBraceOpen, cursorWithinBraces } from './utils'
+import {
+  checkBraceOpen,
+  cursorAfterEquals,
+  cursorWithinBraces,
+  cursorWithinQuotes,
+} from './utils'
 import {
   getXsdNsPrefix,
   insertSnippet,
@@ -35,19 +40,24 @@ export function getCloseElementProvider() {
       ) {
         if (
           checkBraceOpen(document, position) ||
-          cursorWithinBraces(document, position)
+          cursorWithinBraces(document, position) ||
+          cursorWithinQuotes(document, position) ||
+          cursorAfterEquals(document, position)
         ) {
           return undefined
         }
+
         let backpos = position.with(position.line, position.character)
         let backpos3 = position.with(position.line, position.character)
 
         if (position.character > 0) {
           backpos = position.with(position.line, position.character - 1)
         }
+
         if (position.character > 2) {
           backpos3 = position.with(position.line, position.character - 3)
         }
+
         let nsPrefix = getXsdNsPrefix(document, position)
         const origPrefix = nsPrefix
 
@@ -68,6 +78,7 @@ export function getCloseElementProvider() {
         }
 
         let range = new vscode.Range(position, position)
+
         if (
           (triggerText.endsWith('>') && itemsOnLine < 2) ||
           (triggerText.endsWith('>>') && itemsOnLine > 1) ||
@@ -169,6 +180,7 @@ function checkNearestTagNotClosed(
   nsPrefix: string
 ) {
   const triggerText = document.lineAt(position.line).text
+
   switch (nearestTagNotClosed) {
     case 'defineVariable':
     case 'setVariable':
@@ -177,9 +189,9 @@ function checkNearestTagNotClosed(
     case 'assert':
     case 'discriminator':
       if (triggerText.endsWith('>')) {
-        insertSnippet('</' + nsPrefix + nearestTagNotClosed + '>', backpos)
+        insertSnippet('$1</' + nsPrefix + nearestTagNotClosed + '>', backpos)
       } else {
-        insertSnippet('></' + nsPrefix + nearestTagNotClosed + '>$0', backpos)
+        insertSnippet('>$1</' + nsPrefix + nearestTagNotClosed + '>$0', backpos)
       }
       break
     default:
@@ -204,6 +216,7 @@ function checkTriggerText(
   if (triggerText.includes('<' + nsPrefix + nearestTagNotClosed)) {
     let tagPos = triggerText.lastIndexOf('<' + nsPrefix + nearestTagNotClosed)
     let tagEndPos = triggerText.indexOf('>', tagPos)
+
     if (
       tagPos != -1 &&
       !triggerText.substring(tagEndPos - 1, 2).includes('/>') &&

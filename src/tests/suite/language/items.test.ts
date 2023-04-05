@@ -51,6 +51,9 @@ suite('Items Test Suite', () => {
     'minExclusive',
     'maxInclusive',
     'maxExclusive',
+    '<[CDATA[]]>',
+    '<![CDATA[]]>',
+    '{}',
   ]
   const expectedAttributeItems = [
     'name',

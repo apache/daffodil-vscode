@@ -236,7 +236,7 @@ export const attributeCompletion = (additionalItems, nsPrefix: string, dfdlPrefi
       },
       {
         item: 'dfdl:leadingSkip',
-        snippetString: dfdlPrefix + 'trailingSkip="0$1"$0',
+        snippetString: dfdlPrefix + 'leadingSkip="0$1"$0',
         markdownString: 'A non-negative number of bytes or bits to skip before alignment is applied',
       },
       {
