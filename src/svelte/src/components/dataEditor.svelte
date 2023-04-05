@@ -15,95 +15,93 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
+  import { writable } from 'svelte/store'
   import {
-    displayRadix,
     addressValue,
-    fileName,
-    diskFileSize,
-    fileByteStart,
-    fileByteEnd,
-    bytesPerRow,
-    editedDataSegment,
-    selectionStartOffset,
-    selectionEndOffset,
-    editorSelection,
-    editorEncoding,
-    selectionSize,
-    commitable,
+    allowCaseInsensitiveSearch,
     byteOffsetPos,
+    bytesPerRow,
+    changeCount,
+    commitErrMsg,
+    commitable,
+    computedFileSize,
     cursorPos,
     dataViewEndianness,
-    commitErrMsg,
-    viewportData,
+    dataViewOffsetText,
+    diskFileSize,
+    displayRadix,
+    editByte,
+    editByteWindowHidden,
+    editMode,
+    editedByteIsOriginalByte,
+    editedDataSegment,
+    editorEncoding,
+    editorSelection,
+    fileByteEnd,
+    fileByteStart,
+    fileName,
+    float32,
+    float64,
+    focusedViewportId,
     gotoOffset,
     gotoOffsetInput,
     gotoOffsetMax,
     gotoable,
-    int8,
-    uint8,
-    int16,
-    uint16,
-    int32,
-    uint32,
-    float32,
-    int64,
-    uint64,
-    float64,
-    rawEditorSelectionTxt,
-    searching,
-    searchData,
-    allowCaseInsensitiveSearch,
-    searchCaseInsensitive,
-    searchable,
-    searchResults,
-    replaceData,
-    replaceable,
-    replaceErrMsg,
-    selectionOriginalEnd,
-    searchErrMsg,
-    computedFileSize,
-    saveable,
-    requestable,
-    undoCount,
-    changeCount,
-    editByte,
-    editMode,
-    editByteWindowHidden,
-    focusedViewportId,
-    replacing,
-    replacementsCount,
-    searchIndex,
     headerHidden,
+    int16,
+    int32,
+    int64,
+    int8,
     originalDataSegment,
-    editedByteIsOriginalByte,
+    rawEditorSelectionTxt,
+    replaceData,
+    replaceErrMsg,
+    replaceable,
+    replacementsCount,
+    replacing,
+    requestable,
+    saveable,
+    searchCaseInsensitive,
+    searchData,
+    searchErrMsg,
+    searchIndex,
+    searchResults,
+    searchable,
+    searching,
     selectionActive,
-    dataViewOffsetText,
+    selectionEndOffset,
+    selectionOriginalEnd,
+    selectionSize,
+    selectionStartOffset,
+    uint16,
+    uint32,
+    uint64,
+    uint8,
+    undoCount,
+    viewportData,
   } from '../stores'
-  import {
-    radixOpt,
-    encoding_groups,
-    endiannessOpt,
-    lsbOpt,
-    byteSizeOpt,
-    addressOpt,
-    dvHighlightTag,
-    getOffsetDisplay,
-    encodeForDisplay,
-    makeAddressRange,
-    isWhitespace,
-    syncScroll,
-    setSelectionOffsetInfo,
-    radixBytePad,
-  } from '../utilities/display'
   import {
     CSSThemeClass,
     UIThemeCSSClass,
     darkUITheme,
   } from '../utilities/colorScheme'
-  import { vscode } from '../utilities/vscode'
-  import { MessageCommand } from '../utilities/message'
-  import { writable } from 'svelte/store'
+  import {
+    addressOpt,
+    dvHighlightTag,
+    encodeForDisplay,
+    encoding_groups,
+    endiannessOpt,
+    getOffsetDisplay,
+    isWhitespace,
+    makeAddressRange,
+    radixBytePad,
+    radixOpt,
+    setSelectionOffsetInfo,
+    syncScroll,
+  } from '../utilities/display'
   import { radixToString } from '../utilities/display.js'
+  import { MessageCommand } from '../utilities/message'
+  import { vscode } from '../utilities/vscode'
 
   let addressText: string
   let physicalOffsetText: string
@@ -112,8 +110,12 @@ limitations under the License.
   let logicalDisplayText: string = ''
   let currentScrollEvt: string | null, scrollSyncTimer: NodeJS.Timeout
   let omegaEditPort: number
-  let serverVersion: string = 'Connecting...'
+  let serverVersion: string = 'Unknown'
   let serverLatency: number
+  let serverCpuLoadAvg: number
+  let serverUsedMemory: number
+  let serverUptime: number
+  let sessionCount: number
   let physical_vwRef: HTMLTextAreaElement
   let address_vwRef: HTMLTextAreaElement
   let logical_vwRef: HTMLTextAreaElement
@@ -736,6 +738,10 @@ limitations under the License.
         omegaEditPort = msg.data.data.omegaEditPort
         serverVersion = msg.data.data.serverVersion
         serverLatency = msg.data.data.serverLatency
+        serverCpuLoadAvg = msg.data.data.serverCpuLoadAvg
+        serverUsedMemory = msg.data.data.serverUsedMemory
+        serverUptime = msg.data.data.serverUptime
+        sessionCount = msg.data.data.sessionCount
         break
 
       case MessageCommand.viewportSubscribe:
@@ -1521,7 +1527,12 @@ limitations under the License.
           <circle cx="50%" cy="50%" r="4pt" fill="grey" />
         {/if}
       </svg>
-      <div class="latency-text">{serverLatency}ms</div>
+      <div class="latency-text">
+        CPU Load Avg: {(serverCpuLoadAvg ? serverCpuLoadAvg : 0).toFixed(2)},
+        Memory Usage: {serverUsedMemory}, Session Count: {sessionCount}, Uptime: {(
+          serverUptime / 1000
+        ).toFixed(0)}s, Latency: {serverLatency}ms
+      </div>
     </div>
   </div>
 </body>

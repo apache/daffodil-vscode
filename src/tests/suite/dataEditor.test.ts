@@ -16,122 +16,78 @@
  */
 
 import * as assert from 'assert'
-import { after, before } from 'mocha'
 import * as path from 'path'
 import * as vscode from 'vscode'
-import { Artifact, Backend } from '../../classes/artifact'
-import { DataEditWebView } from '../../omega_edit/dataEditWebView'
-import * as omegaEditClient from '../../omega_edit/client'
-import { killProcess, osCheck, runScript } from '../../utils'
-import { PACKAGE_PATH, PROJECT_ROOT, TEST_SCHEMA } from './common'
-import { initOmegaEditClient } from '../../omega_edit/utils'
+import XDGAppPaths from 'xdg-app-paths'
+import fs from 'fs'
+import { DataEditWebView } from '../../dataEdit/dataEditWebView'
+import { TEST_SCHEMA } from './common'
+import { after, before } from 'mocha'
+import {
+  getClientVersion,
+  getServerVersion,
+  startServer,
+  stopServerUsingPID,
+} from '@omega-edit/client'
 
-const omegaEditVersion =
-  omegaEditClient.getOmegaEditPackageVersion(PACKAGE_PATH)
-const localArtifact = new Artifact(
-  'omega-edit-grpc-server',
-  omegaEditVersion,
-  'omega-edit-grpc-server'
-)
-const omegaEditServerPath = path.join(
-  PROJECT_ROOT,
-  'node_modules/omega-edit',
-  localArtifact.name
-)
-const port = 9000
-
-export async function runServerForTests() {
-  await initOmegaEditClient(port, '127.0.0.1')
-  return await runScript(
-    omegaEditServerPath,
-    localArtifact.scriptName,
-    null,
-    ['--port', port.toString()],
-    {
-      OMEGA_EDIT_SERVER_PORT: port.toString(),
-    },
-    '',
-    false,
-    port
-  )
-}
+const appDataPath = XDGAppPaths({ name: 'omega_edit' }).data()
+const testPort = 9009 // use a different port than the default for testing to avoid conflicts with running servers
+const testHost = '127.0.0.1'
+const dataEditorCommand = 'extension.data.edit'
 
 suite('Data Editor Test Suite', () => {
-  let terminal: vscode.Terminal
-
-  before(async () => {
-    terminal = await runServerForTests()
-  })
-
-  after(async () => {
-    await terminal.processId.then(async (id) => await killProcess(id))
-  })
-
   test('data edit command exists', async () => {
     assert.strictEqual(
-      (await vscode.commands.getCommands()).includes('extension.data.edit'),
+      (await vscode.commands.getCommands()).includes(dataEditorCommand),
       true
     )
   })
 
-  suite('artifact attributes', () => {
-    const packageName = 'omega-edit-grpc-server'
-    const packageVersion = '1.0.0'
-    const scriptName = 'omega-edit-grpc-server'
-    const artifact = new Artifact(packageName, packageVersion, scriptName)
-    const backend = new Backend('ctc-oss', 'omega-edit')
-
-    test('name set properly', () => {
-      assert.strictEqual(artifact.name, `${packageName}-${packageVersion}`)
+  suite('Editor Service', () => {
+    const pidFile = path.join(appDataPath, `test-serv-${testPort}.pid`)
+    before(async () => {
+      const serverPid = (await Promise.race([
+        startServer(testPort, testHost, pidFile),
+        new Promise((resolve, reject) => {
+          setTimeout(
+            () => reject(new Error('Server timed out after 10 seconds')),
+            10000
+          )
+        }),
+      ])) as number | undefined
+      if (serverPid === undefined || serverPid <= 0) {
+        throw new Error('Server failed to start or PID is invalid')
+      }
     })
 
-    test('archive set properly', () => {
-      assert.strictEqual(
-        artifact.archive,
-        `${packageName}-${packageVersion}.zip`
-      )
+    after(async () => {
+      await stopServerUsingPID(parseInt(fs.readFileSync(pidFile).toString()))
     })
 
-    test('scriptName set properly', () => {
-      assert.strictEqual(
-        artifact.scriptName,
-        osCheck(`${scriptName}.bat`, `./${scriptName}`)
-      )
+    test('is running', async () => {
+      // make sure there is a pid file for the server
+      assert.strictEqual(fs.existsSync(pidFile), true)
+
+      // make sure the server is listening on the configured port
+      const wait_port = require('wait-port')
+      const result = await wait_port({
+        host: '127.0.0.1',
+        port: testPort,
+        output: 'silent',
+      })
+      assert.strictEqual(result.open, true)
     })
-
-    test('archiveUrl set properly', () => {
-      const url = artifact.archiveUrl(backend)
-
-      assert.strictEqual(url.includes('ctc-oss'), true)
-      assert.strictEqual(url.includes('omega-edit'), true)
-      assert.strictEqual(url.includes(`v${packageVersion}`), true)
-      assert.strictEqual(
-        url.includes(`${packageName}-${packageVersion}.zip`),
-        true
-      )
+    test('server and client versions match', async () => {
+      const clientVersion = getClientVersion()
+      const serverVersion = await getServerVersion()
+      assert.strictEqual(serverVersion, clientVersion)
     })
-  })
-
-  test('running omega-edit server', async () => {
-    const wait_port = require('wait-port')
-    var result = await wait_port({
-      host: '127.0.0.1',
-      port: port,
-      output: 'silent',
-    })
-
-    assert.strictEqual(result.open, true)
   })
 
   suite('Data Editor', () => {
     test('data editor opens', async () => {
       const dataEditWebView: DataEditWebView =
-        await vscode.commands.executeCommand(
-          'extension.data.edit',
-          false,
-          TEST_SCHEMA
-        )
-
+        await vscode.commands.executeCommand(dataEditorCommand, TEST_SCHEMA)
       assert.ok(dataEditWebView)
       assert.strictEqual(dataEditWebView.panel.active, true)
       assert.strictEqual(dataEditWebView.panel.title, 'Data Editor')
