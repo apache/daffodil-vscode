@@ -643,7 +643,6 @@ limitations under the License.
       headerTag.style.display = 'flex'
       $headerHidden = false
     } else {
-      button.style.transform = 'rotate(180deg)'
       const headerTag = document.querySelector(
         '.header-container'
       ) as HTMLDivElement
@@ -999,7 +998,7 @@ limitations under the License.
       </fieldset>
     </div>
     {#if $headerHidden}
-      <div class="display-icons flex-container row center">
+      <div class="display-icons flex-container row center" style="width: 100%;">
         <div>{$fileName}</div>
         <button
           class={$UIThemeCSSClass + ' minmax-icon'}
@@ -1684,6 +1683,7 @@ limitations under the License.
   }
 
   header div.display-icons {
+    justify-content: space-between;
     margin-top: 5px;
     transition: all 0.4s ease 0s;
     align-items: center;
@@ -1755,22 +1755,32 @@ limitations under the License.
     padding-top: 2px;
     padding-bottom: 2px;
     font-weight: bold;
+    border-width: 1pt;
+    border-style: solid;
   }
+
   input.dark {
     background-color: #101821;
     color: #e1e3e5;
+    border-color: #687483;
   }
+
   select.dark {
     background-color: #101821;
     color: #e1e3e5;
+    border-color: #687483;
   }
+
   input.light {
     background-color: #e1e3e5;
     color: #02060b;
+    border-color: #2f3e4f;
   }
+
   select.light {
     background-color: #e1e3e5;
     color: #02060b;
+    border-color: #2f3e4f;
   }
 
   textarea {
@@ -1790,15 +1800,22 @@ limitations under the License.
     font-weight: bold;
     margin-bottom: 5px;
     cursor: pointer;
+    border-width: 1pt;
+    border-style: solid;
   }
+
   button.dark {
     background-color: #322716;
     color: #fffdfa;
+    border-color: #c8b69b;
   }
+
   button.light {
     background-color: #c8b69b;
     color: #322716;
+    border-color: #322716;
   }
+
   .dataEditor {
     display: grid;
     /* I think this should be 32em instead of 19em for 32 characters, but that didn't work */
@@ -1824,23 +1841,27 @@ limitations under the License.
   .dataEditor div.hd {
     text-align: center;
     font-weight: bold;
+    color: #fffdfa;
   }
+
   .dataEditor div.hd.dark {
     background-color: #2f3e4f;
-    color: #02060b;
   }
+
   .dataEditor div.hd.light {
     background-color: #687483;
-    color: #110b02;
   }
+
   .dataEditor div.measure {
     display: flex;
   }
+
   .dataEditor div.measure.dark {
     display: flex;
     background-color: #101821;
     color: #e1e3e5;
   }
+
   .dataEditor div.measure.light {
     display: flex;
     background-color: #e1e3e5;
@@ -1915,8 +1936,15 @@ limitations under the License.
   .dataEditor div.edit-byte-window input {
     width: 30%;
     border-width: 1px;
-    border-color: white;
     text-align: center;
+  }
+
+  .dataEditor div.edit-byte-window input.dark {
+    background-color: #322716;
+  }
+
+  .dataEditor div.edit-byte-window input.light {
+    background-color: #fffdfa;
   }
 
   .dataEditor div.edit-byte-window button {
@@ -1980,13 +2008,16 @@ limitations under the License.
     padding-right: 10pt;
     font-weight: 700;
   }
+
   .dataEditor select.address_type {
     height: 100%;
   }
+
   .dataEditor textarea.dark {
     background-color: #101821;
     color: #fffdfa;
   }
+
   .dataEditor textarea.light {
     background-color: #e1e3e5;
     color: #02060b;
