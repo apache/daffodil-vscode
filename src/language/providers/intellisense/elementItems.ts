@@ -53,12 +53,12 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
       },
       {
         item: 'dfdl:assert',
-        snippetString: '<dfdl:assert>$1\n</dfdl:assert>$0',
+        snippetString: '<dfdl:assert $0',
         markdownString: 'Used to assert truths about a DFDL model',
       },
       {
         item: 'dfdl:discriminator',
-        snippetString: '<dfdl:discriminator test="{$1}"/>$0',
+        snippetString: '<dfdl:discriminator $0',
         markdownString: 'Used during parsing to resolve points or uncertainity, remove ambiguity during speculative parsing, improve diagnostic behavior',
       },
       {
@@ -159,6 +159,21 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
         item: 'maxExclusive',
         snippetString: '<' + nsPrefix + 'maxExclusive value="$1"/>$0',
         markdownString: 'Used to check the validity of an element'
+      },
+      {
+        item: '<[CDATA[]]>',
+        snippetString: '<[CDATA[$1]]>$0',
+        markdownString: ''
+      },
+      {
+        item: '<![CDATA[]]>',
+        snippetString: '<![CDATA[$1]]>$0',
+        markdownString: ''
+      },
+      {
+        item: '{}',
+        snippetString: '{$1}$0',
+        markdownString: ''
       },
     ],
   }

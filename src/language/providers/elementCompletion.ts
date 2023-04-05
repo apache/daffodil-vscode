@@ -26,6 +26,8 @@ import {
   nearestTag,
   getItemsOnLineCount,
   cursorWithinBraces,
+  cursorWithinQuotes,
+  cursorAfterEquals,
 } from './utils'
 import { elementCompletion } from './intellisense/elementItems'
 
@@ -39,7 +41,9 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
     ) {
       if (
         checkBraceOpen(document, position) ||
-        cursorWithinBraces(document, position)
+        cursorWithinBraces(document, position) ||
+        cursorWithinQuotes(document, position) ||
+        cursorAfterEquals(document, position)
       ) {
         return undefined
       }
@@ -49,9 +53,20 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
       let triggerText = document.lineAt(triggerLine).text
       let itemsOnLine = getItemsOnLineCount(triggerText)
       let nearestOpenItem = nearestOpen(document, position)
+      let lastCloseSymbol = triggerText.lastIndexOf('>')
+      let firstOpenSymbol = triggerText.indexOf('<')
+
+      let missingCloseTag = checkMissingCloseTag(document, position, nsPrefix)
 
       if (nearestOpenItem.includes('none')) {
-        if (checkMissingCloseTag(document, position, nsPrefix) !== 'none') {
+        if (missingCloseTag !== 'none') {
+          return undefined
+        }
+        if (
+          missingCloseTag === 'none' &&
+          itemsOnLine > 1 &&
+          (triggerPos === lastCloseSymbol + 1 || triggerPos === firstOpenSymbol)
+        ) {
           return undefined
         }
 
@@ -215,6 +230,10 @@ function checkTagNearestOpen(
         '',
         nsPrefix
       )
+    case 'assert':
+      return getElementCompletionItems(['CDATA', '{}'], '', '', nsPrefix)
+    case 'discriminator':
+      return getElementCompletionItems(['CDATA', '{}'], '', '', nsPrefix)
     case 'defineFormat':
       return getElementCompletionItems(['format'], '', '', nsPrefix)
     case 'schema':
@@ -271,12 +290,23 @@ export function getTagNearestTrigger(
     )
 
     if (itemsOnLine > 1) {
-      let afterTrigger =
-        triggerText.substring(triggerPos).indexOf('<') + triggerPos
-      let beforeTrigger = triggerText.substring(0, triggerPos).lastIndexOf('>')
-      if (triggerPos === afterTrigger && triggerPos === beforeTrigger + 1)
+      const afterTriggerText = triggerText.substring(triggerPos)
+      const afterTriggerPos = afterTriggerText.indexOf('<') + triggerPos
+      const beforeTriggerText = triggerText.substring(0, triggerPos)
+      const lastOpenTagBeforeTriggerPos = beforeTriggerText.lastIndexOf('<')
+      const beforeTriggerPos = beforeTriggerText.lastIndexOf('>')
+      const beforeTriggerTag = beforeTriggerText.substring(
+        lastOpenTagBeforeTriggerPos
+      )
+
+      if (
+        triggerPos === afterTriggerPos &&
+        triggerPos === beforeTriggerPos + 1 &&
+        !beforeTriggerTag.startsWith('</')
+      ) {
         tagNearestTrigger = foundTag
-      return tagNearestTrigger
+        return tagNearestTrigger
+      }
     }
 
     startLine = foundLine
@@ -295,6 +325,7 @@ export function getTagNearestTrigger(
         tagNearestTrigger = foundTag
         return tagNearestTrigger
       }
+
       if (endTag === 'none') {
         startLine = foundLine - 1
       } else {

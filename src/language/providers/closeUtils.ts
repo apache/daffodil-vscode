@@ -78,6 +78,7 @@ export function cursorInsideCloseTag(
   const triggerPos = position.character
   const closeTagStart = triggerText.lastIndexOf('</')
   const closeTagEnd = triggerText.lastIndexOf('>')
+
   if (
     triggerPos > closeTagStart &&
     triggerPos <= closeTagEnd &&
@@ -126,10 +127,13 @@ export function getCloseTag(
       tagOpen = tagClose + 1
     }
   } else {
+    let nestedTagCount = 0
     let endPos = triggerText.indexOf('>', startPos)
+
     if (triggerText.includes('?xml version')) {
       return [tag, 0, 0]
     }
+
     if (
       (triggerText.includes('</') || triggerText.includes('/>')) &&
       triggerText.includes(tag) &&
@@ -162,8 +166,29 @@ export function getCloseTag(
           //skipping to closing tag
           while (!currentText.includes('</' + nsPrefix + tag)) {
             currentText = document.lineAt(++lineNum).text
+
+            //If currentText is multi tag line skip to next line
             if (getItemsOnLineCount(currentText) > 1) {
               currentText = document.lineAt(++lineNum).text
+            }
+
+            if (currentText.includes('<' + nsPrefix + tag)) {
+              ++nestedTagCount
+              while (!currentText.includes('>')) {
+                currentText = document.lineAt(++lineNum).text
+              }
+              if (currentText.includes('/>')) {
+                --nestedTagCount
+              }
+            }
+
+            //if currentText is a closing tag
+            if (
+              currentText.includes('</' + nsPrefix + tag) &&
+              nestedTagCount > 0
+            ) {
+              --nestedTagCount
+              currentText = ''
             }
           }
         }
@@ -174,10 +199,12 @@ export function getCloseTag(
           !currentText.includes('>')
         ) {
           isMultiLineTag = true
+
           //skip to the end tag symbol
           while (!currentText.includes('>')) {
             currentText = document.lineAt(++lineNum).text
           }
+
           //if the tag isn't self closing, skip to the closing tag
           if (!currentText.includes('/>')) {
             while (!currentText.includes('</' + nsPrefix + tag)) {
@@ -187,12 +214,14 @@ export function getCloseTag(
         }
 
         if (
-          currentText.includes('</' + nsPrefix + tag) ||
+          (currentText.includes('</' + nsPrefix + tag) &&
+            nestedTagCount === 0) ||
           (currentText.includes('/>') && isMultiLineTag)
         ) {
           if (isMultiLineTag) {
             startPos = triggerPos
           }
+
           //if the cursor is after the closing tag
           if (
             lineNum == triggerLine &&
@@ -200,14 +229,13 @@ export function getCloseTag(
           ) {
             return ['none', lineNum, startPos]
           }
+
           return [tag, lineNum, startPos]
         }
       }
-
       ++lineNum
     }
   }
-
   return ['none', 0, 0]
 }
 
@@ -257,7 +285,7 @@ export function getItemsForLineGT1(
     return items[i]
   }
 
-  return undefined
+  return 'none'
 }
 
 export function getItemsForLineLT2(
@@ -278,6 +306,7 @@ export function getItemsForLineLT2(
   let closeTagArray: number[] = []
 
   nsPrefix = getItemPrefix(items[i], nsPrefix)
+
   while (
     currentText.indexOf('<' + nsPrefix + items[i]) === -1 &&
     currentLine > -1
@@ -296,6 +325,7 @@ export function getItemsForLineLT2(
   if (currentText.indexOf('<' + nsPrefix + items[i]) > -1) {
     while (lineBefore > -1) {
       currentText = document.lineAt(lineBefore).text
+
       if (getItemsOnLineCount(currentText) < 2) {
         if (currentText.indexOf('<' + nsPrefix + items[i]) > -1) {
           openTagArray.push(lineBefore)
@@ -310,7 +340,11 @@ export function getItemsForLineLT2(
           }
 
           //if selfclosing remove from the array
-          if (testText.indexOf('/>') > -1 || testText.includes('xml version')) {
+          if (
+            testText.indexOf('/>') > -1 ||
+            testText.includes('xml version') ||
+            currentText.indexOf('</' + nsPrefix + items[i]) > -1
+          ) {
             openTagArray.splice(openTagArray.length - 1, 1)
           }
         }

@@ -25,8 +25,10 @@ import {
   getCommonItems,
   getXsdNsPrefix,
   getItemsOnLineCount,
+  cursorWithinQuotes,
   cursorWithinBraces,
   dfdlDefaultPrefix,
+  cursorAfterEquals,
 } from './utils'
 
 import { attributeCompletion } from './intellisense/attributeItems'
@@ -76,6 +78,8 @@ export function getAttributeCompletionProvider() {
         if (
           checkBraceOpen(document, position) ||
           cursorWithinBraces(document, position) ||
+          cursorWithinQuotes(document, position) ||
+          cursorAfterEquals(document, position) ||
           nearestOpenItem.includes('none')
         ) {
           return undefined
@@ -101,7 +105,10 @@ export function getAttributeCompletionProvider() {
   )
 }
 
-function getDefinedTypes(document: vscode.TextDocument, nsPrefix: string) {
+export function getDefinedTypes(
+  document: vscode.TextDocument,
+  nsPrefix: string
+) {
   let additionalTypes = ''
   let lineNum = 0
   const lineCount = document.lineCount
@@ -229,7 +236,7 @@ function checkNearestOpenItem(
         ''
       )
     case 'discriminator':
-      return getCompletionItems(['message'], '', '', nsPrefix, '')
+      return getCompletionItems(['test', 'message'], '', '', nsPrefix, '')
     case 'format':
       return getCompletionItems(
         [

@@ -69,10 +69,12 @@ export function lineCount(
   let lineNum = position.line
   let lineCount = 0
   const nsPrefix = getXsdNsPrefix(document, position)
+
   while (lineNum !== 0) {
     --lineNum
     ++lineCount
     const triggerText = document.lineAt(lineNum).text
+
     if (
       triggerText.includes('<' + nsPrefix + tag) &&
       !triggerText.includes('</' + nsPrefix + tag) &&
@@ -92,6 +94,7 @@ export function nearestOpen(
     return 'none'
   }
   const nsPrefix = getXsdNsPrefix(document, position)
+
   for (let i = 0; i < items.length; ++i) {
     if (checkTagOpen(document, position, nsPrefix, items[i])) {
       return items[i]
@@ -114,6 +117,7 @@ export function nearestTag(
   const itemsOnLine = getItemsOnLineCount(document.lineAt(lineNum).text)
   let tagPos = triggerText.indexOf('<')
   let endPos = triggerText.lastIndexOf('>')
+
   if (
     itemsOnLine > 1 &&
     startPos !== tagPos &&
@@ -122,15 +126,18 @@ export function nearestTag(
   ) {
     let textBeforeTrigger = triggerText.substring(0, startPos)
     let prevTagPos = 0
+
     while (prevTagPos > -1) {
       prevTagPos = textBeforeTrigger.lastIndexOf('<')
       let tag = textBeforeTrigger.substring(prevTagPos)
+
       if (
         !textBeforeTrigger.includes('</') &&
         !textBeforeTrigger.includes('/>')
       ) {
         for (let i = 0; i < items.length; ++i) {
           nsPrefix = getItemPrefix(items[i], origPrefix)
+
           if (tag.includes('<' + nsPrefix + items[i])) {
             return [items[i], startLine, prevTagPos]
           }
@@ -145,15 +152,28 @@ export function nearestTag(
     ) {
       --lineNum
     }
+
     while (lineNum > -1 && lineNum < document.lineCount) {
       let currentText = document.lineAt(lineNum).text
+
       if (getItemsOnLineCount(currentText) < 2) {
-        if (!currentText.includes('</') && !currentText.includes('/>')) {
+        if (!currentText.includes('/>')) {
           for (let i = 0; i < items.length; ++i) {
             nsPrefix = getItemPrefix(items[i], origPrefix)
+
             if (
-              currentText.includes('<' + nsPrefix + items[i]) ||
-              (lineNum === 0 && currentText.includes(items[i]))
+              !currentText.includes('</') &&
+              (currentText.includes('<' + nsPrefix + items[i]) ||
+                (lineNum === 0 && currentText.includes(items[i])))
+            ) {
+              return [items[i], lineNum, startPos]
+            }
+
+            if (
+              currentText.includes('<' + nsPrefix + items[i]) &&
+              currentText.includes('</' + nsPrefix + items[i]) &&
+              position.character > currentText.indexOf('>') &&
+              position.character <= currentText.indexOf('</')
             ) {
               return [items[i], lineNum, startPos]
             }
@@ -180,17 +200,21 @@ export function checkTagOpen(
   let isMultiLineTag = false
   let origTriggerText = triggerText
   let origTriggerLine = triggerLine
-  while (itemsOnLine < 2 && triggerText.indexOf('<') === -1) {
+  const triggerPos = position.character
+  const textBeforeTrigger = triggerText.substring(0, triggerPos)
+
+  while (itemsOnLine < 2 && !triggerText.trim().startsWith('<')) {
     triggerText = document.lineAt(--triggerLine).text
   }
+
   if (!(triggerText.endsWith('>') && triggerText.includes('<'))) {
     isMultiLineTag = true
   }
-  const triggerPos = position.character
-  const textBeforeTrigger = triggerText.substring(0, triggerPos)
+
   let tagPos = textBeforeTrigger.lastIndexOf('<' + nsPrefix + tag)
   const nextTagPos = triggerText.indexOf('<', tagPos + 1)
   let tagEndPos = triggerText.indexOf('>', tagPos)
+
   if (tagPos > -1 && itemsOnLine > 1) {
     if (
       triggerPos > tagPos &&
@@ -206,20 +230,25 @@ export function checkTagOpen(
     origTriggerText = document.lineAt(--origTriggerLine).text
   }
   tagPos = triggerText.indexOf('<' + nsPrefix + tag)
+
   if (itemsOnLine < 2 && tagPos > -1) {
     if (triggerText !== origTriggerText) {
       tagEndPos = origTriggerText.indexOf('>')
     }
+
     if (
       (triggerPos > tagPos &&
         triggerPos <= tagEndPos &&
         triggerLine === position.line) ||
-      (origTriggerLine == position.line && triggerPos <= tagEndPos) ||
+      (origTriggerLine == position.line &&
+        triggerPos <= tagEndPos &&
+        triggerPos > tagPos) ||
       position.line < origTriggerLine
     ) {
       return true
     }
   }
+
   if (!isMultiLineTag || tagPos === -1) {
     return false
   }
@@ -238,6 +267,7 @@ export function checkTagOpen(
 
 export function getItemPrefix(item: string, nsPrefix: string) {
   let itemPrefix = nsPrefix
+
   if (
     item === 'assert' ||
     item === 'discriminator' ||
@@ -247,9 +277,11 @@ export function getItemPrefix(item: string, nsPrefix: string) {
   ) {
     itemPrefix = 'dfdl:'
   }
+
   if (item === 'xml version') {
     itemPrefix = '?'
   }
+
   if (item === 'dfdl:element' || item === 'dfdl:simpleType') {
     itemPrefix = ''
   }
@@ -269,7 +301,8 @@ export function checkMultiLineTag(
     return false
   }
   let currentLine = position.line
-  let currentText = document.lineAt(currentLine).text
+  const origText = document.lineAt(currentLine).text
+  let currentText = origText
 
   //the current line doesn't have the self close symbol
   if (!currentText.endsWith('/>')) {
@@ -277,19 +310,24 @@ export function checkMultiLineTag(
       --currentLine
       currentText = document.lineAt(currentLine).text
     }
+
     if (
       currentText.indexOf('<' + nsPrefix + tag) !== -1 &&
       currentText.indexOf('>') === -1 &&
-      (currentText.indexOf('<' + nsPrefix + tag) < position.character ||
-        currentLine < position.line)
+      currentText.indexOf('<' + nsPrefix + tag) &&
+      currentLine <= position.line &&
+      (origText.indexOf('>') > position.character ||
+        origText.indexOf('>') === -1)
     ) {
       return true
     }
   }
+
   if (currentText.endsWith('/>')) {
     let triggerPos = position.character
     let tagEndPos = currentText.indexOf('/>')
     let triggerLine = position.line
+
     if (
       (triggerLine === currentLine && triggerPos < tagEndPos) ||
       (triggerLine === tagLine && triggerPos > tagPos && tagPos !== -1) ||
@@ -308,10 +346,12 @@ export function getXsdNsPrefix(
 ) {
   let initialLineNum = position.line
   let lineNum = 0
+
   while (initialLineNum !== 0 && lineNum <= initialLineNum) {
     const lineText = document.lineAt(lineNum).text
     // returns either empty prefix value or a prefix plus a colon
     let text = lineText.match(schemaPrefixRegEx)
+
     if (text != null) {
       return text[1]
     }
@@ -325,10 +365,12 @@ export function getItemsOnLineCount(triggerText: String) {
   let itemsOnLine = 0
   let nextPos = 0
   let result = 0
+
   if (triggerText.includes('schema')) {
     itemsOnLine = 1
     return itemsOnLine
   }
+
   while (result != -1 && triggerText.includes('<')) {
     result = triggerText.indexOf('<', nextPos)
     if (result > -1) {
@@ -338,6 +380,7 @@ export function getItemsOnLineCount(triggerText: String) {
         break
       }
       let testForCloseTag = triggerText.substring(nextPos, endPos)
+
       if (
         !testForCloseTag.includes('</') &&
         !testForCloseTag.includes('<!--') &&
@@ -354,6 +397,99 @@ export function getItemsOnLineCount(triggerText: String) {
   return itemsOnLine
 }
 
+export function cursorAfterEquals(
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
+  const triggerText = document.lineAt(position.line).text
+  const triggerPos = position.character
+  const textBeforeTrigger = triggerText.substring(0, triggerPos)
+  let currentPos = -1
+
+  if ((currentPos = textBeforeTrigger.lastIndexOf('=')) === -1) {
+    return false
+  }
+  if (triggerPos === currentPos + 1) {
+    return true
+  }
+  return false
+}
+
+export function cursorWithinQuotes(
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
+  const quoteChar: string[] = ["'", '"']
+  let startLine = position.line
+
+  for (let i = 0; i < quoteChar.length; ++i) {
+    let currentText = document.lineAt(startLine).text
+
+    if (
+      currentText.includes('<') &&
+      !currentText.includes("'") &&
+      !currentText.includes('"')
+    ) {
+      return false
+    }
+
+    if (currentText.includes(quoteChar[i])) {
+      let textBeforeTrigger = currentText.substring(0, position.character)
+      //let tagStartPos = -1
+      let quoteStartLine = startLine
+      let quoteStartPos = -1
+      let equalStartPos = -1
+
+      while (
+        (equalStartPos = textBeforeTrigger.lastIndexOf('=' + quoteChar[i])) ===
+        -1
+      ) {
+        if (textBeforeTrigger.indexOf('<') !== -1) {
+          break
+        }
+        textBeforeTrigger = document.lineAt(--quoteStartLine).text
+      }
+
+      quoteStartPos = equalStartPos + 1
+      let quoteEndLine = quoteStartLine
+      let quoteEndPos = -1
+
+      if (quoteStartPos > -1) {
+        while (
+          quoteEndLine < document.lineCount &&
+          (quoteEndPos = currentText.indexOf(
+            quoteChar[i],
+            quoteStartPos + 1
+          )) === -1
+        ) {
+          currentText = document.lineAt(++quoteEndLine).text
+        }
+
+        if (
+          quoteEndPos > -1 &&
+          currentText.indexOf('=', quoteStartPos - 1) === quoteStartPos - 1
+        ) {
+          if (
+            (position.line > quoteStartLine && position.line < quoteEndLine) ||
+            (quoteEndLine === quoteStartLine &&
+              position.character > quoteStartPos &&
+              position.character <= quoteEndPos) ||
+            (position.line === quoteStartLine &&
+              position.character > quoteStartPos &&
+              position.line < quoteEndLine) ||
+            (position.line === quoteEndLine &&
+              position.character <= quoteEndPos &&
+              position.line > quoteStartLine)
+          ) {
+            return true
+          }
+        }
+      }
+    }
+  }
+  return false
+}
+
 export function cursorWithinBraces(
   document: vscode.TextDocument,
   position: vscode.Position
@@ -362,6 +498,7 @@ export function cursorWithinBraces(
   let currentText = document.lineAt(startLine).text
   let braceStartLine = startLine
   let braceStartPos = -1
+
   while (
     braceStartLine > 0 &&
     (braceStartPos = currentText.indexOf('{')) === -1
@@ -370,6 +507,7 @@ export function cursorWithinBraces(
   }
   let braceEndLine = braceStartLine
   let braceEndPos = -1
+
   if (braceStartPos > -1) {
     while (
       braceEndLine < document.lineCount &&
@@ -377,6 +515,7 @@ export function cursorWithinBraces(
     ) {
       currentText = document.lineAt(++braceEndLine).text
     }
+
     if (braceEndPos > -1) {
       if (
         (position.line > braceStartLine && position.line < braceEndLine) ||
@@ -408,14 +547,17 @@ export function checkBraceOpen(
     while (!triggerText.includes('}') && lineNum < document.lineCount) {
       triggerText = document.lineAt(++lineNum).text
     }
+
     if (!triggerText.includes('}')) {
       return true
     }
   }
+
   if (triggerText.includes('}')) {
     while (!triggerText.includes('{') && lineNum > 0) {
       triggerText = document.lineAt(--lineNum).text
     }
+
     if (!triggerText.includes('{')) {
       return true
     }

@@ -24,6 +24,8 @@ import {
   getItemPrefix,
   getItemsOnLineCount,
   cursorWithinBraces,
+  cursorWithinQuotes,
+  cursorAfterEquals,
 } from './utils'
 
 export function getCloseElementSlashProvider() {
@@ -48,7 +50,9 @@ export function getCloseElementSlashProvider() {
 
         if (
           checkBraceOpen(document, position) ||
-          cursorWithinBraces(document, position)
+          cursorWithinBraces(document, position) ||
+          cursorWithinQuotes(document, position) ||
+          cursorAfterEquals(document, position)
         ) {
           return undefined
         }
@@ -89,8 +93,10 @@ function checkItemsOnLine(
   triggerText: string
 ) {
   nsPrefix = getItemPrefix(nearestTagNotClosed, nsPrefix)
+
   if (itemsOnLine == 1 || itemsOnLine == 0) {
     insertSnippet('/>$0', backpos)
+
     if (
       nearestTagNotClosed.includes('defineVariable') ||
       nearestTagNotClosed.includes('setVariable')
@@ -111,6 +117,7 @@ function checkItemsOnLine(
     ) {
       let tagPos = triggerText.lastIndexOf('<' + nsPrefix + nearestTagNotClosed)
       let tagEndPos = triggerText.indexOf('>', tagPos)
+
       if (
         tagPos != -1 &&
         !triggerText.substring(tagEndPos - 1, 2).includes('/>') &&
