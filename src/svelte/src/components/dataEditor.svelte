@@ -220,6 +220,7 @@ limitations under the License.
         (targetLine == 0 ? 0 : targetLine - 1) * lineHeight
     }
     closeEphemeralWindows()
+    clearDataDisplays()
   }
 
   function goToEventHandler(_: Event) {
@@ -540,6 +541,8 @@ limitations under the License.
       },
     })
     $searching = true
+    closeEphemeralWindows()
+    clearDataDisplays()
   }
 
   function searchAndReplace() {
@@ -555,6 +558,8 @@ limitations under the License.
       },
     })
     $replacing = true
+    closeEphemeralWindows()
+    clearDataDisplays()
   }
 
   function saveToDisk() {
