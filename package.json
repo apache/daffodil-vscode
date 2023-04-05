@@ -43,13 +43,13 @@
   },
   "dependencies": {
     "@vscode/debugadapter": "1.59.0",
+    "@omega-edit/client": "0.9.63",
     "await-notify": "1.0.1",
     "hexy": "0.3.4",
-    "omega-edit": "0.9.55",
     "unzip-stream": "0.3.1",
-    "uuid": "^9.0.0",
-    "wait-port": "^1.0.4",
-    "xdg-app-paths": "^8.2.0"
+    "uuid": "9.0.0",
+    "wait-port": "1.0.4",
+    "xdg-app-paths": "8.3.0"
   },
   "devDependencies": {
     "@types/glob": "^8.0.0",
@@ -412,6 +412,28 @@
                   "type": "string"
                 },
                 "default": {}
+              },
+              "dataEditor.omegaEditPort": {
+                "type": "integer",
+                "description": "Editor server default port",
+                "default": 9000
+              },
+              "dataEditor.logFile": {
+                "type": "string",
+                "description": "Path to log file for data editor",
+                "default": "${workspaceFolder}/dataEditor-${omegaEditPort}.log"
+              },
+              "dataEditor.logLevel": {
+                "type": "string",
+                "description": "Log level for data editor",
+                "enum": [
+                  "error",
+                  "warn",
+                  "info",
+                  "debug",
+                  "trace"
+                ],
+                "default": "info"
               }
             }
           }
@@ -441,7 +463,10 @@
             "openInfosetDiffView": false,
             "daffodilDebugClasspath": "",
             "variables": {},
-            "tunables": {}
+            "tunables": {},
+            "dataEditor.omegaEditPort": 9000,
+            "dataEditor.logFile": "${workspaceFolder}/dataEditor-${omegaEditPort}.log",
+            "dataEditor.logLevel": "info"
           }
         ],
         "configurationSnippets": [
@@ -472,7 +497,10 @@
               "openInfosetDiffView": false,
               "daffodilDebugClasspath": "",
               "variables": {},
-              "tunables": {}
+              "tunables": {},
+              "dataEditor.omegaEditPort": 9000,
+              "dataEditor.logFile": "${workspaceFolder}/dataEditor-${omegaEditPort}.log",
+              "dataEditor.logLevel": "info"
             }
           }
         ],

@@ -16,16 +16,18 @@
  */
 
 import * as vscode from 'vscode'
-import {
-  EventSubscriptionRequest,
-  ViewportDataRequest,
-  ViewportDataResponse,
-} from 'omega-edit/omega_edit_pb'
 import * as fs from 'fs'
-import { ALL_EVENTS, getClient } from 'omega-edit/client'
+import {
+  ALL_EVENTS,
+  EditorClient,
+  EventSubscriptionRequest,
+  ViewportDataResponse,
+  ViewportEvent,
+  getClient,
+  getLogger,
+  getViewportData,
+} from '@omega-edit/client'
 import { EditorMessage, MessageCommand } from '../svelte/src/utilities/message'
-import { EditorClient } from 'omega-edit/omega_edit_grpc_pb'
-import { getLogger } from 'omega-edit/logger'
 
 let client: EditorClient
 export async function initOmegaEditClient(
@@ -39,19 +41,16 @@ export async function setViewportDataForPanel(
   panel: vscode.WebviewPanel,
   viewportId: string
 ) {
-  client.getViewportData(
-    new ViewportDataRequest().setViewportId(viewportId),
-    async (err, r: ViewportDataResponse) => {
-      const bufferData: Uint8Array = r.getData_asU8()
-      panel.webview.postMessage({
-        command: MessageCommand.viewportSubscribe,
-        data: {
-          viewportData: bufferData,
-          displayData: Buffer.from(bufferData).toString('hex'),
-        },
-      })
-    }
-  )
+  getViewportData(viewportId).then(async (r: ViewportDataResponse) => {
+    const bufferData: Uint8Array = r.getData_asU8()
+    panel.webview.postMessage({
+      command: MessageCommand.viewportSubscribe,
+      data: {
+        viewportData: bufferData,
+        displayData: Buffer.from(bufferData).toString('hex'),
+      },
+    })
+  })
 }
 
 export async function viewportSubscribe(
@@ -66,8 +65,10 @@ export async function viewportSubscribe(
     .subscribeToViewportEvents(
       new EventSubscriptionRequest().setId(viewportId).setInterest(ALL_EVENTS)
     )
-    .on('data', async () => {
-      getLogger().debug(`viewport event received: ${viewportId}`)
+    .on('data', async (event: ViewportEvent) => {
+      getLogger().debug(
+        `viewport '${event.getViewportId()}' received event: ${event.getViewportEventKind()}`
+      )
       await setViewportDataForPanel(panel, viewportId)
     })
     .on('error', (err) => {

@@ -15,18 +15,35 @@
  * limitations under the License.
  */
 
-import * as omegaEditChange from 'omega-edit/change'
-import { getServerHeartbeat, IServerHeartbeat } from 'omega-edit/server'
-import * as omegaEditSession from 'omega-edit/session'
-import { CountKind } from 'omega-edit/session'
-import * as omegaEditViewport from 'omega-edit/viewport'
+import {
+  CountKind,
+  IServerHeartbeat,
+  clear,
+  createSession,
+  createViewport,
+  destroySession,
+  edit,
+  getComputedFileSize,
+  getCounts,
+  getServerHeartbeat,
+  getViewportData,
+  notifyChangedViewports,
+  pauseViewportEvents,
+  redo,
+  replaceSession,
+  resumeViewportEvents,
+  saveSession,
+  searchSession,
+  undo,
+} from '@omega-edit/client'
+import path from 'path'
 import * as vscode from 'vscode'
 import { EditorMessage, MessageCommand } from '../svelte/src/utilities/message'
 import { omegaEditPort } from './client'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
 import {
-  dataToEncodedStr,
   DisplayState,
+  dataToEncodedStr,
   encodedStrToData,
   fillRequestData,
   getOnDiskFileSize,
@@ -34,7 +51,6 @@ import {
   setViewportDataForPanel,
   viewportSubscribe,
 } from './utils'
-import path from 'path'
 
 const VIEWPORT_CAPACITY_MAX = 1000000 // Maximum viewport size in Ωedit is 1048576 (1024 * 1024)
 const HEARTBEAT_INTERVAL_MS = 1000 // 1 second (1000 ms)
@@ -56,7 +72,6 @@ export class DataEditWebView implements vscode.Disposable {
   ) {
     this.panel = this.createPanel(title)
     this.panel.webview.onDidReceiveMessage(this.messageReceiver, this)
-
     this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
     this.currentViewportId = ''
@@ -69,7 +84,7 @@ export class DataEditWebView implements vscode.Disposable {
       clearInterval(this.heartBeatIntervalId)
       this.heartBeatIntervalId = undefined
     }
-    await omegaEditSession.destroySession(this.omegaSessionId)
+    await destroySession(this.omegaSessionId)
     this.panel.dispose()
   }
 
@@ -106,15 +121,14 @@ export class DataEditWebView implements vscode.Disposable {
   }
 
   private async setupDataEditor() {
-    this.omegaSessionId = await omegaEditSession.createSession(this.fileToEdit)
-    await omegaEditViewport
-      .createViewport(
-        undefined,
-        this.omegaSessionId,
-        0,
-        VIEWPORT_CAPACITY_MAX,
-        false
-      )
+    this.omegaSessionId = await createSession(this.fileToEdit)
+    await createViewport(
+      undefined,
+      this.omegaSessionId,
+      0,
+      VIEWPORT_CAPACITY_MAX,
+      false
+    )
       .then(async (resp) => {
         await this.setCurrentViewport(resp.getViewportId())
       })
@@ -140,14 +154,18 @@ export class DataEditWebView implements vscode.Disposable {
   private async sendHeartBeat() {
     // send the server version, latency, and timestamp to the webview as a
     // heartbeat
-    getServerHeartbeat()
+    getServerHeartbeat([this.omegaSessionId], HEARTBEAT_INTERVAL_MS)
       .then((heartbeat: IServerHeartbeat) => {
         this.panel.webview.postMessage({
           command: MessageCommand.heartBeat,
           data: {
             omegaEditPort: omegaEditPort,
-            serverVersion: heartbeat.resp,
+            serverVersion: heartbeat.serverVersion,
             serverLatency: heartbeat.latency,
+            serverCpuLoadAvg: heartbeat.serverCpuLoadAverage,
+            serverUsedMemory: heartbeat.serverUsedMemory,
+            serverUptime: heartbeat.serverUptime,
+            sessionCount: heartbeat.sessionCount,
           },
         })
       })
@@ -155,8 +173,13 @@ export class DataEditWebView implements vscode.Disposable {
         this.panel.webview.postMessage({
           command: MessageCommand.heartBeat,
           data: {
-            serverVersion: 'Connection Failed!',
+            omegaEditPort: omegaEditPort,
+            serverVersion: 'Unknown',
             serverLatency: 0,
+            serverCpuLoadAvg: 0,
+            serverUsedMemory: 0,
+            serverUptime: 0,
+            sessionCount: 0,
           },
         })
         vscode.window.showErrorMessage(`Heartbeat error: ${error}`)
@@ -181,37 +204,35 @@ export class DataEditWebView implements vscode.Disposable {
   }
 
   private async sendChangesInfo() {
-    omegaEditSession
-      .getCounts(this.omegaSessionId, [
-        CountKind.COUNT_COMPUTED_FILE_SIZE,
-        CountKind.COUNT_CHANGE_TRANSACTIONS,
-        CountKind.COUNT_UNDO_TRANSACTIONS,
-      ])
-      .then((counts) => {
-        let data = {
-          fileName: this.fileToEdit,
-          computedFileSize: 0,
-          changeCount: 0,
-          undoCount: 0,
+    getCounts(this.omegaSessionId, [
+      CountKind.COUNT_COMPUTED_FILE_SIZE,
+      CountKind.COUNT_CHANGE_TRANSACTIONS,
+      CountKind.COUNT_UNDO_TRANSACTIONS,
+    ]).then((counts) => {
+      let data = {
+        fileName: this.fileToEdit,
+        computedFileSize: 0,
+        changeCount: 0,
+        undoCount: 0,
+      }
+      counts.forEach((count) => {
+        switch (count.getKind()) {
+          case CountKind.COUNT_COMPUTED_FILE_SIZE:
+            data.computedFileSize = count.getCount()
+            break
+          case CountKind.COUNT_CHANGE_TRANSACTIONS:
+            data.changeCount = count.getCount()
+            break
+          case CountKind.COUNT_UNDO_TRANSACTIONS:
+            data.undoCount = count.getCount()
+            break
         }
-        counts.forEach((count) => {
-          switch (count.getKind()) {
-            case CountKind.COUNT_COMPUTED_FILE_SIZE:
-              data.computedFileSize = count.getCount()
-              break
-            case CountKind.COUNT_CHANGE_TRANSACTIONS:
-              data.changeCount = count.getCount()
-              break
-            case CountKind.COUNT_UNDO_TRANSACTIONS:
-              data.undoCount = count.getCount()
-              break
-          }
-        })
-        this.panel.webview.postMessage({
-          command: MessageCommand.fileInfo,
-          data: data,
-        })
       })
+      this.panel.webview.postMessage({
+        command: MessageCommand.fileInfo,
+        data: data,
+      })
+    })
   }
 
   // handle messages from the webview
@@ -250,13 +271,12 @@ export class DataEditWebView implements vscode.Disposable {
         break
 
       case MessageCommand.commit:
-        await omegaEditChange
-          .edit(
-            this.omegaSessionId,
-            message.data.offset,
-            message.data.originalSegment,
-            message.data.editedSegment
-          )
+        await edit(
+          this.omegaSessionId,
+          message.data.offset,
+          message.data.originalSegment,
+          message.data.editedSegment
+        )
           .then(async () => {
             await this.sendChangesInfo()
           })
@@ -267,8 +287,7 @@ export class DataEditWebView implements vscode.Disposable {
         break
 
       case MessageCommand.undo:
-        await omegaEditChange
-          .undo(this.omegaSessionId)
+        await undo(this.omegaSessionId)
           .then(async () => {
             await this.sendChangesInfo()
           })
@@ -278,8 +297,7 @@ export class DataEditWebView implements vscode.Disposable {
         break
 
       case MessageCommand.redo:
-        await omegaEditChange
-          .redo(this.omegaSessionId)
+        await redo(this.omegaSessionId)
           .then(async () => {
             await this.sendChangesInfo()
           })
@@ -296,8 +314,7 @@ export class DataEditWebView implements vscode.Disposable {
           'No'
         )
         if (confirmation === 'Yes') {
-          await omegaEditChange
-            .clear(this.omegaSessionId)
+          await clear(this.omegaSessionId)
             .then(async () => {
               await this.sendChangesInfo()
             })
@@ -315,12 +332,12 @@ export class DataEditWebView implements vscode.Disposable {
           })
           .then(async (uri) => {
             if (uri && uri.fsPath) {
-              await omegaEditSession
-                .saveSession(this.omegaSessionId, uri.path, true)
+              await saveSession(this.omegaSessionId, uri.path, true)
                 .then(async (fp) => {
                   vscode.window.showInformationMessage(`Saved to file: ${fp}`)
                   if (fp === this.fileToEdit) {
                     await this.sendChangesInfo()
+                    await this.sendDiskFileSize()
                   }
                 })
                 .catch(() => {
@@ -353,27 +370,24 @@ export class DataEditWebView implements vscode.Disposable {
             message.data.replaceData,
             this.displayState.editorEncoding
           )
-          // TODO: pause viewport events before search, then resume after search
-          await omegaEditViewport.pauseViewportEvents(this.omegaSessionId)
-          await omegaEditSession
-            .replaceSession(
-              this.omegaSessionId,
-              searchDataBytes,
-              replaceDataBytes,
-              message.data.caseInsensitive,
-              0,
-              0,
-              0
-            )
+          // pause viewport events before search, then resume after search
+          await pauseViewportEvents(this.omegaSessionId)
+          await replaceSession(
+            this.omegaSessionId,
+            searchDataBytes,
+            replaceDataBytes,
+            message.data.caseInsensitive,
+            0,
+            0,
+            0
+          )
             .catch((err) => {
               vscode.window.showErrorMessage(err)
             })
             .then(async (replacementsCount) => {
-              await omegaEditViewport.resumeViewportEvents(this.omegaSessionId)
+              await resumeViewportEvents(this.omegaSessionId)
               try {
-                await omegaEditSession.notifyChangedViewports(
-                  this.omegaSessionId
-                )
+                await notifyChangedViewports(this.omegaSessionId)
               } catch (err) {
                 // notifyChangedViewports failed, so manually update the viewport
                 await setViewportDataForPanel(
@@ -399,7 +413,7 @@ export class DataEditWebView implements vscode.Disposable {
             this.displayState.editorEncoding
           )
           const caseInsensitive = message.data.caseInsensitive
-          const searchResults = await omegaEditSession.searchSession(
+          const searchResults = await searchSession(
             this.omegaSessionId,
             searchDataBytes,
             caseInsensitive,
@@ -420,9 +434,7 @@ export class DataEditWebView implements vscode.Disposable {
     this.currentViewportId = viewportId
     await viewportSubscribe(this.panel, this.currentViewportId)
 
-    const vpResponse = await omegaEditViewport.getViewportData(
-      this.currentViewportId
-    )
+    const vpResponse = await getViewportData(this.currentViewportId)
     const data = vpResponse.getData_asU8()
     const display = Buffer.from(data).toString('hex')
 
@@ -430,9 +442,7 @@ export class DataEditWebView implements vscode.Disposable {
       command: MessageCommand.fileInfo,
       data: {
         fileName: this.fileToEdit,
-        computedFileSize: await omegaEditSession.getComputedFileSize(
-          this.omegaSessionId
-        ),
+        computedFileSize: await getComputedFileSize(this.omegaSessionId),
       },
     })
     this.panel.webview.postMessage({

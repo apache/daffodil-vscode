@@ -19,7 +19,7 @@ import * as hexView from '../hexView'
 import * as infoset from '../infoset'
 import * as dfdlLang from '../language/dfdl'
 import * as launchWizard from '../launchWizard/launchWizard'
-import * as omegaEditClient from '../omega_edit/client'
+import * as dataEditClient from '../dataEdit/client'
 import { getConfig, getCurrentConfig, setCurrentConfig } from '../utils'
 import { DaffodilDebugSession } from './daffodilDebug'
 import { FileAccessor } from './daffodilRuntime'
@@ -379,7 +379,7 @@ export function activateDaffodilDebug(
 
   dfdlLang.activate(context)
   infoset.activate(context)
-  omegaEditClient.activate(context)
+  dataEditClient.activate(context)
   launchWizard.activate(context)
 }
 
