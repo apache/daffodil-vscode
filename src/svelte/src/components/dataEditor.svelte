@@ -836,33 +836,50 @@ limitations under the License.
       <fieldset class="box search-replace">
         <legend>Search</legend>
         <div class="flex-container col">
-          <div class="col-item">
-            Search:
-            {#if $searchData.length > 0 && !$searchable}
-              <span class="errMsg">{$searchErrMsg}</span>
-            {/if}
-            <input class={$UIThemeCSSClass} bind:value={$searchData} />
+          <div class="col-item flex-container row">
+            <div
+              class="row-item flex-container row search"
+              style="align-items: center"
+            >
+              <label for="search">Search:</label>
+              <input class={$UIThemeCSSClass} bind:value={$searchData} />
+              <div class="errMsg" title={$searchErrMsg}>
+                {#if $searchErrMsg.length > 0 && !$searchable}
+                  &#9888;
+                {/if}
+              </div>
+            </div>
+          </div>
+          <div class="col-item flex-container row">
+            <div
+              class="row-item flex-container row replace"
+              style="align-items: center"
+            >
+              <label for="replace">Replace:</label>
+              <input class={$UIThemeCSSClass} bind:value={$replaceData} />
+              <div class="errMsg" title={$replaceErrMsg}>
+                {#if $replaceErrMsg.length > 0}
+                  &#9888;
+                {/if}
+              </div>
+            </div>
           </div>
           {#if $allowCaseInsensitiveSearch}
-            <div class="case col-item flex-container row center">
-              <label for="search_case_insensitive" class="row-item search-case"
-                >Case Insensitive:</label
-              >
-              <input
-                type="checkbox"
-                id="search_case_insensitive"
-                class={$UIThemeCSSClass + ' row-item search-case'}
-                bind:checked={$searchCaseInsensitive}
-              />
+            <div
+              class="col-item flex-container row"
+              style="align-items: center"
+            >
+              <div class="two-row-items flex-container row search-case">
+                <label for="search_case_insensitive">Case Insensitive:</label>
+                <input
+                  type="checkbox"
+                  id="search_case_insensitive"
+                  class={$UIThemeCSSClass}
+                  bind:checked={$searchCaseInsensitive}
+                />
+              </div>
             </div>
           {/if}
-          <div class="col-item">
-            Replace:
-            {#if $replaceData.length > 0 && !$replaceable}
-              <span class="errMsg">{$replaceErrMsg}</span>
-            {/if}
-            <input class={$UIThemeCSSClass} bind:value={$replaceData} />
-          </div>
           <div class="col-item flex-container row center">
             {#if !$searchable}
               <button class={$UIThemeCSSClass} id="search_btn" disabled
@@ -1514,9 +1531,11 @@ limitations under the License.
   body.light {
     color: #02060b;
   }
+
   body.dark {
     color: #e1e3e5;
   }
+
   div.flex-container {
     display: flex;
   }
@@ -1529,20 +1548,19 @@ limitations under the License.
     flex-direction: row;
   }
 
+  div.flex-container.space-between {
+    justify-content: space-between;
+  }
+
+  div.flex-container.space-evenly {
+    justify-content: space-evenly;
+  }
+
   div.flex-container.row .row-item {
     width: 100%;
   }
 
   div.flex-container.row .two-row-items {
-    width: 50%;
-  }
-
-  div.flex-container.row .row-item.search-case {
-    width: 50%;
-  }
-
-  div.flex-container.row .row-item.search-case input {
-    width: 0;
     width: 50%;
   }
 
@@ -2065,6 +2083,12 @@ limitations under the License.
     max-width: 95%;
   }
 
+  .search .errMsg,
+  .replace .errMsg {
+    margin-left: 10pt;
+    font-size: 17pt;
+  }
+
   .warningMsg {
     color: yellow;
     max-width: 95%;
@@ -2074,9 +2098,18 @@ limitations under the License.
     margin-top: 5px;
   }
 
-  .search {
-    min-width: 250px;
-    max-width: 250px;
+  .search,
+  .replace {
+    align-items: center;
+    height: 20pt;
+  }
+  .search label,
+  .replace label {
+    width: 15%;
+  }
+  .search input,
+  .replace input {
+    width: 75%;
   }
 
   .x-hidden {
@@ -2091,7 +2124,17 @@ limitations under the License.
     margin-right: 5pt;
   }
 
+  .search-case label {
+    margin-right: 5pt;
+  }
+
+  .search-case input {
+    width: auto;
+  }
+
   #address_numbering {
+    padding: 0;
+    border-width: 0;
     min-width: 100%;
   }
 </style>
