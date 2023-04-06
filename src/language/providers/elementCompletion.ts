@@ -20,6 +20,7 @@ import { checkMissingCloseTag, getCloseTag } from './closeUtils'
 import {
   checkBraceOpen,
   getXsdNsPrefix,
+  isInXPath,
   nearestOpen,
   createCompletionItem,
   getCommonItems,
@@ -43,7 +44,8 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
         checkBraceOpen(document, position) ||
         cursorWithinBraces(document, position) ||
         cursorWithinQuotes(document, position) ||
-        cursorAfterEquals(document, position)
+        cursorAfterEquals(document, position) ||
+        isInXPath(document, position)
       ) {
         return undefined
       }

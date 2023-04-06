@@ -17,6 +17,12 @@
 
 import * as vscode from 'vscode'
 import { commonCompletion } from './intellisense/commonItems'
+import {
+  XPathLexer,
+  ExitCondition,
+  LexPosition,
+  Token,
+} from '../semantics/xpLexer'
 
 const schemaPrefixRegEx = new RegExp('</?(|[^ ]+:)schema')
 
@@ -395,6 +401,111 @@ export function getItemsOnLineCount(triggerText: String) {
     }
   }
   return itemsOnLine
+}
+
+// Identify all sections in the full document that should be treated as XPath
+export function findAllXPath(document: String): [number, number, number][] {
+  let tokensFound: [number, number, number][] = []
+  let charCount = 0
+  const lines = document.split('\n')
+
+  // Regex should match up to the character before we need to start detecting XPath
+  // In these cases, there is a left curly brace right after the regex match, so
+  //   we may need to adjust the exact points if there are schemas with spaces between
+  //   the open quote and the left curly brace.
+  // Also note that the start location that we return for processing should NOT include the
+  //   left curly brace. The way that the tokenizer determines when to stop processing
+  //   is to find an extra closing character (curly brace, single quote, or double quote)
+  //   If it doesn't terminate, it will tokenize the remainder of the file.
+  const xPathRegex = /(\w+)=("|')(?=\{)/
+  let isComment: Boolean = false
+
+  for (let i = 0; i < lines.length; i++) {
+    let xPathMatch = lines[i].match(xPathRegex)
+
+    if (!isComment && lines[i].includes('<!--')) {
+      isComment = true
+    }
+
+    if (isComment) {
+      let closeIndex = lines[i].search('-->')
+
+      if (closeIndex !== -1) {
+        isComment = false
+
+        if (xPathMatch) {
+          if (closeIndex > lines[i].search(xPathMatch[0])) {
+            xPathMatch = null
+          }
+        }
+      } else {
+        xPathMatch = null
+      }
+    }
+
+    // The items in the tuple are used to determine the start point for the tokenizer. They are
+    //   the line number, position offset in the line, and document offset.
+    // The +1 on the position offset accounts for the opening curly brace.
+    if (xPathMatch) {
+      const lineOffset =
+        lines[i].search(xPathMatch[0]) + xPathMatch[0].length + 1
+      tokensFound.push([
+        i,
+        (xPathMatch.index || 0) + xPathMatch[0].length + 1,
+        charCount + lineOffset,
+      ])
+    }
+
+    // Used to keep track of the document offset. The +1 accounts for newlines.
+    charCount += lines[i].length + 1
+  }
+
+  return tokensFound
+}
+
+export function isInXPath(
+  document: vscode.TextDocument,
+  position: vscode.Position
+): boolean {
+  let isXPath: boolean = false
+  let xpLexer = new XPathLexer()
+  xpLexer.documentTokens = []
+  let tokens: Token[] = []
+
+  const tokenPositions = findAllXPath(document.getText())
+
+  for (let i = 0; i < tokenPositions.length; i++) {
+    const line = tokenPositions[i][0]
+    const startCharacter = tokenPositions[i][1]
+    const documentOffset = tokenPositions[i][2]
+
+    const lexPositions: LexPosition = {
+      line: line,
+      startCharacter: startCharacter,
+      documentOffset: documentOffset,
+    }
+    let tmpTokens = xpLexer.analyse(
+      document.getText(),
+      ExitCondition.CurlyBrace,
+      lexPositions
+    )
+    tokens = tokens.concat(tmpTokens)
+
+    // Reset the xpLexer. If this is not done, existing tokens will not be flushed
+    //   and will be re-added to the tokens list. This might not affect the operation, but it does
+    //   increase the memory required by the tokenizer, potentially running out of memory.
+    xpLexer.reset()
+  }
+  tokens.forEach((token) => {
+    if (
+      token.line == position.line - 1 &&
+      token.startCharacter <= position.character &&
+      token.startCharacter + token.length >= position.character
+    ) {
+      isXPath = true
+    }
+  })
+  return isXPath
 }
 
 export function cursorAfterEquals(
