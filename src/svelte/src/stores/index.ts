@@ -233,7 +233,7 @@ export const replaceable = derived(
     $replacing,
     $selectionActive,
   ]) => {
-    if ($replaceData.length <= 0 || !$searchable || $replacing) {
+    if ($replaceData.length < 0 || !$searchable || $replacing) {
       replaceErrMsg.update(() => {
         return ''
       })
@@ -241,7 +241,7 @@ export const replaceable = derived(
     }
     if ($selectionActive) {
       replaceErrMsg.update(() => {
-        return 'Cannot replace with selected data'
+        return 'Cannot replace while viewport data is selected'
       })
       return false
     }
