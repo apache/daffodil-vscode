@@ -25,6 +25,7 @@ github:
     merge:    false
     rebase:   true
   collaborators:
+    - hdalsania
     - michael-hoke
     - NolanMatt
     - rthomas320
@@ -33,4 +34,3 @@ notifications:
     commits:      commits@daffodil.apache.org
     issues:       commits@daffodil.apache.org
     pullrequests: commits@daffodil.apache.org
-
