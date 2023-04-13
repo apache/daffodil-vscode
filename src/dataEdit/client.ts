@@ -80,9 +80,29 @@ function getPidFile(serverPort: number) {
 
 async function getOmegaEditPort() {
   if (omegaEditPort === 0) {
-    omegaEditPort = vscode.workspace
-      .getConfiguration('dataEditor')
-      .get<number>('omegaEditPort', DEFAULT_OMEGA_EDIT_PORT)
+    /**
+     * Loop through all available configurations inside of launch.json
+     * If dataEditor.omegaEditPort is set then we update the port
+     *   NOTE: Whichever configuration sets the last will be the value used
+     */
+    vscode.workspace
+      .getConfiguration(
+        'launch',
+        vscode.workspace.workspaceFolders
+          ? vscode.workspace.workspaceFolders[0].uri
+          : vscode.Uri.parse('')
+      )
+      .get<Array<Object>>('configurations')
+      ?.forEach((config) => {
+        omegaEditPort =
+          'dataEditor.omegaEditPort' in config
+            ? (config['dataEditor.omegaEditPort'] as number)
+            : omegaEditPort
+      })
+
+    omegaEditPort =
+      omegaEditPort !== 0 ? omegaEditPort : DEFAULT_OMEGA_EDIT_PORT
+
     if (
       omegaEditPort <= OMEGA_EDIT_MIN_PORT ||
       omegaEditPort > OMEGA_EDIT_MAX_PORT
