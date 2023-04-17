@@ -52,7 +52,19 @@ async function getFile(fileRequested, label, title) {
       })
       .then((fileUri) => {
         if (fileUri && fileUri[0]) {
-          return fileUri[0].fsPath
+          let path = fileUri[0].fsPath
+
+          if (
+            process.platform === 'win32' &&
+            path.length > 2 &&
+            path.charCodeAt(0) > 97 &&
+            path.charCodeAt(0) <= 122 &&
+            path.charAt(1) === ':'
+          ) {
+            path = path.charAt(0).toUpperCase() + path.slice(1)
+          }
+
+          return path
         }
 
         return ''
