@@ -17,12 +17,7 @@
 
 import * as vscode from 'vscode'
 import { commonCompletion } from './intellisense/commonItems'
-import {
-  XPathLexer,
-  ExitCondition,
-  LexPosition,
-  Token,
-} from '../semantics/xpLexer'
+//import { kMaxLength } from 'buffer'
 
 const schemaPrefixRegEx = new RegExp('</?(|[^ ]+:)schema')
 
@@ -467,8 +462,59 @@ export function isInXPath(
   document: vscode.TextDocument,
   position: vscode.Position
 ): boolean {
-  let isXPath: boolean = false
-  let xpLexer = new XPathLexer()
+  const lines = document.getText().split('\n')
+  const xPathRegex = /(\w+)=("|')(?=\{)/
+  let isComment: Boolean = false
+
+  for (let i = 0; i < lines.length; i++) {
+    let xPathMatch = lines[i].match(xPathRegex)
+
+    if (!isComment && lines[i].includes('<!--')) {
+      isComment = true
+    }
+
+    if (isComment) {
+      let closeIndex = lines[i].search('-->')
+
+      if (closeIndex !== -1) {
+        isComment = false
+
+        if (xPathMatch) {
+          if (closeIndex > lines[i].search(xPathMatch[0])) {
+            xPathMatch = null
+          }
+        }
+      } else {
+        xPathMatch = null
+      }
+    }
+
+    // The items in the tuple are used to determine the start point for the tokenizer. They are
+    //   the line number, position offset in the line, and document offset.
+    // The +1 on the position offset accounts for the opening curly brace.
+    if (xPathMatch) {
+      let startXPathLine = i
+      let startXPathPos = lines[i].indexOf(xPathMatch[0])
+      for (let k = i; k < lines.length; k++) {
+        if (lines[k].includes('}')) {
+          let endXpathLine = k
+          let endXPathPos = lines[k].indexOf('}')
+
+          let startXPath = new vscode.Position(startXPathLine, startXPathPos)
+          let endXPath = new vscode.Position(endXpathLine, endXPathPos)
+
+          if (
+            position.isAfterOrEqual(startXPath) &&
+            position.isBeforeOrEqual(endXPath)
+          ) {
+            return true
+          }
+          i = k
+          break
+        }
+      }
+    }
+    /*let xpLexer = new XPathLexer()
   xpLexer.documentTokens = []
   let tokens: Token[] = []
 
@@ -505,7 +551,9 @@ export function isInXPath(
       isXPath = true
     }
   })
-  return isXPath
+  return isXPath*/
+  }
+  return false
 }
 
 export function cursorAfterEquals(
