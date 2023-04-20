@@ -229,32 +229,13 @@ limitations under the License.
     goTo($gotoOffset)
   }
 
-  function scrollSearchResults(isNext: boolean) {
-    if ($searchResults.length > 0) {
-      let index = $searchIndex
-      if (isNext) {
-        index = index + 1
-        if (index >= $searchResults.length) {
-          index = 0
-        }
-      } else {
-        index = index - 1
-        if (index < 0) {
-          index = $searchResults.length - 1
-        }
-      }
-      $searchIndex = index
-      $gotoOffsetInput = $searchResults[index].toString($addressValue)
-      goTo($gotoOffset)
-    }
-  }
+  function updateSearchResults(offset?: number) {
+    $searchIndex = !offset
+      ? Math.abs(($searchResults.length + $searchIndex) % $searchResults.length)
+      : Math.abs(($searchResults.length + offset) % $searchResults.length)
 
-  function scrollSearchNext() {
-    scrollSearchResults(true)
-  }
-
-  function scrollSearchPrev() {
-    scrollSearchResults(false)
+    $gotoOffsetInput = $searchResults[$searchIndex].toString($addressValue)
+    goTo($searchResults[$searchIndex])
   }
 
   function updateLogicalDisplay(bytesPerRow) {
@@ -790,8 +771,7 @@ limitations under the License.
         $searchResults = msg.data.searchResults
         $searching = false
         if ($searchResults.length > 0) {
-          $searchIndex = 1
-          scrollSearchResults(false)
+          updateSearchResults()
         }
         break
       case MessageCommand.setUITheme:
@@ -918,12 +898,16 @@ limitations under the License.
               <button
                 class={$UIThemeCSSClass}
                 id="search_prev"
-                on:click={scrollSearchPrev}>Prev</button
+                on:click={() => {
+                  updateSearchResults(--$searchIndex)
+                }}>Prev</button
               >
               <button
                 class={$UIThemeCSSClass}
                 id="search_next"
-                on:click={scrollSearchNext}>Next</button
+                on:click={() => {
+                  updateSearchResults(++$searchIndex)
+                }}>Next</button
               >
               <sub>{$searchIndex + 1} / {$searchResults.length} Results </sub>
             {:else if $replacementsCount > 0}
