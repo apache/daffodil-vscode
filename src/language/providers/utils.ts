@@ -494,7 +494,7 @@ export function isInXPath(
     // The +1 on the position offset accounts for the opening curly brace.
     if (xPathMatch) {
       let startXPathLine = i
-      let openBraces = 1
+      let openBraces = 0
       let closeBraces = 0
       let startXPathPos = lines[i].indexOf(xPathMatch[0])
       for (let k = i; k < lines.length; k++) {
@@ -516,9 +516,9 @@ export function isInXPath(
             ) {
               return true
             }
+            i = k
+            break
           }
-          i = k
-          break
         }
       }
     }
