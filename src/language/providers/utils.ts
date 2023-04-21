@@ -494,20 +494,28 @@ export function isInXPath(
     // The +1 on the position offset accounts for the opening curly brace.
     if (xPathMatch) {
       let startXPathLine = i
+      let openBraces = 1
+      let closeBraces = 0
       let startXPathPos = lines[i].indexOf(xPathMatch[0])
       for (let k = i; k < lines.length; k++) {
+        if (lines[k].includes('{')) {
+          openBraces = openBraces + lines[k].split('{').length - 1
+        }
         if (lines[k].includes('}')) {
-          let endXpathLine = k
-          let endXPathPos = lines[k].indexOf('}')
+          closeBraces = closeBraces + lines[k].split('}').length - 1
+          if (openBraces == closeBraces) {
+            let endXpathLine = k
+            let endXPathPos = lines[k].indexOf('}')
 
-          let startXPath = new vscode.Position(startXPathLine, startXPathPos)
-          let endXPath = new vscode.Position(endXpathLine, endXPathPos)
+            let startXPath = new vscode.Position(startXPathLine, startXPathPos)
+            let endXPath = new vscode.Position(endXpathLine, endXPathPos)
 
-          if (
-            position.isAfterOrEqual(startXPath) &&
-            position.isBeforeOrEqual(endXPath)
-          ) {
-            return true
+            if (
+              position.isAfterOrEqual(startXPath) &&
+              position.isBeforeOrEqual(endXPath)
+            ) {
+              return true
+            }
           }
           i = k
           break
