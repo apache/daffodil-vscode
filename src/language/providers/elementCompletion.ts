@@ -82,7 +82,7 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
           nsPrefix
         )
 
-        return checkTagNearestOpen(
+        return nearestOpenTagChildElements(
           document,
           position,
           tagNearestTrigger,
@@ -154,7 +154,7 @@ function getDefinedVariables(document: vscode.TextDocument) {
   return additionalTypes
 }
 
-function checkTagNearestOpen(
+function nearestOpenTagChildElements(
   document: vscode.TextDocument,
   position: vscode.Position,
   tagNearestTrigger: string,
@@ -206,7 +206,16 @@ function checkTagNearestOpen(
       )
     case 'restriction':
       return getElementCompletionItems(
-        ['maxInclusive', 'maxExclusive', 'minInclusive', 'minExclusive'],
+        [
+          'maxInclusive',
+          'maxExclusive',
+          'minInclusive',
+          'minExclusive',
+          'pattern',
+          'totalDigits',
+          'fractionDigits',
+          'enumeration',
+        ],
         '',
         '',
         nsPrefix
@@ -221,6 +230,7 @@ function checkTagNearestOpen(
           'dfdl:defineFormat',
           'dfdl:format',
           'dfdl:defineVariable',
+          'dfdl:newVariableInstance',
           'dfdl:setVariable',
           'dfdl:defineEscapeScheme',
           'dfdl:element',
@@ -236,6 +246,10 @@ function checkTagNearestOpen(
       return getElementCompletionItems(['CDATA', '{}'], '', '', nsPrefix)
     case 'defineFormat':
       return getElementCompletionItems(['format'], '', '', nsPrefix)
+    case 'defineEscapeScheme':
+      return getElementCompletionItems(['dfdl:escapeScheme'], '', '', nsPrefix)
+    case 'format':
+      return getElementCompletionItems(['dfdl:property'], '', '', nsPrefix)
     case 'schema':
       return getElementCompletionItems(
         [

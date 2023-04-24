@@ -34,8 +34,11 @@ const items = [
   'discriminator',
   'defineFormat',
   'format',
+  'newVariableInstance',
   'defineVariable',
   'setVariable',
+  'defineEscapeScheme',
+  'escapeScheme',
   'dfdl:element',
   'dfdl:simpleType',
   'restriction',
@@ -273,7 +276,8 @@ export function getItemPrefix(item: string, nsPrefix: string) {
     item === 'discriminator' ||
     item === 'defineFormat' ||
     item === 'format' ||
-    item.includes('Variable')
+    item.includes('Variable') ||
+    item.includes('scape')
   ) {
     itemPrefix = 'dfdl:'
   }
