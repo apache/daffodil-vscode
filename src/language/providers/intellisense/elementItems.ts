@@ -23,10 +23,6 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
         item: 'xml version',
         snippetString: '<?xml version="1.0" encoding="UTF-8"?>\n$0',
       },
-/*      {
-        item: nsPrefix + 'schema',
-        snippetString: '<${1|\0,xs:,xsd:|}$2' + 'schema xmlns:xs="http://www.w3.org/2001/xmlSchema"\n\t\txmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"\n\t\txmlns:daf="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext"\n\t\txmlns:fn="http:/www.w3.org/2005/xpath-functions"\n\t\t elementFormDefault="unqualified">\n$0\n</' + nsPrefix + 'schema>',
-      },*/
       {
         item: nsPrefix + 'schema',
         snippetString: '<${1|\0,xs:,xsd:|}$2' + 'schema xmlns:xs="http://www.w3.org/2001/xmlSchema"\n\t\txmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"\n\t\txmlns:daf="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext"\n\t\txmlns:fn="http:/www.w3.org/2005/xpath-functions"\nelementFormDefault="unqualified"$0',
@@ -105,6 +101,11 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
         markdownString: 'Define group of mutually exclusive elements that resolve points of uncertainty that cannot be resolved by speculative parsing',
       },
       {
+        item: 'dfdl:newVariableInstance',
+        snippetString: '<dfdl:newVariableInstance ref="$1"$0',
+        markdownString: 'Defines the name, type, and optionally default value for the variable.',
+      },
+      {
         item: 'dfdl:defineVariable',
         snippetString: '<dfdl:defineVariable name="$1"$0',
         markdownString: 'Defines the name, type, and optionally default value for the variable.',
@@ -121,7 +122,12 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
       },
       {
         item: 'dfdl:defineEscapeScheme',
-        snippetString: '<dfdl:defineEscapeScheme name=$1 >\n\t$0,/dfdl:defineEscapeScheme>',
+        snippetString: '<dfdl:defineEscapeScheme name="$1" >\n$0</dfdl:defineEscapeScheme>',
+        markdownString: 'Defines a named, reusable escapeScheme',
+      },
+      {
+        item: 'dfdl:escapeScheme',
+        snippetString: '<dfdl:escapeScheme $1/>$0',
         markdownString: 'Defines a named, reusable escapeScheme',
       },
       {
@@ -135,6 +141,11 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
         markdownString: 'Defines the physical data format properties of an xs:element and xs:element reference',
       },
       {
+        item: 'dfdl:property',
+        snippetString: '<dfdl:property name="${1|length,nilValue,lengthPattern,separator,terminator,choiceLength,fillByte,initiator|}">$2</dfdl:property>$0',
+        markdownString: 'The element form for individual property bindings to ease syntactic expression difficulties',
+      },
+      {
         item: 'restriction',
         // use the "xs:" prefix for primitive types to differentiate them from custom simple types
         snippetString: '<' + nsPrefix + 'restriction base="${1|xs:string,xs:decimal,xs:float,xs:double,xs:integer,xs:nonNegativeInteger,xs:int,xs:unsignedInt,xs:short,xs:unsignedShort,xs:long,xs:unsignedLong,xs:byte,xs:unsignedByte,xs:hexBinary,xs:boolean|}"$0',
@@ -143,22 +154,42 @@ export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) 
       {
         item: 'minInclusive',
         snippetString: '<' + nsPrefix + 'minInclusive value="$1"/>$0',
-        markdownString: 'Used to check the validity of an element'
+        markdownString: 'Facet to define a inimum (inclusive) value'
       },
       {
         item: 'minExclusive',
         snippetString: '<' + nsPrefix + 'minExclusive value="$1"/>$0',
-        markdownString: 'Used to check the validity of an element'
+        markdownString: 'Facet to define a minumum (exclusive) value'
       },
       {
         item: 'maxInclusive',
         snippetString: '<' + nsPrefix + 'maxInclusive value="$1"/>$0',
-        markdownString: 'Used to check the validity of an element'
+        markdownString: 'Facet to define a maximum (inclusive) value'
       },
       {
         item: 'maxExclusive',
         snippetString: '<' + nsPrefix + 'maxExclusive value="$1"/>$0',
-        markdownString: 'Used to check the validity of an element'
+        markdownString: 'Facet to define a maximum exclusive) value'
+      },
+      {
+        item: 'pattern',
+        snippetString: '<' + nsPrefix + 'pattern value="$1"/>$0',
+        markdownString: 'Used to derive new simple types by specifying a regular expression against which values of the type are compared'
+      },
+      {
+        item: 'totalDigits',
+        snippetString: '<' + nsPrefix + 'totalDigits value="$1"/>$0',
+        markdownString: 'Indicates the maximum allowed value for the number of digits'
+      },
+      {
+        item: 'fractionDigits',
+        snippetString: '<' + nsPrefix + 'fractionDigits value="$1"/>$0',
+        markdownString: 'Indicates the maximum number of digits in the fractional part'
+      },
+      {
+        item: 'enumeration',
+        snippetString: '<' + nsPrefix + 'enumeration value="$1"/>$0',
+        markdownString: 'Used to restrict a datatype to a finite set of values'
       },
       {
         item: '<[CDATA[]]>',
