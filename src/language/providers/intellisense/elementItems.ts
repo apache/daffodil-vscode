@@ -138,7 +138,27 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
       {
         item: 'dfdl:element',
         snippetString: '<dfdl:element $1/>$0',
-        markdownString: 'Defines the physical data format properties of an xs:element and xs:element reference',
+        markdownString: 'Defines the physical data format properties of an xs:element',
+      },
+      {
+        item: 'dfdl:sequence',
+        snippetString: '<dfdl:sequence $1/>$0',
+        markdownString: 'Defines the physical data format properties of an xs:sequence group',
+      },
+      {
+        item: 'dfdl:group',
+        snippetString: '<dfdl:group $1/>$0',
+        markdownString: 'Defines the physical data format properties of an xs:group reference',
+      },
+      {
+        item: 'dfdl:choice',
+        snippetString: '<dfdl:choice $1/>$0',
+        markdownString: 'Defines the physical data format properties of an xs:choice group',
+      },
+      {
+        item: 'dfdl:property',
+        snippetString: '<dfdl:property name="$1">\n\t$2\n</dfdl:property>$0',
+        markdownString: 'Used in the syntax of format annotations',
       },
       {
         item: 'restriction',

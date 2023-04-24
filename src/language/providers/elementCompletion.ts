@@ -215,6 +215,16 @@ function nearestOpenTagChildElements(
           'fractionDigits',
           'enumeration',
         ],
+        [
+          'maxInclusive',
+          'maxExclusive',
+          'minInclusive',
+          'minExclusive',
+          'pattern',
+          'totalDigits',
+          'fractionDigits',
+          'enumeration',
+        ],
         '',
         '',
         nsPrefix
@@ -343,7 +353,7 @@ export function getAnnotationParent(
   let pElementText = document.lineAt(tagPosition.line).text
   let iCount = getItemsOnLineCount(pElementText)
   let pElement = ''
-  let [nElement, nPosition] = getTagNearestTrigger(
+  let [nElement, newPosition] = getTagNearestTrigger(
     document,
     tagPosition,
     pElementText,
@@ -353,13 +363,15 @@ export function getAnnotationParent(
     nsPrefix
   )
   pElement = nElement
+  //get parent of annotation tag
   if (pElement === 'annotation') {
-    var newPosition = new vscode.Position(
-      nPosition.line,
-      nPosition.character - 1
-    )
+    if (iCount < 2) {
+      newPosition = new vscode.Position(
+        newPosition.line - 1,
+        newPosition.character
+      )
+    }
     pElementText = document.lineAt(newPosition.line).text
-    iCount = getItemsOnLineCount(pElementText)
     let [nElement] = getTagNearestTrigger(
       document,
       newPosition,
