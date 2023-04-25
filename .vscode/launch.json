@@ -28,10 +28,10 @@
 			"infosetFormat": "xml",
 			"infosetOutput": {
 				"type": "file",
-				"path": "/infoset.xml"
+				"path": "${workspaceFolder}/infoset.xml"
 			},
 			"tdmlConfig": {
-				"action": "none",
+				"action": "generate",
 				"name": "${command:AskForTDMLName}",
 				"description": "${command:AskForTDMLDescription}",
 				"path": "${command:AskForTDMLPath}"

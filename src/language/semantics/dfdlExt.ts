@@ -29,6 +29,8 @@ import { parseTags } from '../interfaces/tagParser'
 import TagStyler from '../interfaces/tagStyler'
 
 const tokenModifiers = new Map<string, number>()
+const startList: vscode.Position[] = []
+const endList: vscode.Position[] = []
 
 const legend = (function () {
   const tokenTypesLegend = XslLexer.getTextmateTypeLegend()
@@ -107,11 +109,18 @@ export class XPathSemanticTokensProvider
         startCharacter: startCharacter,
         documentOffset: documentOffset,
       }
+      let start = new vscode.Position(line, startCharacter)
       let tmpTokens = this.xpLexer.analyse(
         document.getText(),
         ExitCondition.CurlyBrace,
         lexPositions
       )
+      let end = new vscode.Position(
+        lexPositions.line,
+        lexPositions.startCharacter
+      )
+      startList.push(start)
+      endList.push(end)
       tokens = tokens.concat(tmpTokens)
 
       // This was moved to inside the loop. If it isn't, the sections of XPath will be treated
@@ -270,6 +279,17 @@ function updateTagStatusBarItem(
   } else {
     status.hide()
   }
+}
+
+export function isXPath(position: vscode.Position): boolean {
+  for (let i = 0; i < startList.length; i++) {
+    if (
+      position.isBeforeOrEqual(endList[i]) &&
+      position.isAfterOrEqual(startList[i])
+    )
+      return true
+  }
+  return false
 }
 
 export function activate(context: vscode.ExtensionContext) {

@@ -17,7 +17,7 @@
 
 import * as vscode from 'vscode'
 import { commonCompletion } from './intellisense/commonItems'
-//import { kMaxLength } from 'buffer'
+import { isXPath } from '../semantics/dfdlExt'
 
 const schemaPrefixRegEx = new RegExp('</?(|[^ ]+:)schema')
 
@@ -462,106 +462,7 @@ export function isInXPath(
   document: vscode.TextDocument,
   position: vscode.Position
 ): boolean {
-  const lines = document.getText().split('\n')
-  const xPathRegex = /(\w+)=("|')(?=\{)/
-  let isComment: Boolean = false
-
-  for (let i = 0; i < lines.length; i++) {
-    let xPathMatch = lines[i].match(xPathRegex)
-
-    if (!isComment && lines[i].includes('<!--')) {
-      isComment = true
-    }
-
-    if (isComment) {
-      let closeIndex = lines[i].search('-->')
-
-      if (closeIndex !== -1) {
-        isComment = false
-
-        if (xPathMatch) {
-          if (closeIndex > lines[i].search(xPathMatch[0])) {
-            xPathMatch = null
-          }
-        }
-      } else {
-        xPathMatch = null
-      }
-    }
-
-    // The items in the tuple are used to determine the start point for the tokenizer. They are
-    //   the line number, position offset in the line, and document offset.
-    // The +1 on the position offset accounts for the opening curly brace.
-    if (xPathMatch) {
-      let startXPathLine = i
-      let openBraces = 0
-      let closeBraces = 0
-      let startXPathPos = lines[i].indexOf(xPathMatch[0])
-      for (let k = i; k < lines.length; k++) {
-        if (lines[k].includes('{')) {
-          openBraces = openBraces + lines[k].split('{').length - 1
-        }
-        if (lines[k].includes('}')) {
-          closeBraces = closeBraces + lines[k].split('}').length - 1
-          if (openBraces == closeBraces) {
-            let endXpathLine = k
-            let endXPathPos = lines[k].indexOf('}')
-
-            let startXPath = new vscode.Position(startXPathLine, startXPathPos)
-            let endXPath = new vscode.Position(endXpathLine, endXPathPos)
-
-            if (
-              position.isAfterOrEqual(startXPath) &&
-              position.isBeforeOrEqual(endXPath)
-            ) {
-              return true
-            }
-            i = k
-            break
-          }
-        }
-      }
-    }
-    /*let xpLexer = new XPathLexer()
-  xpLexer.documentTokens = []
-  let tokens: Token[] = []
-
-  const tokenPositions = findAllXPath(document.getText())
-
-  for (let i = 0; i < tokenPositions.length; i++) {
-    const line = tokenPositions[i][0]
-    const startCharacter = tokenPositions[i][1]
-    const documentOffset = tokenPositions[i][2]
-
-    const lexPositions: LexPosition = {
-      line: line,
-      startCharacter: startCharacter,
-      documentOffset: documentOffset,
-    }
-    let tmpTokens = xpLexer.analyse(
-      document.getText(),
-      ExitCondition.CurlyBrace,
-      lexPositions
-    )
-    tokens = tokens.concat(tmpTokens)
-
-    // Reset the xpLexer. If this is not done, existing tokens will not be flushed
-    //   and will be re-added to the tokens list. This might not affect the operation, but it does
-    //   increase the memory required by the tokenizer, potentially running out of memory.
-    xpLexer.reset()
-  }
-  tokens.forEach((token) => {
-    if (
-      token.line == position.line - 1 &&
-      token.startCharacter <= position.character &&
-      token.startCharacter + token.length >= position.character
-    ) {
-      isXPath = true
-    }
-  })
-  return isXPath*/
-  }
-  return false
+  return isXPath(position)
 }
 
 export function cursorAfterEquals(
