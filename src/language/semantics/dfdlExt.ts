@@ -119,6 +119,7 @@ export class XPathSemanticTokensProvider
         lexPositions.line,
         lexPositions.startCharacter
       )
+      //Add start and end positions of XPath so we don't have to recalculate every time Intellisense is triggered
       startList.push(start)
       endList.push(end)
       tokens = tokens.concat(tmpTokens)

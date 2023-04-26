@@ -398,66 +398,7 @@ export function getItemsOnLineCount(triggerText: String) {
   return itemsOnLine
 }
 
-// Identify all sections in the full document that should be treated as XPath
-export function findAllXPath(document: String): [number, number, number][] {
-  let tokensFound: [number, number, number][] = []
-  let charCount = 0
-  const lines = document.split('\n')
-
-  // Regex should match up to the character before we need to start detecting XPath
-  // In these cases, there is a left curly brace right after the regex match, so
-  //   we may need to adjust the exact points if there are schemas with spaces between
-  //   the open quote and the left curly brace.
-  // Also note that the start location that we return for processing should NOT include the
-  //   left curly brace. The way that the tokenizer determines when to stop processing
-  //   is to find an extra closing character (curly brace, single quote, or double quote)
-  //   If it doesn't terminate, it will tokenize the remainder of the file.
-  const xPathRegex = /(\w+)=("|')(?=\{)/
-  let isComment: Boolean = false
-
-  for (let i = 0; i < lines.length; i++) {
-    let xPathMatch = lines[i].match(xPathRegex)
-
-    if (!isComment && lines[i].includes('<!--')) {
-      isComment = true
-    }
-
-    if (isComment) {
-      let closeIndex = lines[i].search('-->')
-
-      if (closeIndex !== -1) {
-        isComment = false
-
-        if (xPathMatch) {
-          if (closeIndex > lines[i].search(xPathMatch[0])) {
-            xPathMatch = null
-          }
-        }
-      } else {
-        xPathMatch = null
-      }
-    }
-
-    // The items in the tuple are used to determine the start point for the tokenizer. They are
-    //   the line number, position offset in the line, and document offset.
-    // The +1 on the position offset accounts for the opening curly brace.
-    if (xPathMatch) {
-      const lineOffset =
-        lines[i].search(xPathMatch[0]) + xPathMatch[0].length + 1
-      tokensFound.push([
-        i,
-        (xPathMatch.index || 0) + xPathMatch[0].length + 1,
-        charCount + lineOffset,
-      ])
-    }
-
-    // Used to keep track of the document offset. The +1 accounts for newlines.
-    charCount += lines[i].length + 1
-  }
-
-  return tokensFound
-}
-
+//Determines if the current curser is in XPath and dfdl intellisense should be turned off
 export function isInXPath(
   document: vscode.TextDocument,
   position: vscode.Position
