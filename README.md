@@ -120,3 +120,5 @@ Apache Daffodil™ Extension for Visual Studio Code is licensed under the [Apach
 This product includes the [logback](https://github.com/qos-ch/logback) library, which is available under the Eclipse Public License v1.0.
 
 This product includes the [Java Debug Server for Visual Studio Code](https://github.com/microsoft/java-debug) library, which is available under the Eclipse Public License v1.0.
+
+This product includes the [Xml Schema Object Model](https://github.com/kohsuke/xsom) library, which is licensed under the Common Development and Distribution License Version 1.1.
