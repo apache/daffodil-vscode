@@ -343,7 +343,7 @@
               },
               "infosetOutput": {
                 "type": "object",
-                "description": "Destination for final Infoset (file-path | 'console' | 'none')",
+                "description": "Destination for final Infoset ('file' | 'console' | 'none')",
                 "default": {
                   "type": "console",
                   "path": "${workspaceFolder}/infoset.xml"
@@ -413,27 +413,14 @@
                 },
                 "default": {}
               },
-              "dataEditor.omegaEditPort": {
-                "type": "integer",
-                "description": "Editor server default port",
-                "default": 9000
-              },
-              "dataEditor.logFile": {
-                "type": "string",
-                "description": "Path to log file for data editor",
-                "default": "${workspaceFolder}/dataEditor-${omegaEditPort}.log"
-              },
-              "dataEditor.logLevel": {
-                "type": "string",
-                "description": "Log level for data editor",
-                "enum": [
-                  "error",
-                  "warn",
-                  "info",
-                  "debug",
-                  "trace"
-                ],
-                "default": "info"
+              "dataEditor": {
+                "type": "object",
+                "description": "Configuration for Data Editor. Settings are port, logFile and logLevel",
+                "default": {
+                  "port": 9000,
+                  "logFile": "${workspaceFolder}/dataEditor-${omegaEditPort}.log",
+                  "logLevel": "info"
+                }
               }
             }
           }
@@ -464,9 +451,11 @@
             "daffodilDebugClasspath": "",
             "variables": {},
             "tunables": {},
-            "dataEditor.omegaEditPort": 9000,
-            "dataEditor.logFile": "${workspaceFolder}/dataEditor-${omegaEditPort}.log",
-            "dataEditor.logLevel": "info"
+            "dataEditor": {
+              "port": 9000,
+              "logFile": "${workspaceFolder}/dataEditor-${omegaEditPort}.log",
+              "logLevel": "info"
+            }
           }
         ],
         "configurationSnippets": [
@@ -498,9 +487,11 @@
               "daffodilDebugClasspath": "",
               "variables": {},
               "tunables": {},
-              "dataEditor.omegaEditPort": 9000,
-              "dataEditor.logFile": "${workspaceFolder}/dataEditor-${omegaEditPort}.log",
-              "dataEditor.logLevel": "info"
+              "dataEditor": {
+                "port": 9000,
+                "logFile": "${workspaceFolder}/dataEditor-${omegaEditPort}.log",
+                "logLevel": "info"
+              }
             }
           }
         ],
@@ -560,7 +551,7 @@
           },
           "infosetOutputType": {
             "type": "string",
-            "description": "Destination for final Infoset (file | 'console' | 'none')",
+            "description": "Destination for final Infoset ('file' | 'console' | 'none')",
             "enum": [
               "file",
               "console",
@@ -627,17 +618,17 @@
             },
             "default": {}
           },
-          "dataEditor.omegaEditPort": {
+          "dataEditorPort": {
             "type": "integer",
             "description": "Editor server default port",
             "default": 9000
           },
-          "dataEditor.logFile": {
+          "dataEditorLogFile": {
             "type": "string",
             "description": "Path to log file for data editor",
             "default": "${workspaceFolder}/dataEditor-${omegaEditPort}.log"
           },
-          "dataEditor.logLevel": {
+          "dataEditorLogLevel": {
             "type": "string",
             "description": "Log level for data editor",
             "enum": [

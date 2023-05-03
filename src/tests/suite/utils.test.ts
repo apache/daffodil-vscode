@@ -48,6 +48,11 @@ suite('Utils Test Suite', () => {
     openInfosetView: false,
     openInfosetDiffView: false,
     daffodilDebugClasspath: '',
+    dataEditorConfig: {
+      port: 9000,
+      logFile: '${workspaceFolder}/dataEditor-${omegaEditPort}.log',
+      logLevel: 'info',
+    },
   }
 
   test('Default config', async () => {

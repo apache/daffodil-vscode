@@ -74,6 +74,7 @@ function updateInfosetOutputType() {
 }
 
 // Function to update select TDML action
+// tdml items need 0 height and width when hidden so there is no large empty space
 function updateTDMLAction() {
   var tdmlSelectionBox = document.getElementById('tdmlAction')
   var tdmlSelectedValue =
@@ -82,20 +83,33 @@ function updateTDMLAction() {
   if (tdmlSelectedValue !== 'none') {
     document.getElementById('tdmlNameLabel').style =
       'margin-top: 10px; visibility: visible;'
+    document.getElementById('tdmlName').style =
+      'margin-top: 10px; visibility: visible;'
     document.getElementById('tdmlDescriptionLabel').style =
       'margin-top: 10px; visibility: visible;'
+    document.getElementById('tdmlDescription').style =
+      'margin-top: 10px; visibility: visible;'
   } else {
+    document.getElementById('tdmlNameLabel').style =
+      'width: 0px; height: 0px; visibility: hidden;'
+    document.getElementById('tdmlName').style =
+      'width: 0px; height: 0px; visibility: hidden;'
     document.getElementById('tdmlDescriptionLabel').style =
-      'visibility: hidden;'
-    document.getElementById('tdmlDescriptionLabel').style =
-      'visibility: hidden;'
+      'width: 0px; height: 0px; visibility: hidden;'
+    document.getElementById('tdmlDescription').style =
+      'width: 0px; height: 0px; visibility: hidden;'
   }
 
   if (tdmlSelectedValue === 'generate') {
+    document.getElementById('tdmlPathLabel').style =
+      'margin-top: 10px; visibility: visible;'
     document.getElementById('tdmlPath').style =
       'margin-top: 10px; visibility: visible;'
   } else {
-    document.getElementById('tdmlPath').style = 'visibility: hidden;'
+    document.getElementById('tdmlPathLabel').style =
+      'width: 0px; height: 0px; visibility: hidden;'
+    document.getElementById('tdmlPath').style =
+      'width: 0px; height: 0px; visibility: hidden;'
   }
 }
 
@@ -158,6 +172,11 @@ function save() {
   const stopOnEntry = document.getElementById('stopOnEntry').checked
   const trace = document.getElementById('trace').checked
   const useExistingServer = document.getElementById('useExistingServer').checked
+  const dataEditorPort = parseInt(
+    document.getElementById('dataEditorPort').value
+  )
+  const dataEditorLogFile = document.getElementById('dataEditorLogFile').value
+  const dataEditorLogLevel = document.getElementById('dataEditorLogLevel').value
 
   let list = document.getElementById('daffodilDebugClasspathTable')
 
@@ -199,6 +218,11 @@ function save() {
         openInfosetView: openInfosetView,
         openInfosetDiffView: openInfosetDiffView,
         daffodilDebugClasspath: daffodilDebugClasspath,
+        dataEditorConfig: {
+          port: dataEditorPort,
+          logFile: dataEditorLogFile,
+          logLevel: dataEditorLogLevel,
+        },
       },
     ],
   }
@@ -251,6 +275,12 @@ async function updateConfigValues(config) {
   document.getElementById('trace').checked = config.trace
   document.getElementById('useExistingServer').checked =
     config.useExistingServer
+  document.getElementById('dataEditorPort').value = parseInt(
+    config.dataEditorPort
+  )
+  document.getElementById('dataEditorLogFile').value = config.dataEditorLogFile
+  document.getElementById('dataEditorLogLevel').value =
+    config.dataEditorLogLevel
 
   updateInfosetOutputType()
   updateTDMLAction()
