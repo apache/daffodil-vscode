@@ -21,7 +21,8 @@ import * as unzip from 'unzip-stream'
 import * as os from 'os'
 import * as child_process from 'child_process'
 import path from 'path'
-import { TDMLConfig } from './adapter/activateDaffodilDebug'
+import { TDMLConfig } from './classes/tdmlConfig'
+import { DataEditorConfig } from './classes/dataEditor'
 
 const defaultConf = vscode.workspace.getConfiguration()
 let currentConfig: vscode.DebugConfiguration
@@ -90,6 +91,7 @@ export function getConfig(
   infosetFormat: string | null = null,
   infosetOutput: object | null = null,
   tdmlConfig: TDMLConfig | null = null,
+  dataEditorConfig: DataEditorConfig | null = null,
   stopOnEntry = false,
   useExistingServer = false,
   trace = false,
@@ -149,6 +151,16 @@ export function getConfig(
     daffodilDebugClasspath: daffodilDebugClasspath
       ? daffodilDebugClasspath
       : defaultConf.get('daffodilDebugClasspath', ''),
+    dataEditorConfig: dataEditorConfig
+      ? dataEditorConfig
+      : {
+          port: defaultConf.get('dataEditorPort', 9000),
+          logFile: defaultConf.get(
+            'dataEditorLogFile',
+            '${workspaceFolder}/dataEditor-${omegaEditPort}.log'
+          ),
+          logLevel: defaultConf.get('dataEditorLogLevel', 'info'),
+        },
   }
 }
 

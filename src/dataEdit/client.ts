@@ -95,8 +95,8 @@ async function getOmegaEditPort() {
       .get<Array<Object>>('configurations')
       ?.forEach((config) => {
         omegaEditPort =
-          'dataEditor.omegaEditPort' in config
-            ? (config['dataEditor.omegaEditPort'] as number)
+          'dataEditor' in config && 'port' in (config['dataEditor'] as object)
+            ? ((config['dataEditor'] as object)['port'] as number)
             : omegaEditPort
       })
 

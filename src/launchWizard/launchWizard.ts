@@ -32,9 +32,20 @@ export async function activate(ctx: vscode.ExtensionContext) {
 
 // Function to get config values
 function getConfigValues(data, configIndex) {
-  return data && configIndex !== -1
-    ? data.configurations[configIndex]
-    : defaultConf
+  if (data && configIndex !== -1) {
+    let currentConfig = data.configurations[configIndex]
+
+    // make sure config has needed items set, if not update it
+    for (var key of Object.keys(defaultConf)) {
+      if (!currentConfig.hasOwnProperty(key)) {
+        currentConfig[key] = defaultConf[key]
+      }
+    }
+
+    return currentConfig
+  } else {
+    return defaultConf
+  }
 }
 
 /**
@@ -280,6 +291,8 @@ class LaunchWizard {
 
     let defaultValues = getConfigValues(fileData, configIndex)
 
+    // vscode.window.showInformationMessage(JSON.stringify(fileData))
+
     let nameVisOrHiddenStyle = newConfig
       ? 'margin-top: 10px; visibility: visible;'
       : 'visibility: hidden;'
@@ -324,11 +337,7 @@ class LaunchWizard {
     let infosetOutputTypeSelect = ''
     let infosetOutputTypes = ['none', 'console', 'file']
     let infosetOutputType = defaultValues.infosetOutput['type']
-      ? defaultValues.infosetOutput['type']
-      : defaultValues.infosetOutputType
     let infosetOutputPath = defaultValues.infosetOutput['path']
-      ? defaultValues.infosetOutput['path']
-      : defaultValues.infosetOutputFilePath
     let infosetPathVisOrHiddenStyle =
       infosetOutputType === 'file'
         ? 'margin-top: 10px; visibility: visible;'
@@ -345,25 +354,19 @@ class LaunchWizard {
     let tdmlActionSelect = ''
     let tdmlActions = ['none', 'generate', 'append', 'execute']
     let tdmlAction = defaultValues.tdmlConfig['action']
-      ? defaultValues.tdmlConfig['type']
-      : defaultValues.tdmlAction
     let tdmlName = defaultValues.tdmlConfig['name']
-      ? defaultValues.tdmlConfig['name']
-      : defaultValues.tdmlName
     let tdmlDescription = defaultValues.tdmlConfig['description']
-      ? defaultValues.tdmlConfig['description']
-      : defaultValues.tdmlDescription
     let tdmlPath = defaultValues.tdmlConfig['path']
-      ? defaultValues.tdmlConfig['path']
-      : defaultValues.tdmlPath
+
+    // tdml items need 0 height and width when hidden so there is no large empty space
     let tdmlNameDesVisOrHiddenStyle =
       tdmlAction !== 'none'
         ? 'margin-top: 10px; visibility: visible;'
-        : 'visibility: hidden'
+        : 'width: 0px; height: 0px; visibility: hidden'
     let tdmlPathVisOrHiddenStyle =
       tdmlAction === 'generate'
         ? 'margin-top: 10px; visibility: visible;'
-        : 'visibility: hidden'
+        : 'width: 0px; height: 0px; visibility: hidden'
 
     tdmlActions.forEach((action) => {
       if (action === tdmlAction) {
@@ -372,6 +375,10 @@ class LaunchWizard {
         tdmlActionSelect += `<option value="${action}">${action}</option>`
       }
     })
+
+    let dataEditorPort = defaultValues.dataEditorConfig['port']
+    let dataEditorLogFile = defaultValues.dataEditorConfig['logFile']
+    let dataEditorLogLevel = defaultValues.dataEditorConfig['logLevel']
 
     return `
   <!DOCTYPE html>
@@ -492,17 +499,14 @@ class LaunchWizard {
           ${tdmlActionSelect}
         </select>
 
-        <p id="tdmlNameLabel" style="${tdmlNameDesVisOrHiddenStyle}" class="setting-description">
-          TDML Name: <input class="setting-div" value="${tdmlName}" id="tdmlName">
-        </p>
+        <p id="tdmlNameLabel" style="${tdmlNameDesVisOrHiddenStyle}" class="setting-description">TDML Name:</p>
+        <input style="${tdmlNameDesVisOrHiddenStyle}" class="file-input" value="${tdmlName}" id="tdmlName">
 
-        <p id="tdmlDescriptionLabel" style="${tdmlNameDesVisOrHiddenStyle}" class="setting-description">
-          TDML Description: <input class="setting-div" value="${tdmlDescription}" id="tdmlDescription">
-        </p>
+        <p id="tdmlDescriptionLabel" style="${tdmlNameDesVisOrHiddenStyle}" class="setting-description">TDML Description:</p>
+        <input style="${tdmlNameDesVisOrHiddenStyle}" class="file-input" value="${tdmlDescription}" id="tdmlDescription">
 
-        <p id="tdmlPathLabel" style="${tdmlPathVisOrHiddenStyle}" class="file-input">
-          TDML File Path: <input class="file-input" value="${tdmlPath}" id="tdmlPath">
-        </p>
+        <p id="tdmlPathLabel" style="${tdmlPathVisOrHiddenStyle}" class="setting-description">TDML File Path:</p>
+        <input style="${tdmlPathVisOrHiddenStyle}" class="file-input" value="${tdmlPath}" id="tdmlPath">
       </div>
 
       <div id="programDiv" class="setting-div">
@@ -526,6 +530,19 @@ class LaunchWizard {
           <input type="checkbox" id="trace" ${trace}>
           <span class="checkmark"></span>
         </label>
+      </div>
+
+      <div id="dataEditorDiv" class="setting-div">
+        <p>Data Editor Settings:</p>
+        
+        <p id="dataEditorPortLabel" class="setting-description">omega-edit Port:</p>
+        <input class="file-input" value="${dataEditorPort}" id="dataEditorPort">
+
+        <p id="dataEditorLogFileLabel" style="margin-top: 10px;" class="setting-description">Log File:</p>
+        <input class="file-input" value="${dataEditorLogFile}" id="dataEditorLogFile">
+        
+        <p id="dataEditorLogLevelLabel" style="margin-top: 10px;" class="setting-description">Log Level:</p>
+        <input class="file-input" value="${dataEditorLogLevel}" id="dataEditorLogLevel">
       </div>
 
       <div id="useExistingServerDiv" class="setting-div" onclick="check('useExistingServer')">

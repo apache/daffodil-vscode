@@ -48,6 +48,19 @@ suite('Daffodil Debugger', () => {
   const JSON_INFOSET_PATH = path.join(PROJECT_ROOT, 'testinfoset.json')
   const debuggers: vscode.Terminal[] = []
 
+  const tdmlConf = {
+    action: 'none',
+    name: 'tdmlConf',
+    description: 'testtdml',
+    path: TDML_PATH,
+  }
+
+  const dataEditorConfig = {
+    port: 9000,
+    logFile: 'dataEditor-9000.log',
+    logLevel: 'info',
+  }
+
   before(async () => {
     await unzipFile(SCALA_PATH, PROJECT_ROOT)
     debuggers.push(
@@ -67,12 +80,7 @@ suite('Daffodil Debugger', () => {
     if (fs.existsSync(XML_INFOSET_PATH)) fs.rmSync(XML_INFOSET_PATH)
     if (fs.existsSync(JSON_INFOSET_PATH)) fs.rmSync(JSON_INFOSET_PATH)
   })
-  const tdmlConf = {
-    action: 'none',
-    name: 'tdmlConf',
-    description: 'testtdml',
-    path: TDML_PATH,
-  }
+
   test('should output xml infoset', async () => {
     await vscode.debug.startDebugging(
       undefined,
@@ -88,7 +96,8 @@ suite('Daffodil Debugger', () => {
           type: 'file',
           path: XML_INFOSET_PATH,
         },
-        tdmlConf
+        tdmlConf,
+        dataEditorConfig
       ),
       { noDebug: true }
     )
@@ -111,7 +120,8 @@ suite('Daffodil Debugger', () => {
           type: 'file',
           path: JSON_INFOSET_PATH,
         },
-        tdmlConf
+        tdmlConf,
+        dataEditorConfig
       ),
       { noDebug: true }
     )

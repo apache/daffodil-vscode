@@ -23,6 +23,7 @@ import * as dataEditClient from '../dataEdit/client'
 import { getConfig, getCurrentConfig, setCurrentConfig } from '../utils'
 import { DaffodilDebugSession } from './daffodilDebug'
 import { FileAccessor } from './daffodilRuntime'
+import { TDMLConfig } from '../classes/tdmlConfig'
 
 /** Method to file path for program and data
  * Details:
@@ -491,11 +492,4 @@ class InlineDebugAdapterFactory
       new DaffodilDebugSession(workspaceFileAccessor)
     )
   }
-}
-
-export interface TDMLConfig {
-  action: String
-  name: String
-  description: String
-  path: String
 }
