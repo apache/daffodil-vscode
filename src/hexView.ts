@@ -140,6 +140,7 @@ export class DebuggerHexView {
       this.closeHexFile()
       this.deleteFile(this.hexFile)
       this.decorator.dispose()
+      this.hexString = '' // make sure no data from previous runs is carried over
     }
   }
 
@@ -278,6 +279,7 @@ export class DebuggerHexView {
     let hexLength = this.hexString.split('\n')[this.bytePos1b - 1]
       ? this.hexString.split('\n')[this.bytePos1b - 1].length
       : 0
+
     if (hexLength === 0) {
       this.closeHexFile()
     }
