@@ -28,13 +28,7 @@
 			"infosetFormat": "xml",
 			"infosetOutput": {
 				"type": "file",
-				"path": "/infoset.xml"
-			},
-			"tdmlConfig": {
-				"action": "none",
-				"name": "${command:AskForTDMLName}",
-				"description": "${command:AskForTDMLDescription}",
-				"path": "${command:AskForTDMLPath}"
+				"path": "${workspaceFolder}/infoset.xml"
 			},
 			"debugServer": 4711,
 			"openHexView": false,

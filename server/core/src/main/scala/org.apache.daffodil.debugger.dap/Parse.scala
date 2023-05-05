@@ -342,19 +342,9 @@ object Parse {
                 parseVariables(arguments),
                 parseTunables(arguments)
               ).parMapN(LaunchArgs.TDMLConfig.Execute.apply)
-            case "none" =>
-              (
-                parseProgram(arguments),
-                parseData(arguments),
-                parseStopOnEntry(arguments),
-                parseInfosetFormat(arguments),
-                parseInfosetOutput(arguments),
-                parseVariables(arguments),
-                parseTunables(arguments)
-              ).parMapN(LaunchArgs.Manual.apply)
             case invalidType =>
               Left(
-                s"invalid 'tdmlConfig.action': '$invalidType', must be 'none', 'generate', 'append', or 'execute'"
+                s"invalid 'tdmlConfig.action': '$invalidType', must be 'generate', 'append', or 'execute'"
               ).toEitherNel
           }
       }

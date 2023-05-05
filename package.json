@@ -353,7 +353,7 @@
                 "type": "object",
                 "description": "Configuration for TDML Actions",
                 "default": {
-                  "action": "none",
+                  "action": "generate",
                   "name": "${command:AskForTDMLName}",
                   "description": "${command:AskForTDMLDescription}",
                   "path": "${command:AskForTDMLPath}"
@@ -438,12 +438,6 @@
               "type": "file",
               "path": "${workspaceFolder}/infoset.xml"
             },
-            "tdmlConfig": {
-              "action": "none",
-              "name": "${command:AskForTDMLName}",
-              "description": "${command:AskForTDMLDescription}",
-              "path": "${command:AskForTDMLPath}"
-            },
             "debugServer": 4711,
             "openHexView": false,
             "openInfosetView": false,
@@ -473,12 +467,6 @@
               "infosetOutput": {
                 "type": "file",
                 "path": "${workspaceFolder}/infoset.xml"
-              },
-              "tdmlConfig": {
-                "action": "none",
-                "name": "^\"\\${command:AskForTDMLName}\"",
-                "description": "^\"\\${command:AskForTDMLDescription}\"",
-                "path": "^\"\\${command:AskForTDMLPath}\""
               },
               "debugServer": 4711,
               "openHexView": false,
@@ -525,12 +513,11 @@
           },
           "tdmlAction": {
             "type": "string",
-            "description": "TDML Action to take (generate | append | execute | none)",
+            "description": "TDML Action to take (generate | append | execute)",
             "enum": [
               "generate",
               "append",
-              "execute",
-              "none"
+              "execute"
             ],
             "default": "none"
           },

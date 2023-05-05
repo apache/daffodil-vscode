@@ -100,7 +100,18 @@ export function getConfig(
   openInfosetDiffView = false,
   daffodilDebugClasspath: string = ''
 ) {
-  return {
+  // Keep 'none' here as a default so that we don't always add the tdmlConfig block
+  let tdmlAction = defaultConf.get('tdmlAction', 'none')
+  let tdmlPropsNeeded = false
+  if (
+    tdmlAction === 'generate' ||
+    tdmlAction === 'append' ||
+    tdmlAction === 'execute'
+  ) {
+    tdmlPropsNeeded = true
+  }
+
+  let jsonConfig = {
     name: name,
     request: request,
     type: type,
@@ -120,17 +131,6 @@ export function getConfig(
             'infosetOutputFilePath',
             '${workspaceFolder}/infoset.xml'
           ),
-        },
-    tdmlConfig: tdmlConfig
-      ? tdmlConfig
-      : {
-          action: defaultConf.get('tdmlAction', 'none'),
-          name: defaultConf.get('tdmlName', '${command:AskforTDMLName}'),
-          description: defaultConf.get(
-            'tdmlDescription',
-            '${command:AskForTDMLDescription}'
-          ),
-          path: defaultConf.get('tdmlPath', '${workspaceFolder}/infoset.tdml'),
         },
     stopOnEntry: stopOnEntry
       ? stopOnEntry
@@ -162,6 +162,22 @@ export function getConfig(
           logLevel: defaultConf.get('dataEditorLogLevel', 'info'),
         },
   }
+
+  if (tdmlPropsNeeded) {
+    jsonConfig['tdmlConfig'] = tdmlConfig
+      ? tdmlConfig
+      : {
+          action: tdmlAction,
+          name: defaultConf.get('tdmlName', '${command:AskforTDMLName}'),
+          description: defaultConf.get(
+            'tdmlDescription',
+            '${command:AskForTDMLDescription}'
+          ),
+          path: defaultConf.get('tdmlPath', '${workspaceFolder}/infoset.tdml'),
+        }
+  }
+
+  return jsonConfig
 }
 
 export async function unzipFile(zipFilePath: string, extractPath: string) {
