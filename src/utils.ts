@@ -26,6 +26,8 @@ import { TDMLConfig } from './adapter/activateDaffodilDebug'
 const defaultConf = vscode.workspace.getConfiguration()
 let currentConfig: vscode.DebugConfiguration
 
+const terminalName = 'daffodil-debugger'
+
 export const regexp = {
   comma: new RegExp(',', 'g'),
   slash: new RegExp('/', 'g'),
@@ -169,6 +171,7 @@ export async function unzipFile(zipFilePath: string, extractPath: string) {
 export async function displayTerminalExitStatus(terminal: vscode.Terminal) {
   vscode.window.onDidCloseTerminal((t) => {
     if (t.name === terminal.name && t.processId === terminal.processId) {
+      t.show()
       vscode.window.showInformationMessage(
         `Terminal exited with status code: ${t.exitStatus?.code}`
       )
@@ -196,10 +199,37 @@ export async function killProcess(id: number | undefined) {
 
 export const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
 
+// Grab active terminal if available and it can run a new command, else create new one
+export const getTerminal = (
+  hideTerminal: boolean,
+  env:
+    | {
+        [key: string]: string | null | undefined
+      }
+    | undefined,
+  createTerminal: boolean
+) => {
+  if (!createTerminal) {
+    if (vscode.window.activeTerminal) {
+      const activeTerminal = vscode.window.activeTerminal
+
+      // check allows for shell name or full path to shell in terminal name
+      if (activeTerminal.name.includes(terminalName)) return activeTerminal
+    }
+  }
+
+  // If no good active terminal available create new one
+  return vscode.window.createTerminal({
+    name: terminalName,
+    hideFromUser: hideTerminal,
+    env: env,
+  })
+}
+
 export async function runScript(
   scriptPath: string,
   scriptName: string,
-  shellPath: string | null = null,
+  createTerminal: boolean,
   shellArgs: string[] = [],
   env:
     | {
@@ -225,15 +255,17 @@ export async function runScript(
     }
   }
 
-  // Start server in terminal based on scriptName
-  const terminal = vscode.window.createTerminal({
-    name: scriptName,
-    cwd: path.join(scriptPath, 'bin'),
-    hideFromUser: hideTerminal,
-    shellPath: shellPath !== null ? shellPath : scriptName,
-    shellArgs: shellArgs,
-    env: env,
-  })
+  const terminal = getTerminal(hideTerminal, env, createTerminal)
+
+  // Create debugger run command
+  const fullPathToScript = path
+    .join(scriptPath, 'bin', scriptName)
+    // fix pathing as emtpy space needs a \ before it to not cause errors
+    .replace(' ', '\\ ')
+  const debuggerRunCommand = `${fullPathToScript} ${shellArgs.join(' ')}`
+
+  // Send debugger run command to terminal, when exists terminal will stay open
+  terminal.sendText(debuggerRunCommand)
 
   if (!hideTerminal) {
     terminal.show()
