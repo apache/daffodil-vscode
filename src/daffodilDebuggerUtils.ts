@@ -52,11 +52,20 @@ export const stopDebugger = (id: number | undefined = undefined) =>
 export const shellPath = (scriptName: string) =>
   osCheck(scriptName, '/bin/bash')
 
-export const shellArgs = (scriptName: string, port: number) =>
-  osCheck(
+export const shellArgs = (scriptName: string, port: number) => {
+  const logPath = vscode.workspace.workspaceFolders
+    ? vscode.workspace.workspaceFolders[0].uri.fsPath
+    : '/tmp'
+
+  return osCheck(
     ['--listenPort', `${port}`],
-    ['--login', '-c', `${scriptName} --listenPort ${port}`]
+    [
+      '--login',
+      '-c',
+      `${scriptName} --listenPort ${port} | tee ${logPath}/debugger-${port}-output.txt`,
+    ]
   )
+}
 
 export async function runDebugger(
   rootPath: string,
