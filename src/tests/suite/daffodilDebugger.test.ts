@@ -50,8 +50,12 @@ suite('Daffodil Debugger', () => {
 
   before(async () => {
     await unzipFile(SCALA_PATH, PROJECT_ROOT)
-    debuggers.push(await runDebugger(PROJECT_ROOT, '', PACKAGE_PATH, 4711))
-    debuggers.push(await runDebugger(PROJECT_ROOT, '', PACKAGE_PATH, 4712))
+    debuggers.push(
+      await runDebugger(PROJECT_ROOT, '', PACKAGE_PATH, 4711, true)
+    )
+    debuggers.push(
+      await runDebugger(PROJECT_ROOT, '', PACKAGE_PATH, 4712, true)
+    )
   })
 
   after(async () => {

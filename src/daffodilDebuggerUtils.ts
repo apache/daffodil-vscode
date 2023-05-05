@@ -49,20 +49,17 @@ export async function buildDebugger(baseFolder: string, filePath: string) {
 export const stopDebugger = (id: number | undefined = undefined) =>
   child_process.exec(osCheck(`taskkill /F /PID ${id}`, `kill -9 ${id}`))
 
-export const shellPath = (scriptName: string) =>
-  osCheck(scriptName, '/bin/bash')
-
-export const shellArgs = (scriptName: string, port: number) =>
-  osCheck(
-    ['--listenPort', `${port}`],
-    ['--login', '-c', `${scriptName} --listenPort ${port}`]
-  )
+export const shellArgs = (scriptName: string, port: number) => [
+  '--listenPort',
+  `${port}`,
+]
 
 export async function runDebugger(
   rootPath: string,
   daffodilDebugClasspath: string,
   filePath: string,
-  serverPort: number
+  serverPort: number,
+  createTerminal: boolean = false
 ): Promise<vscode.Terminal> {
   const dfdlVersion = daffodilVersion(filePath)
   const artifact = daffodilArtifact(dfdlVersion)
@@ -80,7 +77,7 @@ export async function runDebugger(
   return await runScript(
     scriptPath,
     artifact.scriptName,
-    shellPath(artifact.scriptName),
+    createTerminal,
     shellArgs(artifact.scriptName, serverPort),
     {
       DAFFODIL_DEBUG_CLASSPATH: daffodilDebugClasspath,
