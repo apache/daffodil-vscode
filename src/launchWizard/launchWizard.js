@@ -252,20 +252,22 @@ async function updateConfigValues(config) {
   ]
     ? config.infosetOutput['type']
     : config.infosetOutputType
-  document.getElementById('tdmlAction').value = config.tdmlConfig['action']
-    ? config.tdmlConfig['action']
-    : config.tdmlAction
-  document.getElementById('tdmlName').value = config.tdmlConfig['name']
-    ? config.tdmlConfig['name']
-    : config.tdmlName
-  document.getElementById('tdmlDescription').value = config.tdmlConfig[
-    'description'
-  ]
-    ? config.tdmlConfig['description']
-    : config.tdmlDescription
-  document.getElementById('tdmlPath').value = config.tdmlConfig['path']
-    ? config.tdmlConfig['path']
-    : config.tdmlPath
+  document.getElementById('tdmlAction').value =
+    config['tdmlConfig'] && config.tdmlConfig['action']
+      ? config.tdmlConfig['action']
+      : config.tdmlAction
+  document.getElementById('tdmlName').value =
+    config['tdmlConfig'] && config.tdmlConfig['name']
+      ? config.tdmlConfig['name']
+      : config.tdmlName
+  document.getElementById('tdmlDescription').value =
+    config['tdmlConfig'] && config.tdmlConfig['description']
+      ? config.tdmlConfig['description']
+      : config.tdmlDescription
+  document.getElementById('tdmlPath').value =
+    config['tdmlConfig'] && config.tdmlConfig['path']
+      ? config.tdmlConfig['path']
+      : config.tdmlPath
   document.getElementById('openHexView').checked = config.openHexView
   document.getElementById('openInfosetDiffView').checked =
     config.openInfosetDiffView

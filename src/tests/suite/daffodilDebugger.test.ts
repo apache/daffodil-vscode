@@ -49,7 +49,7 @@ suite('Daffodil Debugger', () => {
   const debuggers: vscode.Terminal[] = []
 
   const tdmlConf = {
-    action: 'none',
+    action: 'generate',
     name: 'tdmlConf',
     description: 'testtdml',
     path: TDML_PATH,

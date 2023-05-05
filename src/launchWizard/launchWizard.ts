@@ -352,15 +352,21 @@ class LaunchWizard {
     })
 
     let tdmlActionSelect = ''
-    let tdmlActions = ['none', 'generate', 'append', 'execute']
-    let tdmlAction = defaultValues.tdmlConfig['action']
-    let tdmlName = defaultValues.tdmlConfig['name']
-    let tdmlDescription = defaultValues.tdmlConfig['description']
-    let tdmlPath = defaultValues.tdmlConfig['path']
+    let tdmlActions = ['generate', 'append', 'execute']
+    let tdmlAction =
+      'tdmlConfig' in defaultValues ? defaultValues.tdmlConfig['action'] : null
+    let tdmlName =
+      'tdmlConfig' in defaultValues ? defaultValues.tdmlConfig['name'] : null
+    let tdmlDescription =
+      'tdmlConfig' in defaultValues
+        ? defaultValues.tdmlConfig['description']
+        : null
+    let tdmlPath =
+      'tdmlConfig' in defaultValues ? defaultValues.tdmlConfig['path'] : null
 
     // tdml items need 0 height and width when hidden so there is no large empty space
     let tdmlNameDesVisOrHiddenStyle =
-      tdmlAction !== 'none'
+      tdmlAction !== null
         ? 'margin-top: 10px; visibility: visible;'
         : 'width: 0px; height: 0px; visibility: hidden'
     let tdmlPathVisOrHiddenStyle =
@@ -494,7 +500,7 @@ class LaunchWizard {
 
       <div id="tdmlActionDiv" class="setting-div">
         <p>TDML Action:</p>
-        <p class="setting-description">TDML Action (none | generate | append | execute)</p>
+        <p class="setting-description">TDML Action (generate | append | execute)</p>
         <select onChange="updateTDMLAction()" class="file-input" style="width: 200px;" id="tdmlAction">
           ${tdmlActionSelect}
         </select>

@@ -30,7 +30,7 @@ class ParseSuite extends FunSuite {
   val infosetFormat = "xml"
   var infosetOutputType = "none"
   var infosetOutputPath = "testPath/infoset.xml"
-  var tdmlAction = "none"
+  var tdmlAction = ""
   val tdmlName = "Test TDML Name"
   val tdmlDescription = "Test TDML Description"
   val tdmlPath = "testPath/test.tdml"
@@ -42,15 +42,18 @@ class ParseSuite extends FunSuite {
   val openInfosetDiffView = false
   val daffodilDebugClasspath = ""
 
-  val testJsonObject = new JsonObject()
-  val testTDMLObject = new JsonObject()
+  var testJsonObject = new JsonObject()
+  var testTDMLObject = new JsonObject()
 
   override def beforeEach(context: BeforeEach): Unit = {
     program = Paths.get("./server/core/src/test/data/emptySchema.dfdl.xsd").toAbsolutePath().toString()
     data = Paths.get("./server/core/src/test/data/emptyData.xml").toAbsolutePath().toString()
     infosetOutputType = "none"
     infosetOutputPath = "testPath/infoset.xml"
-    tdmlAction = "none"
+    tdmlAction = ""
+
+    testJsonObject = new JsonObject()
+    testTDMLObject = new JsonObject()
   }
 
   test("Parse Successful") {
@@ -101,6 +104,7 @@ class ParseSuite extends FunSuite {
   }
 
   test("Parse failed - invalid tdmlConfig - no name") {
+    tdmlAction = "generate"
     buildJson()
     testTDMLObject.remove("name")
     val parseResult = Parse.Debugee.parseTDMLName(testTDMLObject)
@@ -109,6 +113,7 @@ class ParseSuite extends FunSuite {
   }
 
   test("Parse failed - invalid tdmlConfig - no description") {
+    tdmlAction = "generate"
     buildJson()
     testTDMLObject.remove("description")
     val parseResult = Parse.Debugee.parseTDMLDescription(testTDMLObject)
@@ -117,6 +122,7 @@ class ParseSuite extends FunSuite {
   }
 
   test("Parse failed - invalid tdmlConfig - no path") {
+    tdmlAction = "generate"
     buildJson()
     testTDMLObject.remove("path")
     val parseResult = Parse.Debugee.parseTDMLPath(testTDMLObject)
@@ -131,9 +137,8 @@ class ParseSuite extends FunSuite {
     assertEquals(parseResult.isLeft, true)
     assertEquals(
       parseResult.left.get.head,
-      "invalid 'tdmlConfig.action': 'InvalidAction', must be 'none', 'generate', 'append', or 'execute'"
+      "invalid 'tdmlConfig.action': 'InvalidAction', must be 'generate', 'append', or 'execute'"
     )
-    tdmlAction = "none"
   }
 
   test("Parse failed - Invalid Program Path") {
@@ -172,7 +177,10 @@ class ParseSuite extends FunSuite {
     testJsonObject.addProperty("infosetFormat", infosetFormat)
 
     testJsonObject.add("infosetOutput", infoset)
-    testJsonObject.add("tdmlConfig", testTDMLObject)
+
+    if (!tdmlAction.isEmpty()) {
+      testJsonObject.add("tdmlConfig", testTDMLObject)
+    }
 
     testJsonObject.addProperty("stopOnEntry", stopOnEntry)
     testJsonObject.addProperty("useExistingServer", useExistingServer)
