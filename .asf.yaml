@@ -26,6 +26,7 @@ github:
     rebase:   true
   collaborators:
     - hdalsania
+    - lrbarber
     - michael-hoke
     - nlewis05
     - NolanMatt
