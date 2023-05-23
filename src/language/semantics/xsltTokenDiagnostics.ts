@@ -91,6 +91,25 @@ export enum ValidationType {
   Name,
 }
 
+export enum DiagnosticCode {
+  none,
+  unresolvedVariableRef,
+  unresolvedGenericRef,
+  parseHtmlRef,
+  externalPrintRef,
+  fnWithNoContextItem,
+  currentWithNoContextItem,
+  groupOutsideForEachGroup,
+  groupOutsideMerge,
+  positionWithNoContextItem,
+  lastWithNoContextItem,
+  rootWithNoContextItem,
+  rootOnlyWithNoContextItem,
+  instrWithNoContextItem,
+  noContextItem,
+  regexNoContextItem,
+}
+
 export class XsltTokenDiagnostics {
   public static readonly xsltStartTokenNumber =
     XslLexer.getXsltStartTokenNumber()
@@ -1084,6 +1103,7 @@ export class XsltTokenDiagnostics {
                   prevToken['error'] = fErrorType
                   prevToken['value'] = qFunctionName
                   problemTokens.push(prevToken)
+                  prevToken.tokenType = TokenLevelState.Unset
                 }
               } else if (
                 isEmptyBracketsToken &&
@@ -1866,6 +1886,7 @@ export class XsltTokenDiagnostics {
       let endChar = token.startCharacter + token.length
       let tokenValue = token.value
       let msg: string
+      let errCode = DiagnosticCode.none
       let diagnosticMetadata: vscode.DiagnosticTag[] = []
       let severity = vscode.DiagnosticSeverity.Error
       switch (token.error) {
@@ -1959,7 +1980,7 @@ export class XsltTokenDiagnostics {
       }
       if (token.startCharacter > -1 && endChar > -1) {
         variableRefDiagnostics.push({
-          code: '',
+          code: errCode,
           message: msg,
           range: new vscode.Range(
             new vscode.Position(line, token.startCharacter),

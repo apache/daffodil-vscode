@@ -124,15 +124,14 @@ export class XPathSemanticTokensProvider
       endList.push(end)
       tokens = tokens.concat(tmpTokens)
 
-      // This was moved to inside the loop. If it isn't, the sections of XPath will be treated
-      //   as a single XPath section instead of multiples
-      setTimeout(() => this.reportProblems(tmpTokens, document, variables), 0)
-
       // Reset the xpLexer. If this is not done, existing tokens will not be flushed
       //   and will be re-added to the tokens list. This might not affect the operation, but it does
       //   increase the memory required by the tokenizer, potentially running out of memory.
       this.xpLexer.reset()
     }
+    // This was moved to inside the loop. If it isn't, the sections of XPath will be treated
+    //   as a single XPath section instead of multiples
+    setTimeout(() => this.reportProblems(tokens, document, variables), 0)
 
     const builder = new vscode.SemanticTokensBuilder()
     tokens.forEach((token) => {
