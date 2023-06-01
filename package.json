@@ -57,7 +57,7 @@
     "@types/node": "^18.15.3",
     "@types/vscode": "^1.60.2",
     "@vscode/debugadapter-testsupport": "1.59.0",
-    "@vscode/test-electron": "2.1.5",
+    "@vscode/test-electron": "2.3.2",
     "@vscode/vsce": "2.19.0",
     "chai": "^4.3.7",
     "concurrently": "^7.0.0",
