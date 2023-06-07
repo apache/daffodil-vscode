@@ -238,20 +238,34 @@ export const getTerminal = (
   createTerminal: boolean
 ) => {
   if (!createTerminal) {
-    if (vscode.window.activeTerminal) {
-      const activeTerminal = vscode.window.activeTerminal
-
-      // check allows for shell name or full path to shell in terminal name
-      if (activeTerminal.name.includes(terminalName)) return activeTerminal
-    }
+    vscode.window.terminals.forEach((terminal) => {
+      if (terminal.name.includes(terminalName)) terminal.dispose()
+    })
   }
 
   // If no good active terminal available create new one
-  return vscode.window.createTerminal({
+  const terminal = vscode.window.createTerminal({
     name: terminalName,
     hideFromUser: hideTerminal,
-    env: env,
   })
+
+  // Looping to manual set all env variables. Setting "env: env" inside of createTerminal won't override variables already set
+  for (var key in env) {
+    if (key !== null && key !== undefined) {
+      let workspaceFolder = vscode.workspace.workspaceFolders
+        ? vscode.workspace.workspaceFolders[0].uri.fsPath
+        : ''
+      let exportVar = `${osCheck('set', 'export')} ${key}=${env[key]}`
+
+      if (exportVar.includes('${workspaceFolder}')) {
+        exportVar = exportVar.replaceAll('${workspaceFolder}', workspaceFolder)
+      }
+
+      terminal.sendText(exportVar, true)
+    }
+  }
+
+  return terminal
 }
 
 export async function runScript(
