@@ -182,13 +182,21 @@ function save() {
 
   let daffodilDebugClasspath = ''
 
-  for (var i = 0; i < list.childNodes.length; i++) {
-    let item = list.childNodes[i]
-    let classpath = item.innerHTML.split('"')[3]
+  list.childNodes.forEach((childNode) => {
+    let classpath = childNode.textContent
+      .replaceAll(' ', '') // remove any un-needed whitespace
+      .replace('-', '') // remove initial - in front of every item
+      .split('\n')
+      .filter((cp) => cp != '')
+      .join(':')
 
-    daffodilDebugClasspath +=
-      i === list.childNodes.length - 1 ? classpath : classpath + ':'
-  }
+    if (classpath != '') {
+      daffodilDebugClasspath +=
+        childNode === list.childNodes[list.childNodes.length - 1]
+          ? classpath
+          : classpath + ':'
+    }
+  })
 
   var obj = {
     version: '0.2.0',
@@ -218,7 +226,7 @@ function save() {
         openInfosetView: openInfosetView,
         openInfosetDiffView: openInfosetDiffView,
         daffodilDebugClasspath: daffodilDebugClasspath,
-        dataEditorConfig: {
+        dataEditor: {
           port: dataEditorPort,
           logFile: dataEditorLogFile,
           logLevel: dataEditorLogLevel,
