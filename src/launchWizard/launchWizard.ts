@@ -199,10 +199,14 @@ async function createWizard(ctx: vscode.ExtensionContext) {
           return
         case 'openFilePicker':
           let result = await openFilePicker(message.description)
-          panel.webview.postMessage({
-            command: `${message.id}Update`,
-            value: result,
-          })
+
+          // don't add empty string to table
+          if (result !== '') {
+            panel.webview.postMessage({
+              command: `${message.id}Update`,
+              value: result,
+            })
+          }
           return
       }
     },
