@@ -454,7 +454,7 @@ object DAPodil extends IOApp {
 
       state <- Ref[IO].of[State](State.Uninitialized)
 
-      address = new InetSocketAddress(options.listenPort)
+      address = new InetSocketAddress(InetAddress.getLoopbackAddress, options.listenPort)
       serverSocket = {
         val ss = new ServerSocket(address.getPort, 1, address.getAddress)
         ss.setSoTimeout(options.listenTimeout.toMillis.toInt)
