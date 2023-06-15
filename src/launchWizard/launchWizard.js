@@ -18,12 +18,54 @@
 // Retrieve vscode api - Doing this multiple times causes issues with the scripts
 const vscode = acquireVsCodeApi()
 
+// Function to get config index
+function getConfigIndex() {
+  var configSelectionBox = document.getElementById('configSelected')
+  var configSelectedValue =
+    configSelectionBox.options[configSelectionBox.selectedIndex].value
+
+  if (configSelectedValue === 'New Config') {
+    document.getElementById('nameLabel').style =
+      'margin-top: 10px; visibility: visible;'
+  } else {
+    document.getElementById('nameLabel').style = 'visibility: hidden;'
+  }
+
+  return configSelectedValue === 'New Config'
+    ? -1
+    : configSelectionBox.selectedIndex
+}
+
+// Function get daffodil debug classpath string
+function getDaffodilDebugClasspathString() {
+  let childNodes = document.getElementById(
+    'daffodilDebugClasspathTable'
+  ).childNodes
+
+  return Array.from(childNodes)
+    .map(
+      (childNode) =>
+        childNode.textContent
+          .replace(/\B\s+|\s+\B/g, '') // remove any un-needed whitespace. will not remove spaces between characters
+          .replace('-', '') // remove initial - in front of every item
+    )
+    .filter((cp) => cp != '')
+    .join(':')
+}
+
 // Function to call extension to open file picker
 function filePicker(id, description) {
+  let extraData = {}
+  if (id === 'daffodilDebugClasspath') {
+    extraData['daffodilDebugClasspath'] = getDaffodilDebugClasspathString()
+  }
+
   vscode.postMessage({
     command: 'openFilePicker',
     id: id,
     description: description,
+    configIndex: getConfigIndex(),
+    extraData: extraData,
   })
 }
 
@@ -115,23 +157,9 @@ function updateTDMLAction() {
 
 // Function to update config selected, also display name input box if 'New Config' selected
 function updateSelectedConfig() {
-  var configSelectionBox = document.getElementById('configSelected')
-  var configSelectedValue =
-    configSelectionBox.options[configSelectionBox.selectedIndex].value
-
-  if (configSelectedValue === 'New Config') {
-    document.getElementById('nameLabel').style =
-      'margin-top: 10px; visibility: visible;'
-  } else {
-    document.getElementById('nameLabel').style = 'visibility: hidden;'
-  }
-
-  let configIndex =
-    configSelectedValue === 'New Config' ? -1 : configSelectionBox.selectedIndex
-
   vscode.postMessage({
     command: 'updateConfigValue',
-    configIndex: configIndex,
+    configIndex: getConfigIndex(),
   })
 }
 
@@ -178,25 +206,7 @@ function save() {
   const dataEditorLogFile = document.getElementById('dataEditorLogFile').value
   const dataEditorLogLevel = document.getElementById('dataEditorLogLevel').value
 
-  let list = document.getElementById('daffodilDebugClasspathTable')
-
-  let daffodilDebugClasspath = ''
-
-  list.childNodes.forEach((childNode) => {
-    let classpath = childNode.textContent
-      .replaceAll(' ', '') // remove any un-needed whitespace
-      .replace('-', '') // remove initial - in front of every item
-      .split('\n')
-      .filter((cp) => cp != '')
-      .join(':')
-
-    if (classpath != '') {
-      daffodilDebugClasspath +=
-        childNode === list.childNodes[list.childNodes.length - 1]
-          ? classpath
-          : classpath + ':'
-    }
-  })
+  const daffodilDebugClasspath = getDaffodilDebugClasspathString()
 
   var obj = {
     version: '0.2.0',

@@ -189,7 +189,14 @@ export async function getDebugger(
       // Get daffodilDebugger class paths to be added to the debugger
       let daffodilDebugClasspath = ''
 
+      //check if each classpath still exists
       if (config.daffodilDebugClasspath) {
+        config.daffodilDebugClasspath.split(':').forEach((entry) => {
+          if (!fs.existsSync(entry)) {
+            throw new Error(`File or directory: ${entry} doesn't exist`)
+          }
+        })
+
         daffodilDebugClasspath = config.daffodilDebugClasspath.includes(
           '${workspaceFolder}'
         )

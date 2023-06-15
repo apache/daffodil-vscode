@@ -188,10 +188,9 @@ async function createWizard(ctx: vscode.ExtensionContext) {
           panel.dispose()
           return
         case 'updateConfigValue':
-          let configValues = await updateWebViewConfigValues(
+          var configValues = await updateWebViewConfigValues(
             message.configIndex
           )
-
           panel.webview.postMessage({
             command: 'updateConfValues',
             configValues: configValues,
@@ -202,8 +201,26 @@ async function createWizard(ctx: vscode.ExtensionContext) {
 
           // don't add empty string to table
           if (result !== '') {
+            // check for duplicate values
+            let duplicateCount = 0
+
+            if (message.id === 'daffodilDebugClasspath') {
+              duplicateCount = message.extraData['daffodilDebugClasspath']
+                .split(':')
+                .some((cp) => cp === result)
+            }
+
+            var command =
+              duplicateCount > 0
+                ? `${message.id} Value has already been used`
+                : `${message.id}Update`
+
+            if (duplicateCount > 0) {
+              vscode.window.showWarningMessage('Selected path already added')
+            }
+
             panel.webview.postMessage({
-              command: `${message.id}Update`,
+              command: command,
               value: result,
             })
           }
