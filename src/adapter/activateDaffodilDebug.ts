@@ -474,6 +474,7 @@ export const workspaceFileAccessor: FileAccessor = {
   },
 }
 
+// TODO: Move to extension.ts
 class InlineDebugAdapterFactory
   implements vscode.DebugAdapterDescriptorFactory
 {

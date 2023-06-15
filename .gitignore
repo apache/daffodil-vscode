@@ -37,6 +37,9 @@ src/version.ts
 
 # scala metals vscode extension compiled folder
 .metals
+.bloop
+project
+metals.sbt
 
 # application build
 # todo;; the build logic needs refactored to write these elsewhere
