@@ -1,3 +1,5 @@
+// NOTE: Might be able to removed. Only used for a test
+
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
