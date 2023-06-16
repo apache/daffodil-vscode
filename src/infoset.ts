@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-import { tmpdir } from 'os'
 import * as vscode from 'vscode'
 import * as daf from './daffodil'
 import * as fs from 'fs'
-import { InfosetEvent } from './daffodil'
 import { Uri } from 'vscode'
-import { onDebugStartDisplay, getCurrentConfig } from './utils'
+import {
+  onDebugStartDisplay,
+  getCurrentConfig,
+  ensureFile,
+  tmpFile,
+} from './utils'
 
 // Function to display an infomation message that the infoset file has been created
 // If the user wishes to open the file then they may click the 'Open' button
@@ -69,7 +72,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.debug.onDidTerminateDebugSession(async (s) => {
       if (sid !== undefined) {
-        let path = tmp(sid)
+        let path = tmpFile(sid)
         fs.rmSync(`${path}`, { force: true })
         fs.rmSync(`${path}.prev`, { force: true })
       }
@@ -77,9 +80,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
       await openInfosetFilePrompt()
     })
   )
-  ctx.subscriptions.push(
-    vscode.debug.onDidReceiveDebugSessionCustomEvent(handleEvent)
-  )
+
   ctx.subscriptions.push(
     vscode.workspace.registerTextDocumentContentProvider(
       'daffodil:infoset',
@@ -90,7 +91,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.commands.registerCommand('infoset.display', async () => {
       if (sid !== undefined) {
-        let path = ensure(tmp(sid))
+        let path = ensureFile(tmpFile(sid))
         doc = await vscode.workspace.openTextDocument(path)
         await vscode.window.showTextDocument(doc, {
           viewColumn: vscode.ViewColumn.Two,
@@ -110,7 +111,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
             placeHolder: 'Save infoset as:',
           })
           if (dest) {
-            fs.copyFile(tmp(sid), dest, async () => {
+            fs.copyFile(tmpFile(sid), dest, async () => {
               const choice = await vscode.window.showInformationMessage(
                 `Wrote infoset to ${dest}`,
                 'View',
@@ -139,8 +140,8 @@ export async function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.commands.registerCommand('infoset.diff', async () => {
       if (sid !== undefined) {
-        let path = ensure(tmp(sid))
-        let prev = ensure(`${path}.prev`)
+        let path = ensureFile(tmpFile(sid))
+        let prev = ensureFile(`${path}.prev`)
         vscode.commands.executeCommand(
           'vscode.diff',
           Uri.parse(prev),
@@ -153,17 +154,6 @@ export async function activate(ctx: vscode.ExtensionContext) {
   )
 }
 
-async function handleEvent(e: vscode.DebugSessionCustomEvent) {
-  switch (e.event) {
-    case daf.infosetEvent:
-      let update: InfosetEvent = e.body
-      let path = ensure(tmp(e.session.id))
-      fs.copyFileSync(path, `${path}.prev`)
-      fs.writeFileSync(path, update.content)
-      break
-  }
-}
-
 const fileInfosetProvider = new (class
   implements vscode.TextDocumentContentProvider
 {
@@ -171,14 +161,3 @@ const fileInfosetProvider = new (class
     return fs.readFileSync(uri.path).toString()
   }
 })()
-
-function tmp(sid: string): string {
-  return `${tmpdir()}/infoset-${sid}.${getCurrentConfig().infosetFormat}`
-}
-
-function ensure(path: string): string {
-  if (!fs.existsSync(path)) {
-    fs.writeFileSync(path, '')
-  }
-  return path
-}

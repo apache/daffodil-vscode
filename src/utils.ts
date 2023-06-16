@@ -348,3 +348,14 @@ export async function findExistingOmegaEditServer(
   }
   return ret
 }
+
+export function tmpFile(sid: string): string {
+  return `${os.tmpdir()}/infoset-${sid}.${getCurrentConfig().infosetFormat}`
+}
+
+export function ensureFile(path: string): string {
+  if (!fs.existsSync(path)) {
+    fs.writeFileSync(path, '')
+  }
+  return path
+}
