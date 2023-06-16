@@ -24,6 +24,7 @@ import { getConfig, getCurrentConfig, setCurrentConfig } from '../utils'
 import { DaffodilDebugSession } from './daffodilDebug'
 import { FileAccessor } from './daffodilRuntime'
 import { TDMLConfig } from '../classes/tdmlConfig'
+import { handleDebugEvent } from './daffodilEvent'
 
 /** Method to file path for program and data
  * Details:
@@ -376,6 +377,10 @@ export function activateDaffodilDebug(
         return allValues
       },
     })
+  )
+
+  context.subscriptions.push(
+    vscode.debug.onDidReceiveDebugSessionCustomEvent(handleDebugEvent)
   )
 
   dfdlLang.activate(context)

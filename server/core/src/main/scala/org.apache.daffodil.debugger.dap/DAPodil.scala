@@ -49,6 +49,8 @@ trait DAPSession[Req, Res, Ev] {
 
   def sendResponse(response: Res): IO[Unit]
   def sendEvent(event: Ev): IO[Unit]
+  def abort(event: DebugEvent): IO[Unit]
+  def abort(event: DebugEvent, logMessage: String): IO[Unit]
 }
 
 object DAPSession {
@@ -63,6 +65,14 @@ object DAPSession {
 
       def sendEvent(event: DebugEvent): IO[Unit] =
         Logger[IO].info(show"<E $event") *> IO.blocking(server.sendEvent(event))
+
+      /** Send DebugEvent back to extension and exit session, ending debug */
+      def abort(event: DebugEvent): IO[Unit] =
+        sendEvent(event) *> sendEvent(new Events.TerminatedEvent())
+
+      /** Log error then send DebugEvent back to extension and exit session, ending debug */
+      def abort(event: DebugEvent, logMessage: String): IO[Unit] =
+        Logger[IO].error(logMessage) *> sendEvent(event) *> sendEvent(new Events.TerminatedEvent())
     }
 
   def resource(socket: Socket): Resource[IO, DAPSession[Request, Response, DebugEvent]] =
@@ -179,9 +189,7 @@ class DAPodil(
         disconnect(request, args)
       case extract(Command.EVALUATE, args: EvaluateArguments) =>
         eval(request, args)
-      case _ =>
-        Logger[IO].warn(show"unhandled request $request") *> session
-          .sendResponse(request.respondFailure())
+      case _ => session.abort(ErrorEvents.UnhandledRequest, show"unhandled request $request")
     }
 
   /** State.Uninitialized -> State.Initialized */
@@ -205,8 +213,10 @@ class DAPodil(
         debugee(request) match {
           case Left(errors) =>
             state.set(DAPodil.State.FailedToLaunch(request, errors, None)) *>
-              Logger[IO].warn(show"error parsing launch args: ${errors.mkString_(", ")}") *> session
-                .sendResponse(request.respondFailure(Some(show"error parsing launch args: ${errors.mkString_(", ")}")))
+              session.abort(
+                ErrorEvents.LaunchArgsParseError,
+                show"error parsing launch args: ${errors.mkString_("\n")}"
+              )
           case Right(dbgee) =>
             for {
               launched <- hotswap.swap {
@@ -219,10 +229,7 @@ class DAPodil(
                     DAPodil.State
                       .FailedToLaunch(request, NonEmptyList.of("couldn't launch from created debuggee"), Some(t))
                   ) *>
-                    Logger[IO].warn(t)(show"couldn't launch, request $request") *>
-                    session.sendResponse(
-                      request.respondFailure(Some(show"Couldn't launch Daffodil debugger: ${t.getMessage()}"))
-                    )
+                    session.abort(ErrorEvents.RequestError, show"couldn't launch, request $request")
                 case Right(launchedState) =>
                   state.set(launchedState) *>
                     session.sendResponse(request.respondSuccess())
@@ -242,7 +249,7 @@ class DAPodil(
             )
           )
         }
-      case _ => session.sendResponse(request.respondFailure())
+      case _ => session.abort(ErrorEvents.SourceError)
     }
 
   def source(request: Request, args: SourceArguments): IO[Unit] =
@@ -252,11 +259,11 @@ class DAPodil(
           .sourceContent(DAPodil.Source.Ref(args.sourceReference))
           .flatMap {
             case None =>
-              session.sendResponse(request.respondFailure(Some(s"unknown source ref ${args.sourceReference}")))
+              session.abort(ErrorEvents.SourceError)
             case Some(content) =>
               session.sendResponse(request.respondSuccess(new SourceResponseBody(content.value, "text/xml")))
           }
-      case _ => session.sendResponse(request.respondFailure())
+      case _ => session.abort(ErrorEvents.SourceError)
     }
 
   def setBreakpoints(request: Request, args: SetBreakpointArguments): IO[Unit] =
@@ -278,8 +285,7 @@ class DAPodil(
           _ <- session.sendResponse(response)
         } yield ()
       case _: DAPodil.State.FailedToLaunch =>
-        Logger[IO].warn("ignoring setBreakPoints request since previous launch failed") *>
-          session.sendResponse(request.respondFailure())
+        Logger[IO].warn("ignoring setBreakPoints request since previous launch failed")
       case s => DAPodil.InvalidState.raise(request, "Launched", s)
     }
 
@@ -358,11 +364,10 @@ class DAPodil(
           _ <- data.stack
             .findFrame(DAPodil.Frame.Id(args.frameId))
             .fold(
-              Logger[IO].warn(
-                s"couldn't find scopes for frame ${args.frameId}: ${data.stack.frames
-                    .map(f => f.id -> f.stackFrame.name)}"
-              ) *>
-                session.sendResponse(request.respondFailure(Some(s"couldn't find scopes for frame ${args.frameId}")))
+              session.abort(
+                ErrorEvents.ScopeNotFoundError,
+                s"couldn't find scopes for frame ${args.frameId}: ${data.stack.frames.map(f => f.id -> f.stackFrame.name)}"
+              )
             ) { frame =>
               session.sendResponse(
                 request.respondSuccess(new Responses.ScopesResponseBody(frame.scopes.map(_.toDAP()).asJava))
@@ -381,11 +386,10 @@ class DAPodil(
           _ <- data.stack
             .variables(DAPodil.VariablesReference(args.variablesReference))
             .fold(
-              Logger[IO]
-                .warn(
-                  show"couldn't find variablesReference ${args.variablesReference} in stack ${data}"
-                ) *> // TODO: handle better
-                session.sendResponse(request.respondFailure())
+              session.abort(
+                ErrorEvents.UnexpectedError,
+                show"couldn't find variablesReference ${args.variablesReference} in stack ${data}"
+              )
             )(variables =>
               session.sendResponse(request.respondSuccess(new Responses.VariablesResponseBody(variables.asJava)))
             )
@@ -399,7 +403,7 @@ class DAPodil(
         for {
           variable <- launched.debugee.eval(args)
           _ <- variable match {
-            case None => session.sendResponse(request.respondFailure())
+            case None => session.abort(ErrorEvents.UnexpectedError)
             case Some(v) =>
               session.sendResponse(request.respondSuccess(new Responses.EvaluateResponseBody(v.value, 0, null, 0)))
           }
