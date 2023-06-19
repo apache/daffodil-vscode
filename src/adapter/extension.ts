@@ -66,6 +66,7 @@ export function deactivate() {
   position.deactivate()
 }
 
+// NOTE: Can this be removed? Its never used we only ever use inline and provide no way to change it
 class DebugAdapterExecutableFactory
   implements vscode.DebugAdapterDescriptorFactory
 {
@@ -102,6 +103,7 @@ class DebugAdapterExecutableFactory
   }
 }
 
+// NOTE: Can this be removed? Its never used we only ever use inline and provide no way to change it
 class DaffodilDebugAdapterServerDescriptorFactory
   implements vscode.DebugAdapterDescriptorFactory
 {
@@ -140,6 +142,7 @@ class DaffodilDebugAdapterServerDescriptorFactory
   }
 }
 
+// NOTE: Can this be removed? Its never used we only ever use inline and provide no way to change it
 class DaffodilDebugAdapterNamedPipeServerDescriptorFactory
   implements vscode.DebugAdapterDescriptorFactory
 {

@@ -50,6 +50,9 @@ import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import scala.collection.JavaConverters._
 import scala.util.Try
+import cats.effect.kernel.Resource.ExitCase.Errored
+import cats.effect.kernel.Resource.ExitCase.Canceled
+import cats.effect.kernel.Resource.ExitCase.Succeeded
 
 trait Parse {
 
@@ -97,12 +100,22 @@ object Parse {
 
             val parse =
               IO.interruptibleMany {
-                dp.parse(
+                val parse_res = dp.parse(
                   new InputSourceDataInputStream(data),
                   infosetOutputter
-                ) // WARNING: parse doesn't close the OutputStream, so closed below
-              }.guaranteeCase(outcome => Logger[IO].debug(s"parse finished: $outcome"))
-                .void
+                )
+
+                parse_res.isError match {
+                  case true =>
+                    throw new Error(
+                      parse_res.getDiagnostics
+                        .map(d => d.toString)
+                        .mkString("\n")
+                    )
+                  case _ => parse_res
+                }
+                // WARNING: parse doesn't close the OutputStream, so closed below
+              }.void
 
             stopper &> parse.guarantee(IO(os.close) *> done.set(true))
           }
@@ -731,7 +744,13 @@ object Parse {
         .concurrently(
           Stream(
             Stream.eval(startup),
-            parsing.onFinalizeCase(ec => Logger[IO].debug(s"parsing: $ec")),
+            parsing.onFinalizeCase(ec =>
+              Logger[IO].debug(s"parsing: ${ec match {
+                  case Errored(_) => "Errored"
+                  case Canceled   => "Canceled"
+                  case Succeeded  => "Succeeded"
+                }}")
+            ),
             deliverParseData.onFinalizeCase {
               case ec @ Resource.ExitCase.Errored(e) =>
                 Logger[IO].warn(e)(s"deliverParseData: $ec")
