@@ -146,20 +146,21 @@ async function updateWebViewConfigValues(configIndex) {
 }
 
 // Function to create file picker for wizard
-async function openFilePicker(description) {
+async function openFilePicker(
+  description: string,
+  selectFiles: boolean = true,
+  selectFolders: boolean = true
+) {
   let rootPath = vscode.workspace.workspaceFolders
     ? vscode.workspace.workspaceFolders[0].uri.fsPath
-    : vscode.Uri.parse('').fsPath
-
-  let canSelectMany = !!description.includes('jar files/folder')
-  let canSelectFolders = !!description.includes('jar files/folder')
+    : vscode.Uri.file('').fsPath
 
   let chosenFile = await vscode.window
     .showOpenDialog({
-      canSelectMany: canSelectMany,
+      canSelectMany: true,
       openLabel: description,
-      canSelectFiles: true,
-      canSelectFolders: canSelectFolders,
+      canSelectFiles: selectFiles,
+      canSelectFolders: selectFolders,
       title: description,
     })
     .then(async (fileUri) => {
@@ -197,7 +198,11 @@ async function createWizard(ctx: vscode.ExtensionContext) {
           })
           return
         case 'openFilePicker':
-          let result = await openFilePicker(message.description)
+          let result = await openFilePicker(
+            message.description,
+            message.selectFiles,
+            message.selectFolders
+          )
 
           // don't add empty string to table
           if (result !== '') {
@@ -458,7 +463,8 @@ class LaunchWizard {
         ${daffodilDebugClasspathList}
 
         <p style="margin-left: 5px">
-          <button id="daffodilDebugClasspathBrowse" class="browse-button" type="button" onclick="filePicker('daffodilDebugClasspath', 'Select jar files/folder with desired jars')">Browse</button>
+          <button id="daffodilDebugClasspathAddFolders" class="browse-button" type="button" onclick="filePicker('daffodilDebugClasspath', 'Select folder(s) with desired jars')">Add Folder(s)</button>
+          <button id="daffodilDebugClasspathAddFiles" class="browse-button" type="button" onclick="filePicker('daffodilDebugClasspath', 'Select jar file(s)')">Add JAR File(s)</button>
         </p>
       </div>
 
