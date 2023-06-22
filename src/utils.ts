@@ -129,7 +129,7 @@ export function getConfig(
           type: defaultConf.get('infosetOutputType', 'none'),
           path: defaultConf.get(
             'infosetOutputFilePath',
-            '${workspaceFolder}/infoset.xml'
+            '${workspaceFolder}/target/infoset.xml'
           ),
         },
     stopOnEntry: stopOnEntry

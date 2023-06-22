@@ -279,7 +279,6 @@
         "command": "launch.config",
         "title": "Configure launch.json",
         "category": "Daffodil Debug",
-        "enablement": "!inDebugMode",
         "icon": "$(debug-configure)"
       },
       {
@@ -345,8 +344,8 @@
                 "type": "object",
                 "description": "Destination for final Infoset ('file' | 'console' | 'none')",
                 "default": {
-                  "type": "console",
-                  "path": "${workspaceFolder}/infoset.xml"
+                  "type": "file",
+                  "path": "${workspaceFolder}/target/infoset.xml" 
                 }
               },
               "tdmlConfig": {
@@ -436,7 +435,7 @@
             "infosetFormat": "xml",
             "infosetOutput": {
               "type": "file",
-              "path": "${workspaceFolder}/infoset.xml"
+              "path": "${workspaceFolder}/target/infoset.xml" 
             },
             "debugServer": 4711,
             "openHexView": false,
@@ -466,7 +465,7 @@
               "infosetFormat": "xml",
               "infosetOutput": {
                 "type": "file",
-                "path": "${workspaceFolder}/infoset.xml"
+                "path": "${workspaceFolder}/target/infoset.xml" 
               },
               "debugServer": 4711,
               "openHexView": false,
@@ -549,7 +548,7 @@
           "infosetOutputFilePath": {
             "type": "string",
             "description": "Path to output for Infoset file (req: infosetOutput=file)",
-            "default": "${workspaceFolder}/infoset.xml"
+            "default": "${workspaceFolder}/target/infoset.xml" 
           },
           "stopOnEntry": {
             "type": "boolean",

@@ -65,6 +65,8 @@ function filePicker(id, description) {
     id: id,
     description: description,
     configIndex: getConfigIndex(),
+    selectFiles: description.includes('file(s)') ? true : false,
+    selectFolders: description.includes('folder(s)') ? true : false,
     extraData: extraData,
   })
 }

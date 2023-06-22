@@ -33,7 +33,7 @@ suite('Utils Test Suite', () => {
     infosetFormat: 'xml',
     infosetOutput: {
       type: 'none',
-      path: '${workspaceFolder}/infoset.xml',
+      path: '${workspaceFolder}/target/infoset.xml',
     },
     stopOnEntry: true,
     useExistingServer: false,
