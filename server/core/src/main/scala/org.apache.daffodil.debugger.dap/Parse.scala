@@ -32,10 +32,10 @@ import java.io._
 import java.net.URI
 import java.nio.file._
 import org.apache.commons.io.FileUtils
-import org.apache.daffodil.api.Diagnostic
+import org.apache.daffodil.lib.api.Diagnostic
 import org.apache.daffodil.debugger.dap.{BuildInfo => DAPBuildInfo}
-import org.apache.daffodil.debugger.Debugger
-import org.apache.daffodil.exceptions.SchemaFileLocation
+import org.apache.daffodil.runtime1.debugger.Debugger
+import org.apache.daffodil.lib.exceptions.SchemaFileLocation
 import org.apache.daffodil.infoset._
 import org.apache.daffodil.processors.dfa.DFADelimiter
 import org.apache.daffodil.processors.parsers._
