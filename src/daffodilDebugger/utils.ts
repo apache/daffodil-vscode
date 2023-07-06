@@ -19,11 +19,11 @@ import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as child_process from 'child_process'
-import { LIB_VERSION } from './version'
-import { deactivate } from './adapter/extension'
+import { LIB_VERSION } from '../version'
+import { deactivate } from '../adapter/extension'
 import { getDaffodilVersion } from './daffodil'
-import { Artifact } from './classes/artifact'
-import { osCheck, runScript } from './utils'
+import { Artifact } from '../classes/artifact'
+import { osCheck, runScript } from '../utils'
 
 export const daffodilVersion = (filePath: string): string => {
   return getDaffodilVersion(filePath)

@@ -132,18 +132,18 @@ suite('Items Test Suite', () => {
 
   test('all commonItems available', async () => {
     let itemNames: string[] = []
-    commonCompletion('', 'xs:').items.forEach((r) => itemNames.push(r.item))
+    commonCompletion('').items.forEach((r) => itemNames.push(r.item))
     assert.strictEqual(itemNames.includes('type'), true)
   })
 
   test('all elementItems available', async () => {
-    elementCompletion('', '', '').items.forEach((item) => {
+    elementCompletion('', '').items.forEach((item) => {
       assert.strictEqual(expectedElementItems.includes(item.item), true)
     })
   })
 
   test('all attributeItems available', async () => {
-    attributeCompletion('', '', 'dfdl:').items.forEach((item) => {
+    attributeCompletion('dfdl:').items.forEach((item) => {
       assert.strictEqual(expectedAttributeItems.includes(item.item), true)
     })
   })

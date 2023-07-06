@@ -26,7 +26,7 @@ import {
   daffodilVersion,
   runDebugger,
   stopDebugging,
-} from '../../daffodilDebuggerUtils'
+} from '../../daffodilDebugger'
 import { before, after } from 'mocha'
 
 // Not using the debug adapter like adapter.test.ts as it will not fully connect the debugger
@@ -36,7 +36,7 @@ suite('Daffodil Debugger', () => {
 
   const SCALA_PATH = path.join(
     PROJECT_ROOT,
-    'server/core/target/universal',
+    'debugger/target/universal',
     artifact.archive
   )
   const EXTRACTED_FOLDER = path.join(PROJECT_ROOT, artifact.name)
@@ -84,22 +84,24 @@ suite('Daffodil Debugger', () => {
   test('should output xml infoset', async () => {
     await vscode.debug.startDebugging(
       undefined,
-      getConfig(
-        'Run',
-        'launch',
-        'dfdl',
-        TEST_SCHEMA,
-        DATA,
-        4711,
-        'xml',
-        {
+      getConfig({
+        name: 'Run',
+        request: 'launch',
+        type: 'dfdl',
+        program: TEST_SCHEMA,
+        data: DATA,
+        debugServer: 4711,
+        infosetFormat: 'xml',
+        infosetOutput: {
           type: 'file',
           path: XML_INFOSET_PATH,
         },
-        tdmlConf,
-        dataEditorConfig
-      ),
-      { noDebug: true }
+        tdmlConfig: tdmlConf,
+        dataEditorConfig: dataEditorConfig,
+      }),
+      {
+        noDebug: true,
+      }
     )
 
     assert.strictEqual(fs.existsSync(XML_INFOSET_PATH), true)
@@ -108,22 +110,24 @@ suite('Daffodil Debugger', () => {
   test('should output json infoset', async () => {
     await vscode.debug.startDebugging(
       undefined,
-      getConfig(
-        'Run',
-        'launch',
-        'dfdl',
-        TEST_SCHEMA,
-        DATA,
-        4712,
-        'json',
-        {
+      getConfig({
+        name: 'Run',
+        request: 'launch',
+        type: 'dfdl',
+        program: TEST_SCHEMA,
+        data: DATA,
+        debugServer: 4712,
+        infosetFormat: 'json',
+        infosetOutput: {
           type: 'file',
           path: JSON_INFOSET_PATH,
         },
-        tdmlConf,
-        dataEditorConfig
-      ),
-      { noDebug: true }
+        tdmlConfig: tdmlConf,
+        dataEditorConfig: dataEditorConfig,
+      }),
+      {
+        noDebug: true,
+      }
     )
 
     assert.strictEqual(fs.existsSync(JSON_INFOSET_PATH), true)

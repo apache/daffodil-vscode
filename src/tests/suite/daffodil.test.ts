@@ -17,7 +17,7 @@
 
 import * as vscode from 'vscode'
 import * as assert from 'assert'
-import * as daffodil from '../../daffodil'
+import * as daffodil from '../../daffodilDebugger'
 import * as fs from 'fs'
 import * as path from 'path'
 import { Artifact } from '../../classes/artifact'

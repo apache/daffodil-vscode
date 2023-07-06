@@ -16,11 +16,10 @@
  */
 
 import * as vscode from 'vscode'
-import * as daf from './daffodil'
+import * as daf from './daffodilDebugger'
 import * as fs from 'fs'
 import * as hexy from 'hexy'
 import XDGAppPaths from 'xdg-app-paths'
-import { ConfigEvent, DaffodilData } from './daffodil'
 const xdgAppPaths = XDGAppPaths({ name: 'daffodil-dap' })
 import { onDebugStartDisplay } from './utils'
 
@@ -145,7 +144,7 @@ export class DebuggerHexView {
   }
 
   // Method for extracting the data file used
-  setDataFile(cfg: ConfigEvent) {
+  setDataFile(cfg: daf.ConfigEvent) {
     this.dataFile = cfg.launchArgs.dataPath
   }
 
@@ -230,7 +229,7 @@ export class DebuggerHexView {
   }
 
   // Method to display the hex of the current data position sent from the debugger
-  async onDisplayHex(session: vscode.DebugSession, body: DaffodilData) {
+  async onDisplayHex(session: vscode.DebugSession, body: daf.DaffodilData) {
     if (!vscode.workspace.workspaceFolders) {
       return
     }

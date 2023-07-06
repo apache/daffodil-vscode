@@ -16,7 +16,7 @@
  */
 
 // prettier-ignore
-export const attributeCompletion = (additionalItems, nsPrefix: string, dfdlPrefix: string) => {
+export const attributeCompletion = (dfdlPrefix: string) => {
   return {
     items: [
       {

@@ -27,12 +27,12 @@ import scala.xml.XML
 import java.nio.charset.StandardCharsets
 
 class TDMLSuite extends munit.FunSuite {
-  val basePath = Paths.get("./server/core/").toAbsolutePath()
-  val basePathStr = "server/core/"
-  val infosetPath = Paths.get("./server/core/src/test/data/emptyInfoset.xml").toAbsolutePath()
-  val schemaPath = Paths.get("./server/core/src/test/data/emptySchema.xml").toAbsolutePath()
-  val dataPath = Paths.get("./server/core/src/test/data/emptyData.xml").toAbsolutePath()
-  val notInfosetPath = Paths.get("./server/core/src/test/data/notInfoset.xml").toAbsolutePath()
+  val basePath = Paths.get("./debugger/").toAbsolutePath()
+  val basePathStr = "debugger/"
+  val infosetPath = Paths.get("./debugger/src/test/data/emptyInfoset.xml").toAbsolutePath()
+  val schemaPath = Paths.get("./debugger/src/test/data/emptySchema.xml").toAbsolutePath()
+  val dataPath = Paths.get("./debugger/src/test/data/emptyData.xml").toAbsolutePath()
+  val notInfosetPath = Paths.get("./debugger/src/test/data/notInfoset.xml").toAbsolutePath()
   val tdmlName = "TestTDMLName"
   val tdmlDescription = "Test TDML Description"
   val tdmlPath = Paths.get("./testTDML.tdml").toAbsolutePath()
@@ -46,31 +46,31 @@ class TDMLSuite extends munit.FunSuite {
   )
   val tdmlSingleTestCase = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns1:testSuite xmlns:ns1="http://www.ibm.com/xmlns/dfdl/testData" xmlns:ns2="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext" xmlns:ns3="http://www.ogf.org/dfdl/dfdl-1.0/" xmlns:ns4="http://www.ogf.org/dfdl/dfdl-1.0/extensions" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ns6="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:int" suiteName="TestTDMLName" defaultRoundTrip="onePass">
-    <ns1:parserTestCase name="TestTDMLName" root="file" model="server/core/src/test/data/emptySchema.xml" roundTrip="onePass" description="Test TDML Description">
+    <ns1:parserTestCase name="TestTDMLName" root="file" model="debugger/src/test/data/emptySchema.xml" roundTrip="onePass" description="Test TDML Description">
         <ns1:document>
-            <ns1:documentPart type="file">server/core/src/test/data/emptyData.xml</ns1:documentPart>
+            <ns1:documentPart type="file">debugger/src/test/data/emptyData.xml</ns1:documentPart>
         </ns1:document>
         <ns1:infoset>
-            <ns1:dfdlInfoset type="file">server/core/src/test/data/emptyInfoset.xml</ns1:dfdlInfoset>
+            <ns1:dfdlInfoset type="file">debugger/src/test/data/emptyInfoset.xml</ns1:dfdlInfoset>
         </ns1:infoset>
     </ns1:parserTestCase>
 </ns1:testSuite>"""
   val tdmlDoubleTestCase = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns1:testSuite xmlns:ns1="http://www.ibm.com/xmlns/dfdl/testData" xmlns:ns2="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext" xmlns:ns3="http://www.ogf.org/dfdl/dfdl-1.0/" xmlns:ns4="http://www.ogf.org/dfdl/dfdl-1.0/extensions" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ns6="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:int" suiteName="TestTDMLName" defaultRoundTrip="onePass">
-    <ns1:parserTestCase name="TestTDMLName" root="file" model="server/core/src/test/data/emptySchema.xml" roundTrip="onePass" description="Test TDML Description">
+    <ns1:parserTestCase name="TestTDMLName" root="file" model="debugger/src/test/data/emptySchema.xml" roundTrip="onePass" description="Test TDML Description">
         <ns1:document>
-            <ns1:documentPart type="file">server/core/src/test/data/emptyData.xml</ns1:documentPart>
+            <ns1:documentPart type="file">debugger/src/test/data/emptyData.xml</ns1:documentPart>
         </ns1:document>
         <ns1:infoset>
-            <ns1:dfdlInfoset type="file">server/core/src/test/data/emptyInfoset.xml</ns1:dfdlInfoset>
+            <ns1:dfdlInfoset type="file">debugger/src/test/data/emptyInfoset.xml</ns1:dfdlInfoset>
         </ns1:infoset>
     </ns1:parserTestCase>
-    <ns1:parserTestCase name="TestTDMLName" root="file" model="server/core/src/test/data/emptySchema.xml" roundTrip="onePass" description="Test TDML Description">
+    <ns1:parserTestCase name="TestTDMLName" root="file" model="debugger/src/test/data/emptySchema.xml" roundTrip="onePass" description="Test TDML Description">
         <ns1:document>
-            <ns1:documentPart type="file">server/core/src/test/data/emptyData.xml</ns1:documentPart>
+            <ns1:documentPart type="file">debugger/src/test/data/emptyData.xml</ns1:documentPart>
         </ns1:document>
         <ns1:infoset>
-            <ns1:dfdlInfoset type="file">server/core/src/test/data/emptyInfoset.xml</ns1:dfdlInfoset>
+            <ns1:dfdlInfoset type="file">debugger/src/test/data/emptyInfoset.xml</ns1:dfdlInfoset>
         </ns1:infoset>
     </ns1:parserTestCase>
 </ns1:testSuite>"""

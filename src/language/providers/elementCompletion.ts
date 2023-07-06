@@ -106,23 +106,20 @@ function getElementCompletionItems(
     definedVariables,
     nsPrefix
   )
-  let dfdlFormatString: string = ''
 
-  elementCompletion(definedVariables, dfdlFormatString, nsPrefix).items.forEach(
-    (e) => {
-      for (let i = 0; i < itemsToUse.length; ++i) {
-        if (e.item.includes(itemsToUse[i])) {
-          if (
-            (e.item.includes('dfdl:') && itemsToUse[i].includes('dfdl:')) ||
-            !e.item.includes('dfdl')
-          ) {
-            const completionItem = createCompletionItem(e, preVal, nsPrefix)
-            compItems.push(completionItem)
-          }
+  elementCompletion(definedVariables, nsPrefix).items.forEach((e) => {
+    for (let i = 0; i < itemsToUse.length; ++i) {
+      if (e.item.includes(itemsToUse[i])) {
+        if (
+          (e.item.includes('dfdl:') && itemsToUse[i].includes('dfdl:')) ||
+          !e.item.includes('dfdl')
+        ) {
+          const completionItem = createCompletionItem(e, preVal, nsPrefix)
+          compItems.push(completionItem)
         }
       }
     }
-  )
+  })
 
   return compItems
 }

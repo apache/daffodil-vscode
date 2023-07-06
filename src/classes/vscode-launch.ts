@@ -15,23 +15,30 @@
  * limitations under the License.
  */
 
-import * as vscode from 'vscode'
-import * as fs from 'fs'
+import { TDMLConfig } from './tdmlConfig'
+import { DataEditorConfig } from './dataEditor'
 
-import * as daf from '../daffodilDebugger'
-import { ensureFile, tmpFile } from '../utils'
+export interface InfosetOutput {
+  type: string
+  file: string
+}
 
-export function handleDebugEvent(e: vscode.DebugSessionCustomEvent) {
-  switch (e.event) {
-    case daf.infosetEvent:
-      let update: daf.InfosetEvent = e.body
-      let path = ensureFile(tmpFile(e.session.id))
-      fs.copyFileSync(path, `${path}.prev`)
-      fs.writeFileSync(path, update.content)
-      break
-    // this allows for any error event to be caught in this case
-    case e.event.startsWith('daffodil.error') ? e.event : '':
-      vscode.window.showErrorMessage(`debugger ${e.event}`)
-      break
-  }
+export interface VSCodeLaunchConfigArgs {
+  name: string
+  request: string
+  type: string
+  program: string | boolean
+  data: string | boolean
+  debugServer: number | boolean
+  infosetFormat: string | null
+  infosetOutput: InfosetOutput | null
+  tdmlConfig: TDMLConfig | null
+  dataEditorConfig: DataEditorConfig | null
+  stopOnEntry: boolean
+  useExistingServer: boolean
+  trace: boolean
+  openHexView: boolean
+  openInfosetView: boolean
+  openInfosetDiffView: boolean
+  daffodilDebugClasspath: string
 }

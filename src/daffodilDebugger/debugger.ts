@@ -19,7 +19,7 @@ import * as vscode from 'vscode'
 import * as fs from 'fs'
 import XDGAppPaths from 'xdg-app-paths'
 import * as path from 'path'
-import { regexp, unzipFile } from './utils'
+import { regexp, unzipFile } from '../utils'
 import {
   buildDebugger,
   daffodilArtifact,
@@ -27,7 +27,7 @@ import {
   runDebugger,
   stopDebugger,
   stopDebugging,
-} from './daffodilDebuggerUtils'
+} from './utils'
 
 const xdgAppPaths = XDGAppPaths({ name: 'daffodil-dap' })
 
@@ -155,6 +155,52 @@ async function getTDMLConfig(
   return true
 }
 
+async function getDaffodilDebugClasspath(
+  config: vscode.DebugConfiguration,
+  workspaceFolder: string
+): Promise<string> {
+  let daffodilDebugClasspath = ''
+
+  //check if each classpath still exists
+  if (config.daffodilDebugClasspath) {
+    config.daffodilDebugClasspath.split(':').forEach((entry: string) => {
+      let fullpathEntry = entry.replaceAll(
+        '${workspaceFolder}',
+        workspaceFolder
+      )
+
+      if (!fs.existsSync(fullpathEntry)) {
+        throw new Error(`File or directory: ${fullpathEntry} doesn't exist`)
+      }
+    })
+
+    daffodilDebugClasspath = config.daffodilDebugClasspath.includes(
+      '${workspaceFolder}'
+    )
+      ? config.daffodilDebugClasspath.replace(
+          regexp['workspace'],
+          workspaceFolder
+        )
+      : config.daffodilDebugClasspath
+  }
+
+  // make sure infoset output directory is present
+  if (config.infosetOutput.type == 'file') {
+    let dir = path.dirname(
+      config.infosetOutput.path.includes('${workspaceFolder}')
+        ? config.infosetOutput.path.replace(
+            '${workspaceFolder}',
+            workspaceFolder
+          )
+        : config.infosetOutput.path
+    )
+
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+  }
+
+  return daffodilDebugClasspath
+}
+
 // Function for getting the daffodil-debugger
 export async function getDebugger(
   context: vscode.ExtensionContext,
@@ -179,7 +225,7 @@ export async function getDebugger(
         // Get daffodil-debugger zip from extension files
         const filePath = path
           .join(
-            context.asAbsolutePath('./server/core/target/universal'),
+            context.asAbsolutePath('./debugger/target/universal'),
             artifact.archive
           )
           .toString()
@@ -202,44 +248,10 @@ export async function getDebugger(
         : vscode.Uri.parse('').fsPath
 
       // Get daffodilDebugger class paths to be added to the debugger
-      let daffodilDebugClasspath = ''
-
-      //check if each classpath still exists
-      if (config.daffodilDebugClasspath) {
-        config.daffodilDebugClasspath.split(':').forEach((entry: string) => {
-          let fullpathEntry = entry.replaceAll(
-            '${workspaceFolder}',
-            workspaceFolder
-          )
-
-          if (!fs.existsSync(fullpathEntry)) {
-            throw new Error(`File or directory: ${fullpathEntry} doesn't exist`)
-          }
-        })
-
-        daffodilDebugClasspath = config.daffodilDebugClasspath.includes(
-          '${workspaceFolder}'
-        )
-          ? config.daffodilDebugClasspath.replace(
-              regexp['workspace'],
-              workspaceFolder
-            )
-          : config.daffodilDebugClasspath
-      }
-
-      // make sure infoset output directory is present
-      if (config.infosetOutput.type == 'file') {
-        let dir = path.dirname(
-          config.infosetOutput.path.includes('${workspaceFolder}')
-            ? config.infosetOutput.path.replace(
-                '${workspaceFolder}',
-                vscode.workspace.workspaceFolders[0].uri.fsPath
-              )
-            : config.infosetOutput.path
-        )
-
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-      }
+      const daffodilDebugClasspath = await getDaffodilDebugClasspath(
+        config,
+        workspaceFolder
+      )
 
       // Start debugger in terminal based on scriptName
 

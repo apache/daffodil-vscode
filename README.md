@@ -73,7 +73,7 @@ Run full package
   * Packages Extension
   * Creates Files
     ```
-    server/core/target/universal/daffodil-debugger-*.zip
+    debugger/target/universal/daffodil-debugger-*.zip
     apache-daffodil-vscode-*.vsix
     ```
 
