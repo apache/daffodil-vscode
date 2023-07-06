@@ -50,7 +50,7 @@ suite('Utils Test Suite', () => {
   }
 
   test('Default config', async () => {
-    var config = utils.getConfig(name, request, type)
+    var config = utils.getConfig({ name: name, request: request, type: type })
     assert.strictEqual(JSON.stringify(defaultConfig), JSON.stringify(config))
   })
 

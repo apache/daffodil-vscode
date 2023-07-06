@@ -19,7 +19,11 @@ import * as fs from 'fs'
 import * as vscode from 'vscode'
 import { getConfig, osCheck } from '../utils'
 
-const defaultConf = getConfig('Wizard Config', 'launch', 'dfdl')
+const defaultConf = getConfig({
+  name: 'Wizard Config',
+  request: 'launch',
+  type: 'dfdl',
+})
 
 // Function that will activate/open the launch config wizard
 export async function activate(ctx: vscode.ExtensionContext) {

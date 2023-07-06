@@ -15,16 +15,15 @@ import {
   WorkspaceFolder,
 } from 'vscode'
 import { getDataFileFromFolder, getDebugger } from '../daffodilDebugger'
-import * as hexView from '../hexView'
 import * as infoset from '../infoset'
 import * as dfdlLang from '../language/dfdl'
 import * as launchWizard from '../launchWizard/launchWizard'
 import * as dataEditClient from '../dataEdit/client'
 import { getConfig, getCurrentConfig, setCurrentConfig } from '../utils'
-import { DaffodilDebugSession } from './daffodilDebug'
 import { FileAccessor } from './daffodilRuntime'
 import { TDMLConfig } from '../classes/tdmlConfig'
 import { handleDebugEvent } from './daffodilEvent'
+import { InlineDebugAdapterFactory } from './extension'
 
 /** Method to file path for program and data
  * Details:
@@ -97,17 +96,20 @@ function createDebugRunFileConfigs(
 
       vscode.debug.startDebugging(
         undefined,
-        getConfig(
-          'Run File',
-          'launch',
-          'dfdl',
-          targetResource.fsPath,
-          false,
-          false,
-          'xml',
-          { type: 'file', path: '${workspaceFolder}/' + infosetFile },
-          tdmlConfig
-        ),
+        getConfig({
+          name: 'Run File',
+          request: 'launch',
+          type: 'dfdl',
+          program: targetResource.fsPath,
+          data: false,
+          debugServer: false,
+          infosetFormat: 'xml',
+          infosetOutput: {
+            type: 'file',
+            path: '${workspaceFolder}/' + infosetFile,
+          },
+          tdmlConfig: tdmlConfig,
+        }),
         { noDebug: noDebug }
       )
     }
@@ -278,16 +280,19 @@ export function activateDaffodilDebug(
         ): ProviderResult<DebugConfiguration[]> {
           if (!vscode.workspace.workspaceFolders) {
             return [
-              getConfig(
-                'Daffodil Launch',
-                'launch',
-                'dfdl',
-                '${file}',
-                false,
-                false,
-                'xml',
-                { type: 'file', path: '${file}-infoset.xml' }
-              ),
+              getConfig({
+                name: 'Daffodil Launch',
+                request: 'launch',
+                type: 'dfdl',
+                program: '${file}',
+                data: false,
+                debugServer: false,
+                infosetFormat: 'xml',
+                infosetOutput: {
+                  type: 'file',
+                  path: '${file}-infoset.xml',
+                },
+              }),
             ]
           }
 
@@ -299,16 +304,19 @@ export function activateDaffodilDebug(
           }-infoset.xml`
 
           return [
-            getConfig(
-              'Daffodil Launch',
-              'launch',
-              'dfdl',
-              '${file}',
-              false,
-              false,
-              'xml',
-              { type: 'file', path: '${workspaceFolder}/' + infosetFile }
-            ),
+            getConfig({
+              name: 'Daffodil Launch',
+              request: 'launch',
+              type: 'dfdl',
+              program: '${file}',
+              data: false,
+              debugServer: false,
+              infosetFormat: 'xml',
+              infosetOutput: {
+                type: 'file',
+                path: '${workspaceFolder}/' + infosetFile,
+              },
+            }),
           ]
         },
       },
@@ -409,7 +417,7 @@ class DaffodilConfigurationProvider
   ): ProviderResult<DebugConfiguration> {
     // if launch.json is missing or empty
     if (!config.type && !config.request && !config.name) {
-      config = getConfig('Launch', 'launch', 'dfdl')
+      config = getConfig({ name: 'Launch', request: 'launch', type: 'dfdl' })
     }
 
     if (!config.debugServer) {
@@ -445,16 +453,14 @@ class DaffodilConfigurationProvider
     ) {
       return getDataFileFromFolder(dataFolder).then((dataFile) => {
         config.data = dataFile
-        setCurrentConfig(config)
-        return getDebugger(this.context, config).then((result) => {
-          return config
+        return getDebugger(this.context, config).then((_) => {
+          return setCurrentConfig(config)
         })
       })
     }
 
-    return getDebugger(this.context, config).then((result) => {
-      setCurrentConfig(config)
-      return config
+    return getDebugger(this.context, config).then((_) => {
+      return setCurrentConfig(config)
     })
   }
 }
@@ -477,25 +483,4 @@ export const workspaceFileAccessor: FileAccessor = {
       }
     }
   },
-}
-
-// TODO: Move to extension.ts
-class InlineDebugAdapterFactory
-  implements vscode.DebugAdapterDescriptorFactory
-{
-  context: vscode.ExtensionContext
-  hexViewer: hexView.DebuggerHexView
-
-  constructor(context: vscode.ExtensionContext) {
-    this.context = context
-    this.hexViewer = new hexView.DebuggerHexView(context)
-  }
-
-  createDebugAdapterDescriptor(
-    _session: vscode.DebugSession
-  ): ProviderResult<vscode.DebugAdapterDescriptor> {
-    return new vscode.DebugAdapterInlineImplementation(
-      new DaffodilDebugSession(workspaceFileAccessor)
-    )
-  }
 }

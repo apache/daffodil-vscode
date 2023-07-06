@@ -15,23 +15,6 @@
  * limitations under the License.
  */
 
-import * as vscode from 'vscode'
-import * as fs from 'fs'
-
-import * as daf from '../daffodilDebugger'
-import { ensureFile, tmpFile } from '../utils'
-
-export function handleDebugEvent(e: vscode.DebugSessionCustomEvent) {
-  switch (e.event) {
-    case daf.infosetEvent:
-      let update: daf.InfosetEvent = e.body
-      let path = ensureFile(tmpFile(e.session.id))
-      fs.copyFileSync(path, `${path}.prev`)
-      fs.writeFileSync(path, update.content)
-      break
-    // this allows for any error event to be caught in this case
-    case e.event.startsWith('daffodil.error') ? e.event : '':
-      vscode.window.showErrorMessage(`debugger ${e.event}`)
-      break
-  }
-}
+export * from './daffodil'
+export * from './debugger'
+export * from './utils'

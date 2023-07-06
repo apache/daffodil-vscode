@@ -16,7 +16,7 @@
  */
 
 // prettier-ignore
-export const commonCompletion = (additionalItems, nsPrefix: string) => {
+export const commonCompletion = (additionalItems) => {
   return {
     items: [
       {
