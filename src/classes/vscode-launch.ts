@@ -23,6 +23,15 @@ export interface InfosetOutput {
   file: string
 }
 
+export interface LoggingConfig {
+  level: string
+  file: string
+}
+
+export interface DFDLDebugger {
+  logging: LoggingConfig
+}
+
 export interface VSCodeLaunchConfigArgs {
   name: string
   request: string
@@ -41,4 +50,5 @@ export interface VSCodeLaunchConfigArgs {
   openInfosetView: boolean
   openInfosetDiffView: boolean
   daffodilDebugClasspath: string
+  dfdlDebugger: DFDLDebugger
 }

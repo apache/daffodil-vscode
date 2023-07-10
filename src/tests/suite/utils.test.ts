@@ -47,6 +47,12 @@ suite('Utils Test Suite', () => {
       logFile: '${workspaceFolder}/dataEditor-${omegaEditPort}.log',
       logLevel: 'info',
     },
+    dfdlDebugger: {
+      logging: {
+        level: 'INFO',
+        file: '/tmp/daffodil-debugger.log',
+      },
+    },
   }
 
   test('Default config', async () => {

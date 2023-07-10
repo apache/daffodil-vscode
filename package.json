@@ -29,8 +29,9 @@
     "compile": "tsc -p ./ && yarn sbt",
     "lint": "yarn prettier src -c && cd src/svelte && yarn lint",
     "lint:fix": "yarn prettier src -w && cd src/svelte && yarn lint:fix",
-    "prewatch": "yarn gen-version-ts && yarn sbt",
-    "watch": "concurrently --kill-others \"webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js\" \"yarn watch:svelte\"",
+    "prewatch": "yarn gen-version-ts",
+    "scalawatch": "nodemon --verbose -e sbt,scala,xml,xjb -w debugger -w project -w build.sbt --ignore \"**/target/**\" --exec \"yarn sbt\"",
+    "watch": "concurrently --kill-others \"yarn scalawatch\" \"webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js\" \"yarn watch:svelte\"",
     "watch:svelte": "cd src/svelte && yarn dev",
     "webpack": "webpack --mode production --config ./build/extension.webpack.config.js",
     "prepackage": "yarn install && yarn compile && yarn webpack",
@@ -39,13 +40,14 @@
     "package-create": "node -e \"require('./build/scripts/package.ts').create()\"",
     "pretest": "yarn compile && yarn webpack",
     "test": "sbt test && node ./out/tests/runTest.js",
-    "sbt": "sbt universal:packageBin"
+    "sbt": "sbt debugger/Universal/packageBin"
   },
   "dependencies": {
-    "@vscode/debugadapter": "1.59.0",
     "@omega-edit/client": "0.9.63",
+    "@vscode/debugadapter": "1.59.0",
     "await-notify": "1.0.1",
     "hexy": "0.3.4",
+    "nodemon": "^3.0.1",
     "unzip-stream": "0.3.1",
     "uuid": "9.0.0",
     "wait-port": "1.0.4",
@@ -345,7 +347,7 @@
                 "description": "Destination for final Infoset ('file' | 'console' | 'none')",
                 "default": {
                   "type": "file",
-                  "path": "${workspaceFolder}/target/infoset.xml" 
+                  "path": "${workspaceFolder}/target/infoset.xml"
                 }
               },
               "tdmlConfig": {
@@ -420,6 +422,16 @@
                   "logFile": "${workspaceFolder}/dataEditor-${omegaEditPort}.log",
                   "logLevel": "info"
                 }
+              },
+              "dfdlDebugger": {
+                "type": "object",
+                "description": "Configuration for debugger. Settings are logging (level and file)",
+                "default": {
+                  "logging": {
+                    "level": "INFO",
+                    "file": "/tmp/daffodil-debugger.log"
+                  }
+                }
               }
             }
           }
@@ -435,7 +447,7 @@
             "infosetFormat": "xml",
             "infosetOutput": {
               "type": "file",
-              "path": "${workspaceFolder}/target/infoset.xml" 
+              "path": "${workspaceFolder}/target/infoset.xml"
             },
             "debugServer": 4711,
             "openHexView": false,
@@ -448,6 +460,12 @@
               "port": 9000,
               "logFile": "${workspaceFolder}/dataEditor-${omegaEditPort}.log",
               "logLevel": "info"
+            },
+            "dfdlDebugger": {
+              "logging": {
+                "level": "INFO",
+                "file": "/tmp/daffodil-debugger.log"
+              }
             }
           }
         ],
@@ -465,7 +483,7 @@
               "infosetFormat": "xml",
               "infosetOutput": {
                 "type": "file",
-                "path": "${workspaceFolder}/target/infoset.xml" 
+                "path": "${workspaceFolder}/target/infoset.xml"
               },
               "debugServer": 4711,
               "openHexView": false,
@@ -478,6 +496,12 @@
                 "port": 9000,
                 "logFile": "${workspaceFolder}/dataEditor-${omegaEditPort}.log",
                 "logLevel": "info"
+              },
+              "dfdlDebugger": {
+                "logging": {
+                  "level": "INFO",
+                  "file": "/tmp/daffodil-debugger.log"
+                }
               }
             }
           }
@@ -548,7 +572,7 @@
           "infosetOutputFilePath": {
             "type": "string",
             "description": "Path to output for Infoset file (req: infosetOutput=file)",
-            "default": "${workspaceFolder}/target/infoset.xml" 
+            "default": "${workspaceFolder}/target/infoset.xml"
           },
           "stopOnEntry": {
             "type": "boolean",
@@ -625,6 +649,31 @@
               "trace"
             ],
             "default": "info"
+          },
+          "dfdlDebuggerLogLevel": {
+            "type": "string",
+            "description": "Log level for debugger",
+            "enum": [
+              "ALL",
+              "DEBUG",
+              "ERROR",
+              "INFO",
+              "OFF",
+              "TRACE",
+              "WARN"
+            ],
+            "default": "INFO"
+          },
+          "dfdlDebuggerLogFile": {
+            "type": "string",
+            "description": "Path to log file for debugger",
+            "default": "/tmp/daffodil-debugger.log"
+          },
+          "dfdlDebugger": {
+            "logging": {
+              "level": "INFO",
+              "file": "/tmp/daffodil-debugger.log"
+            }
           }
         }
       }
