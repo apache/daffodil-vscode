@@ -123,6 +123,15 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
       ),
       logLevel: defaultConf.get('dataEditorLogLevel', 'info'),
     },
+    dfdlDebugger: {
+      logging: {
+        level: defaultConf.get('dfdlDebuggerLogLevel', 'INFO'),
+        file: defaultConf.get(
+          'dfdlDebuggerLogFile',
+          '/tmp/daffodil-debugger.log'
+        ),
+      },
+    },
   }
 
   Object.entries(defaultValues).map(

@@ -16,14 +16,14 @@
  */
 
 import * as vscode from 'vscode'
-import * as fs from 'fs'
 import * as path from 'path'
 import * as child_process from 'child_process'
 import { LIB_VERSION } from '../version'
 import { deactivate } from '../adapter/extension'
 import { getDaffodilVersion } from './daffodil'
 import { Artifact } from '../classes/artifact'
-import { osCheck, runScript } from '../utils'
+import { DFDLDebugger } from '../classes/vscode-launch'
+import { osCheck, runScript, unzipFile } from '../utils'
 
 export const daffodilVersion = (filePath: string): string => {
   return getDaffodilVersion(filePath)
@@ -33,32 +33,17 @@ export const daffodilArtifact = (version: string): Artifact => {
   return new Artifact('daffodil-debugger', version, 'daffodil-debugger')
 }
 
-export async function buildDebugger(baseFolder: string, filePath: string) {
-  if (!filePath.includes('.vscode/extension')) {
-    if (!fs.existsSync(filePath)) {
-      let command = osCheck(
-        'sbt universal:packageBin',
-        '/bin/bash --login -c "sbt universal:packageBin"'
-      ) // Needed --login so it could resolve sbt command
-
-      child_process.execSync(command, { cwd: baseFolder })
-    }
-  }
-}
-
 export const stopDebugger = (id: number | undefined = undefined) =>
   child_process.exec(osCheck(`taskkill /F /PID ${id}`, `kill -9 ${id}`))
 
-export const shellArgs = (scriptName: string, port: number) => [
-  '--listenPort',
-  `${port}`,
-]
+export const shellArgs = (port: number) => ['--listenPort', `${port}`]
 
 export async function runDebugger(
   rootPath: string,
   daffodilDebugClasspath: string,
   filePath: string,
   serverPort: number,
+  dfdlDebugger: DFDLDebugger,
   createTerminal: boolean = false
 ): Promise<vscode.Terminal> {
   const dfdlVersion = daffodilVersion(filePath)
@@ -78,9 +63,11 @@ export async function runDebugger(
     scriptPath,
     artifact.scriptName,
     createTerminal,
-    shellArgs(artifact.scriptName, serverPort),
+    shellArgs(serverPort),
     {
       DAFFODIL_DEBUG_CLASSPATH: daffodilDebugClasspath,
+      DAFFODIL_DEBUG_LOG_LEVEL: dfdlDebugger.logging.level,
+      DAFFODIL_DEBUG_LOG_FILE: dfdlDebugger.logging.file,
     },
     'daffodil'
   )
@@ -93,4 +80,21 @@ export async function stopDebugging() {
   vscode.window.activeTerminal?.processId.then(async (id) => {
     await stopDebugger(id)
   })
+}
+
+export async function extractDebugger(
+  context: vscode.ExtensionContext,
+  artifactArchive: string,
+  rootPath: string
+) {
+  // Get daffodil-debugger zip from extension files
+  const filePath = path
+    .join(
+      context.asAbsolutePath('./debugger/target/universal'),
+      artifactArchive
+    )
+    .toString()
+
+  // Unzip file
+  await unzipFile(filePath, rootPath)
 }

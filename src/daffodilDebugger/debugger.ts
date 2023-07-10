@@ -19,11 +19,11 @@ import * as vscode from 'vscode'
 import * as fs from 'fs'
 import XDGAppPaths from 'xdg-app-paths'
 import * as path from 'path'
-import { regexp, unzipFile } from '../utils'
+import { regexp, getConfig } from '../utils'
 import {
-  buildDebugger,
   daffodilArtifact,
   daffodilVersion,
+  extractDebugger,
   runDebugger,
   stopDebugger,
   stopDebugging,
@@ -220,22 +220,7 @@ export async function getDebugger(
         fs.mkdirSync(rootPath, { recursive: true })
       }
 
-      // Code for downloading and setting up daffodil-debugger files
-      if (!fs.existsSync(`${rootPath}/${artifact.name}`)) {
-        // Get daffodil-debugger zip from extension files
-        const filePath = path
-          .join(
-            context.asAbsolutePath('./debugger/target/universal'),
-            artifact.archive
-          )
-          .toString()
-
-        // If debugging the extension without vsix installed make sure debugger is created
-        await buildDebugger(context.asAbsolutePath('.'), filePath)
-
-        // Unzip file
-        await unzipFile(filePath, rootPath)
-      }
+      await extractDebugger(context, artifact.archive, rootPath)
 
       await stopDebugger()
 
@@ -265,7 +250,8 @@ export async function getDebugger(
         rootPath,
         daffodilDebugClasspath,
         context.asAbsolutePath('./package.json'),
-        config.debugServer
+        config.debugServer,
+        getConfig(config).dfdlDebugger
       )
     }
   }
