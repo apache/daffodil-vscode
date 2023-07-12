@@ -106,6 +106,24 @@ lazy val debugger = project
     packageName := s"${name.value}-$daffodilVer"
   )
 
+lazy val javaMajorVersion: Int =
+  System.getProperty("java.version").stripPrefix("1.").takeWhile(_.isDigit).toInt
+lazy val isAtLeastJava17: Boolean = javaMajorVersion >= 17
+/* Workaround: certain reflection (used by JAXB) isn't allowed by default in JDK 17:
+ * https://docs.oracle.com/en/java/javase/17/migrate/migrating-jdk-8-later-jdk-releases.html#GUID-7BB28E4D-99B3-4078-BDC4-FC24180CE82B
+ *
+ * While we can handle this JVM quirk at build time, at runtime we won't know
+ * a user's JVM version. We'll provide documentation and an extension setting
+ * to add these flags to the extension-launched debugger backend.
+ */
+lazy val extraXjcJvmOpts: Seq[String] =
+  if (isAtLeastJava17)
+    Seq(
+      "--add-opens",
+      "java.base/java.lang=ALL-UNNAMED"
+    )
+  else Seq()
+
 lazy val xjcSettings =
   Seq(
     libraryDependencies ++= Seq(
@@ -118,6 +136,7 @@ lazy val xjcSettings =
     xjcCommandLine += "-p",
     xjcCommandLine += "org.apache.daffodil.tdml",
     xjcBindings += "debugger/src/main/resources/bindings.xjb",
+    xjcJvmOpts ++= extraXjcJvmOpts,
     xjcLibs := Seq(
       "org.glassfish.jaxb" % "jaxb-xjc" % "2.2.11",
       "com.sun.xml.bind" % "jaxb-impl" % "2.2.11",
