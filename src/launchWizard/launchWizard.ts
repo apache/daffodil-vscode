@@ -321,8 +321,6 @@ class LaunchWizard {
 
     let defaultValues = getConfigValues(fileData, configIndex)
 
-    // vscode.window.showInformationMessage(JSON.stringify(fileData))
-
     let nameVisOrHiddenStyle = newConfig
       ? 'margin-top: 10px; visibility: visible;'
       : 'visibility: hidden;'
@@ -413,8 +411,8 @@ class LaunchWizard {
     })
 
     let dataEditorPort = defaultValues.dataEditorConfig['port']
-    let dataEditorLogFile = defaultValues.dataEditorConfig['logFile']
-    let dataEditorLogLevel = defaultValues.dataEditorConfig['logLevel']
+    let dataEditorLogFile = defaultValues.dataEditorConfig['logging']['file']
+    let dataEditorLogLevel = defaultValues.dataEditorConfig['logging']['level']
 
     return `
   <!DOCTYPE html>

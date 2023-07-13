@@ -1,0 +1,13 @@
+{
+  "ignore": [
+    "**/target/**"
+  ],
+  "verbose": true,
+  "exec": "yarn sbt",
+  "watch": [
+    "debugger",
+    "project",
+    "build.sbt"
+  ],
+  "ext": "sbt,scala,xml,xjb"
+}

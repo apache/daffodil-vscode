@@ -28,7 +28,8 @@ import {
   stopDebugging,
 } from '../../daffodilDebugger'
 import { before, after } from 'mocha'
-import { DFDLDebugger } from '../../classes/vscode-launch'
+import { DFDLDebugger } from '../../classes/dfdlDebugger'
+import { DataEditorConfig } from '../../classes/dataEditor'
 
 // Not using the debug adapter like adapter.test.ts as it will not fully connect the debugger
 suite('Daffodil Debugger', () => {
@@ -56,10 +57,12 @@ suite('Daffodil Debugger', () => {
     path: TDML_PATH,
   }
 
-  const dataEditorConfig = {
+  const dataEditorConfig: DataEditorConfig = {
     port: 9000,
-    logFile: 'dataEditor-9000.log',
-    logLevel: 'info',
+    logging: {
+      file: 'dataEditor-9000.log',
+      level: 'info',
+    },
   }
 
   const dfdlDebuggers: Array<DFDLDebugger> = [

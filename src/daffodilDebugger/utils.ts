@@ -22,7 +22,7 @@ import { LIB_VERSION } from '../version'
 import { deactivate } from '../adapter/extension'
 import { getDaffodilVersion } from './daffodil'
 import { Artifact } from '../classes/artifact'
-import { DFDLDebugger } from '../classes/vscode-launch'
+import { DFDLDebugger } from '../classes/dfdlDebugger'
 import { osCheck, runScript, unzipFile } from '../utils'
 
 export const daffodilVersion = (filePath: string): string => {

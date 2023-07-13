@@ -26,8 +26,8 @@ object Rat {
     file(".metal"),
     // vscode-test generated directory
     file(".vscode-test"),
-    // generate version file from sbt
-    file("src/version.ts"),
+    // nodemon config file for debugger
+    file("debugger/nodemon.json"),
     /** Can't add license headers in JSON files. Adding a license attribute breaks things in some of these files as
       * well.
       */

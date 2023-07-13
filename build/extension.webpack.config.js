@@ -50,7 +50,8 @@ module.exports = /** @type WebpackConfig */ {
 		path: path.resolve(__dirname, '../dist/ext'),
 		libraryTarget: 'commonjs2',
 		devtoolModuleFilenameTemplate: "../../[resource-path]",
-		hashFunction: "sha512"
+		hashFunction: "sha512",
+		clean: true, // makes sure the output directory is remade
 	},
 	devtool: 'source-map'
 }

@@ -17,20 +17,8 @@
 
 import { TDMLConfig } from './tdmlConfig'
 import { DataEditorConfig } from './dataEditor'
-
-export interface InfosetOutput {
-  type: string
-  file: string
-}
-
-export interface LoggingConfig {
-  level: string
-  file: string
-}
-
-export interface DFDLDebugger {
-  logging: LoggingConfig
-}
+import { InfosetOutput } from '../daffodilDebugger'
+import { DFDLDebugger } from './dfdlDebugger'
 
 export interface VSCodeLaunchConfigArgs {
   name: string

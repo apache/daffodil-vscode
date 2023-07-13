@@ -206,6 +206,7 @@ export async function getDebugger(
   context: vscode.ExtensionContext,
   config: vscode.DebugConfiguration
 ) {
+  config = getConfig(config) // make sure all config attributes are set
   const artifact = daffodilArtifact(
     daffodilVersion(context.asAbsolutePath('./package.json'))
   )
@@ -251,7 +252,7 @@ export async function getDebugger(
         daffodilDebugClasspath,
         context.asAbsolutePath('./package.json'),
         config.debugServer,
-        getConfig(config).dfdlDebugger
+        config.dfdlDebugger
       )
     }
   }
