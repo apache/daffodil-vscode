@@ -21,8 +21,7 @@ import * as unzip from 'unzip-stream'
 import * as os from 'os'
 import * as child_process from 'child_process'
 import path from 'path'
-import { TDMLConfig } from './classes/tdmlConfig'
-import { DataEditorConfig } from './classes/dataEditor'
+import { VSCodeLaunchConfigArgs } from './classes/vscode-launch'
 
 const defaultConf = vscode.workspace.getConfiguration()
 let currentConfig: vscode.DebugConfiguration
@@ -37,14 +36,16 @@ export const regexp = {
 }
 
 // Function to retrieve to the current debug config
-export function getCurrentConfig() {
+export function getCurrentConfig(): vscode.DebugConfiguration {
   return currentConfig
 }
 
 // Function to set the current debug config
-export function setCurrentConfig(config) {
+export function setCurrentConfig(
+  config: vscode.DebugConfiguration
+): vscode.DebugConfiguration {
   currentConfig = config
-  return currentConfig
+  return config
 }
 
 // Function to run vscode command and catch the error to not cause other issues
@@ -80,26 +81,10 @@ export async function onDebugStartDisplay(viewsToCheck: string[]) {
   })
 }
 
-// Method for retrieving the config when launch.json does not exist
-export function getConfig(
-  name,
-  request,
-  type,
-  program: string = '',
-  data: string | boolean = false,
-  debugServer: number | boolean = false,
-  infosetFormat: string | null = null,
-  infosetOutput: object | null = null,
-  tdmlConfig: TDMLConfig | null = null,
-  dataEditorConfig: DataEditorConfig | null = null,
-  stopOnEntry = false,
-  useExistingServer = false,
-  trace = false,
-  openHexView = false,
-  openInfosetView = false,
-  openInfosetDiffView = false,
-  daffodilDebugClasspath: string = ''
-) {
+export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
+  const launchConfigArgs: VSCodeLaunchConfigArgs = JSON.parse(
+    JSON.stringify(jsonArgs)
+  )
   // Keep 'none' here as a default so that we don't always add the tdmlConfig block
   let tdmlAction = defaultConf.get('tdmlAction', 'none')
   let tdmlPropsNeeded = false
@@ -111,61 +96,54 @@ export function getConfig(
     tdmlPropsNeeded = true
   }
 
-  let jsonConfig = {
-    name: name,
-    request: request,
-    type: type,
-    program: program
-      ? program
-      : defaultConf.get('program', '${command:AskForProgramName}'),
-    data: data ? data : defaultConf.get('data', '${command:AskForDataName}'),
-    debugServer: debugServer
-      ? debugServer
-      : defaultConf.get('debugServer', 4711),
-    infosetFormat: infosetFormat ? infosetFormat : 'xml',
-    infosetOutput: infosetOutput
-      ? infosetOutput
-      : {
-          type: defaultConf.get('infosetOutputType', 'none'),
-          path: defaultConf.get(
-            'infosetOutputFilePath',
-            '${workspaceFolder}/target/infoset.xml'
-          ),
-        },
-    stopOnEntry: stopOnEntry
-      ? stopOnEntry
-      : defaultConf.get('stopOnEntry', true),
-    useExistingServer: useExistingServer
-      ? useExistingServer
-      : defaultConf.get('useExistingServer', false),
-    trace: trace ? trace : defaultConf.get('trace', true),
-    openHexView: openHexView
-      ? openHexView
-      : defaultConf.get('openHexView', false),
-    openInfosetView: openInfosetView
-      ? openInfosetView
-      : defaultConf.get('openInfosetView', false),
-    openInfosetDiffView: openInfosetDiffView
-      ? openInfosetDiffView
-      : defaultConf.get('openInfosetDiffView', false),
-    daffodilDebugClasspath: daffodilDebugClasspath
-      ? daffodilDebugClasspath
-      : defaultConf.get('daffodilDebugClasspath', ''),
-    dataEditorConfig: dataEditorConfig
-      ? dataEditorConfig
-      : {
-          port: defaultConf.get('dataEditorPort', 9000),
-          logFile: defaultConf.get(
-            'dataEditorLogFile',
-            '${workspaceFolder}/dataEditor-${omegaEditPort}.log'
-          ),
-          logLevel: defaultConf.get('dataEditorLogLevel', 'info'),
-        },
+  const defaultValues = {
+    program: defaultConf.get('program', '${command:AskForProgramName}'),
+    data: defaultConf.get('data', '${command:AskForDataName}'),
+    debugServer: defaultConf.get('debugServer', 4711),
+    infosetFormat: 'xml',
+    infosetOutput: {
+      type: defaultConf.get('infosetOutputType', 'none'),
+      path: defaultConf.get(
+        'infosetOutputFilePath',
+        '${workspaceFolder}/target/infoset.xml'
+      ),
+    },
+    stopOnEntry: defaultConf.get('stopOnEntry', true),
+    useExistingServer: defaultConf.get('useExistingServer', false),
+    trace: defaultConf.get('trace', true),
+    openHexView: defaultConf.get('openHexView', false),
+    openInfosetView: defaultConf.get('openInfosetView', false),
+    openInfosetDiffView: defaultConf.get('openInfosetDiffView', false),
+    daffodilDebugClasspath: defaultConf.get('daffodilDebugClasspath', ''),
+    dataEditorConfig: {
+      port: defaultConf.get('dataEditorPort', 9000),
+      logFile: defaultConf.get(
+        'dataEditorLogFile',
+        '${workspaceFolder}/dataEditor-${omegaEditPort}.log'
+      ),
+      logLevel: defaultConf.get('dataEditorLogLevel', 'info'),
+    },
+    dfdlDebugger: {
+      logging: {
+        level: defaultConf.get('dfdlDebuggerLogLevel', 'INFO'),
+        file: defaultConf.get(
+          'dfdlDebuggerLogFile',
+          '/tmp/daffodil-debugger.log'
+        ),
+      },
+    },
   }
 
+  Object.entries(defaultValues).map(
+    ([key, defaultValue]) =>
+      (launchConfigArgs[key] = launchConfigArgs[key]
+        ? launchConfigArgs[key]
+        : defaultValue)
+  )
+
   if (tdmlPropsNeeded) {
-    jsonConfig['tdmlConfig'] = tdmlConfig
-      ? tdmlConfig
+    launchConfigArgs.tdmlConfig = launchConfigArgs.tdmlConfig
+      ? launchConfigArgs.tdmlConfig
       : {
           action: tdmlAction,
           name: defaultConf.get('tdmlName', '${command:AskforTDMLName}'),
@@ -177,7 +155,7 @@ export function getConfig(
         }
   }
 
-  return jsonConfig
+  return JSON.parse(JSON.stringify(launchConfigArgs))
 }
 
 export async function unzipFile(zipFilePath: string, extractPath: string) {

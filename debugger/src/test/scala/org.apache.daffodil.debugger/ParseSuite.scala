@@ -24,8 +24,8 @@ class ParseSuite extends FunSuite {
   val name = "Default Config"
   val request = "launch"
   val launchType = "dfdl"
-  var program = Paths.get("./server/core/src/test/data/emptySchema.dfdl.xsd").toAbsolutePath().toString()
-  var data = Paths.get("./server/core/src/test/data/emptyData.xml").toAbsolutePath().toString()
+  var program = Paths.get("./debugger/src/test/data/emptySchema.dfdl.xsd").toAbsolutePath().toString()
+  var data = Paths.get("./debugger/src/test/data/emptyData.xml").toAbsolutePath().toString()
   val debugServer = 4711
   val infosetFormat = "xml"
   var infosetOutputType = "none"
@@ -46,8 +46,8 @@ class ParseSuite extends FunSuite {
   var testTDMLObject = new JsonObject()
 
   override def beforeEach(context: BeforeEach): Unit = {
-    program = Paths.get("./server/core/src/test/data/emptySchema.dfdl.xsd").toAbsolutePath().toString()
-    data = Paths.get("./server/core/src/test/data/emptyData.xml").toAbsolutePath().toString()
+    program = Paths.get("./debugger/src/test/data/emptySchema.dfdl.xsd").toAbsolutePath().toString()
+    data = Paths.get("./debugger/src/test/data/emptyData.xml").toAbsolutePath().toString()
     infosetOutputType = "none"
     infosetOutputPath = "testPath/infoset.xml"
     tdmlAction = ""

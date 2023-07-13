@@ -77,11 +77,11 @@ lazy val `daffodil-debugger` = project
   .in(file("."))
   .settings(commonSettings, ratSettings)
   .settings(publish / skip := true)
-  .dependsOn(core)
-  .aggregate(core)
+  .dependsOn(debugger)
+  .aggregate(debugger)
 
-lazy val core = project
-  .in(file("server/core"))
+lazy val debugger = project
+  .in(file("debugger"))
   .enablePlugins(BuildInfoPlugin, JavaAppPackaging, UniversalPlugin, ClasspathJarPlugin, SbtXjcPlugin)
   .settings(commonSettings)
   .settings(xjcSettings)
@@ -117,7 +117,7 @@ lazy val xjcSettings =
     xjcCommandLine += "-nv",
     xjcCommandLine += "-p",
     xjcCommandLine += "org.apache.daffodil.tdml",
-    xjcBindings += "server/core/src/main/resources/bindings.xjb",
+    xjcBindings += "debugger/src/main/resources/bindings.xjb",
     xjcLibs := Seq(
       "org.glassfish.jaxb" % "jaxb-xjc" % "2.2.11",
       "com.sun.xml.bind" % "jaxb-impl" % "2.2.11",

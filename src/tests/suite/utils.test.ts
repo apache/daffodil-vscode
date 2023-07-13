@@ -47,10 +47,16 @@ suite('Utils Test Suite', () => {
       logFile: '${workspaceFolder}/dataEditor-${omegaEditPort}.log',
       logLevel: 'info',
     },
+    dfdlDebugger: {
+      logging: {
+        level: 'INFO',
+        file: '/tmp/daffodil-debugger.log',
+      },
+    },
   }
 
   test('Default config', async () => {
-    var config = utils.getConfig(name, request, type)
+    var config = utils.getConfig({ name: name, request: request, type: type })
     assert.strictEqual(JSON.stringify(defaultConfig), JSON.stringify(config))
   })
 

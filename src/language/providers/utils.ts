@@ -614,7 +614,7 @@ export function getCommonItems(
 ) {
   let compItems: vscode.CompletionItem[] = []
 
-  commonCompletion(additionalItems, nsPrefix).items.forEach((e) => {
+  commonCompletion(additionalItems).items.forEach((e) => {
     if (itemsToUse.includes(e.item)) {
       const completionItem = createCompletionItem(e, preVal, nsPrefix)
       compItems.push(completionItem)

@@ -26,8 +26,9 @@ import {
   daffodilVersion,
   runDebugger,
   stopDebugging,
-} from '../../daffodilDebuggerUtils'
+} from '../../daffodilDebugger'
 import { before, after } from 'mocha'
+import { DFDLDebugger } from '../../classes/vscode-launch'
 
 // Not using the debug adapter like adapter.test.ts as it will not fully connect the debugger
 suite('Daffodil Debugger', () => {
@@ -36,7 +37,7 @@ suite('Daffodil Debugger', () => {
 
   const SCALA_PATH = path.join(
     PROJECT_ROOT,
-    'server/core/target/universal',
+    'debugger/target/universal',
     artifact.archive
   )
   const EXTRACTED_FOLDER = path.join(PROJECT_ROOT, artifact.name)
@@ -61,13 +62,42 @@ suite('Daffodil Debugger', () => {
     logLevel: 'info',
   }
 
+  const dfdlDebuggers: Array<DFDLDebugger> = [
+    {
+      logging: {
+        level: 'INFO',
+        file: 'daffodil-debugger-4711.log',
+      },
+    },
+    {
+      logging: {
+        level: 'INFO',
+        file: 'daffodil-debugger-4712.log',
+      },
+    },
+  ]
+
   before(async () => {
     await unzipFile(SCALA_PATH, PROJECT_ROOT)
     debuggers.push(
-      await runDebugger(PROJECT_ROOT, '', PACKAGE_PATH, 4711, true)
+      await runDebugger(
+        PROJECT_ROOT,
+        '',
+        PACKAGE_PATH,
+        4711,
+        dfdlDebuggers[0],
+        true
+      )
     )
     debuggers.push(
-      await runDebugger(PROJECT_ROOT, '', PACKAGE_PATH, 4712, true)
+      await runDebugger(
+        PROJECT_ROOT,
+        '',
+        PACKAGE_PATH,
+        4712,
+        dfdlDebuggers[1],
+        true
+      )
     )
   })
 
@@ -79,27 +109,33 @@ suite('Daffodil Debugger', () => {
     fs.rmSync(EXTRACTED_FOLDER, { recursive: true })
     if (fs.existsSync(XML_INFOSET_PATH)) fs.rmSync(XML_INFOSET_PATH)
     if (fs.existsSync(JSON_INFOSET_PATH)) fs.rmSync(JSON_INFOSET_PATH)
+    dfdlDebuggers.forEach((dfdlDebugger) => {
+      if (fs.existsSync(dfdlDebugger.logging.file))
+        fs.rmSync(dfdlDebugger.logging.file)
+    })
   })
 
   test('should output xml infoset', async () => {
     await vscode.debug.startDebugging(
       undefined,
-      getConfig(
-        'Run',
-        'launch',
-        'dfdl',
-        TEST_SCHEMA,
-        DATA,
-        4711,
-        'xml',
-        {
+      getConfig({
+        name: 'Run',
+        request: 'launch',
+        type: 'dfdl',
+        program: TEST_SCHEMA,
+        data: DATA,
+        debugServer: 4711,
+        infosetFormat: 'xml',
+        infosetOutput: {
           type: 'file',
           path: XML_INFOSET_PATH,
         },
-        tdmlConf,
-        dataEditorConfig
-      ),
-      { noDebug: true }
+        tdmlConfig: tdmlConf,
+        dataEditorConfig: dataEditorConfig,
+      }),
+      {
+        noDebug: true,
+      }
     )
 
     assert.strictEqual(fs.existsSync(XML_INFOSET_PATH), true)
@@ -108,22 +144,24 @@ suite('Daffodil Debugger', () => {
   test('should output json infoset', async () => {
     await vscode.debug.startDebugging(
       undefined,
-      getConfig(
-        'Run',
-        'launch',
-        'dfdl',
-        TEST_SCHEMA,
-        DATA,
-        4712,
-        'json',
-        {
+      getConfig({
+        name: 'Run',
+        request: 'launch',
+        type: 'dfdl',
+        program: TEST_SCHEMA,
+        data: DATA,
+        debugServer: 4712,
+        infosetFormat: 'json',
+        infosetOutput: {
           type: 'file',
           path: JSON_INFOSET_PATH,
         },
-        tdmlConf,
-        dataEditorConfig
-      ),
-      { noDebug: true }
+        tdmlConfig: tdmlConf,
+        dataEditorConfig: dataEditorConfig,
+      }),
+      {
+        noDebug: true,
+      }
     )
 
     assert.strictEqual(fs.existsSync(JSON_INFOSET_PATH), true)

@@ -16,7 +16,7 @@
  */
 
 // prettier-ignore
-export const elementCompletion = (definedVariables, dfdlFormatString, nsPrefix) => {
+export const elementCompletion = (definedVariables, nsPrefix) => {
   return {
     items: [
       {

@@ -22,6 +22,12 @@ object Rat {
   lazy val excludes = Seq(
     // git files
     file(".git"),
+    // metals generated directory
+    file(".metal"),
+    // vscode-test generated directory
+    file(".vscode-test"),
+    // generate version file from sbt
+    file("src/version.ts"),
     /** Can't add license headers in JSON files. Adding a license attribute breaks things in some of these files as
       * well.
       */
@@ -43,10 +49,10 @@ object Rat {
     file("build/package/NOLICENSE"),
     file("build/package/NONOTICE"),
     file("src/tests/data/test.txt"),
-    file("server/core/src/test/data/emptyData.xml"),
-    file("server/core/src/test/data/emptyInfoset.xml"),
-    file("server/core/src/test/data/notInfoset.xml"),
-    file("server/core/src/test/data/emptySchema.dfdl.xsd")
+    file("debugger/src/test/data/emptyData.xml"),
+    file("debugger/src/test/data/emptyInfoset.xml"),
+    file("debugger/src/test/data/notInfoset.xml"),
+    file("debugger/src/test/data/emptySchema.dfdl.xsd")
   )
 
   lazy val MIT_LICENSE_NAME = "MIT License"

@@ -16,7 +16,7 @@
  */
 
 import * as vscode from 'vscode'
-import * as daf from './daffodil'
+import * as daf from './daffodilDebugger'
 import * as fs from 'fs'
 import { Uri } from 'vscode'
 import {

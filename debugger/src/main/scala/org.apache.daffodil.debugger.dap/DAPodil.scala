@@ -436,6 +436,8 @@ object DAPodil extends IOApp {
         |  daffodilVersion: ${BuildInfo.daffodilVersion}
         |  scalaVersion: ${BuildInfo.scalaVersion}
         |  sbtVersion: ${BuildInfo.sbtVersion}
+        |Runtime info:
+        |  JVM version: ${System.getProperty("java.version")} (${System.getProperty("java.home")})
         |******************************************************""".stripMargin
 
   def run(args: List[String]): IO[ExitCode] =

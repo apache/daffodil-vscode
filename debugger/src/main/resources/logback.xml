@@ -27,7 +27,17 @@
       <pattern>%date{ISO8601} [%thread] %highlight(%-5level) %cyan(%logger{15}) - %msg %n</pattern>
     </encoder>
   </appender>
-  <root level="DEBUG">
+
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+      <file>${DAFFODIL_DEBUG_LOG_FILE:-/tmp/daffodil-debugger.log}</file>
+      <append>false</append>
+      <encoder>
+          <pattern>%date{ISO8601} [%thread] %-5level %logger{15} - %msg %n</pattern>
+      </encoder>
+  </appender>
+
+  <root level="${DAFFODIL_DEBUG_LOG_LEVEL:-INFO}">
     <appender-ref ref="STDOUT" />
+    <appender-ref ref="FILE" />
   </root>
 </configuration>

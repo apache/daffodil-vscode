@@ -47,14 +47,12 @@ function getCompletionItems(
     nsPrefix
   )
 
-  attributeCompletion(additionalItems, nsPrefix, dfdlPrefix).items.forEach(
-    (e) => {
-      if (itemsToUse.includes(e.item)) {
-        const completionItem = createCompletionItem(e, preVal, nsPrefix)
-        compItems.push(completionItem)
-      }
+  attributeCompletion(dfdlPrefix).items.forEach((e) => {
+    if (itemsToUse.includes(e.item)) {
+      const completionItem = createCompletionItem(e, preVal, nsPrefix)
+      compItems.push(completionItem)
     }
-  )
+  })
 
   return compItems
 }
