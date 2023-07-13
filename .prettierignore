@@ -19,7 +19,5 @@ coverage
 out
 dist
 
-version.ts
-
 # Svelte does its own
 svelte

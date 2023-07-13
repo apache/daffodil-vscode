@@ -72,6 +72,7 @@ suite('Daffodfil', () => {
     test('InfosetOutput functions properly', () => {
       let infosetOutput: daffodil.InfosetOutput = {
         type: 'console',
+        path: '',
       }
 
       assert.strictEqual('console', infosetOutput.type)
@@ -93,6 +94,7 @@ suite('Daffodfil', () => {
     test('LaunchArgs functions properly', () => {
       let infosetOutput: daffodil.InfosetOutput = {
         type: 'console',
+        path: '',
       }
 
       let launchArgs: daffodil.LaunchArgs = {
@@ -114,6 +116,7 @@ suite('Daffodfil', () => {
       let allVersions = '1.0.0'
       let infosetOutput: daffodil.InfosetOutput = {
         type: 'console',
+        path: '',
       }
       let buildInfo: daffodil.BuildInfo = {
         version: allVersions,
@@ -164,7 +167,6 @@ suite('Daffodfil', () => {
     const nonDebugSpecificCmds = [
       'extension.dfdl-debug.debugEditorContents',
       'extension.dfdl-debug.runEditorContents',
-      'launch.config',
     ]
 
     // This breaks when the omega-edit tests run for some reason

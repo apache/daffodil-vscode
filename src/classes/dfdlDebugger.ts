@@ -15,29 +15,8 @@
  * limitations under the License.
  */
 
-import * as assert from 'assert'
-import * as fs from 'fs'
-import * as path from 'path'
-import { PROJECT_ROOT } from './common'
+import { LoggingConfig } from '../classes/loggingConfig'
 
-suite('Daffodil Version', () => {
-  const versionFile = path.join(PROJECT_ROOT, 'src/version.ts')
-  const packageMapped = JSON.parse(
-    fs.readFileSync(path.join(PROJECT_ROOT, 'package.json')).toString()
-  )
-
-  suite('version', () => {
-    test('version.ts should exist', (done) => {
-      if (fs.existsSync(versionFile)) {
-        done()
-      } else {
-        new Error('version.ts not created')
-      }
-    })
-
-    test('version.ts version should be same as package.json', () => {
-      const version = require('../../version').LIB_VERSION
-      assert.strictEqual(version, packageMapped.version)
-    })
-  })
-})
+export interface DFDLDebugger {
+  logging: LoggingConfig
+}

@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
+import { LoggingConfig } from './loggingConfig'
+
 export interface DataEditorConfig {
   port: number
-  logFile: string
-  logLevel: string
+  logging: LoggingConfig
 }

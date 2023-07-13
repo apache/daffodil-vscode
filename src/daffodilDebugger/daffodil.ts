@@ -46,6 +46,7 @@ export interface LaunchArgs {
 
 export interface InfosetOutput {
   type: string
+  path: string
 }
 
 export interface BuildInfo {
