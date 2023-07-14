@@ -57,7 +57,7 @@ suite('Daffodil Debugger', () => {
     path: TDML_PATH,
   }
 
-  const dataEditorConfig: DataEditorConfig = {
+  const dataEditor: DataEditorConfig = {
     port: 9000,
     logging: {
       file: 'dataEditor-9000.log',
@@ -134,7 +134,7 @@ suite('Daffodil Debugger', () => {
           path: XML_INFOSET_PATH,
         },
         tdmlConfig: tdmlConf,
-        dataEditorConfig: dataEditorConfig,
+        dataEditor: dataEditor,
       }),
       {
         noDebug: true,
@@ -160,7 +160,7 @@ suite('Daffodil Debugger', () => {
           path: JSON_INFOSET_PATH,
         },
         tdmlConfig: tdmlConf,
-        dataEditorConfig: dataEditorConfig,
+        dataEditor: dataEditor,
       }),
       {
         noDebug: true,

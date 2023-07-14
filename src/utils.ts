@@ -108,7 +108,7 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
     openInfosetView: defaultConf.get('openInfosetView', false),
     openInfosetDiffView: defaultConf.get('openInfosetDiffView', false),
     daffodilDebugClasspath: defaultConf.get('daffodilDebugClasspath', ''),
-    dataEditorConfig: defaultConf.get('dataEditor', {
+    dataEditor: defaultConf.get('dataEditor', {
       port: 9000,
       logging: {
         level: 'info',

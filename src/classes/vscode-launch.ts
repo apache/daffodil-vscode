@@ -30,7 +30,7 @@ export interface VSCodeLaunchConfigArgs {
   infosetFormat: string | null
   infosetOutput: InfosetOutput | null
   tdmlConfig: TDMLConfig | null
-  dataEditorConfig: DataEditorConfig | null
+  dataEditor: DataEditorConfig | null
   stopOnEntry: boolean
   useExistingServer: boolean
   trace: boolean
