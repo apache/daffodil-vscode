@@ -107,20 +107,22 @@ function getElementCompletionItems(
     definedVariables,
     nsPrefix
   )
-
-  elementCompletion(definedVariables, nsPrefix).items.forEach((e) => {
-    for (let i = 0; i < itemsToUse.length; ++i) {
-      if (e.item.includes(itemsToUse[i])) {
-        if (
-          (e.item.includes('dfdl:') && itemsToUse[i].includes('dfdl:')) ||
-          !e.item.includes('dfdl')
-        ) {
-          const completionItem = createCompletionItem(e, preVal, nsPrefix)
-          compItems.push(completionItem)
+  
+  elementCompletion(definedVariables, nsPrefix).items.forEach(
+    (e) => {
+      for (let i = 0; i < itemsToUse.length; ++i) {
+        if (e.item.includes(itemsToUse[i])) {
+          if (
+            (e.item.includes('dfdl:') && itemsToUse[i].includes('dfdl:')) ||
+            !e.item.includes('dfdl')
+          ) {
+            const completionItem = createCompletionItem(e, preVal, nsPrefix)
+            compItems.push(completionItem)
+          }
         }
       }
     }
-  })
+  )
 
   return compItems
 }
@@ -215,16 +217,6 @@ function nearestOpenTagChildElements(
           'fractionDigits',
           'enumeration',
         ],
-        [
-          'maxInclusive',
-          'maxExclusive',
-          'minInclusive',
-          'minExclusive',
-          'pattern',
-          'totalDigits',
-          'fractionDigits',
-          'enumeration',
-        ],
         '',
         '',
         nsPrefix
@@ -232,10 +224,15 @@ function nearestOpenTagChildElements(
     case 'annotation':
       return getElementCompletionItems(['appinfo'], '', '', nsPrefix)
     case 'appinfo':
-      var newPosition = new vscode.Position(
-        tagPosition.line,
-        tagPosition.character - 1
-      )
+      let triggerText = document.lineAt(tagPosition.line).text
+      let iCount = getItemsOnLineCount(triggerText)
+      let newPosition = tagPosition
+      if (iCount < 2) {
+        newPosition = new vscode.Position(
+          tagPosition.line -1, 
+          tagPosition.character
+        )
+      }
       let pElement = getAnnotationParent(document, newPosition, nsPrefix)
       switch (pElement) {
         case 'schema':
@@ -244,6 +241,7 @@ function nearestOpenTagChildElements(
               'dfdl:defineFormat',
               'dfdl:defineVariable',
               'dfdl:defineEscapeScheme',
+              'dfdl:format',
             ],
             '',
             '',
