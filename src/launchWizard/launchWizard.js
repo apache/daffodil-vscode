@@ -77,7 +77,7 @@ async function removeDebugClasspathItem(child) {
 }
 
 // Function to update classpath list
-async function updateClasspathList(data, delimeter) {
+async function updateDaffodilDebugClasspathList(data, delimeter) {
   let list = document.getElementById('daffodilDebugClasspathTable')
   let itemArray = data.split(delimeter)
 
@@ -96,9 +96,16 @@ async function updateClasspathList(data, delimeter) {
       list.removeChild(li)
     }
 
-    if (!document.contains(li)) {
-      list.appendChild(li)
-    }
+    if (!list.contains(li)) list.appendChild(li)
+  }
+}
+
+// Function to remove all items from daffodil debug classpath list/table
+async function clearDaffodilDebugClasspathList() {
+  let list = document.getElementById('daffodilDebugClasspathTable')
+
+  while (list.hasChildNodes()) {
+    list.removeChild(list.firstChild)
   }
 }
 
@@ -121,8 +128,11 @@ function updateInfosetOutputType() {
 // tdml items need 0 height and width when hidden so there is no large empty space
 function updateTDMLAction() {
   var tdmlSelectionBox = document.getElementById('tdmlAction')
+
   var tdmlSelectedValue =
-    tdmlSelectionBox.options[tdmlSelectionBox.selectedIndex].value
+    tdmlSelectionBox.value == ''
+      ? 'none'
+      : tdmlSelectionBox.options[tdmlSelectionBox.selectedIndex].value
 
   if (tdmlSelectedValue !== 'none') {
     document.getElementById('tdmlNameLabel').style =
@@ -207,6 +217,12 @@ function save() {
   )
   const dataEditorLogFile = document.getElementById('dataEditorLogFile').value
   const dataEditorLogLevel = document.getElementById('dataEditorLogLevel').value
+  const dfdlDebuggerLogFile = document.getElementById(
+    'dfdlDebuggerLogFile'
+  ).value
+  const dfdlDebuggerLogLevel = document.getElementById(
+    'dfdlDebuggerLogLevel'
+  ).value
 
   const daffodilDebugClasspath = getDaffodilDebugClasspathString()
 
@@ -240,8 +256,16 @@ function save() {
         daffodilDebugClasspath: daffodilDebugClasspath,
         dataEditor: {
           port: dataEditorPort,
-          logFile: dataEditorLogFile,
-          logLevel: dataEditorLogLevel,
+          logging: {
+            file: dataEditorLogFile,
+            level: dataEditorLogLevel,
+          },
+        },
+        dfdlDebugger: {
+          logging: {
+            file: dfdlDebuggerLogFile,
+            level: dfdlDebuggerLogLevel,
+          },
         },
       },
     ],
@@ -298,25 +322,38 @@ async function updateConfigValues(config) {
   document.getElementById('useExistingServer').checked =
     config.useExistingServer
   document.getElementById('dataEditorPort').value = parseInt(
-    config.dataEditorPort
+    config.dataEditor.port
   )
-  document.getElementById('dataEditorLogFile').value = config.dataEditorLogFile
+  document.getElementById('dataEditorLogFile').value =
+    config.dataEditor.logging.file
   document.getElementById('dataEditorLogLevel').value =
-    config.dataEditorLogLevel
+    config.dataEditor.logging.level
+
+  document.getElementById('dfdlDebuggerLogFile').value =
+    config.dfdlDebugger.file
+  document.getElementById('dfdlDebuggerLogLevel').value =
+    config.dfdlDebugger.level
 
   updateInfosetOutputType()
   updateTDMLAction()
 
+  /*
+   * Remove all items from the daffodil debug classpath list/table.
+   * This ensures that the list/table will only have the items for that
+   * config. Also, ensures that the daffodil debug classpath list/table
+   * is empty for a new config.
+   */
+  await clearDaffodilDebugClasspathList()
   if (config.daffodilDebugClasspath !== '') {
-    await updateClasspathList(config.daffodilDebugClasspath, ':')
+    await updateDaffodilDebugClasspathList(config.daffodilDebugClasspath, ':')
   }
 
   updateInfosetOutputType()
 }
 
 // Function for updating the classpath input box
-async function updateClasspath(message) {
-  await updateClasspathList(message.value, ',')
+async function updateDaffodilDebugClasspath(message) {
+  await updateDaffodilDebugClasspathList(message.value, ',')
 }
 
 // Function that gets called by default to create and update the hex web view
@@ -336,7 +373,7 @@ async function updateClasspath(message) {
         document.getElementById('program').value = message.value
         break
       case 'daffodilDebugClasspathUpdate':
-        await updateClasspath(message)
+        await updateDaffodilDebugClasspath(message)
         break
     }
   })
