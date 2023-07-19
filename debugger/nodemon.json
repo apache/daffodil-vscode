@@ -3,7 +3,7 @@
     "**/target/**"
   ],
   "verbose": true,
-  "exec": "yarn sbt",
+  "exec": "yarn sbt && yarn gen-version-ts",
   "watch": [
     "debugger",
     "project",

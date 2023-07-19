@@ -23,7 +23,7 @@ import { deactivate } from '../adapter/extension'
 import { getDaffodilVersion } from './daffodil'
 import { Artifact } from '../classes/artifact'
 import { DFDLDebugger } from '../classes/dfdlDebugger'
-import { osCheck, runScript, unzipFile } from '../utils'
+import { osCheck, runScript } from '../utils'
 
 export const daffodilVersion = (filePath: string): string => {
   return getDaffodilVersion(filePath)
@@ -53,12 +53,6 @@ export async function runDebugger(
     `daffodil-debugger-${dfdlVersion}-${LIB_VERSION}`
   )
 
-  /*
-   * For Mac if /bin/bash --login -c not used errors about compiled version versus
-   * currently being used java version. Not sure if its needed for linux but it
-   * being there will cause no issues.
-   */
-
   return await runScript(
     scriptPath,
     artifact.scriptName,
@@ -80,21 +74,4 @@ export async function stopDebugging() {
   vscode.window.activeTerminal?.processId.then(async (id) => {
     await stopDebugger(id)
   })
-}
-
-export async function extractDebugger(
-  context: vscode.ExtensionContext,
-  artifactArchive: string,
-  rootPath: string
-) {
-  // Get daffodil-debugger zip from extension files
-  const filePath = path
-    .join(
-      context.asAbsolutePath('./debugger/target/universal'),
-      artifactArchive
-    )
-    .toString()
-
-  // Unzip file
-  await unzipFile(filePath, rootPath)
 }

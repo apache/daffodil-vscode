@@ -44,7 +44,7 @@
 	},
 	"exclude": [
 		"node_modules",
-		"build/scripts",
+		"build/yarn-scripts.ts",
 		"src/svelte",
 		"test-resources"
 	]

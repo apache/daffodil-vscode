@@ -17,7 +17,6 @@
 
 import * as vscode from 'vscode'
 import * as fs from 'fs'
-import * as unzip from 'unzip-stream'
 import * as os from 'os'
 import * as child_process from 'child_process'
 import path from 'path'
@@ -131,22 +130,6 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
   )
 
   return JSON.parse(JSON.stringify(launchConfigArgs))
-}
-
-export async function unzipFile(zipFilePath: string, extractPath: string) {
-  return await new Promise((resolve, reject) => {
-    let stream = fs
-      .createReadStream(zipFilePath)
-      .pipe(unzip.Extract({ path: `${extractPath}` }) as NodeJS.WritableStream)
-
-    stream.on('close', () => {
-      try {
-        resolve(zipFilePath)
-      } catch (err) {
-        reject(err)
-      }
-    })
-  })
 }
 
 export async function displayTerminalExitStatus(terminal: vscode.Terminal) {

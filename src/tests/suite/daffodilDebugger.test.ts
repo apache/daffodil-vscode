@@ -20,7 +20,7 @@ import * as assert from 'assert'
 import * as path from 'path'
 import * as fs from 'fs'
 import { PROJECT_ROOT, PACKAGE_PATH, TEST_SCHEMA } from './common'
-import { getConfig, killProcess, unzipFile } from '../../utils'
+import { getConfig, killProcess } from '../../utils'
 import {
   daffodilArtifact,
   daffodilVersion,
@@ -36,11 +36,6 @@ suite('Daffodil Debugger', () => {
   const dfdlVersion = daffodilVersion(PACKAGE_PATH)
   const artifact = daffodilArtifact(dfdlVersion)
 
-  const SCALA_PATH = path.join(
-    PROJECT_ROOT,
-    'debugger/target/universal',
-    artifact.archive
-  )
   const EXTRACTED_FOLDER = path.join(PROJECT_ROOT, artifact.name)
 
   // debugger options
@@ -81,7 +76,6 @@ suite('Daffodil Debugger', () => {
   ]
 
   before(async () => {
-    await unzipFile(SCALA_PATH, PROJECT_ROOT)
     debuggers.push(
       await runDebugger(
         PROJECT_ROOT,
