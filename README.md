@@ -67,13 +67,12 @@ Run full package
   ```
 
 * This command performs the following tasks:
-  * Create sbt zip package
+  * Create sbt zip package and unzip it
   * Install dependencies
   * Compiles Extension
   * Packages Extension
   * Creates Files
     ```
-    debugger/target/universal/daffodil-debugger-*.zip
     apache-daffodil-vscode-*.vsix
     ```
 

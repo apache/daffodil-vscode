@@ -17,42 +17,9 @@
 
 import * as vscode from 'vscode'
 import * as fs from 'fs'
-import XDGAppPaths from 'xdg-app-paths'
 import * as path from 'path'
 import { regexp, getConfig } from '../utils'
-import {
-  daffodilArtifact,
-  daffodilVersion,
-  extractDebugger,
-  runDebugger,
-  stopDebugger,
-  stopDebugging,
-} from './utils'
-
-const xdgAppPaths = XDGAppPaths({ name: 'daffodil-dap' })
-
-// Class for getting release data
-export class Release {
-  name: string
-  zipballUrl: string
-  tarballUrl: string
-  commit: JSON
-  nodeId: string
-
-  constructor(
-    name: string,
-    zipballUrl: string,
-    tarballUrl: string,
-    commit: JSON,
-    nodeId: string
-  ) {
-    this.name = name
-    this.zipballUrl = zipballUrl
-    this.tarballUrl = tarballUrl
-    this.commit = commit
-    this.nodeId = nodeId
-  }
-}
+import { runDebugger, stopDebugger, stopDebugging } from './utils'
 
 // Function to get data file given a folder
 export async function getDataFileFromFolder(dataFolder: string) {
@@ -207,22 +174,9 @@ export async function getDebugger(
   config: vscode.DebugConfiguration
 ) {
   config = getConfig(config) // make sure all config attributes are set
-  const artifact = daffodilArtifact(
-    daffodilVersion(context.asAbsolutePath('./package.json'))
-  )
 
-  // If useExistingServer var set to false make sure version of debugger entered is downloaded then ran
   if (!config.useExistingServer) {
     if (vscode.workspace.workspaceFolders !== undefined) {
-      let rootPath = xdgAppPaths.data()
-
-      // If data and app directories for storing debugger does not exist create them
-      if (!fs.existsSync(rootPath)) {
-        fs.mkdirSync(rootPath, { recursive: true })
-      }
-
-      await extractDebugger(context, artifact.archive, rootPath)
-
       await stopDebugger()
 
       if (!(await getTDMLConfig(config))) {
@@ -239,16 +193,8 @@ export async function getDebugger(
         workspaceFolder
       )
 
-      // Start debugger in terminal based on scriptName
-
-      /*
-       * For Mac if /bin/bash --login -c not used errors about compiled version versus
-       * currently being used java version. Not sure if its needed for linux but it
-       * being there will cause no issues.
-       */
-
       await runDebugger(
-        rootPath,
+        context.asAbsolutePath('./'),
         daffodilDebugClasspath,
         context.asAbsolutePath('./package.json'),
         config.debugServer,
