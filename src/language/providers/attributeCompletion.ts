@@ -39,7 +39,9 @@ function getCompletionItems(
   preVal: string = '',
   additionalItems: string = '',
   nsPrefix: string,
-  dfdlPrefix: string
+  dfdlPrefix: string,
+  spacingChar: string,
+  afterChar: string
 ) {
   let compItems: vscode.CompletionItem[] = getCommonItems(
     itemsToUse,
@@ -48,7 +50,13 @@ function getCompletionItems(
     nsPrefix
   )
 
-  attributeCompletion(dfdlPrefix).items.forEach((e) => {
+  attributeCompletion(
+    additionalItems,
+    nsPrefix,
+    dfdlPrefix,
+    spacingChar,
+    afterChar
+  ).items.forEach((e) => {
     if (itemsToUse.includes(e.item)) {
       const completionItem = createCompletionItem(e, preVal, nsPrefix)
       compItems.push(completionItem)
@@ -69,6 +77,8 @@ export function getAttributeCompletionProvider() {
         const triggerText = document
           .lineAt(position)
           .text.substring(0, position.character)
+        const charBeforeTrigger = triggerText.charAt(position.character - 1)
+        const charAfterTrigger = triggerText.charAt(position.character)
         let nearestOpenItem = nearestOpen(document, position)
         let itemsOnLine = getItemsOnLineCount(triggerText)
         const nsPrefix = getXsdNsPrefix(document, position)
@@ -97,7 +107,9 @@ export function getAttributeCompletionProvider() {
           triggerText,
           nsPrefix,
           preVal,
-          additionalItems
+          additionalItems,
+          charBeforeTrigger,
+          charAfterTrigger
         )
       },
     },
@@ -141,20 +153,33 @@ function checkNearestOpenItem(
   triggerText: string,
   nsPrefix: string,
   preVal: string,
-  additionalItems: string
+  additionalItems: string,
+  charBeforeTrigger: string,
+  charAfterTrigger: string
 ): vscode.CompletionItem[] | undefined {
+  const spacingChar: string =
+    charBeforeTrigger !== ' ' &&
+    charBeforeTrigger !== '\n' &&
+    charBeforeTrigger !== '\t'
+      ? ' '
+      : ''
+  const afterChar: string =
+    charAfterTrigger !== ' ' &&
+    charAfterTrigger !== '\n' &&
+    charAfterTrigger !== '\t'
+      ? ' '
+      : ''
   switch (nearestOpenItem) {
     case 'element':
       return getCompletionItems(
         [
           'name',
           'ref',
-          'dfdl:defineFormat',
-          'dfdl:defineEscapeScheme',
           'type',
           'minOccurs',
           'maxOccurs',
           'dfdl:occursCount',
+          'dfdl:bitOrder',
           'dfdl:byteOrder',
           'dfdl:occursCountKind',
           'dfdl:length',
@@ -166,17 +191,22 @@ function checkNearestOpenItem(
           'dfdl:inputValueCalc',
           'dfdl:outputValueCalc',
           'dfdl:alignmentUnits',
+          'dfdl:binaryNumberRep',
           'dfdl:terminator',
           'dfdl:outputNewLine',
           'dfdl:choiceBranchKey',
           'dfdl:prefixIncludesPrefixLength',
           'dfdl:prefixLengthType',
           'dfdl:representation',
+          'dfdl:binaryBooleanTrueRep',
+          'dfdl:binaryBooleanFalseRep',
         ],
         preVal,
         additionalItems,
         nsPrefix,
-        dfdlDefaultPrefix
+        dfdlDefaultPrefix,
+        spacingChar,
+        afterChar
       )
     case 'sequence':
       return getCompletionItems(
@@ -190,7 +220,9 @@ function checkNearestOpenItem(
         preVal,
         '',
         nsPrefix,
-        dfdlDefaultPrefix
+        dfdlDefaultPrefix,
+        spacingChar,
+        afterChar
       )
     case 'choice':
       return getCompletionItems(
@@ -204,7 +236,9 @@ function checkNearestOpenItem(
         '',
         '',
         nsPrefix,
-        dfdlDefaultPrefix
+        dfdlDefaultPrefix,
+        spacingChar,
+        afterChar
       )
     case 'group':
       return getCompletionItems(
@@ -212,7 +246,9 @@ function checkNearestOpenItem(
         '',
         '',
         nsPrefix,
-        dfdlDefaultPrefix
+        dfdlDefaultPrefix,
+        spacingChar,
+        afterChar
       )
 
     case 'simpleType':
@@ -222,11 +258,15 @@ function checkNearestOpenItem(
           'dfdl:length',
           'dfdl:lengthKind',
           'dfdl:representation',
+          'dfdl:binaryBooleanTrueRep',
+          'dfdl:binaryBooleanFalseRep',
         ],
         '',
         '',
         nsPrefix,
-        dfdlDefaultPrefix
+        dfdlDefaultPrefix,
+        spacingChar,
+        afterChar
       )
     case 'assert':
       return getCompletionItems(
@@ -234,10 +274,20 @@ function checkNearestOpenItem(
         '',
         '',
         nsPrefix,
-        ''
+        '',
+        spacingChar,
+        afterChar
       )
     case 'discriminator':
-      return getCompletionItems(['test', 'message'], '', '', nsPrefix, '')
+      return getCompletionItems(
+        ['test', 'message'],
+        '',
+        '',
+        nsPrefix,
+        '',
+        spacingChar,
+        afterChar
+      )
     case 'format':
       return getCompletionItems(
         [
@@ -245,6 +295,9 @@ function checkNearestOpenItem(
           'dfdl:bitOrder',
           'dfdl:binaryNumberRep',
           'dfdl:binaryFloatRep',
+          'dfdl:binaryDecimalVirtualPoint',
+          'dfdl:binaryPackedSignCodes',
+          'dfdl:binaryNumberCheckPolicy',
           'dfdl:encoding',
           'dfdl:encodingErrorPolicy',
           'dfdl:initiator',
@@ -255,6 +308,7 @@ function checkNearestOpenItem(
           'dfdl:nilKind',
           'dfdl:nilValue',
           'dfdl:nilValueDelimiterPolicy',
+          'dfdl:useNilForDefault',
           'dfdl:lengthPattern',
           'dfdl:outputNewLine',
           'dfdl:separator',
@@ -262,12 +316,14 @@ function checkNearestOpenItem(
           'dfdl:separatorSuppressionPolicy',
           'dfdl:terminator',
           'dfdl:occursCountKind',
+          'dfdl:decimalSigned',
           'dfdl:textStandardZeroRep',
           'dfdl:textStandardInfinityRep',
           'dfdl:textStandardExponentRep',
           'dfdl:textStandardNaNRep',
           'dfdl:textNumberPattern',
           'dfdl:textNumberRep',
+          'dfdl:textNumberJustification',
           'dfdl:textNumberRoundingIncrement',
           'dfdl:textNumberRoundingMode',
           'dfdl:textStandardRoundingIncrement',
@@ -275,10 +331,13 @@ function checkNearestOpenItem(
           'dfdl:textNumberCheckPolicy',
           'dfdl:textOutputMinLength',
           'dfdl:textPolicyOutputMinLength',
+          'dfdl:textStandardDecimalSeparator',
           'dfdl:textStandardGroupingSeparator',
           'dfdl:textStringJustification',
+          'dfdl:textStringPadCharacter',
           'dfdl:textPadKind',
           'dfdl:textStandardBase',
+          'dfdl:textZonedSignStyle',
           'dfdl:textTrimKind',
           'dfdl:leadingSkip',
           'dfdl:trailingSkip',
@@ -300,17 +359,61 @@ function checkNearestOpenItem(
           'dfdl:outputNewLine',
           'dfdl:representation',
           'dfdl:escapeSchemeRef',
+          'dfdl:calendarPattern',
           'dfdl:calendarPatternKind',
+          'dfdl:calendarCheckPolicy',
+          'dfdl:calendarTimeZone',
+          'dfdl:calendarObserveDST',
+          'dfdl:calendarFirstDayOfWeek',
+          'dfdl:calendarDaysInFirstWeek',
+          'dfdl:calendarCenturyStart',
+          'dfdl:calendarLanguage',
           'dfdl:documentFinalTerminatorCanBeMissing',
           'dfdl:emptyValueDelimiterPolicy',
+          'dfdl:emptyElementParsePolicy',
         ],
         '',
         '',
         nsPrefix,
-        ''
+        '',
+        spacingChar,
+        afterChar
+      )
+    case 'escapeScheme':
+      return getCompletionItems(
+        [
+          'dfdl:escapeKind',
+          'dfdl:escapeCharacter',
+          'dfdl:escapeBlockStart',
+          'dfdl:escapeBlockEnd',
+          'dfdl:escapeEscapeCharacter',
+          'dfdl:extraEscapedCharacters',
+          'dfdl:generateEscapeBlock',
+          'dfdl:escapeCharacterPolicy',
+        ],
+        '',
+        '',
+        nsPrefix,
+        '',
+        spacingChar,
+        afterChar
       )
     case 'defineVariable':
-      return getDefineVariableCompletionItems(preVal, additionalItems, nsPrefix)
+      return getDefineVariableCompletionItems(
+        preVal,
+        additionalItems,
+        nsPrefix,
+        spacingChar,
+        afterChar
+      )
+    case 'newVariableInstance':
+      return getDefineVariableCompletionItems(
+        preVal,
+        additionalItems,
+        nsPrefix,
+        spacingChar,
+        afterChar
+      )
     case 'setVariable':
       const xmlValue = new vscode.CompletionItem('value')
       xmlValue.insertText = new vscode.SnippetString('value="$1"$0')
@@ -324,16 +427,19 @@ function checkNearestOpenItem(
 function getDefineVariableCompletionItems(
   preVal: string,
   additionalItems: string,
-  nsPrefix: string
+  nsPrefix: string,
+  spacingChar: string,
+  afterChar: string
 ): vscode.CompletionItem[] {
   let xmlItems = [
     {
       item: 'external',
-      snippetString: preVal + 'external="${1|true,false|}"$0',
+      snippetString:
+        spacingChar + preVal + 'external="${1|true,false|}"$0' + afterChar,
     },
     {
       item: 'defaultValue',
-      snippetString: preVal + 'defaultValue="0$1"$0',
+      snippetString: spacingChar + preVal + 'defaultValue="0$1"$0' + afterChar,
     },
   ]
 
