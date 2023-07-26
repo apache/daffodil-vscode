@@ -120,10 +120,6 @@ module.exports = /** @type WebpackConfig */ {
           from: 'src/styles/styles.css',
           to: `${pkg_dir}/src/styles/styles.css`,
         },
-        {
-          from: 'src/svelte/package.json',
-          to: `${pkg_dir}/src/svelte/package.json`,
-        },
       ],
     }),
     {
