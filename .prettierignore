@@ -18,6 +18,3 @@ build/package
 coverage
 out
 dist
-
-# Svelte does its own
-svelte

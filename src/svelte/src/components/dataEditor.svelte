@@ -96,10 +96,10 @@ limitations under the License.
     makeAddressRange,
     radixBytePad,
     radixOpt,
+    radixToString,
     setSelectionOffsetInfo,
     syncScroll,
   } from '../utilities/display'
-  import { radixToString } from '../utilities/display.js'
   import { MessageCommand } from '../utilities/message'
   import { vscode } from '../utilities/vscode'
 
