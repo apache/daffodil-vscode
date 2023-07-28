@@ -1,0 +1,344 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    />
+    <style>
+      body {
+        overflow: hidden;
+        background-color: #23262c;
+        color: #abb2bf;
+      }
+      #container {
+        display: flex;
+        width: calc((8ch + 47ch + 31ch) + 3 * 2 * 1px + 6 * 5px);
+        border: 1px solid #ccc;
+        padding: 5px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+      }
+      .column {
+        border: 1px solid #000;
+        padding: 5px;
+        white-space: pre;
+      }
+      .header {
+        font-weight: bold;
+        font-size: 16px;
+        text-align: center;
+        background-color: #282c34;
+      }
+      .even-line {
+        background-color: #3b4048;
+      }
+      .odd-line {
+        background-color: #32363e;
+      }
+      .non-selectable {
+        user-select: none;
+      }
+      button:disabled {
+        cursor: not-allowed;
+      }
+      button:not(:disabled) {
+        cursor: pointer;
+      }
+      .nav-button {
+        display: flex;
+        width: 128px;
+        justify-content: center;
+        align-items: center;
+      }
+      .button-container {
+        display: flex;
+        width: calc(31ch + 47ch + 24ch + 8px + 30px);
+      }
+      .scrollbar-indicator-container {
+        height: 22px;
+        margin: 2px;
+        position: relative;
+        width: 774px;
+      }
+      .scrollbar-container {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #333;
+        border: 1px solid #ccc;
+        z-index: 1;
+      }
+      .scrollbar-thumb {
+        width: 0;
+        height: 100%;
+        background: #666;
+        position: absolute;
+        transition: width 0.1s ease-out;
+      }
+      .indicator {
+        position: absolute;
+        width: 100%;
+        padding: 4px;
+        z-index: 2;
+        opacity: 0.85;
+        color: #ccc;
+      }
+      .indicator:hover {
+        cursor: pointer;
+      }
+    </style>
+    <title>Demo - Infinite Scrolling</title>
+  </head>
+  <body>
+    <div id="container">
+      <div
+        id="gutter"
+        class="column non-selectable"
+        style="width: calc(8ch + 10px)"
+      >
+        <div class="header">Offset</div>
+      </div>
+      <div id="physical" class="column" style="width: calc(47ch + 10px)">
+        <div class="header">Physical</div>
+      </div>
+      <div id="logical" class="column" style="width: calc(31ch + 10px)">
+        <div class="header">Logical</div>
+      </div>
+    </div>
+    <div class="button-container">
+      <button id="homeButton" class="nav-button">
+        <span class="material-icons">first_page</span>Home
+      </button>
+      <button id="prevPageButton" class="nav-button">
+        <span class="material-icons">keyboard_double_arrow_left</span>Previous
+        Page
+      </button>
+      <button id="prevButton" class="nav-button">
+        <span class="material-icons">navigate_before</span>Previous Line
+      </button>
+      <button id="nextButton" class="nav-button">
+        <span class="material-icons">navigate_next</span>Next Line
+      </button>
+      <button id="nextPageButton" class="nav-button">
+        <span class="material-icons">keyboard_double_arrow_right</span>Next Page
+      </button>
+      <button id="endButton" class="nav-button">
+        <span class="material-icons">last_page</span>End
+      </button>
+    </div>
+    <div class="scrollbar-indicator-container">
+      <div class="scrollbar-container">
+        <div class="scrollbar-thumb"></div>
+      </div>
+      <div class="indicator"></div>
+    </div>
+
+    <script>
+      const totalLines = 1000 // Total number of lines in the file
+      const linesPerPage = Math.min(25, totalLines) // Number of lines to display per page
+      const bytesPerLine = 16 // Number of bytes per line
+      let currentLine = 0 // Current line being displayed
+
+      function generateData(startIndex, endIndex) {
+        const lines = []
+        for (let i = startIndex; i <= endIndex; i++) {
+          const startByte = i * bytesPerLine
+          const lineBytes = []
+          const lineLatin1 = []
+          for (let j = 0; j < bytesPerLine; j++) {
+            const byte = (startByte + j) % 256
+            lineBytes.push(byte.toString(16).padStart(2, '0'))
+            const latin1 =
+              byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : '.'
+            lineLatin1.push(latin1)
+          }
+          lines.push({
+            offset: startByte.toString(16).padStart(8, '0'),
+            physical: lineBytes.join(' '),
+            logical: lineLatin1.join(' '),
+            isEven: i % 2 === 0,
+          })
+        }
+        return lines
+      }
+
+      function updateContainer() {
+        const gutter = document.getElementById('gutter')
+        const physical = document.getElementById('physical')
+        const logical = document.getElementById('logical')
+
+        const lines = generateData(currentLine, currentLine + linesPerPage - 1)
+
+        // Clear existing lines
+        gutter.innerHTML = '<div class="header">Offset</div>'
+        physical.innerHTML = '<div class="header">Physical</div>'
+        logical.innerHTML = '<div class="header">Logical</div>'
+
+        // Add new lines
+        for (const line of lines) {
+          gutter.innerHTML += `<div class="${
+            line.isEven ? 'even-line' : 'odd-line'
+          }">${line.offset}</div>`
+          physical.innerHTML += `<div class="${
+            line.isEven ? 'even-line' : 'odd-line'
+          }">${line.physical}</div>`
+          logical.innerHTML += `<div class="${
+            line.isEven ? 'even-line' : 'odd-line'
+          }">${line.logical}</div>`
+        }
+      }
+
+      function updateIndicator() {
+        const startByte = currentLine * bytesPerLine
+        const endByte =
+          (currentLine + linesPerPage - 1) * bytesPerLine + bytesPerLine - 1
+        const percentage = Math.round(
+          (currentLine / (totalLines - linesPerPage)) * 100
+        )
+
+        document.querySelector(
+          '.indicator'
+        ).innerText = `Showing bytes ${startByte}-${endByte} of ${
+          totalLines * bytesPerLine
+        } (${percentage}%)`
+
+        // Update the width of the scrollbar thumb
+        document.querySelector(
+          '.scrollbar-thumb'
+        ).style.width = `${percentage}%`
+      }
+
+      function handleNavigation(linesToMove) {
+        const newLine =
+          linesToMove < 0
+            ? Math.max(0, currentLine + linesToMove)
+            : Math.min(totalLines - linesPerPage, currentLine + linesToMove)
+
+        if (newLine !== currentLine) {
+          currentLine = newLine
+          updateContainer()
+          updateIndicator()
+        }
+
+        // Disable and enable buttons based on the current line
+        document.getElementById('prevButton').disabled = currentLine === 0
+        document.getElementById('prevPageButton').disabled = currentLine === 0
+        document.getElementById('homeButton').disabled = currentLine === 0
+
+        document.getElementById('nextButton').disabled =
+          currentLine === totalLines - linesPerPage
+        document.getElementById('nextPageButton').disabled =
+          currentLine === totalLines - linesPerPage
+        document.getElementById('endButton').disabled =
+          currentLine === totalLines - linesPerPage
+      }
+
+      document.addEventListener('keydown', (event) => {
+        const { key, shiftKey } = event
+        let linesToMove
+        if (key === 'PageDown' || key === 'ArrowDown') {
+          linesToMove = shiftKey ? linesPerPage : 1
+        } else if (key === 'PageUp' || key === 'ArrowUp') {
+          linesToMove = shiftKey ? -linesPerPage : -1
+        } else if (key === 'Home') {
+          linesToMove = -currentLine
+        } else if (key === 'End') {
+          linesToMove = totalLines - currentLine - linesPerPage
+        }
+        if (linesToMove) {
+          event.preventDefault() // Prevent page scrolling
+          handleNavigation(linesToMove)
+        }
+      })
+      ;[
+        'prevButton',
+        'nextButton',
+        'prevPageButton',
+        'nextPageButton',
+        'homeButton',
+        'endButton',
+      ].forEach((id) => {
+        const button = document.getElementById(id)
+        button.addEventListener('click', () => {
+          let linesToMove
+          switch (id) {
+            case 'prevButton':
+              linesToMove = -1
+              break
+            case 'nextButton':
+              linesToMove = 1
+              break
+            case 'prevPageButton':
+              linesToMove = -linesPerPage
+              break
+            case 'nextPageButton':
+              linesToMove = linesPerPage
+              break
+            case 'homeButton':
+              linesToMove = -currentLine
+              break
+            case 'endButton':
+              linesToMove = totalLines - currentLine - linesPerPage
+              break
+          }
+          handleNavigation(linesToMove)
+        })
+      })
+
+      document
+        .getElementById('container')
+        .addEventListener('wheel', (event) => {
+          // Prevent page scrolling
+          event.preventDefault()
+
+          // Determine the direction of the scroll
+          const direction = Math.sign(event.deltaY)
+
+          // Scroll up or down one line
+          handleNavigation(direction)
+        })
+
+      const indicatorContainer = document.querySelector('.indicator')
+      indicatorContainer.addEventListener('click', (event) => {
+        // Calculate the position of the click relative to the indicator container
+        const relativeClickPosition =
+          event.clientX - indicatorContainer.getBoundingClientRect().left
+
+        // Calculate the width of the indicator container
+        const indicatorContainerWidth =
+          indicatorContainer.getBoundingClientRect().width
+
+        // Calculate the percentage into the file
+        const percentage = relativeClickPosition / indicatorContainerWidth
+
+        // Calculate the new line to go to
+        const newLine = Math.round(percentage * totalLines)
+
+        // Go to the new line
+        handleNavigation(newLine - currentLine)
+      })
+
+      // Initialize the initial state
+      updateContainer()
+      updateIndicator()
+      handleNavigation(0) // call the function at the start to set the initial state
+    </script>
+  </body>
+</html>

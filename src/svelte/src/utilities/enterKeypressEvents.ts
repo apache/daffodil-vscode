@@ -15,25 +15,30 @@
  * limitations under the License.
  */
 
-{
-  "extends": "@tsconfig/svelte/tsconfig.json",
-  "compilerOptions": {
-    "module": "esnext",
-    "target": "es6",
-    "outDir": "out",
-    "lib": ["es6", "es2021", "DOM"],
-    "ignoreDeprecations": "5.0"
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules/*"],
-  "strict": true /* enable all strict type-checking options */,
-  "noImplicitAny": false,
-  "removeComments": false,
-  "noUnusedLocals": true,
-  "noImplicitThis": true,
-  "inlineSourceMap": false,
-  "preserveConstEnums": true,
-  "strictNullChecks": true,
-  "noUnusedParameters": false,
-  "esModuleInterop": true
+type EnterKeypressEvent = {
+  id: string
+  run: () => void
 }
+
+class EnterKeypressEvents {
+  private events: Array<EnterKeypressEvent> = []
+
+  public register(event: EnterKeypressEvent) {
+    this.remove(event.id)
+    this.events.push(event)
+  }
+
+  public run(elementId: string) {
+    this.events.forEach((eventItem) => {
+      if (eventItem.id === elementId) eventItem.run()
+    })
+  }
+
+  private remove(eventId: string) {
+    this.events = this.events.filter((event) => {
+      return event.id === eventId
+    })
+  }
+}
+
+export let enterKeypressEvents = new EnterKeypressEvents()

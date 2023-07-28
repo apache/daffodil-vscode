@@ -22,7 +22,8 @@
 		"outDir": "out",
 		"lib": [
 			"es6",
-			"es2021"
+			"es2021",
+			"DOM"
 		],
 		"sourceMap": true,
 		"rootDir": "src",
@@ -44,6 +45,7 @@
 	},
 	"exclude": [
 		"node_modules",
+		"node_modules/svelte",
 		"build/yarn-scripts.ts",
 		"src/svelte",
 		"test-resources"

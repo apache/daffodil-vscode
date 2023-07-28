@@ -91,6 +91,7 @@ jobs:
       matrix:
         os: [macos-11, ubuntu-20.04, windows-2019]
         node: [ '14', '16' ]
+      fail-fast: false  # don't immediately fail all other jobs if a single job fails
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -115,5 +116,8 @@ jobs:
         if: runner.os == 'Linux'
       - run: yarn test
         if: runner.os != 'Linux'
+      - name: Check for Errors in macOS
+        run: tail -n 1000 '/Users/runner/Library/Application Support/omega_edit/'* && exit 1
+        if: failure() && runner.os == 'macOS'
       - name: Package
         run: yarn package

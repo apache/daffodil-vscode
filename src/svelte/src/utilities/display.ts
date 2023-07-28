@@ -13,143 +13,63 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const binary_regex = /^[0-1]*$/
-const decimal_regex = /^[0-9]*$/
-const octal_regex = /^[0-7]*$/
-const hex_regex = /^[0-9a-fA-F]*$/
-// const base64_regex =
-//   /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/
+import { writable } from 'svelte/store'
+import {
+  EditByteModes,
+  type BytesPerRow,
+  type RadixValues,
+} from '../stores/configuration'
+
+export type ViewportReferences = {
+  physical: HTMLTextAreaElement
+  address: HTMLTextAreaElement
+  logical: HTMLTextAreaElement
+}
+
+export type Viewport = 'physical' | 'address' | 'logical'
 
 export type ValidationResponse = {
   valid: boolean
   errMsg: string
 }
 
-export const radixOpt = [
-  { name: 'Hexadecimal', value: 16 },
-  { name: 'Decimal', value: 10 },
-  { name: 'Octal', value: 8 },
-  { name: 'Binary', value: 2 },
-]
+export type ByteDivWidth = '20px' | '24px' | '64px'
 
-export const encoding_groups = [
-  {
-    group: 'Binary',
-    encodings: [
-      { name: 'Hexidecimal', value: 'hex' },
-      { name: 'Binary', value: 'binary' },
-    ],
-  },
-  {
-    group: 'Single-byte',
-    encodings: [
-      { name: 'ASCII (7-bit)', value: 'ascii' },
-      { name: 'Latin-1 (8-bit)', value: 'latin1' },
-    ],
-  },
-  {
-    group: 'Multi-byte',
-    encodings: [
-      { name: 'UTF-8', value: 'utf-8' },
-      { name: 'UTF-16LE', value: 'utf-16le' },
-    ],
-  },
-]
+type ByteDivWidths = { [key in RadixValues]: ByteDivWidth }
 
-export const endiannessOpt = [
-  { name: 'Big', value: 'be' },
-  { name: 'Little', value: 'le' },
-]
-
-export const lsbOpt = [
-  { name: 'Higher Offset', value: 'h' },
-  { name: 'Lower Offset', value: 'l' },
-]
-
-export const byteSizeOpt = [{ value: 8 }, { value: 7 }, { value: 6 }]
-
-export const addressOpt = [
-  { name: 'Hexidecimal', value: 16 },
-  { name: 'Decimal', value: 10 },
-  { name: 'Octal', value: 8 },
-]
-
-export const dvHighlightTag = { start: '<mark>', end: '</mark>' }
-
-// address, followed by radix
-const offsetDisplays = {
-  16: {
-    // address are in hex
-    16: {
-      // radix is hex
-      text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F ',
-      spread: 2,
-    },
-    10: {
-      // radix is decimal
-      text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F ',
-      spread: 3,
-    },
-    8: {
-      // radix is octal
-      text: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 <br/>0 1 2 3 4 5 6 7 8 9 A B C D E F ',
-      spread: 3,
-    },
-    2: {
-      // radix is binary
-      text: '0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br/><em><b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567</em> ',
-      spread: 1,
-    },
-  },
-  10: {
-    // address are in decimal
-    16: {
-      // radix is hex
-      text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 ',
-      spread: 2,
-    },
-    10: {
-      // radix is decimal
-      text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 ',
-      spread: 3,
-    },
-    8: {
-      // radix is octal
-      text: '0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
-      spread: 3,
-    },
-    2: {
-      // radix is binary
-      text: '0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br/><em><b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567</em> ',
-      spread: 1,
-    },
-  },
-  8: {
-    // address are in octal
-    16: {
-      // radix is hex
-      text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
-      spread: 2,
-    },
-    10: {
-      // radix is decimal
-      text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
-      spread: 3,
-    },
-    8: {
-      // radix is octal
-      text: '0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 <br/>0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 ',
-      spread: 3,
-    },
-    2: {
-      // radix is binary
-      text: '0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br/><em><b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567 <b>0</b>1234567</em> ',
-      spread: 1,
-    },
-  },
+const ByteDivWidths = {
+  16: '20px' as ByteDivWidth,
+  10: '24px' as ByteDivWidth,
+  8: '24px' as ByteDivWidth,
+  2: '64px' as ByteDivWidth,
 }
 
-export function radixBytePad(radix: number): number {
+export type BinaryBytePrefix = 'B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB'
+export type BinaryBitPrefix = 'b' | 'Kb' | 'Mb' | 'Gb' | 'Tb' | 'Pb'
+type ValidByteOctetCount = 1 | 2 | 3 | 4
+
+export const DISPLAYED_DATA_LINES = 20
+
+export const tooltipsEnabled = writable(false)
+export const sizeHumanReadable = writable(false)
+
+export function viewport_references(
+  viewport?: Viewport
+): ViewportReferences | HTMLTextAreaElement {
+  return viewport
+    ? (document.getElementById(viewport) as HTMLTextAreaElement)
+    : {
+        physical: document.getElementById('physical') as HTMLTextAreaElement,
+        address: document.getElementById('address') as HTMLTextAreaElement,
+        logical: document.getElementById('logical') as HTMLTextAreaElement,
+      }
+}
+
+export function edit_byte_window_ref(): HTMLDivElement {
+  return document.getElementById('editByteWindow') as HTMLDivElement
+}
+
+export function radixBytePad(radix: RadixValues): number {
   switch (radix) {
     case 2:
       return 8
@@ -162,7 +82,92 @@ export function radixBytePad(radix: number): number {
   }
   return 0
 }
-export function isEncodedTextEditable(text: string, encoding: string): boolean {
+
+export function radixToString(radix: RadixValues): string {
+  switch (radix) {
+    case 2:
+      return 'binary'
+    case 8:
+      return 'octal'
+    case 10:
+      return 'decimal'
+    case 16:
+      return 'hex'
+  }
+  return 'binary'
+}
+
+export function byteDivWidthFromRadix(radix: RadixValues): ByteDivWidth {
+  return ByteDivWidths[radix]
+}
+
+export function regexEditDataTest(
+  text: string,
+  dataType: string | number
+): boolean {
+  const binary_regex = /^[0-1]*$/
+  const decimal_regex = /^[0-9]*$/
+  const octal_regex = /^[0-7]*$/
+  const hex_regex = /^[0-9a-fA-F]*$/
+
+  switch (dataType) {
+    case 'binary':
+    case 2:
+      return binary_regex.test(text)
+    case 8:
+      return octal_regex.test(text)
+    case 10:
+      return decimal_regex.test(text)
+    case 'hex':
+    case 16:
+      return hex_regex.test(text)
+    default:
+      return isEncodedTextEditable(text, dataType as string)
+  }
+}
+
+export function validateEncodingStr(
+  text: string,
+  encoding: string | number,
+  editMode?: string
+): ValidationResponse {
+  const validRegex = regexEditDataTest(text, encoding)
+  if (!validRegex) return { valid: false, errMsg: `Invalid input` }
+  const validLen = validateStrByteLen(text, encoding, editMode)
+  if (!validLen) return { valid: false, errMsg: `Invalid edit length` }
+  return { valid: true, errMsg: '' }
+}
+
+function validateStrByteLen(
+  text: string,
+  dataType: string | number,
+  editMode?: string
+): boolean {
+  switch (dataType) {
+    case 'binary':
+    case 2:
+      return editMode === EditByteModes.Single
+        ? text.length === radixBytePad(2)
+        : text.length % radixBytePad(2) == 0
+    case 8:
+      return editMode === EditByteModes.Single
+        ? text.length === radixBytePad(8)
+        : text.length % radixBytePad(8) == 0
+    case 10:
+      return editMode === EditByteModes.Single
+        ? text.length === radixBytePad(10)
+        : text.length % radixBytePad(10) == 0
+    case 'hex':
+    case 16:
+      return editMode === EditByteModes.Single
+        ? text.length === radixBytePad(16)
+        : text.length % radixBytePad(16) == 0
+    default:
+      return editMode === EditByteModes.Single ? text.length === 1 : true
+  }
+}
+
+function isEncodedTextEditable(text: string, encoding: string): boolean {
   switch (encoding) {
     case 'latin1':
       for (let i = 0; i < text.length; i++) {
@@ -190,176 +195,45 @@ export function isEncodedTextEditable(text: string, encoding: string): boolean {
   return true
 }
 
-export function regexEditDataTest(
-  text: string,
-  dataType: string | number
-): boolean {
-  switch (dataType) {
-    case 'binary':
-    case 2:
-      return binary_regex.test(text)
-    case 8:
-      return octal_regex.test(text)
-    case 10:
-      return decimal_regex.test(text)
-    case 'hex':
-    case 16:
-      return hex_regex.test(text)
-    default:
-      return isEncodedTextEditable(text, dataType as string)
-  }
-}
-
-export function validStrByteLen(
-  text: string,
-  dataType: string | number,
-  editMode?: string
-): boolean {
-  switch (dataType) {
-    case 'binary':
-    case 2:
-      return editMode === 'simple'
-        ? text.length === radixBytePad(2)
-        : text.length % radixBytePad(2) == 0
-    case 8:
-      return editMode === 'simple'
-        ? text.length === radixBytePad(8)
-        : text.length % radixBytePad(8) == 0
-    case 10:
-      return editMode === 'simple'
-        ? text.length === radixBytePad(10)
-        : text.length % radixBytePad(10) == 0
-    case 'hex':
-    case 16:
-      return editMode === 'simple'
-        ? text.length === radixBytePad(16)
-        : text.length % radixBytePad(16) == 0
-    default:
-      return editMode === 'simple' ? text.length === 1 : true
-  }
-}
-
-export function validEncodingStr(
-  text: string,
-  encoding: string | number,
-  editMode?: string
-): ValidationResponse {
-  const validRegex = regexEditDataTest(text, encoding)
-  if (!validRegex) return { valid: false, errMsg: `Invalid input` }
-  const validLen = validStrByteLen(text, encoding, editMode)
-  if (!validLen) return { valid: false, errMsg: `Invalid edit length` }
-  return { valid: true, errMsg: '' }
-}
-
-export function validRequestableData(
-  data: string,
-  viewport: string,
-  encoding: string,
-  editMode: string,
-  radix: number
-): ValidationResponse {
-  switch (editMode) {
-    case 'simple':
-      if (data.length === 0) return { valid: false, errMsg: '' }
-      return viewport === 'physical'
-        ? validEncodingStr(data, radix, editMode)
-        : validEncodingStr(data, 'latin1', editMode)
-    case 'full':
-      return validEncodingStr(data, encoding)
-  }
-}
-
-export function setSelectionOffsetInfo(
-  from: string,
-  start: number,
-  end: number,
-  size: number,
-  cursorPos?: number
-): string {
-  return `${from} [${start} - ${end}] Size: ${size} `
-}
-
-export function isWhitespace(c: string | undefined): boolean {
-  return c ? ' \t\n\r\v'.indexOf(c) > -1 : false
-}
-
-export function syncScroll(from: HTMLElement, to: HTMLElement) {
-  // Scroll the "to" by the same percentage as the "from"
-  if (from && to) {
-    const sf = from.scrollHeight - from.clientHeight
-    if (sf >= 1) {
-      const st = to.scrollHeight - to.clientHeight
-      to.scrollTop = (st / 100) * ((from.scrollTop / sf) * 100)
-    }
-  }
-}
-
-export function getOffsetDisplay(address: number, radix: number, view: string) {
-  let spread = offsetDisplays[address][radix].spread
-  if (view === 'logical') {
-    if (radix === 2)
-      return (
-        '0 0 0 0 0 0 0 0 <br>0 1 2 3 4 5 6 7 '.replaceAll(' ', '&nbsp;') +
-        '&nbsp'
-      )
-    spread = 1
-  }
+export function byte_count_divisible_offset(
+  offset: number,
+  bytesPerRow: BytesPerRow,
+  addLineNum: number = 0
+): number {
   return (
-    offsetDisplays[address][radix].text.replaceAll(
-      ' ',
-      '&nbsp;'.repeat(spread)
-    ) + '&nbsp'
+    Math.floor(offset / bytesPerRow) * bytesPerRow + bytesPerRow * addLineNum
   )
 }
 
-export function encodeForDisplay(
-  arr: Uint8Array,
-  radix: number,
-  bytes_per_row: number
-): string {
-  let result = ''
-  if (arr.byteLength > 0) {
-    const pad = radixBytePad(radix)
-    let i = 0
-    while (true) {
-      for (let col = 0; i < arr.byteLength && col < bytes_per_row; ++col) {
-        result += arr[i++].toString(radix).padStart(pad, '0') + ' '
-      }
-      result = result.slice(0, result.length - 1)
-      if (i === arr.byteLength) {
-        break
-      }
-      result += '\n'
-    }
-  }
-  return result
+export function viewport_offset_to_line_num(
+  offset: number,
+  vpStartOffset: number,
+  bytesPerRow: BytesPerRow
+): number {
+  return Math.floor((offset - vpStartOffset) / bytesPerRow)
 }
 
-export function makeAddressRange(
-  start: number,
-  end: number,
-  stride: number,
-  radix: number
-): string {
-  let i = start
-  let result = (i * stride).toString(radix)
-  for (++i; i < end; ++i) {
-    result += '\n' + (i * stride).toString(radix)
-  }
-
-  return result
+export enum BinaryBytePrefixes {
+  'B',
+  'KB',
+  'MB',
+  'GB',
+  'TB',
 }
 
-export function radixToString(radix: number): string {
-  switch (radix) {
-    case 2:
-      return 'binary'
-    case 8:
-      return 'octal'
-    case 10:
-      return 'decimal'
-    case 16:
-      return 'hex'
+export function humanReadableByteLength(byteLength: number): string {
+  let ret = byteLength.toLocaleString('en')
+  let byteStrLen = ret.length
+  if (byteStrLen <= 3) ret += BinaryBytePrefixes[0]
+  else {
+    const octets = ret.split(',')
+
+    ret =
+      octets[0] +
+      '.' +
+      octets[1].substring(0, 1) +
+      BinaryBytePrefixes[octets.length - 1]
   }
-  return 'binary'
+
+  return ret
 }

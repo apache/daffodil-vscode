@@ -15,29 +15,31 @@
  * limitations under the License.
  */
 
-import { writable } from 'svelte/store'
+import {
+  writable,
+  type Subscriber,
+  type Writable,
+  type Updater,
+  get,
+} from 'svelte/store'
 
-// receives the key of the local storage and an initial value
-export const localStore = (key: string, initial: any) => {
-  // local helper function
-  const toString = (value: any) => JSON.stringify(value, null, 2)
-
-  if (localStorage.getItem(key) === null) {
-    // item not present in local storage, initialize local storage with initial value
-    localStorage.setItem(key, toString(initial))
+export abstract class SimpleWritable<T> {
+  protected store: Writable<T> = writable()
+  public set(value: T) {
+    this.store.set(value)
+  }
+  public subscribe(run: Subscriber<T>) {
+    return this.store.subscribe(run)
+  }
+  public update(updater: Updater<T>) {
+    this.store.update(updater)
+  }
+  protected storeData(): T {
+    return get(this.store)
   }
 
-  // convert to object
-  const saved = JSON.parse(localStorage.getItem(key))
-  // create the underlying writable store
-  const { subscribe, set, update } = writable(saved)
-
-  return {
-    subscribe,
-    set: (value: any) => {
-      localStorage.setItem(key, toString(value)) // save to local storage as a string
-      return set(value)
-    },
-    update,
+  protected abstract init(): T
+  constructor() {
+    this.store.set(this.init())
   }
 }
