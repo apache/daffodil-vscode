@@ -46,7 +46,7 @@ export class SvelteWebviewInitializer {
           Use a content security policy to only allow loading images from the extension directory,
           and only allow scripts that have a specific nonce.
         -->
-        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webView.cspSource}; img-src ${webView.cspSource}; script-src 'nonce-${nonce}';">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${webView.cspSource}; style-src ${webView.cspSource}; img-src ${webView.cspSource}; script-src 'nonce-${nonce}';">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="${stylesUri}" rel="stylesheet" type="text/css" />
     </head>

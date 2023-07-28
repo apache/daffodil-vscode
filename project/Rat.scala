@@ -52,7 +52,11 @@ object Rat {
     file("debugger/src/test/data/emptyData.xml"),
     file("debugger/src/test/data/emptyInfoset.xml"),
     file("debugger/src/test/data/notInfoset.xml"),
-    file("debugger/src/test/data/emptySchema.dfdl.xsd")
+    file("debugger/src/test/data/emptySchema.dfdl.xsd"),
+    // svelte icons/fonts
+    file("src/svelte/src/resources/icons/material-icons.woff2"),
+    file("src/svelte/src/resources/fonts/SpaceGrotesk-Variable.woff2"),
+    file("src/svelte/src/resources/fonts/RedHatMono-Regular.woff2")
   )
 
   lazy val MIT_LICENSE_NAME = "MIT License"

@@ -18,7 +18,7 @@ import { getDataFileFromFolder, getDebugger } from '../daffodilDebugger'
 import * as infoset from '../infoset'
 import * as dfdlLang from '../language/dfdl'
 import * as launchWizard from '../launchWizard/launchWizard'
-import * as dataEditClient from '../dataEdit/client'
+import * as dataEditClient from '../dataEditor/dataEditorClient'
 import { getConfig, getCurrentConfig, setCurrentConfig } from '../utils'
 import { FileAccessor } from './daffodilRuntime'
 import { TDMLConfig } from '../classes/tdmlConfig'
@@ -344,7 +344,7 @@ export function activateDaffodilDebug(
     vscode.debug.registerDebugAdapterDescriptorFactory('dfdl', factory)
   )
   if ('dispose' in factory) {
-    context.subscriptions.push(factory)
+    context.subscriptions.push(factory as vscode.Disposable)
   }
 
   context.subscriptions.push(
