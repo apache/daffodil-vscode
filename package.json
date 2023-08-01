@@ -57,7 +57,7 @@
     "xdg-app-paths": "8.3.0"
   },
   "devDependencies": {
-    "@tsconfig/svelte": "^3.0.0",
+    "@tsconfig/svelte": "^5.0.0",
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "^20.4.1",
