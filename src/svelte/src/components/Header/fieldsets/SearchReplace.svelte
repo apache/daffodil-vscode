@@ -207,6 +207,7 @@ limitations under the License.
       case MessageCommand.searchResults:
         if (msg.data.data.searchResults.length > 0) {
           $searchQuery.searchResults = msg.data.data.searchResults
+          $searchQuery.byteLength = msg.data.data.searchDataBytesLength
           switch (direction) {
             case 'Home':
               hasNext = msg.data.data.overflow
@@ -226,7 +227,7 @@ limitations under the License.
               hasPrev = msg.data.data.overflow
               break
           }
-          matchOffset = msg.data.data.searchResults[0]
+          matchOffset = $searchQuery.searchResults[0]
           scrollToMatch()
           if (searchStarted) {
             showReplaceOptions = false
@@ -240,12 +241,11 @@ limitations under the License.
           matchOffset = -1
           $searchQuery.overflow = showSearchOptions = showReplaceOptions = false
         }
-        $searchQuery.byteLength = msg.data.data.searchDataBytesLength
         searchStarted = replaceStarted = false
         updateSearchResultsHighlights(
-          msg.data.data.searchResults,
+          $searchQuery.searchResults,
           $viewport.fileOffset,
-          searchInputByteLen
+          $searchQuery.byteLength
         )
         $searchQuery.processing = false
         break
