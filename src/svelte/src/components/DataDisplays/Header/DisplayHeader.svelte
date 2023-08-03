@@ -62,7 +62,8 @@ limitations under the License.
     'Selection',
     $selectionDataStore.startOffset,
     $selectionDataStore.endOffset,
-    $selectionSize
+    $selectionSize,
+    $addressRadix
   )
 
   function generate_offset_headers(
@@ -91,9 +92,12 @@ limitations under the License.
     from: string,
     start: number,
     end: number,
-    size: number
+    size: number,
+    radix: RadixValues
   ): string {
-    return `${from} [${start} - ${end}] Size: ${size} `
+    return `${from} [${start.toString(radix)} - ${end.toString(
+      radix
+    )}] Size: ${size.toString(radix)} `
   }
 
   function updateAddressValue(event: Event) {

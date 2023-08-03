@@ -22,6 +22,8 @@ limitations under the License.
   import Input from '../Inputs/Input/Input.svelte'
   import { offsetMax } from '../DataDisplays/CustomByteDisplay/BinaryData'
   import { DATA_PROFILE_MAX_LENGTH } from '../../stores/configuration'
+  import { addressRadix } from '../../stores'
+  import { radixToString, regexEditDataTest } from '../../utilities/display'
 
   // title for the byte profile graph
   export let title: string
@@ -48,9 +50,9 @@ limitations under the License.
   let statusMessage = ''
   let warningMessage = ''
   let errorMessage = ''
-  let statusMessageTimeout: number | null = null
-  let warningMessageTimeout: number | null = null
-  let errorMessageTimeout: number | null = null
+  let statusMessageTimeout: NodeJS.Timeout | null = null
+  let warningMessageTimeout: NodeJS.Timeout | null = null
+  let errorMessageTimeout: NodeJS.Timeout | null = null
   let asciiOverlay = true
 
   $: {
@@ -135,9 +137,15 @@ limitations under the License.
     switch (e.detail.id) {
       case 'start-offset-input':
         {
-          const startOffsetTemp = parseInt(e.detail.value)
-          if (isNaN(startOffsetTemp)) {
-            setErrorMessage('Start offset must be a decimal number')
+          const startOffsetTemp = parseInt(e.detail.value, $addressRadix)
+          if (
+            isNaN(startOffsetTemp) ||
+            !regexEditDataTest(e.detail.value, $addressRadix)
+          ) {
+            setErrorMessage(
+              `End offset must be a ${radixToString($addressRadix)} number`
+            )
+            return
           } else if (startOffsetTemp < 0) {
             setErrorMessage('Start offset must be greater than or equal to 0')
             return
@@ -159,9 +167,15 @@ limitations under the License.
         break
       case 'end-offset-input':
         {
-          const endOffsetTemp = parseInt(e.detail.value)
-          if (isNaN(endOffsetTemp)) {
-            setErrorMessage('End offset must be a decimal number')
+          const endOffsetTemp = parseInt(e.detail.value, $addressRadix)
+          if (
+            isNaN(endOffsetTemp) ||
+            !regexEditDataTest(e.detail.value, $addressRadix)
+          ) {
+            setErrorMessage(
+              `End offset must be a ${radixToString($addressRadix)} number`
+            )
+            return
           } else if (endOffsetTemp <= startOffset) {
             setErrorMessage('End offset must be greater than start offset')
             return
@@ -185,9 +199,15 @@ limitations under the License.
         break
       case 'length-input':
         {
-          const lengthTemp = parseInt(e.detail.value)
-          if (isNaN(lengthTemp)) {
-            setErrorMessage('Length must be a decimal number')
+          const lengthTemp = parseInt(e.detail.value, $addressRadix)
+          if (
+            isNaN(lengthTemp) ||
+            !regexEditDataTest(e.detail.value, $addressRadix)
+          ) {
+            setErrorMessage(
+              `End offset must be a ${radixToString($addressRadix)} number`
+            )
+            return
           } else if (lengthTemp <= 0) {
             setErrorMessage('Length must be greater than 0')
             return
@@ -225,9 +245,6 @@ limitations under the License.
         case MessageCommand.profile:
           numAscii = msg.data.data.numAscii as number
           byteProfile = msg.data.data.byteProfile as number[]
-          console.assert(byteProfile.length === 256)
-          console.assert(startOffset === msg.data.data.startOffset)
-          console.assert(length === msg.data.data.length)
           setStatusMessage(
             `Profiled bytes from ${startOffset} to ${startOffset + length}`
           )
@@ -281,6 +298,7 @@ limitations under the License.
     <div class="input-container">
       <label for="ascii-overlay-toggle"
         >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Overlay:
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
         <span
           id="ascii-overlay-toggle"
           class="editable"
@@ -296,8 +314,8 @@ limitations under the License.
           >Start Offset:
           <Input
             id="start-offset-input"
-            placeholder={startOffset}
-            value={startOffset}
+            placeholder={startOffset.toString($addressRadix)}
+            value={startOffset.toString($addressRadix)}
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
             width="20ch"
@@ -306,6 +324,7 @@ limitations under the License.
         </label>
       </div>
     {:else}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <div
         on:click={() => {
           isEditing = 'startOffset'
@@ -313,7 +332,7 @@ limitations under the License.
       >
         <label for="start-offset"
           >Start Offset: <span id="start-offset" class="editable"
-            >{startOffset}</span
+            >{startOffset.toString($addressRadix)}</span
           ></label
         >
       </div>
@@ -324,8 +343,8 @@ limitations under the License.
           >&nbsp;&nbsp;End Offset:
           <Input
             id="end-offset-input"
-            placeholder={endOffset}
-            value={endOffset}
+            placeholder={endOffset.toString($addressRadix)}
+            value={endOffset.toString($addressRadix)}
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
             width="20ch"
@@ -334,6 +353,7 @@ limitations under the License.
         </label>
       </div>
     {:else}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <div
         on:click={() => {
           isEditing = 'endOffset'
@@ -341,7 +361,7 @@ limitations under the License.
       >
         <label for="end-offset"
           >&nbsp;&nbsp;End Offset: <span id="end-offset" class="editable"
-            >{endOffset}</span
+            >{endOffset.toString($addressRadix)}</span
           ></label
         >
       </div>
@@ -352,8 +372,8 @@ limitations under the License.
           >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Length:
           <Input
             id="length-input"
-            placeholder={length}
-            value={length}
+            placeholder={length.toString($addressRadix)}
+            value={length.toString($addressRadix)}
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
             width="20ch"
@@ -362,6 +382,7 @@ limitations under the License.
         </label>
       </div>
     {:else}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <div
         on:click={() => {
           isEditing = 'length'
@@ -370,7 +391,7 @@ limitations under the License.
         <label for="length"
           >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Length: <span
             id="length"
-            class="editable">{length}</span
+            class="editable">{length.toString($addressRadix)}</span
           ></label
         >
       </div>
