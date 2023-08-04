@@ -94,8 +94,8 @@ module.exports = /** @type WebpackConfig */ {
         { from: 'build/package/NOTICE', to: `${pkg_dir}` },
         { from: 'dist/styles.css', to: `${pkg_dir}/dist/styles.css` },
         {
-          from: 'dist/views/dataEditor/index.js',
-          to: `${pkg_dir}/dist/views/dataEditor/index.js`,
+          from: 'dist/views/',
+          to: `${pkg_dir}/dist/views/`,
         },
         { from: 'images', to: `${pkg_dir}/images` },
         { from: 'language', to: `${pkg_dir}/language` },
