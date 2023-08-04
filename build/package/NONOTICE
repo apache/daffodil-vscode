@@ -135,3 +135,8 @@ The following binary components distributed with this project are licensed under
   This product bundles 'org.parboiled.parboiled' from the above files.
   This package is available under the Apache License v2 without a NOTICE:
       Repository at: https://github.com/sirthias/parboiled
+
+- src/svelte/src/resources/icons/material-icons.woff2
+  This product bundles 'material-icons' from the above files.
+  This package is available under the Apache License v2 without a NOTICE:
+        Repository at: https://github.com/google/material-design-icons
