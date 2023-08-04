@@ -523,6 +523,7 @@ limitations under the License.
   <FlexContainer --dir="column">
     <FileTraversalIndicator
       totalLines={totalLinesPerFilesize}
+      selectionActive={$selectionDataStore.active}
       currentLine={lineTop}
       fileOffset={viewportData.fileOffset}
       maxDisplayLines={NUM_LINES_DISPLAYED}
