@@ -25,6 +25,7 @@ limitations under the License.
   export let bytesPerRow = 16
   export let percentageTraversed
   export let maxDisplayLines = 20
+  export let selectionActive
 
   let indicatorContainer: HTMLElement
   let indicatorClickDisabled: boolean = false
@@ -46,8 +47,8 @@ limitations under the License.
         indicatorContainer.addEventListener('click', updatePercentageTraversed)
     }
   }
-
   function updatePercentageTraversed(e: MouseEvent) {
+    if (selectionActive) return
     // Calculate the position of the click relative to the indicator container
     const relativeClickPosition =
       e.clientX - indicatorContainer.getBoundingClientRect().left
