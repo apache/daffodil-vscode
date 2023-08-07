@@ -403,12 +403,12 @@
               },
               "openInfosetView": {
                 "type": "boolean",
-                "description": "Open hexview on debug start",
+                "description": "Open infoset view on debug start",
                 "default": false
               },
               "openInfosetDiffView": {
                 "type": "boolean",
-                "description": "Open hexview on debug start",
+                "description": "Open infoset diff view on debug start",
                 "default": false
               },
               "daffodilDebugClasspath": {
@@ -613,12 +613,12 @@
           },
           "openInfosetView": {
             "type": "boolean",
-            "description": "Open hexview on debug start",
+            "description": "Open infoset view on debug start",
             "default": false
           },
           "openInfosetDiffView": {
             "type": "boolean",
-            "description": "Open hexview on debug start",
+            "description": "Open infoset diff view on debug start",
             "default": false
           },
           "daffodilDebugClasspath": {
