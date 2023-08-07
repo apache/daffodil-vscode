@@ -467,14 +467,14 @@ class DaffodilConfigurationProvider
     ) {
       return getDataFileFromFolder(dataFolder).then((dataFile) => {
         config.data = dataFile
-        return getDebugger(this.context, config).then((_) => {
-          return setCurrentConfig(config)
+        return getDebugger(this.context, config).then((updatedConfig) => {
+          return setCurrentConfig(updatedConfig ?? config)
         })
       })
     }
 
-    return getDebugger(this.context, config).then((_) => {
-      return setCurrentConfig(config)
+    return getDebugger(this.context, config).then((updatedConfig) => {
+      return setCurrentConfig(updatedConfig ?? config)
     })
   }
 }

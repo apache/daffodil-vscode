@@ -33,7 +33,7 @@ export const daffodilArtifact = (version: string): Artifact => {
   return new Artifact('daffodil-debugger', version, 'daffodil-debugger')
 }
 
-export const stopDebugger = (id: number | undefined = undefined) =>
+export const stopDebugger = async (id: number | undefined = undefined) =>
   child_process.exec(osCheck(`taskkill /F /PID ${id}`, `kill -9 ${id}`))
 
 export const shellArgs = (port: number) => ['--listenPort', `${port}`]
