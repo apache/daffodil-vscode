@@ -63,7 +63,8 @@ lazy val commonSettings =
 lazy val ratSettings = Seq(
   ratLicenses := Seq(
     ("MIT  ", Rat.MIT_LICENSE_NAME, Rat.MIT_LICENSE_TEXT_MICROSOFT),
-    ("CC0  ", Rat.CREATIVE_COMMONS_LICENSE_NAME, Rat.CREATIVE_COMMONS_LICENSE_TEXT)
+    ("CC0  ", Rat.CREATIVE_COMMONS_LICENSE_NAME, Rat.CREATIVE_COMMONS_LICENSE_TEXT),
+    ("MIT  ", Rat.MIT_LICENSE_NAME, Rat.MIT_LICENSE_TEXT_DELTAXML)
   ),
   ratLicenseFamilies := Seq(
     Rat.MIT_LICENSE_NAME,

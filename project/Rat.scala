@@ -67,6 +67,12 @@ Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the MIT License. See License.txt in the project root for license information.
 """
 
+  lazy val MIT_LICENSE_TEXT_DELTAXML =
+    """
+Copyright (c) 2020 DeltaXML Ltd. All rights reserved.
+Licensed under the MIT License. See License.txt in the project root for license information.
+"""
+
   lazy val CREATIVE_COMMONS_LICENSE_NAME = "Creative Commons CC0 1.0 Universal"
 
   lazy val CREATIVE_COMMONS_LICENSE_TEXT =
