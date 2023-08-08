@@ -1960,7 +1960,7 @@ conditions of the following licenses.
 
     COPYRIGHT AND PERMISSION NOTICE (ICU 58 and later)
 
-    Copyright © 1991-2020 Unicode, Inc. All rights reserved.
+    Copyright © 1991-2023 Unicode, Inc. All rights reserved.
     Distributed under the Terms of Use in https://www.unicode.org/copyright.html.
 
     Permission is hereby granted, free of charge, to any person obtaining
@@ -2880,7 +2880,7 @@ conditions of the following licenses.
   This product bundles 'slf4j' from the above files.
   These files are available under the MIT license:
 
-    Copyright (c) 2004-2017 QOS.ch
+    Copyright (c) 2004-2022 QOS.ch
     All rights reserved.
 
     Permission is hereby granted, free  of charge, to any person obtaining
