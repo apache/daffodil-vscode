@@ -34,17 +34,16 @@ import java.nio.file._
 import org.apache.commons.io.FileUtils
 import org.apache.daffodil.debugger.dap.{BuildInfo => DAPBuildInfo}
 import org.apache.daffodil.runtime1.debugger.Debugger
+import org.apache.daffodil.runtime1.infoset.{DIDocument, DIElement, InfosetElement, InfosetWalker}
+import org.apache.daffodil.runtime1.processors._
+import org.apache.daffodil.runtime1.processors.dfa.DFADelimiter
+import org.apache.daffodil.runtime1.processors.parsers._
 import org.apache.daffodil.lib.exceptions.SchemaFileLocation
-import org.apache.daffodil.infoset._
-import org.apache.daffodil.processors.dfa.DFADelimiter
-import org.apache.daffodil.processors.parsers._
-import org.apache.daffodil.processors._
-import org.apache.daffodil.sapi.{Diagnostic, ValidationMode}
-import org.apache.daffodil.sapi.infoset.XMLTextInfosetOutputter
-import org.apache.daffodil.sapi.infoset.JsonInfosetOutputter
+import org.apache.daffodil.lib.util.Misc
+import org.apache.daffodil.sapi.ValidationMode
+import org.apache.daffodil.sapi.infoset._
 import org.apache.daffodil.sapi.io.InputSourceDataInputStream
 import org.apache.daffodil.tdml.TDML
-import org.apache.daffodil.util.Misc
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import scala.collection.JavaConverters._
@@ -63,7 +62,7 @@ trait Parse {
 object Parse {
   implicit val logger: Logger[IO] = Slf4jLogger.getLogger
 
-  case class Exception(diagnostics: List[Diagnostic])
+  case class Exception(diagnostics: List[org.apache.daffodil.sapi.Diagnostic])
       extends RuntimeException(
         diagnostics
           .map(d => d.toString)
@@ -844,7 +843,7 @@ object Parse {
         val hidden = event.state.withinHiddenNest
         val childIndex = if (event.state.childPos != -1) Some(event.state.childPos) else None
         val groupIndex = if (event.state.groupPos != -1) Some(event.state.groupPos) else None
-        val occursIndex = if (event.state.arrayPos != -1) Some(event.state.arrayPos) else None
+        val occursIndex = if (event.state.arrayIterationPos != -1) Some(event.state.arrayIterationPos) else None
         val foundDelimiter = for {
           dpr <- event.state.delimitedParseResult.toScalaOption
           dv <- dpr.matchedDelimiterValue.toScalaOption
@@ -986,7 +985,7 @@ object Parse {
         schemaLocation: SchemaFileLocation,
         pointsOfUncertainty: List[PointOfUncertainty],
         delimiterStack: List[Delimiter],
-        diagnostics: List[org.apache.daffodil.api.Diagnostic]
+        diagnostics: List[org.apache.daffodil.lib.api.Diagnostic]
     ) extends Event {
       // PState is mutable, so we copy all the information we might need downstream.
       def this(pstate: PState, isStepping: Boolean) =
