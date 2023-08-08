@@ -71,7 +71,6 @@ limitations under the License.
   let direction: SearchDirection = 'Home'
   let preReplaceHasPrev: boolean = false
   let justReplaced: boolean = false
-  let searchInputByteLen: number = -1
   let searchReplaceButtonWidth = '85pt'
   let searchNavButtonWidth = '55pt'
   $: {
@@ -79,9 +78,14 @@ limitations under the License.
     inlineClass = CSSThemeClass('inline-container')
     inputClass = CSSThemeClass('actionable')
   }
+  $: clearOnEncodingChange($editorEncoding)
   $: searchErrDisplay = $searchErr.length > 0 && !$searchable
   $: replaceErrDisplay = $replaceErr.length > 0 && !$replaceable
   $: $seekErr = $seekable.seekErrMsg
+
+  function clearOnEncodingChange(encoding: string) {
+    cancel()
+  }
 
   function search(
     searchOffset: number,
@@ -367,7 +371,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchFirst}
-          disabledBy={!hasPrev}
+          disabledBy={!hasPrev || !$searchable}
           description="Seek to the first match"
         >
           <span slot="left" class="btn-icon material-symbols-outlined"
@@ -378,7 +382,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchPrev}
-          disabledBy={!hasPrev}
+          disabledBy={!hasPrev || !$searchable}
           description="Seek to the previous match"
         >
           <span slot="left" class="btn-icon material-symbols-outlined"
@@ -387,7 +391,11 @@ limitations under the License.
           <span slot="default">&nbsp;Prev</span></Button
         >
         {#if showReplaceOptions}
-          <Button fn={replace} description="Replace the current match">
+          <Button
+            fn={replace}
+            description="Replace the current match"
+            disabledBy={!replaceable}
+          >
             <span slot="left" class="btn-icon material-symbols-outlined"
               >find_replace</span
             >
@@ -397,7 +405,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchNext}
-          disabledBy={!hasNext}
+          disabledBy={!hasNext || !$searchable}
           description="Seek to the next match"
         >
           <span slot="default">Next&nbsp;</span>
@@ -408,7 +416,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchLast}
-          disabledBy={!hasNext}
+          disabledBy={!hasNext || !$searchable}
           description="Seek to the last match"
         >
           <span slot="default">Last&nbsp;</span>
