@@ -36,11 +36,8 @@ suite('Daffodil Version', () => {
     })
 
     test('version.ts version should be same as package.json', () => {
-      let version = fs.readFileSync(versionFile).toString().trim()
-      assert.strictEqual(
-        version,
-        `export const LIB_VERSION = "${packageMapped.version}";`
-      )
+      const version = require('../../version').LIB_VERSION
+      assert.strictEqual(version, packageMapped.version)
     })
   })
 })

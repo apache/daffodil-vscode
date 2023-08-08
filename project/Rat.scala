@@ -22,6 +22,12 @@ object Rat {
   lazy val excludes = Seq(
     // git files
     file(".git"),
+    // metals generated directory
+    file(".metal"),
+    // vscode-test generated directory
+    file(".vscode-test"),
+    // nodemon config file for debugger
+    file("debugger/nodemon.json"),
     /** Can't add license headers in JSON files. Adding a license attribute breaks things in some of these files as
       * well.
       */
@@ -43,10 +49,14 @@ object Rat {
     file("build/package/NOLICENSE"),
     file("build/package/NONOTICE"),
     file("src/tests/data/test.txt"),
-    file("server/core/src/test/data/emptyData.xml"),
-    file("server/core/src/test/data/emptyInfoset.xml"),
-    file("server/core/src/test/data/notInfoset.xml"),
-    file("server/core/src/test/data/emptySchema.dfdl.xsd")
+    file("debugger/src/test/data/emptyData.xml"),
+    file("debugger/src/test/data/emptyInfoset.xml"),
+    file("debugger/src/test/data/notInfoset.xml"),
+    file("debugger/src/test/data/emptySchema.dfdl.xsd"),
+    // svelte icons/fonts
+    file("src/svelte/src/resources/icons/material-icons.woff2"),
+    file("src/svelte/src/resources/fonts/SpaceGrotesk-Variable.woff2"),
+    file("src/svelte/src/resources/fonts/RedHatMono-Regular.woff2")
   )
 
   lazy val MIT_LICENSE_NAME = "MIT License"
@@ -54,6 +64,12 @@ object Rat {
   lazy val MIT_LICENSE_TEXT_MICROSOFT =
     """
 Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the MIT License. See License.txt in the project root for license information.
+"""
+
+  lazy val MIT_LICENSE_TEXT_DELTAXML =
+    """
+Copyright (c) 2020 DeltaXML Ltd. All rights reserved.
 Licensed under the MIT License. See License.txt in the project root for license information.
 """
 

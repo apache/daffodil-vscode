@@ -18,7 +18,7 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 
-import * as daf from '../daffodil'
+import * as daf from '../daffodilDebugger'
 import { ensureFile, tmpFile } from '../utils'
 
 export function handleDebugEvent(e: vscode.DebugSessionCustomEvent) {

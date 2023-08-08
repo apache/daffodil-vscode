@@ -18,13 +18,10 @@
 import { LIB_VERSION } from '../version'
 import { osCheck } from '../utils'
 
-export class Backend {
-  constructor(readonly owner: string, readonly repo: string) {}
-}
-
 export class Artifact {
   name: string
   archive: string
+  folder: string
   scriptName: string
 
   constructor(
@@ -36,14 +33,7 @@ export class Artifact {
       ? `${type}-${this.version}-${LIB_VERSION}`
       : `${type}-${this.version}`
     this.archive = `${this.name}.zip`
+    this.folder = `${this.name}`
     this.scriptName = osCheck(`${baseScriptName}.bat`, `./${baseScriptName}`)
-  }
-
-  archiveUrl = (backend: Backend) => {
-    if (this.type.includes('omega-edit')) {
-      return `https://github.com/${backend.owner}/${backend.repo}/releases/download/v${this.version}/${this.archive}`
-    } else {
-      return ''
-    }
   }
 }

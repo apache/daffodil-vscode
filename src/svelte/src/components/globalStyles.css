@@ -1,0 +1,481 @@
+/* Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License. */
+
+/* fallback */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: normal bold;
+  src: url(../resources/icons/material-icons.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Red Hat Mono';
+  font-style: normal;
+  font-weight: normal bold;
+  src: url(../resources/fonts/RedHatMono-Regular.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: normal bold;
+  src: url(../resources/fonts/SpaceGrotesk-Variable.woff2) format('woff2');
+}
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+}
+/* Data Editor - Global CSS Styles */
+
+html {
+  --monospace-font: 'Red Hat Mono';
+  --sans-serif-font: 'Space Grotesk';
+  --container-width: 100%;
+  --container-height: auto;
+  --color-primary-darkest: #02060b;
+  --color-primary-dark: #101821;
+  --color-primary-dark-hover: #303644ff;
+  --color-primary-mid: #2f3e4f;
+  --color-primary-light: #687483;
+  --color-primary-lightest: #e1e3e5;
+  --color-primary-light-hover: #cacaca;
+  --color-secondary-darkest: #110b02;
+  --color-secondary-dark: #322716;
+  --color-secondary-mid: #796444;
+  --color-secondary-light: #c8b69b;
+  --color-secondary-lightest: #fffdfa;
+  --color-tertiary-lightest: #d0dcd4;
+  --color-tertiary-light: #adc2b4;
+  --color-tertiary-mid: #95b19f;
+  --color-tertiary-dark: #5f816b;
+  --color-tertiary-darkest: #232f27;
+  --color-alternate-grey: #bbb5bd;
+}
+
+/* Global LEGEND Styles */
+legend {
+  font-weight: bold;
+}
+
+/* Global BUTTON Styles */
+button {
+  display: inline-block;
+  border-radius: 4pt;
+  cursor: pointer;
+  border-width: 1pt;
+  border-style: solid;
+  width: 80pt;
+  margin: 1pt 2pt 1pt 2px;
+  padding: 2px;
+}
+button:not(:disabled):hover {
+  font-weight: bold;
+}
+button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Global HEADER Styles */
+header {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 100pt;
+  max-height: 120pt;
+  flex: 0 1 auto;
+  transition: all 0.5s;
+}
+
+/* Global FIELDSET Styles */
+fieldset {
+  width: 100%;
+}
+fieldset label {
+  font-weight: bold;
+}
+
+/* Global INPUT / SELECT Styles */
+input,
+select {
+  width: 100%;
+  height: 100%;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  font-weight: bold;
+  border-width: 1pt;
+  border-style: solid;
+  /*noinspection CssUnresolvedCustomProperty*/
+}
+input::placeholder {
+  font-style: italic;
+}
+
+/* Global HR Styles */
+hr {
+  width: 100%;
+  opacity: 0.7;
+}
+
+/* Global TEXTAREA Styles */
+textarea {
+  /*noinspection CssUnresolvedCustomProperty*/
+  font-family: 'Red Hat Mono';
+  font-size: small;
+  resize: none;
+  position: relative;
+  overflow-y: scroll;
+  transition: all 0.25s;
+}
+
+textarea::-webkit-scrollbar {
+  background-color: transparent;
+  width: 10pt;
+}
+textarea::-webkit-scrollbar-thumb {
+  background-color: var(--color-secondary-light);
+  border-radius: 4px;
+}
+
+/* Global Styled Elements */
+body {
+  font-family: var(--sans-serif-font);
+}
+
+body.light {
+  color: var(--color-primary-darkest);
+}
+body.dark {
+  color: var(--color-primary-lightest);
+}
+div.light,
+span.light {
+  background-color: var(--color-primary-light);
+}
+div.dark,
+span.dark {
+  background-color: var(--color-primary-dark);
+}
+label {
+  white-space: nowrap;
+  overflow-wrap: break-word;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 6px;
+}
+
+form {
+  padding: 0;
+  margin: 0;
+}
+span.nowrap {
+  white-space: nowrap;
+  overflow-x: auto;
+  display: inline-block;
+}
+span.editable {
+  white-space: nowrap;
+  overflow-x: auto;
+  display: inline-block;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: steelblue;
+  cursor: pointer;
+}
+span.editable:hover {
+  font-weight: bolder;
+}
+input.dark,
+select.dark {
+  background-color: #101821;
+  color: #e1e3e5;
+  border-color: #687483;
+}
+input.light,
+select.light {
+  background-color: #e1e3e5;
+  color: #02060b;
+  border-color: #2f3e4f;
+}
+
+button.dark {
+  background-color: #322716;
+  color: #fffdfa;
+  border-color: #c8b69b;
+}
+button.light {
+  background-color: #c8b69b;
+  color: #322716;
+  border-color: #322716;
+}
+
+span.btn-icon {
+  font-size: large;
+  font-weight: 700;
+}
+span.errMsg {
+  color: red;
+}
+span.mirror {
+  transform: scaleX(-1);
+  display: inline-block;
+}
+span.input-actions button {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  border-radius: 0;
+  border-style: solid;
+  min-width: 14pt;
+  /*noinspection CssUnresolvedCustomProperty*/
+  font-family: 'Red Hat Mono';
+}
+span.input-actions button.dark {
+  background-color: var(--color-primary-dark);
+  border-color: #687483;
+}
+span.input-actions button.light {
+  background-color: var(--color-primary-lightest);
+  border-color: #2f3e4f;
+}
+span.input-actions button.dark:hover {
+  background-color: var(--color-primary-dark-hover);
+  font-weight: bolder;
+}
+span.input-actions button.light:hover {
+  background-color: var(--color-primary-light-hover);
+  font-weight: bolder;
+}
+span.input-actions button.active {
+  outline-style: inset;
+  outline-offset: -1px;
+  outline-width: 2px;
+}
+span.input-actions button.active.dark {
+  background-color: var(--color-primary-dark-hover);
+  outline-color: var(--color-primary-lightest);
+}
+span.input-actions button.active.light {
+  background-color: var(--color-primary-light-hover);
+  outline-color: var(--color-primary-mid);
+}
+/* Hide scrollbar by default on webkit-based browsers */
+div.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Global Style Classes */
+.dataEditor {
+  display: grid;
+  grid-template-columns: 110px max-content max-content auto;
+  grid-template-rows: max-content auto;
+  /*noinspection CssUnresolvedCustomProperty*/
+  font-family: 'Red Hat Mono';
+}
+/* display of binary encoded data takes more space in the physical view */
+.dataEditor.binary {
+  /* I think this should be 16em instead of 10em for 16 characters, but that didn't work */
+  grid-template-columns: max-content max-content 10em auto;
+}
+.dataEditor div {
+  resize: none;
+}
+.dataEditor div.byte.dark {
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+.dataEditor div.byte.light {
+  background-color: var(--color-primary-lightest);
+  border-color: var(--color-primary-lightest);
+}
+
+.dataEditor div.hd {
+  text-align: center;
+  font-weight: bold;
+  color: #fffdfa;
+}
+.dataEditor div.hd.dark {
+  background-color: #2f3e4f;
+}
+.dataEditor div.hd.light {
+  background-color: #687483;
+}
+.dataEditor div.measure {
+  display: flex;
+  font-family: 'Red Hat Mono';
+  height: 25pt;
+  border-width: 0 0 2px 0;
+  border-style: solid;
+}
+.dataEditor div.measure.dark {
+  display: flex;
+  background-color: #101821;
+  color: #e1e3e5;
+  border-color: var(--color-primary-light);
+}
+.dataEditor div.measure.light {
+  display: flex;
+  background-color: #e1e3e5;
+  color: #02060b;
+  border-color: var(--color-primary-dark);
+}
+.dataEditor div.measure.selection {
+  flex-direction: row;
+  overflow: scroll;
+}
+.dataEditor div.measure.selection sub {
+  opacity: 0.6;
+}
+.dataEditor div.measure span {
+  align-self: flex-end;
+}
+.dataEditor div.measure div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.dataEditor div.measure div.clear-selection {
+  width: 20pt;
+  font-size: 11pt;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.dataEditor div.measure div.clear-selection:hover {
+  color: red;
+  font-size: 14pt;
+  font-weight: bolder;
+}
+.dataEditor div.contentControls .grid-container-two-columns {
+  display: flex;
+}
+.dataEditor
+  div.contentControls
+  .grid-container-two-columns
+  div.grid-container-column {
+  width: 50%;
+  padding: 5px;
+}
+.dataEditor div.content-select-column {
+  width: 50%;
+}
+.dataEditor div.content-select-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+.dataEditor div.content-select-container label {
+  width: 100%;
+}
+.dataEditor textarea.address_vw {
+  text-align: right;
+  direction: rtl;
+  user-select: none;
+  max-width: 100px;
+  padding-right: 10pt;
+  font-weight: 700;
+  font-family: 'Red Hat Mono';
+  line-height: 24px;
+}
+.dataEditor textarea.address_vw:focus {
+  outline: none;
+}
+.dataEditor select.address_type {
+  height: 100%;
+  border: 2px solid var(--color-primary-lightest);
+}
+.dataEditor textarea.dark {
+  background-color: #101821;
+  color: #fffdfa;
+}
+.dataEditor textarea.light {
+  background-color: #e1e3e5;
+  color: #02060b;
+}
+.dataEditor div.editView {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 75%;
+  grid-row-start: 3;
+  grid-row-end: 5;
+  gap: 10pt;
+  overflow-x: hidden;
+  word-break: break-all;
+  margin-left: 4px;
+}
+.dataEditor div.editView textarea {
+  width: auto;
+}
+.dataEditor textarea.selectedContent {
+  background: #2c2c2c;
+}
+.dataEditor textarea.selectedContent:disabled {
+  background: #252526;
+}
+.dataEditor select.content-select {
+  float: right;
+  max-width: 110px;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.tooltip .tooltip-text {
+  visibility: hidden;
+  background-color: rgba(0, 0, 0, 75%);
+  color: #bbb;
+  text-align: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  bottom: 115%;
+
+  /* Prevent text from breaking or wrapping */
+  white-space: nowrap;
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  font-size: 8pt;
+  opacity: 1;
+}
+
+.icon-container {
+  position: relative;
+  display: inline-block;
+}
+.icon-badge {
+  position: absolute;
+  top: -10px; /* Adjust these values as needed. */
+  left: -12px;
+  background-color: var(--color-secondary-mid);
+  color: var(--color-primary-lightest);
+  padding: 2px 4px;
+  font-size: 0.8em;
+  border-radius: 50%;
+  min-width: 10px;
+  text-align: center;
+  white-space: nowrap;
+}

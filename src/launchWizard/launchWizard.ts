@@ -18,8 +18,15 @@
 import * as fs from 'fs'
 import * as vscode from 'vscode'
 import { getConfig, osCheck } from '../utils'
+import { DFDLDebugger } from '../classes/dfdlDebugger'
+import { VSCodeLaunchConfigArgs } from '../classes/vscode-launch'
+import { DataEditorConfig } from '../classes/dataEditor'
 
-const defaultConf = getConfig('Wizard Config', 'launch', 'dfdl')
+const defaultConf = getConfig({
+  name: 'Wizard Config',
+  request: 'launch',
+  type: 'dfdl',
+})
 
 // Function that will activate/open the launch config wizard
 export async function activate(ctx: vscode.ExtensionContext) {
@@ -33,7 +40,8 @@ export async function activate(ctx: vscode.ExtensionContext) {
 // Function to get config values
 function getConfigValues(data, configIndex) {
   if (data && configIndex !== -1) {
-    let currentConfig = data.configurations[configIndex]
+    let configs: Array<VSCodeLaunchConfigArgs> = data.configurations
+    var currentConfig = configs[configIndex]
 
     // make sure config has needed items set, if not update it
     for (var key of Object.keys(defaultConf)) {
@@ -317,8 +325,6 @@ class LaunchWizard {
 
     let defaultValues = getConfigValues(fileData, configIndex)
 
-    // vscode.window.showInformationMessage(JSON.stringify(fileData))
-
     let nameVisOrHiddenStyle = newConfig
       ? 'margin-top: 10px; visibility: visible;'
       : 'visibility: hidden;'
@@ -377,8 +383,8 @@ class LaunchWizard {
       }
     })
 
-    let tdmlActionSelect = ''
-    let tdmlActions = ['generate', 'append', 'execute']
+    let tdmlActionSelect = 'none'
+    let tdmlActions = ['none', 'generate', 'append', 'execute']
     let tdmlAction =
       'tdmlConfig' in defaultValues ? defaultValues.tdmlConfig['action'] : null
     let tdmlName =
@@ -408,9 +414,8 @@ class LaunchWizard {
       }
     })
 
-    let dataEditorPort = defaultValues.dataEditorConfig['port']
-    let dataEditorLogFile = defaultValues.dataEditorConfig['logFile']
-    let dataEditorLogLevel = defaultValues.dataEditorConfig['logLevel']
+    let dfdlDebugger: DFDLDebugger = defaultValues.dfdlDebugger
+    let dataEditor: DataEditorConfig = defaultValues.dataEditor
 
     return `
   <!DOCTYPE html>
@@ -475,10 +480,17 @@ class LaunchWizard {
         <button id="dataBrowse" class="browse-button" type="button" onclick="filePicker('data', 'Select input data file to debug')">Browse</button>
       </div>
 
-      <div id="debugServerDiv" class="setting-div">
-        <p>Debug Server:</p>
+      <div id="dfdlDebuggerDiv" class="setting-div">
+        <p>Daffodil Debugger Settings:</p>
+
         <p class="setting-description">Port debug server running on.</p>
         <input class="file-input" value="${defaultValues.debugServer}" id="debugServer"/>
+
+        <p id="dfdlDebuggerLogFileLabel" style="margin-top: 10px;" class="setting-description">Log File:</p>
+        <input class="file-input" value="${dfdlDebugger.logging.file}" id="dfdlDebuggerLogFile">
+        
+        <p id="dfdlDebuggerLogLevelLabel" style="margin-top: 10px;" class="setting-description">Log Level:</p>
+        <input class="file-input" value="${dfdlDebugger.logging.level}" id="dfdlDebuggerLogLevel">
       </div>
 
       <div id="infosetFormatDiv" class="setting-div">
@@ -511,7 +523,7 @@ class LaunchWizard {
 
       <div id="openInfosetDiffViewDiv" class="setting-div" onclick="check('openInfosetDiffView')">
         <p>Open Infoset Diff View:</p>
-        <label class="container">Open hexview on debug start.
+        <label class="container">Open infoset view on debug start.
           <input type="checkbox" id="openInfosetDiffView" ${openInfosetDiffView}>
           <span class="checkmark"></span>
         </label>
@@ -519,7 +531,7 @@ class LaunchWizard {
 
       <div id="openInfosetViewDiv" class="setting-div" onclick="check('openInfosetView')">
         <p>Open Infoset View:</p>
-        <label class="container">Open hexview on debug start.
+        <label class="container">Open infoset diff on debug start.
           <input type="checkbox" id="openInfosetView" ${openInfosetView}>
           <span class="checkmark"></span>
         </label>
@@ -527,7 +539,7 @@ class LaunchWizard {
 
       <div id="tdmlActionDiv" class="setting-div">
         <p>TDML Action:</p>
-        <p class="setting-description">TDML Action (generate | append | execute)</p>
+        <p class="setting-description">TDML Action (none | generate | append | execute)</p>
         <select onChange="updateTDMLAction()" class="file-input" style="width: 200px;" id="tdmlAction">
           ${tdmlActionSelect}
         </select>
@@ -569,13 +581,13 @@ class LaunchWizard {
         <p>Data Editor Settings:</p>
         
         <p id="dataEditorPortLabel" class="setting-description">omega-edit Port:</p>
-        <input class="file-input" value="${dataEditorPort}" id="dataEditorPort">
+        <input class="file-input" value="${dataEditor.port}" id="dataEditorPort">
 
         <p id="dataEditorLogFileLabel" style="margin-top: 10px;" class="setting-description">Log File:</p>
-        <input class="file-input" value="${dataEditorLogFile}" id="dataEditorLogFile">
+        <input class="file-input" value="${dataEditor.logging.file}" id="dataEditorLogFile">
         
         <p id="dataEditorLogLevelLabel" style="margin-top: 10px;" class="setting-description">Log Level:</p>
-        <input class="file-input" value="${dataEditorLogLevel}" id="dataEditorLogLevel">
+        <input class="file-input" value="${dataEditor.logging.level}" id="dataEditorLogLevel">
       </div>
 
       <div id="useExistingServerDiv" class="setting-div" onclick="check('useExistingServer')">

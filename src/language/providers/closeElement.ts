@@ -26,6 +26,7 @@ import {
 import {
   getXsdNsPrefix,
   insertSnippet,
+  isInXPath,
   getItemsOnLineCount,
   getItemPrefix,
 } from './utils'
@@ -42,7 +43,8 @@ export function getCloseElementProvider() {
           checkBraceOpen(document, position) ||
           cursorWithinBraces(document, position) ||
           cursorWithinQuotes(document, position) ||
-          cursorAfterEquals(document, position)
+          cursorAfterEquals(document, position) ||
+          isInXPath(document, position)
         ) {
           return undefined
         }

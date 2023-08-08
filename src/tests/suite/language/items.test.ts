@@ -30,7 +30,6 @@ suite('Items Test Suite', () => {
     'group ref',
     'dfdl:assert',
     'dfdl:discriminator',
-    'dfdl:hiddenGroupRef',
     'dfdl:format',
     'annotation',
     'appinfo',
@@ -40,17 +39,30 @@ suite('Items Test Suite', () => {
     'simpleType name=',
     'sequence',
     'choice',
+    'dfdl:newVariableInstance',
     'dfdl:defineVariable',
     'dfdl:setVariable',
     'dfdl:defineFormat',
     'dfdl:defineEscapeScheme',
+    'dfdl:escapeScheme',
     'dfdl:simpleType',
     'dfdl:element',
+    'dfdl:sequence',
+    'dfdl:group',
+    'dfdl:choice',
+    'dfdl:property',
     'restriction',
     'minInclusive',
     'minExclusive',
     'maxInclusive',
     'maxExclusive',
+    'pattern',
+    'totalDigits',
+    'fractionDigits',
+    'enumeration',
+    'include',
+    'documentation',
+    'import',
     '<[CDATA[]]>',
     '<![CDATA[]]>',
     '{}',
@@ -74,6 +86,7 @@ suite('Items Test Suite', () => {
     'dfdl:nilKind',
     'dfdl:nilValue',
     'dfdl:nilValueDelimiterPolicy',
+    'dfdl:useNilForDefault',
     'dfdl:alignment',
     'dfdl:lengthUnits',
     'dfdl:lengthPattern',
@@ -84,21 +97,30 @@ suite('Items Test Suite', () => {
     'dfdl:choiceBranchKey',
     'dfdl:representation',
     'dfdl:textStringJustification',
+    'dfdl:textStringPadCharacter',
     'dfdl:textStandardZeroRep',
     'dfdl:textStandardInfinityRep',
     'dfdl:textStandardExponentRep',
     'dfdl:textStandardNaNRep',
     'dfdl:textNumberPattern',
+    'dfdl:decimalSigned',
     'dfdl:textNumberRep',
+    'dfdl:textNumberJustification',
     'dfdl:textNumberRoundingMode',
     'dfdl:textNumberRoundingIncrement',
     'dfdl:textNumberRounding',
     'dfdl:textNumberCheckPolicy',
     'dfdl:textOutputMinLength',
+    'dfdl:textStandardDecimalSeparator',
     'dfdl:textStandardGroupingSeparator',
     'dfdl:textPadKind',
     'dfdl:textStandardBase',
+    'dfdl:textZonedSignStyle',
     'dfdl:textTrimKind',
+    'dfdl:textBooleanTrueRep',
+    'dfdl:textBooleanFalseRep',
+    'dfdl:textBooleanJustification',
+    'dfdl:textBooleanPadCharacter',
     'dfdl:leadingSkip',
     'dfdl:trailingSkip',
     'dfdl:truncateSpecifiedLengthString',
@@ -119,10 +141,32 @@ suite('Items Test Suite', () => {
     'dfdl:binaryNumberRep',
     'dfdl:floating',
     'dfdl:binaryFloatRep',
+    'dfdl:binaryDecimalVirtualPoint',
+    'dfdl:binaryPackedSignCodes',
+    'dfdl:binaryNumberCheckPolicy',
+    'dfdl:binaryBooleanTrueRep',
+    'dfdl:binaryBooleanFalseRep',
+    'dfdl:calendarPattern',
     'dfdl:calendarPatternKind',
+    'dfdl:calendarCheckPolicy',
+    'dfdl:calendarTimeZone',
+    'dfdl:calendarObserveDST',
+    'dfdl:calendarFirstDayOfWeek',
+    'dfdl:calendarDaysInFirstWeek',
+    'dfdl:calendarCenturyStart',
+    'dfdl:calendarLanguage',
     'dfdl:documentFinalTerminatorCanBeMissing',
     'dfdl:emptyValueDelimiterPolicy',
+    'dfdl:emptyElementParsePolicy',
     'dfdl:escapeSchemeRef',
+    'dfdl:escapeKind',
+    'dfdl:escapeCharacter',
+    'dfdl:escapeBlockStart',
+    'dfdl:escapeBlockEnd',
+    'dfdl:escapeEscapeCharacter',
+    'dfdl:extraEscapedCharacters',
+    'dfdl:generateEscapeBlock',
+    'dfdl:escapeCharacterPolicy',
     'testKind',
     'test',
     'testPattern',
@@ -132,18 +176,18 @@ suite('Items Test Suite', () => {
 
   test('all commonItems available', async () => {
     let itemNames: string[] = []
-    commonCompletion('', 'xs:').items.forEach((r) => itemNames.push(r.item))
+    commonCompletion('').items.forEach((r) => itemNames.push(r.item))
     assert.strictEqual(itemNames.includes('type'), true)
   })
 
   test('all elementItems available', async () => {
-    elementCompletion('', '', '').items.forEach((item) => {
+    elementCompletion('', '').items.forEach((item) => {
       assert.strictEqual(expectedElementItems.includes(item.item), true)
     })
   })
 
   test('all attributeItems available', async () => {
-    attributeCompletion('', '', 'dfdl:').items.forEach((item) => {
+    attributeCompletion('', '', 'dfdl:', '', '').items.forEach((item) => {
       assert.strictEqual(expectedAttributeItems.includes(item.item), true)
     })
   })

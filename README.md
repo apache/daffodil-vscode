@@ -67,13 +67,12 @@ Run full package
   ```
 
 * This command performs the following tasks:
-  * Create sbt zip package
+  * Create sbt zip package and unzip it
   * Install dependencies
   * Compiles Extension
   * Packages Extension
   * Creates Files
     ```
-    server/core/target/universal/daffodil-debugger-*.zip
     apache-daffodil-vscode-*.vsix
     ```
 
@@ -122,3 +121,7 @@ This product includes the [logback](https://github.com/qos-ch/logback) library, 
 This product includes the [Java Debug Server for Visual Studio Code](https://github.com/microsoft/java-debug) library, which is available under the Eclipse Public License v1.0.
 
 This product includes the [Xml Schema Object Model](https://github.com/kohsuke/xsom) library, which is licensed under the Common Development and Distribution License Version 1.1.
+
+This product includes the Regular Mono [RedHatFont](https://github.com/RedHatOfficial/RedHatFont) font, which is licensed under the SIL Open Font License, Version 1.1.
+
+This product includes the [space-grotesk](https://github.com/floriankarsten/space-grotesk) font, which is licensed under the SIL Open Font License, Version 1.1.

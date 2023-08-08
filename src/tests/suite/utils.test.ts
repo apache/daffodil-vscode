@@ -17,13 +17,14 @@
 
 import * as assert from 'assert'
 import * as utils from '../../utils'
+import { VSCodeLaunchConfigArgs } from '../../classes/vscode-launch'
 
 suite('Utils Test Suite', () => {
   var name = 'Default Config'
   var request = 'launch'
   var type = 'dfdl'
 
-  var defaultConfig = {
+  var defaultConfig: VSCodeLaunchConfigArgs = {
     name: 'Default Config',
     request: 'launch',
     type: 'dfdl',
@@ -32,8 +33,14 @@ suite('Utils Test Suite', () => {
     debugServer: 4711,
     infosetFormat: 'xml',
     infosetOutput: {
-      type: 'none',
+      type: 'file',
       path: '${workspaceFolder}/target/infoset.xml',
+    },
+    tdmlConfig: {
+      action: 'none',
+      name: '${command:AskForTDMLName}',
+      description: '${command:AskForTDMLDescription}',
+      path: '${command:AskForTDMLPath}',
     },
     stopOnEntry: true,
     useExistingServer: false,
@@ -42,15 +49,23 @@ suite('Utils Test Suite', () => {
     openInfosetView: false,
     openInfosetDiffView: false,
     daffodilDebugClasspath: '',
-    dataEditorConfig: {
+    dataEditor: {
       port: 9000,
-      logFile: '${workspaceFolder}/dataEditor-${omegaEditPort}.log',
-      logLevel: 'info',
+      logging: {
+        file: '${workspaceFolder}/dataEditor-${omegaEditPort}.log',
+        level: 'info',
+      },
+    },
+    dfdlDebugger: {
+      logging: {
+        level: 'INFO',
+        file: '/tmp/daffodil-debugger.log',
+      },
     },
   }
 
   test('Default config', async () => {
-    var config = utils.getConfig(name, request, type)
+    var config = utils.getConfig({ name: name, request: request, type: type })
     assert.strictEqual(JSON.stringify(defaultConfig), JSON.stringify(config))
   })
 

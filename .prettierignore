@@ -14,12 +14,7 @@
 # limitations under the License.
 
 # Ignore artifacts
-build
+build/package
 coverage
 out
 dist
-
-version.ts
-
-# Svelte does its own
-svelte

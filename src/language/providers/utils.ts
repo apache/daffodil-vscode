@@ -17,6 +17,7 @@
 
 import * as vscode from 'vscode'
 import { commonCompletion } from './intellisense/commonItems'
+import { isXPath } from '../semantics/dfdlExt'
 
 const schemaPrefixRegEx = new RegExp('</?(|[^ ]+:)schema')
 
@@ -34,8 +35,11 @@ const items = [
   'discriminator',
   'defineFormat',
   'format',
+  'newVariableInstance',
   'defineVariable',
   'setVariable',
+  'defineEscapeScheme',
+  'escapeScheme',
   'dfdl:element',
   'dfdl:simpleType',
   'restriction',
@@ -273,7 +277,8 @@ export function getItemPrefix(item: string, nsPrefix: string) {
     item === 'discriminator' ||
     item === 'defineFormat' ||
     item === 'format' ||
-    item.includes('Variable')
+    item.includes('Variable') ||
+    item.includes('scape')
   ) {
     itemPrefix = 'dfdl:'
   }
@@ -395,6 +400,14 @@ export function getItemsOnLineCount(triggerText: String) {
     }
   }
   return itemsOnLine
+}
+
+//Determines if the current curser is in XPath and dfdl intellisense should be turned off
+export function isInXPath(
+  document: vscode.TextDocument,
+  position: vscode.Position
+): boolean {
+  return isXPath(position)
 }
 
 export function cursorAfterEquals(
@@ -614,7 +627,7 @@ export function getCommonItems(
 ) {
   let compItems: vscode.CompletionItem[] = []
 
-  commonCompletion(additionalItems, nsPrefix).items.forEach((e) => {
+  commonCompletion(additionalItems).items.forEach((e) => {
     if (itemsToUse.includes(e.item)) {
       const completionItem = createCompletionItem(e, preVal, nsPrefix)
       compItems.push(completionItem)
