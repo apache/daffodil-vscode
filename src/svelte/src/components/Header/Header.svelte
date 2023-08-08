@@ -49,9 +49,17 @@ limitations under the License.
       <button
         class={$UIThemeCSSClass + ' minmax-icon'}
         on:click={() => {
-          hideChildren = hideChildren ? false : true
-        }}><span class="material-symbols-outlined">expand_all</span></button
+          hideChildren = !hideChildren
+        }}
       >
+        <span class="material-symbols-outlined">
+          {#if hideChildren}
+            expand_all
+          {:else}
+            expand_less
+          {/if}
+        </span>
+      </button>
     </div>
   </FlexContainer>
 {/if}
