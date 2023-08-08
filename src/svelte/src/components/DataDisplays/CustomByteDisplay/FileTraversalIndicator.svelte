@@ -64,7 +64,12 @@ limitations under the License.
   }
 </script>
 
-<div class="traversal-container" bind:this={indicatorContainer}>
+<div
+  class="traversal-container {selectionActive || indicatorClickDisabled
+    ? 'disabled'
+    : 'enabled'}"
+  bind:this={indicatorContainer}
+>
   <div class="traversal-thumb" style:width="{percentageTraversed}%" />
 </div>
 
@@ -80,7 +85,11 @@ limitations under the License.
   div.traversal-thumb {
     height: 8px;
   }
-  div.traversal-container:hover {
+  div.traversal-container.enabled {
     cursor: pointer;
+  }
+  div.traversal-container.disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
   }
 </style>
