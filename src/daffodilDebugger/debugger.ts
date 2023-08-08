@@ -152,36 +152,36 @@ export async function getDebugger(
 ): Promise<vscode.DebugConfiguration | undefined> {
   config = getConfig(config) // make sure all config attributes are set
 
-  if (!config.useExistingServer) {
-    if (vscode.workspace.workspaceFolders !== undefined) {
-      await stopDebugger()
+  if (vscode.workspace.workspaceFolders !== undefined) {
+    await stopDebugger()
 
-      // Get program file before debugger starts to avoid timeout
-      if (config.program.includes('${command:AskForProgramName}')) {
-        config.program = await vscode.commands.executeCommand(
-          'extension.dfdl-debug.getProgramName'
-        )
-      }
-
-      // Get data file before debugger starts to avoid timeout
-      if (config.data.includes('${command:AskForDataName}')) {
-        config.data = await vscode.commands.executeCommand(
-          'extension.dfdl-debug.getDataName'
-        )
-      }
-
-      if (!(await getTDMLConfig(config))) {
-        return await stopDebugging().then((_) => undefined)
-      }
-
-      let workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath
-
-      // Get daffodilDebugger class paths to be added to the debugger
-      const daffodilDebugClasspath = await getDaffodilDebugClasspath(
-        config,
-        workspaceFolder
+    // Get program file before debugger starts to avoid timeout
+    if (config.program.includes('${command:AskForProgramName}')) {
+      config.program = await vscode.commands.executeCommand(
+        'extension.dfdl-debug.getProgramName'
       )
+    }
 
+    // Get data file before debugger starts to avoid timeout
+    if (config.data.includes('${command:AskForDataName}')) {
+      config.data = await vscode.commands.executeCommand(
+        'extension.dfdl-debug.getDataName'
+      )
+    }
+
+    if (!(await getTDMLConfig(config))) {
+      return await stopDebugging().then((_) => undefined)
+    }
+
+    let workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath
+
+    // Get daffodilDebugger class paths to be added to the debugger
+    const daffodilDebugClasspath = await getDaffodilDebugClasspath(
+      config,
+      workspaceFolder
+    )
+
+    if (!config.useExistingServer) {
       await runDebugger(
         context.asAbsolutePath('./'),
         daffodilDebugClasspath,
