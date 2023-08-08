@@ -246,14 +246,12 @@ function nearestOpenTagChildElements(
           )
         case 'element':
           return getElementCompletionItems(
-            ['dfdl:assert', 'dfdl:discriminator', 'dfdl:setVariable'],
-            '',
-            '',
-            nsPrefix
-          )
-        case 'element ref':
-          return getElementCompletionItems(
-            ['dfdl:assert', 'dfdl:discriminator', 'dfdl:setVariable'],
+            [
+              'dfdl:assert',
+              'dfdl:discriminator',
+              'dfdl:setVariable',
+              'dfdl:property',
+            ],
             '',
             '',
             nsPrefix
@@ -283,7 +281,7 @@ function nearestOpenTagChildElements(
             '',
             nsPrefix
           )
-        case 'group ref':
+        case 'group':
           return getElementCompletionItems(
             [
               'dfdl:assert',
@@ -303,6 +301,7 @@ function nearestOpenTagChildElements(
               'dfdl:discriminator',
               'dfdl:setVariable',
               'dfdl:simpleType',
+              'dfdl:property',
             ],
             '',
             '',
