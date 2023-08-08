@@ -242,7 +242,13 @@ function checkNearestOpenItem(
       )
     case 'group':
       return getCompletionItems(
-        ['ref', 'name'],
+        [
+          'ref',
+          'name',
+          'dfdl:separator',
+          'dfdl:separatorPosition',
+          'dfdl:separatorSuppressionPolicy',
+        ],
         '',
         '',
         nsPrefix,
