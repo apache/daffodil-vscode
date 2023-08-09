@@ -18,7 +18,8 @@
 import { derived, get, readable, writable } from 'svelte/store'
 import { selectionDataStore } from '../stores'
 
-let activeSelectionHighlightLUT = new Uint8Array(1024)
+let selectionHighlightLUT = new Uint8Array(1024)
+export let selectionHighlightMask = writable(0)
 
 let searchResultsHighlightLUT = new Uint8Array(1024).fill(0)
 
@@ -29,17 +30,22 @@ export enum HightlightCategoryMasks {
   SearchResult = 4,
 }
 
-export const activeSelectionHighlights = derived(
-  [selectionDataStore],
-  ([$selectionData]) => {
-    const start = $selectionData.startOffset
-    const end = $selectionData.originalEndOffset
+export const selectionHighlights = derived(
+  [selectionDataStore, selectionHighlightMask],
+  ([$selectionData, $selectionHighlightMask]) => {
+    let start = $selectionData.startOffset
+    let end =
+      $selectionHighlightMask === 0
+        ? $selectionData.originalEndOffset
+        : $selectionData.endOffset
+    if (start > end && end > -1) [start, end] = [end, start]
 
     for (let i = 0; i < 1024; i++) {
-      activeSelectionHighlightLUT[i] = i >= start && i <= end ? 1 : 0
+      selectionHighlightLUT[i] =
+        i >= start && i <= end ? 1 << $selectionHighlightMask : 0
     }
 
-    return activeSelectionHighlightLUT
+    return selectionHighlightLUT
   }
 )
 

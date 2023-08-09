@@ -59,7 +59,7 @@ limitations under the License.
     type CSSThemeClass,
   } from '../../../utilities/colorScheme'
   import {
-    activeSelectionHighlights,
+    selectionHighlights,
     searchResultsHighlights,
     updateSearchResultsHighlights,
   } from '../../../utilities/highlights'
@@ -205,7 +205,7 @@ limitations under the License.
   }
   $: byteElementWidth = byteDivWidthFromRadix(dataRadix)
   $: {
-    activeSelection = $activeSelectionHighlights
+    activeSelection = $selectionHighlights
     searchResults = $searchResultsHighlights
   }
 
@@ -483,14 +483,15 @@ limitations under the License.
         {#each viewportLine.bytes as byte}
           <DataValue
             {byte}
-            isSelected={activeSelection[byte.offset]}
+            isSelected={activeSelection[byte.offset] === 1}
+            possibleSelection={activeSelection[byte.offset] === 2}
             isSearchResult={searchResults[byte.offset] >>
               activeSelection[byte.offset]}
             id={'physical'}
             radix={dataRadix}
             width={byteElementWidth}
             disabled={byte.offset > viewportData.length}
-            selectionData={$selectionDataStore}
+            bind:selectionData={$selectionDataStore}
             on:mouseup={mouseup}
             on:mousedown={mousedown}
           />
@@ -504,14 +505,15 @@ limitations under the License.
         {#each viewportLine.bytes as byte}
           <DataValue
             {byte}
-            isSelected={activeSelection[byte.offset]}
+            isSelected={activeSelection[byte.offset] === 1}
+            possibleSelection={activeSelection[byte.offset] === 2}
             isSearchResult={searchResults[byte.offset] >>
               activeSelection[byte.offset]}
             id={'logical'}
             radix={dataRadix}
             width={byteElementWidth}
             disabled={byte.offset > viewportData.length}
-            selectionData={$selectionDataStore}
+            bind:selectionData={$selectionDataStore}
             on:mouseup={mouseup}
             on:mousedown={mousedown}
           />
