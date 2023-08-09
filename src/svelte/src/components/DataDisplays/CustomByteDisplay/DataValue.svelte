@@ -25,6 +25,7 @@ limitations under the License.
   import type { SelectionData_t } from '../../../stores'
   import type { ByteDivWidth } from '../../../utilities/display'
   import type { RadixValues } from '../../../stores/configuration'
+  import { selectionHighlightMask } from '../../../utilities/highlights'
 
   export let id: ViewportDataType
   export let byte: ByteValue
@@ -32,7 +33,8 @@ limitations under the License.
   export let radix: RadixValues
   export let disabled = false
   export let width: ByteDivWidth = '20px'
-  export let isSelected = 0
+  export let isSelected = false
+  export let possibleSelection = false
   export let isSearchResult = 0
 
   const eventDispatcher = createEventDispatcher()
@@ -40,8 +42,11 @@ limitations under the License.
   let consideredForSelection = false
   let makingSelection = false
 
-  $: makingSelection =
-    selectionData.startOffset >= 0 && selectionData.active === false
+  $: {
+    makingSelection =
+      selectionData.startOffset >= 0 && selectionData.active === false
+    $selectionHighlightMask = makingSelection === true ? 1 : 0
+  }
 
   function mouse_enter_handle(event: MouseEvent) {
     if (!makingSelection) return
@@ -72,6 +77,7 @@ limitations under the License.
     class="byte"
     class:isSelected
     class:isSearchResult
+    class:possibleSelection
     class:selecting={consideredForSelection}
     id={id + '-' + byte.offset.toString()}
     style:width
@@ -88,6 +94,7 @@ limitations under the License.
     class="byte"
     class:isSelected
     class:isSearchResult
+    class:possibleSelection
     class:selecting={consideredForSelection}
     id={id + '-' + byte.offset.toString()}
     style:width={'20px'}
@@ -115,6 +122,11 @@ limitations under the License.
     text-align: center;
     transition: all 0.25s;
   }
+  div.byte.isSelected,
+  div.byte.isSearchResult,
+  div.byte.possibleSelection {
+    border-radius: 5px;
+  }
   div.byte.isSelected {
     background-color: var(--color-secondary-light);
     color: var(--color-secondary-darkest);
@@ -123,7 +135,7 @@ limitations under the License.
     background-color: var(--color-tertiary-light);
     color: var(--color-secondary-darkest);
   }
-  div.byte.selecting {
+  div.byte.possibleSelection {
     border-color: var(--color-secondary-light);
   }
   div.byte:hover {
