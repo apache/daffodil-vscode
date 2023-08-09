@@ -51,6 +51,7 @@ trait DAPSession[Req, Res, Ev] {
   def sendEvent(event: Ev): IO[Unit]
   def abort(event: DebugEvent): IO[Unit]
   def abort(event: DebugEvent, logMessage: String): IO[Unit]
+  def abort(event: DebugEvent, logMessage: String, t: Throwable): IO[Unit]
 }
 
 object DAPSession {
@@ -73,6 +74,9 @@ object DAPSession {
       /** Log error then send DebugEvent back to extension and exit session, ending debug */
       def abort(event: DebugEvent, logMessage: String): IO[Unit] =
         Logger[IO].error(logMessage) *> sendEvent(event) *> sendEvent(new Events.TerminatedEvent())
+
+      def abort(event: DebugEvent, logMessage: String, t: Throwable): IO[Unit] =
+        Logger[IO].error(t)(logMessage) *> sendEvent(event) *> sendEvent(new Events.TerminatedEvent())
     }
 
   def resource(socket: Socket): Resource[IO, DAPSession[Request, Response, DebugEvent]] =
@@ -229,7 +233,7 @@ class DAPodil(
                     DAPodil.State
                       .FailedToLaunch(request, NonEmptyList.of("couldn't launch from created debuggee"), Some(t))
                   ) *>
-                    session.abort(ErrorEvents.RequestError, show"couldn't launch, request $request")
+                    session.abort(ErrorEvents.RequestError, show"couldn't launch, request $request", t)
                 case Right(launchedState) =>
                   state.set(launchedState) *>
                     session.sendResponse(request.respondSuccess())
