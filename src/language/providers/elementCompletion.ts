@@ -249,6 +249,7 @@ function nearestOpenTagChildElements(
             [
               'dfdl:assert',
               'dfdl:discriminator',
+              'dfdl:element',
               'dfdl:setVariable',
               'dfdl:property',
             ],
