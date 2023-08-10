@@ -51,6 +51,8 @@
     "await-notify": "1.0.1",
     "hexy": "0.3.4",
     "jsonc-parser": "^3.2.0",
+    "@viperproject/locate-java-home": "1.1.13",
+    "semver": "^7.1.1",
     "unzip-stream": "0.3.1",
     "uuid": "9.0.0",
     "wait-port": "1.0.4",
