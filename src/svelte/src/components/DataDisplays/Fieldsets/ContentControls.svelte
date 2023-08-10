@@ -20,7 +20,7 @@ limitations under the License.
   import { createEventDispatcher } from 'svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import Button from '../../Inputs/Buttons/Button.svelte'
-  import { type EditEvent } from '../CustomByteDisplay/BinaryData'
+  import type { EditEvent } from '../CustomByteDisplay/BinaryData'
   const eventDispatcher = createEventDispatcher()
 
   function applyChanges(event: Event) {

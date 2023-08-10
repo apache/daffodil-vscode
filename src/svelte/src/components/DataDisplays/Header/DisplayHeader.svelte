@@ -23,6 +23,8 @@ limitations under the License.
     seekOffsetInput,
     selectionDataStore,
     selectionSize,
+    bytesPerRow,
+    viewport,
   } from '../../../stores'
   import {
     EditByteModes,
@@ -33,7 +35,6 @@ limitations under the License.
   } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import { createEventDispatcher } from 'svelte'
-  import { bytesPerRow } from '../CustomByteDisplay/BinaryData'
 
   type ViewportDivSpread = '24px' | '28px' | '68px'
 
@@ -60,8 +61,8 @@ limitations under the License.
 
   $: selectionOffsetText = setSelectionOffsetInfo(
     'Selection',
-    $selectionDataStore.startOffset,
-    $selectionDataStore.endOffset,
+    $viewport.fileOffset + $selectionDataStore.startOffset,
+    $viewport.fileOffset + $selectionDataStore.endOffset,
     $selectionSize,
     $addressRadix
   )

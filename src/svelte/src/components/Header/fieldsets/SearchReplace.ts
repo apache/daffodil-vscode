@@ -18,10 +18,6 @@
 import { SimpleWritable } from '../../../stores/localStore'
 import { addressRadix, seekOffsetInput } from '../../../stores'
 import { get } from 'svelte/store'
-import { validateEncodingStr } from '../../../utilities/display'
-import { ErrorStore, ErrorComponentType } from '../../Error/Error'
-import { editorEncoding, selectionDataStore } from '../../../stores'
-import { derived } from 'svelte/store'
 
 interface QueryableData {
   input: string
@@ -37,7 +33,7 @@ class SearchData implements QueryableData {
   overflow: boolean = false
   byteLength: number = 0
 }
-class SearchQuery extends SimpleWritable<SearchData> {
+export class SearchQuery extends SimpleWritable<SearchData> {
   protected init(): SearchData {
     return new SearchData()
   }
@@ -80,55 +76,3 @@ export class ReplaceQuery extends SimpleWritable<ReplaceData> {
     return new ReplaceData()
   }
 }
-
-export const searchQuery = new SearchQuery()
-export const replaceQuery = new ReplaceQuery()
-
-export const searchErr = new ErrorStore(ErrorComponentType.SYMBOL)
-export const replaceErr = new ErrorStore(ErrorComponentType.SYMBOL)
-export const seekErr = new ErrorStore(ErrorComponentType.SYMBOL)
-
-export const searchable = derived(
-  [searchQuery, editorEncoding],
-  ([$searchQuery, $editorEncoding]) => {
-    if ($searchQuery.input.length === 0 || $searchQuery.processing) {
-      searchErr.update(() => {
-        return ''
-      })
-      return false
-    }
-    const ret = validateEncodingStr($searchQuery.input, $editorEncoding, 'full')
-    searchErr.update(() => {
-      return ret.errMsg
-    })
-    return ret.valid
-  }
-)
-
-export const replaceable = derived(
-  [replaceQuery, editorEncoding, searchable, selectionDataStore],
-  ([$replaceData, $editorEncoding, $searchable, $selectionData]) => {
-    if (
-      $replaceData.input.length < 0 ||
-      !$searchable ||
-      $replaceData.processing
-    ) {
-      replaceErr.update(() => {
-        return ''
-      })
-      return false
-    }
-    if ($selectionData.active) {
-      replaceErr.update(() => {
-        return 'Cannot replace while viewport data is selected'
-      })
-      return false
-    }
-
-    const ret = validateEncodingStr($replaceData.input, $editorEncoding)
-    replaceErr.update(() => {
-      return ret.errMsg
-    })
-    return ret.valid
-  }
-)

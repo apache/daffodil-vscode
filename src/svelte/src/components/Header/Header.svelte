@@ -16,11 +16,12 @@ limitations under the License.
 -->
 <script lang="ts">
   import FileMetrics from './fieldsets/FileMetrics.svelte'
-  import { fileMetrics } from './fieldsets/FileMetrics'
   import SearchReplace from './fieldsets/SearchReplace.svelte'
   import Settings from './fieldsets/Settings.svelte'
   import FlexContainer from '../layouts/FlexContainer.svelte'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
+  import { fileMetrics } from '../../stores'
+
   let hideChildren = false
 </script>
 

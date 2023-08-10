@@ -20,7 +20,7 @@ limitations under the License.
   import { MessageCommand } from '../../utilities/message'
   import { onMount } from 'svelte'
   import Input from '../Inputs/Input/Input.svelte'
-  import { offsetMax } from '../DataDisplays/CustomByteDisplay/BinaryData'
+  import { viewport } from '../../stores'
   import { DATA_PROFILE_MAX_LENGTH } from '../../stores/configuration'
   import { addressRadix } from '../../stores'
   import { radixToString, regexEditDataTest } from '../../utilities/display'
@@ -179,9 +179,9 @@ limitations under the License.
           } else if (endOffsetTemp <= startOffset) {
             setErrorMessage('End offset must be greater than start offset')
             return
-          } else if (endOffsetTemp > $offsetMax) {
+          } else if (endOffsetTemp > viewport.offsetMax) {
             setErrorMessage(
-              `End offset must be less than or equal to ${$offsetMax}`
+              `End offset must be less than or equal to ${viewport.offsetMax}`
             )
             return
           }
@@ -211,9 +211,11 @@ limitations under the License.
           } else if (lengthTemp <= 0) {
             setErrorMessage('Length must be greater than 0')
             return
-          } else if (lengthTemp > $offsetMax - startOffset) {
+          } else if (lengthTemp > viewport.offsetMax - startOffset) {
             setErrorMessage(
-              `Length must be less than or equal to ${$offsetMax - startOffset}`
+              `Length must be less than or equal to ${
+                viewport.offsetMax - startOffset
+              }`
             )
             return
           }
@@ -401,7 +403,7 @@ limitations under the License.
   <div class="stats">
     <label for="computed-size"
       >&nbsp;Max Offset: <span id="computed-size" class="nowrap"
-        >{$offsetMax}</span
+        >{viewport.offsetMax}</span
       ></label
     >
     <label for="min-frequency"

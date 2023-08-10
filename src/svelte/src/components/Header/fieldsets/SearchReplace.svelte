@@ -18,11 +18,10 @@ limitations under the License.
   import {
     addressRadix,
     allowCaseInsensitiveSearch,
+    editorActionsAllowed,
     editorEncoding,
     seekable,
     seekOffsetInput,
-  } from '../../../stores'
-  import {
     replaceable,
     replaceErr,
     replaceQuery,
@@ -30,7 +29,7 @@ limitations under the License.
     searchErr,
     searchQuery,
     seekErr,
-  } from './SearchReplace'
+  } from '../../../stores'
   import { vscode } from '../../../utilities/vscode'
   import { MessageCommand } from '../../../utilities/message'
 
@@ -38,18 +37,15 @@ limitations under the License.
   import Button from '../../Inputs/Buttons/Button.svelte'
   import Input from '../../Inputs/Input/Input.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import { createEventDispatcher, tick } from 'svelte'
+  import { createEventDispatcher } from 'svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import ToggleableButton from '../../Inputs/Buttons/ToggleableButton.svelte'
   import {
     clearSearchResultsHighlights,
     updateSearchResultsHighlights,
   } from '../../../utilities/highlights'
-  import { viewport } from '../../DataDisplays/CustomByteDisplay/BinaryData'
-  import {
-    EditActionRestrictions,
-    editorActionsAllowed,
-  } from '../../../stores/configuration'
+  import { viewport } from '../../../stores'
+  import { EditActionRestrictions } from '../../../stores/configuration'
 
   const eventDispatcher = createEventDispatcher()
 

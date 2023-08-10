@@ -19,9 +19,12 @@ limitations under the License.
     RADIX_OPTIONS,
     ENCODING_GROUPS,
     EDIT_ACTIONS,
-    editorActionsAllowed,
   } from '../../../stores/configuration'
-  import { displayRadix, editorEncoding } from '../../../stores'
+  import {
+    displayRadix,
+    editorEncoding,
+    editorActionsAllowed,
+  } from '../../../stores'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
 </script>

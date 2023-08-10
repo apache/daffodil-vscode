@@ -25,7 +25,7 @@ limitations under the License.
   export let bytesPerRow = 16
   export let percentageTraversed
   export let maxDisplayLines = 20
-  export let selectionActive
+  export let selectionActive: boolean
 
   let indicatorContainer: HTMLElement
   let indicatorClickDisabled: boolean = false

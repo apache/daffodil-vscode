@@ -29,14 +29,13 @@ limitations under the License.
     requestable,
     selectionDataStore,
     selectionSize,
-    viewportCapacity,
-    viewportEndOffset,
-    viewportFollowingByteCount,
     viewportNumLinesDisplayed,
-    viewportStartOffset,
     dataFeedLineTop,
     SelectionData_t,
     dataFeedAwaitRefresh,
+    fileMetrics,
+    viewport,
+    searchQuery,
   } from '../stores'
   import {
     CSSThemeClass,
@@ -47,22 +46,18 @@ limitations under the License.
   import { vscode } from '../utilities/vscode'
   import Header from './Header/Header.svelte'
   import Main from './Main.svelte'
-  import { EditByteModes } from '../stores/configuration'
+  import { EditByteModes, NUM_LINES_DISPLAYED } from '../stores/configuration'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
   import { enterKeypressEvents } from '../utilities/enterKeypressEvents'
-  import {
-    type EditEvent,
-    viewport,
+  import type {
+    EditEvent,
     ViewportData_t,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
-  import { fileMetrics } from './Header/fieldsets/FileMetrics'
   import {
-    DISPLAYED_DATA_LINES,
     byte_count_divisible_offset,
     viewport_offset_to_line_num,
   } from '../utilities/display'
   import { clearSearchResultsHighlights } from '../utilities/highlights'
-  import { searchQuery } from './Header/fieldsets/SearchReplace'
 
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 
@@ -124,7 +119,7 @@ limitations under the License.
             viewportStartOffset,
             $bytesPerRow
           ) -
-          (DISPLAYED_DATA_LINES - 1)
+          (NUM_LINES_DISPLAYED - 1)
         : viewport_offset_to_line_num(offset, viewportStartOffset, $bytesPerRow)
       $dataFeedAwaitRefresh = true
 
@@ -142,47 +137,6 @@ limitations under the License.
 
     $dataFeedLineTop = relativeTargetLine
     clearDataDisplays()
-  }
-
-  function scrolledToEnd(_: Event) {
-    if ($viewportFollowingByteCount > 0) {
-      // top the display must be the last page of the current viewport, plus one line
-      const topOfLastPagePlusOneLine =
-        $viewportEndOffset +
-        $bytesPerRow -
-        $viewportNumLinesDisplayed * $bytesPerRow
-
-      vscode.postMessage({
-        command: MessageCommand.scrollViewport,
-        data: {
-          // scroll the viewport with the desired offset in the middle
-          scrollOffset: $viewportEndOffset - Math.floor($viewportCapacity / 2),
-          bytesPerRow: $bytesPerRow,
-          numLinesDisplayed: $viewportNumLinesDisplayed,
-        },
-      })
-      seek(topOfLastPagePlusOneLine)
-    }
-  }
-
-  function scrolledToTop(_: Event) {
-    if ($viewportStartOffset > 0) {
-      // offset to scroll to after the viewport is scrolled, which should be the previous line in the file
-      const topOfFirstPageMinusOneLine = $viewportStartOffset - $bytesPerRow
-      vscode.postMessage({
-        command: MessageCommand.scrollViewport,
-        data: {
-          // scroll the viewport with the desired offset in the middle
-          scrollOffset: Math.max(
-            topOfFirstPageMinusOneLine - Math.floor($viewportCapacity / 2),
-            0
-          ),
-          bytesPerRow: $bytesPerRow,
-          numLinesDisplayed: $viewportNumLinesDisplayed,
-        },
-      })
-      seek(topOfFirstPageMinusOneLine)
-    }
   }
 
   function seekEventHandler(_: CustomEvent) {
@@ -278,6 +232,7 @@ limitations under the License.
     searchQuery.clear()
     clearSearchResultsHighlights()
   }
+
   function handleKeyBind(event: Event) {
     const kbdEvent = event as KeyboardEvent
     if (kbdEvent.key === 'Enter') {
@@ -325,15 +280,6 @@ limitations under the License.
         break
     }
   })
-
-  function scrollBoundaryEventHandler(e: CustomEvent) {
-    if (e.detail.scrolledTop) {
-      scrolledToTop(e)
-    }
-    if (e.detail.scrolledEnd) {
-      scrolledToEnd(e)
-    }
-  }
 </script>
 
 <svelte:window on:keydown|nonpassive={handleKeyBind} />
@@ -350,9 +296,6 @@ limitations under the License.
     on:clearDataDisplays={clearDataDisplays}
     on:applyChanges={custom_apply_changes}
     on:handleEditorEvent={handleEditorEvent}
-    on:scrolledToTop={scrolledToTop}
-    on:scrolledToEnd={scrolledToEnd}
-    on:scrollBoundary={scrollBoundaryEventHandler}
     on:traverse-file={traversalEventHandler}
     on:seek={seekEventHandler}
   />

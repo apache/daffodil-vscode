@@ -15,8 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { MessageCommand } from '../../utilities/message'
   import FlexContainer from '../layouts/FlexContainer.svelte'
+  import { MessageCommand } from '../../utilities/message'
 
   let heartbeat = {
     latency: 0,
@@ -28,7 +28,7 @@ limitations under the License.
     serverVersion: 'Unknown',
     sessionCount: 0,
   }
-  let timerId: number = 0
+  let timerId: NodeJS.Timeout
 
   function showHeartbeatInfo(show: boolean) {
     const element = document.getElementsByClassName(

@@ -32,17 +32,16 @@ limitations under the License.
     addressRadix,
     rerenderActionElements,
     focusedViewportId,
+    editorActionsAllowed,
+    bytesPerRow,
   } from '../../../stores'
   import { enterKeypressEvents } from '../../../utilities/enterKeypressEvents'
-  import { bytesPerRow, type ByteValue, type EditAction } from './BinaryData'
+  import type { ByteValue, EditAction } from './BinaryData'
   import {
     UIThemeCSSClass,
     type CSSThemeClass,
   } from '../../../utilities/colorScheme'
-  import {
-    EditActionRestrictions,
-    editorActionsAllowed,
-  } from '../../../stores/configuration'
+  import { EditActionRestrictions } from '../../../stores/configuration'
 
   const eventDispatcher = createEventDispatcher()
 
@@ -55,6 +54,7 @@ limitations under the License.
     id: string
     position: ActionElementPosition
     HTMLRef: HTMLDivElement | HTMLInputElement
+    render: boolean
   }
   type ActionElements = {
     [k in Actions]: ActionElement
@@ -63,21 +63,25 @@ limitations under the License.
     input: {
       id: 'binary-action-input',
       HTMLRef: undefined as HTMLInputElement,
+      render: true,
       position: { viewportLine: -1, viewportByteIndex: -1 },
     },
     'insert-before': {
       id: 'binary-action-before',
       HTMLRef: undefined,
+      render: true,
       position: { viewportLine: -1, viewportByteIndex: -1 },
     },
     'insert-after': {
       id: 'binary-action-after',
       HTMLRef: undefined,
+      render: true,
       position: { viewportLine: -1, viewportByteIndex: -1 },
     },
     delete: {
       id: 'binary-action-delete',
       HTMLRef: undefined,
+      render: true,
       position: { viewportLine: -1, viewportByteIndex: -1 },
     },
   }
@@ -210,7 +214,10 @@ limitations under the License.
             previousByteId
           ) as HTMLDivElement
 
-          if (!elementToReplace) break
+          if (!elementToReplace) {
+            actionElements[element].render = false
+            break
+          }
 
           targetParent.contains(elementToReplace)
             ? apply_element_replacements(
@@ -236,7 +243,10 @@ limitations under the License.
             nextByteId
           ) as HTMLDivElement
 
-          if (!elementToReplace) break
+          if (!elementToReplace) {
+            actionElements[element].render = false
+            break
+          }
 
           targetParent.contains(elementToReplace)
             ? apply_element_replacements(
@@ -297,36 +307,33 @@ limitations under the License.
   function byteOffsetToElementId(byteOffset: number): string {
     return $focusedViewportId + '-' + byteOffset.toString()
   }
-  function element_byteline_position(
-    targetElement: HTMLDivElement
-  ): number | undefined {
-    const index = parseInt(targetElement.id) + 1
-    return index % BPR
-  }
 </script>
 
 {#if $editorActionsAllowed == EditActionRestrictions.None}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div
-    class="insert-before {themeClass}"
-    id={actionElements['insert-before'].id}
-    style:width={elementDivWidth}
-    on:click={send_insert}
-  >
-    &#8676;
-  </div>
-
+  {#if actionElements['insert-before'].render}
+    <div
+      class="insert-before {themeClass}"
+      id={actionElements['insert-before'].id}
+      style:width={elementDivWidth}
+      on:click={send_insert}
+    >
+      &#8676;
+    </div>
+  {/if}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div
-    class="insert-after {themeClass}"
-    id={actionElements['insert-after'].id}
-    style:width={elementDivWidth}
-    on:click={send_insert}
-  >
-    &#8677;
-  </div>
+  {#if actionElements['insert-after'].render}
+    <div
+      class="insert-after {themeClass}"
+      id={actionElements['insert-after'].id}
+      style:width={elementDivWidth}
+      on:click={send_insert}
+    >
+      &#8677;
+    </div>
+  {/if}
 
   <span>
     <input

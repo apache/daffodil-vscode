@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { createEventDispatcher, onMount, tick } from 'svelte'
+  import { createEventDispatcher, onMount } from 'svelte'
   import {
     editedDataSegment,
     editMode,
@@ -24,6 +24,10 @@ limitations under the License.
     seekOffsetInput,
     selectionDataStore,
     selectionSize,
+    selectedByte,
+    fileMetrics,
+    searchQuery,
+    editorActionsAllowed,
   } from '../../../stores'
   import {
     EditByteModes,
@@ -31,18 +35,15 @@ limitations under the License.
     VIEWPORT_CAPACITY_MAX,
     type BytesPerRow,
     type RadixValues,
-    editorActionsAllowed,
     EditActionRestrictions,
   } from '../../../stores/configuration'
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
-  import { fileMetrics } from '../../Header/fieldsets/FileMetrics'
   import Button from '../../Inputs/Buttons/Button.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import {
     byte_value_string,
     null_byte,
-    selectedByte,
     type ByteSelectionEvent,
     type ByteValue,
     type ViewportData_t,
@@ -63,7 +64,6 @@ limitations under the License.
     searchResultsHighlights,
     updateSearchResultsHighlights,
   } from '../../../utilities/highlights'
-  import { searchQuery } from '../../Header/fieldsets/SearchReplace'
 
   export let lineTop: number
   export let awaitViewportScroll: boolean
@@ -119,7 +119,6 @@ limitations under the License.
   let totalLinesPerViewport = 0
   let lineTopMaxViewport = 64
   let lineTopMaxFile = 64
-  let viewportFileSegment = 1
   let atViewportHead = true
   let atViewportTail = false
   let atFileHead = true
@@ -168,7 +167,6 @@ limitations under the License.
       totalLinesPerViewport - NUM_LINES_DISPLAYED,
       0
     )
-    viewportFileSegment = viewportData.fileOffset / viewportData.length + 1
 
     atViewportHead = lineTop === 0
     atViewportTail = lineTop === lineTopMaxViewport
@@ -360,7 +358,6 @@ limitations under the License.
         ? selectionEvent.targetByte
         : null_byte()
 
-    // update_byte_action_offsets(selectionEvent.targetElement)
     selectedByteElement = selectionEvent.targetElement
 
     editedDataSegment.update(() => {
@@ -468,10 +465,7 @@ limitations under the License.
 
 <div class="container" style:height id={CONTAINER_ID}>
   {#each viewportLines as viewportLine, i}
-    <div
-      class={`line ${viewportLine.highlight} ${themeClass}`}
-      title={`file line #${viewportLine.fileLine}`}
-    >
+    <div class={`line ${viewportLine.highlight} ${themeClass}`}>
       <div class="address" id="address">
         <b>{viewportLine.offset}</b>
       </div>
