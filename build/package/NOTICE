@@ -437,3 +437,8 @@ The following NOTICE information applies to binary components distributed with t
     * LOCATION_IN_GRPC:
       * xds/third_party/udpa
 
+- @omega-edit/client
+- @omega-edit/server
+- @omega-edit/server/bin
+  Ωedit
+  Copyright 2021-2022 Concurrent Technologies Corporation

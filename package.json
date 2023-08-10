@@ -46,11 +46,10 @@
     "svelte:check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
-    "@vscode/debugadapter": "1.59.0",
     "@omega-edit/client": "0.9.70",
+    "@vscode/debugadapter": "1.59.0",
     "await-notify": "1.0.1",
     "hexy": "0.3.4",
-    "nodemon": "^3.0.1",
     "unzip-stream": "0.3.1",
     "uuid": "9.0.0",
     "wait-port": "1.0.4",
@@ -74,6 +73,7 @@
     "glob": "8.0.3",
     "mini-css-extract-plugin": "^2.7.6",
     "mocha": "10.2.0",
+    "nodemon": "^3.0.1",
     "prettier": "2.8.8",
     "prettier-plugin-svelte": "^2.9.0",
     "run-func": "^3.0.0",
