@@ -10,17 +10,20 @@ Based on source code originally developed by
 
 The following binary components distributed with this project are licensed under the Apache License v2 but do not include NOTICE files in their repositories:
 
+- '@grpc/grpc-js' in node_modules/@omega-edit/client
 - '@grpc/grpc-js' in extension/dist/ext/extension.js
   This product bundles '@grpc/grpc-js' from the above files.
   This package is available under the Apache License v2 without a NOTICE:
         Repository at: https://github.com/grpc/grpc-node/tree/master
 
+- '@grpc/proto-loader' in node_modules/@omega-edit/client
 - '@grpc/proto-loader' in extension/dist/ext/extension.js
   This product bundles '@grpc/proto-loader' from the above files.
     This package is available under the Apache License v2 without a NOTICE:
         Repository at: https://github.com/grpc/grpc-node
 
 - 'long' in extension/dist/ext/extension.js
+- 'long' in node_modules/@omega-edit/client
   This product bundles 'long' from the above files.
   This package is available under the Apache License v2 without a NOTICE:
         Repository at: https://github.com/dcodeIO/long.js
