@@ -121,7 +121,7 @@ class HeartbeatInfo implements IHeartbeatInfo {
 let activeSessions: string[] = []
 let checkpointPath: string = ''
 let client: EditorClient
-let getHeartbeatIntervalId: NodeJS.Timeout | undefined = undefined
+let getHeartbeatIntervalId: NodeJS.Timeout | number | undefined = undefined
 let heartbeatInfo: IHeartbeatInfo = new HeartbeatInfo()
 let omegaEditPort: number = 0
 
@@ -153,7 +153,8 @@ export class DataEditorClient implements vscode.Disposable {
   private omegaSessionId = ''
   private contentType = ''
   private fileSize = 0
-  private sendHeartbeatIntervalId: NodeJS.Timeout | undefined = undefined
+  private sendHeartbeatIntervalId: NodeJS.Timeout | number | undefined =
+    undefined
 
   constructor(
     protected context: vscode.ExtensionContext,

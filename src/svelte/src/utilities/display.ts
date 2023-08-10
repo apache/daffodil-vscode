@@ -58,15 +58,14 @@ export function radixBytePad(radix: RadixValues): number {
 export function radixToString(radix: RadixValues): string {
   switch (radix) {
     case 2:
-      return 'binary'
+      return 'bin'
     case 8:
-      return 'octal'
+      return 'oct'
     case 10:
-      return 'decimal'
+      return 'dec'
     case 16:
       return 'hex'
   }
-  return 'binary'
 }
 
 export function byteDivWidthFromRadix(radix: RadixValues): ByteDivWidth {
