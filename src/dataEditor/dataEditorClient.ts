@@ -385,7 +385,7 @@ export class DataEditorClient implements vscode.Disposable {
         }
         break
 
-      case MessageCommand.commit:
+      case MessageCommand.applyChanges:
         await edit(
           this.omegaSessionId,
           message.data.offset,
@@ -395,12 +395,12 @@ export class DataEditorClient implements vscode.Disposable {
         await this.sendChangesInfo()
         break
 
-      case MessageCommand.undo:
+      case MessageCommand.undoChange:
         await undo(this.omegaSessionId)
         await this.sendChangesInfo()
         break
 
-      case MessageCommand.redo:
+      case MessageCommand.redoChange:
         await redo(this.omegaSessionId)
         await this.sendChangesInfo()
         break
@@ -426,7 +426,7 @@ export class DataEditorClient implements vscode.Disposable {
         }
         break
 
-      case MessageCommand.clear:
+      case MessageCommand.clearChanges:
         if (
           (await vscode.window.showInformationMessage(
             'Are you sure you want to revert all changes?',

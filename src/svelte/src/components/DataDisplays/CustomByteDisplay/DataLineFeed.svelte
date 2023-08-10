@@ -460,7 +460,7 @@ limitations under the License.
     <SelectedByteEdit
       byte={$selectedByte}
       on:seek
-      on:commitChanges
+      on:applyChanges
       on:handleEditorEvent
     />
   {/key}

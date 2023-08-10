@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { commitErrMsg, committable, editMode } from '../../../stores'
+  import { applyErrMsg, applicable, editMode } from '../../../stores'
   import { EditByteModes } from '../../../stores/configuration'
   import { createEventDispatcher } from 'svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
@@ -23,8 +23,8 @@ limitations under the License.
   import { type EditEvent } from '../CustomByteDisplay/BinaryData'
   const eventDispatcher = createEventDispatcher()
 
-  function commitChanges(event: Event) {
-    eventDispatcher('commitChanges', {
+  function applyChanges(event: Event) {
+    eventDispatcher('applyChanges', {
       action: 'insert-replace',
     } as EditEvent)
   }
@@ -33,21 +33,21 @@ limitations under the License.
 <fieldset class="box margin-top">
   <legend
     >Content Controls
-    {#if !$committable && $editMode === EditByteModes.Multiple}
-      <span class="errMsg">{$commitErrMsg}</span>
+    {#if !$applicable && $editMode === EditByteModes.Multiple}
+      <span class="errMsg">{$applyErrMsg}</span>
     {/if}
   </legend>
   {#if $editMode === EditByteModes.Multiple}
     <FlexContainer>
       <Button
-        disabledBy={!$committable}
-        fn={commitChanges}
-        description="Commit changes"
+        disabledBy={!$applicable}
+        fn={applyChanges}
+        description="Apply changes"
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >commit</span
         >
-        <span slot="default">&nbsp;Commit</span>
+        <span slot="default">&nbsp;Apply</span>
       </Button>
     </FlexContainer>
   {/if}

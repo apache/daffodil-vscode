@@ -57,11 +57,11 @@ limitations under the License.
     />
 
     <FlexContainer>
-      <ContentControls on:commitChanges />
+      <ContentControls on:applyChanges />
     </FlexContainer>
   {:else}
     <FlexContainer>
-      <DataView on:commitChanges />
+      <DataView on:applyChanges />
     </FlexContainer>
   {/if}
 </div>

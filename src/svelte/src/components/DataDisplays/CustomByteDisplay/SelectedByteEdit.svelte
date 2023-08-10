@@ -26,8 +26,8 @@ limitations under the License.
     displayRadix,
     editByte,
     selectionDataStore,
-    commitErrMsg,
-    committable,
+    applyErrMsg,
+    applicable,
     seekOffsetInput,
     addressRadix,
     rerenderActionElements,
@@ -86,7 +86,7 @@ limitations under the License.
     id: actionElements.input.id,
     run: () => {
       if (invalid || inProgress) return
-      commitChanges('byte-input')
+      applyChanges('byte-input')
     },
   })
 
@@ -117,15 +117,15 @@ limitations under the License.
   }
   $: {
     if (
-      !$committable &&
-      $commitErrMsg.length > 0 &&
+      !$applicable &&
+      $applyErrMsg.length > 0 &&
       $editorSelection.length >= radixBytePad($displayRadix)
     ) {
       invalid = true
       inProgress = false
     } else if (
-      !$committable &&
-      $commitErrMsg.length > 0 &&
+      !$applicable &&
+      $applyErrMsg.length > 0 &&
       $editorSelection.length < radixBytePad($displayRadix)
     ) {
       invalid = false
@@ -190,7 +190,7 @@ limitations under the License.
   }
 
   function send_delete(_: Event) {
-    commitChanges('delete')
+    applyChanges('delete')
   }
 
   function setup_action_element(element: Actions) {
@@ -269,15 +269,15 @@ limitations under the License.
     const target = event.target as HTMLElement
     switch (target.id) {
       case actionElements['insert-after'].id:
-        commitChanges('insert-after')
+        applyChanges('insert-after')
         break
       case actionElements['insert-before'].id:
-        commitChanges('insert-before')
+        applyChanges('insert-before')
         break
     }
   }
 
-  function commitChanges(action: EditAction) {
+  function applyChanges(action: EditAction) {
     if (action === 'byte-input') {
       update_selectedByte({
         text: $editorSelection,
@@ -286,7 +286,7 @@ limitations under the License.
       })
     }
 
-    eventDispatcher('commitChanges', {
+    eventDispatcher('applyChanges', {
       byte: byte,
       action: action,
     })

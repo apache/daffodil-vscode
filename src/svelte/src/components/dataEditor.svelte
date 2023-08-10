@@ -213,7 +213,7 @@ limitations under the License.
     requestEditedData()
   }
 
-  function custom_commit_changes(event: CustomEvent<EditEvent>) {
+  function custom_apply_changes(event: CustomEvent<EditEvent>) {
     const action = event.detail.action
 
     let editedData: Uint8Array
@@ -239,7 +239,7 @@ limitations under the License.
     }
 
     vscode.postMessage({
-      command: MessageCommand.commit,
+      command: MessageCommand.applyChanges,
       data: {
         offset: editedOffset,
         originalSegment: originalData,
@@ -252,19 +252,19 @@ limitations under the License.
 
   function undo() {
     vscode.postMessage({
-      command: MessageCommand.undo,
+      command: MessageCommand.undoChange,
     })
   }
 
   function redo() {
     vscode.postMessage({
-      command: MessageCommand.redo,
+      command: MessageCommand.redoChange,
     })
   }
 
   function clearChangeStack() {
     vscode.postMessage({
-      command: MessageCommand.clear,
+      command: MessageCommand.clearChanges,
     })
   }
 
@@ -348,7 +348,7 @@ limitations under the License.
 
   <Main
     on:clearDataDisplays={clearDataDisplays}
-    on:commitChanges={custom_commit_changes}
+    on:applyChanges={custom_apply_changes}
     on:handleEditorEvent={handleEditorEvent}
     on:scrolledToTop={scrolledToTop}
     on:scrolledToEnd={scrolledToEnd}
