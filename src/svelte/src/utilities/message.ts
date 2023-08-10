@@ -16,13 +16,13 @@
  */
 
 export enum MessageCommand {
-  clear,
-  commit,
+  clearChanges,
+  applyChanges,
   editorOnChange,
   fileInfo,
   heartbeat,
   profile,
-  redo,
+  redoChange,
   replaceResults,
   requestEditedData,
   save,
@@ -33,7 +33,7 @@ export enum MessageCommand {
   searchResults,
   setUITheme,
   showMessage,
-  undo,
+  undoChange,
   updateLogicalDisplay,
   viewportRefresh,
 }

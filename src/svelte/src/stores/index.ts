@@ -76,8 +76,8 @@ export const UITheme = writable(ThemeType.Dark)
 // address radix to use for the UI (2, 8, 10, 16)
 export const addressRadix = writable(16 as RadixValues)
 
-// populated when there is a commit error
-export const commitErrMsg = writable('')
+// populated when there is a apply error
+export const applyErrMsg = writable('')
 
 // endianness to use for the data view ('le' or 'be' for little or big endian respectively)
 export const dataViewEndianness = writable('le')
@@ -253,7 +253,7 @@ export const requestable = derived(
       $editMode,
       $displayRadix
     )
-    commitErrMsg.update(() => {
+    applyErrMsg.update(() => {
       return ret.errMsg
     })
     return ret.valid
@@ -272,8 +272,8 @@ export const originalDataSegment = derived(
   }
 )
 
-// derived readable boolwan that indicates if the edited selection is committable
-export const committable = derived(
+// derived readable boolean that indicates if the edited selection is applicable
+export const applicable = derived(
   [
     requestable,
     viewport,

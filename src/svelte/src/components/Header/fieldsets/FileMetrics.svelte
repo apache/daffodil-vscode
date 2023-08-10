@@ -187,14 +187,14 @@ limitations under the License.
   <FlexContainer>
     <FlexContainer --dir="column" --align-items="center">
       <FlexContainer --dir="row">
-        <Button disabledBy={!canRedo} fn={redo} description="Redo commit">
+        <Button disabledBy={!canRedo} fn={redo} description="Redo change">
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">redo</span>
             <div class="icon-badge">{$fileMetrics.undoCount}</div>
           </span>
           <span slot="default">&nbsp;Redo</span>
         </Button>
-        <Button disabledBy={!canUndo} fn={undo} description="Undo commit">
+        <Button disabledBy={!canUndo} fn={undo} description="Undo change">
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">undo</span>
             <div class="icon-badge">{$fileMetrics.changeCount}</div>
@@ -204,7 +204,7 @@ limitations under the License.
         <Button
           disabledBy={!canRevert}
           fn={clearChangeStack}
-          description="Revert all commits"
+          description="Revert all changes"
         >
           <span slot="left" class="btn-icon material-symbols-outlined"
             >restart_alt</span

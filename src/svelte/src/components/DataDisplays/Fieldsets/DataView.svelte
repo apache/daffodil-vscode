@@ -118,7 +118,7 @@ limitations under the License.
       editedDataSegment.update(() => {
         return new Uint8Array(dv.buffer, 0, byteSize)
       })
-      eventDispatcher('commitChanges', {
+      eventDispatcher('applyChanges', {
         byte: $selectedByte,
         action: 'insert-replace',
       })

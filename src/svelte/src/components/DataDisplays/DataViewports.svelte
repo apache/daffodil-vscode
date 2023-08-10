@@ -101,7 +101,7 @@ limitations under the License.
 <DataLineFeed
   on:traverse-file
   on:seek
-  on:commitChanges
+  on:applyChanges
   on:handleEditorEvent
   viewportData={$viewport}
   lineTop={$dataFeedLineTop}
