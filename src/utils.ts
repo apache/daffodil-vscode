@@ -22,7 +22,6 @@ import * as child_process from 'child_process'
 import path from 'path'
 import { VSCodeLaunchConfigArgs } from './classes/vscode-launch'
 
-const defaultConf = vscode.workspace.getConfiguration()
 let currentConfig: vscode.DebugConfiguration
 
 const terminalName = 'daffodil-debugger'
@@ -84,6 +83,8 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
   const launchConfigArgs: VSCodeLaunchConfigArgs = JSON.parse(
     JSON.stringify(jsonArgs)
   )
+  // NOTE: Don't make this a static value as extension configuration may change while the extension is loaded.
+  const defaultConf = vscode.workspace.getConfiguration()
 
   const defaultValues = {
     program: defaultConf.get('program', '${command:AskForProgramName}'),
