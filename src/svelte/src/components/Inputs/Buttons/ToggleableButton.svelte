@@ -19,9 +19,9 @@ limitations under the License.
   export let disabledBy = false
   export let width = ''
   export let active = false
-  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
-  import FlexContainer from '../../layouts/FlexContainer.svelte'
   import Tooltip from '../../layouts/Tooltip.svelte'
+  import FlexContainer from '../../layouts/FlexContainer.svelte'
+  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
 
   export let description: string
 </script>

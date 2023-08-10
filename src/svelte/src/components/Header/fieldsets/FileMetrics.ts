@@ -24,10 +24,8 @@ class FileMetricsData {
   undoCount: number = 0
 }
 
-class FileMetrics extends SimpleWritable<FileMetricsData> {
+export class FileMetrics extends SimpleWritable<FileMetricsData> {
   protected init(): FileMetricsData {
     return new FileMetricsData()
   }
 }
-
-export const fileMetrics = new FileMetrics()

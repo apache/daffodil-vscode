@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { writable } from 'svelte/store'
-
 export type Radixes = 'Hexadecimal' | 'Decimal' | 'Octal' | 'Binary'
 
 export type RadixValues = 16 | 10 | 8 | 2
@@ -115,5 +113,3 @@ export const VIEWPORT_CAPACITY_MAX = 16 * 64 // 1024, Ωedit maximum viewport si
 export const NUM_LINES_DISPLAYED = 20
 
 export const DATA_PROFILE_MAX_LENGTH = 10_000_000
-
-export const editorActionsAllowed = writable(EditActionRestrictions.None)

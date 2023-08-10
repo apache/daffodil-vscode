@@ -15,14 +15,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
+  import Tooltip from '../../layouts/Tooltip.svelte'
+  import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { onMount } from 'svelte'
+  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
+  import { tooltipsEnabled } from '../../../stores'
   export let fn: (event?: Event) => void
   export let disabledBy = false
   export let width = ''
-  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
-  import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import Tooltip from '../../layouts/Tooltip.svelte'
-  import { tooltipsEnabled } from '../../../utilities/display'
 
   onMount(() => {
     collapseContent = document.body.clientWidth <= 1600

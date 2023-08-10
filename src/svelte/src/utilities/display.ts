@@ -13,18 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { writable } from 'svelte/store'
 import {
   EditByteModes,
   type BytesPerRow,
   type RadixValues,
 } from '../stores/configuration'
-
-export type ViewportReferences = {
-  physical: HTMLTextAreaElement
-  address: HTMLTextAreaElement
-  logical: HTMLTextAreaElement
-}
 
 export type Viewport = 'physical' | 'address' | 'logical'
 
@@ -45,29 +38,8 @@ const ByteDivWidths = {
 }
 
 export type BinaryBytePrefix = 'B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB'
+
 export type BinaryBitPrefix = 'b' | 'Kb' | 'Mb' | 'Gb' | 'Tb' | 'Pb'
-type ValidByteOctetCount = 1 | 2 | 3 | 4
-
-export const DISPLAYED_DATA_LINES = 20
-
-export const tooltipsEnabled = writable(false)
-export const sizeHumanReadable = writable(false)
-
-export function viewport_references(
-  viewport?: Viewport
-): ViewportReferences | HTMLTextAreaElement {
-  return viewport
-    ? (document.getElementById(viewport) as HTMLTextAreaElement)
-    : {
-        physical: document.getElementById('physical') as HTMLTextAreaElement,
-        address: document.getElementById('address') as HTMLTextAreaElement,
-        logical: document.getElementById('logical') as HTMLTextAreaElement,
-      }
-}
-
-export function edit_byte_window_ref(): HTMLDivElement {
-  return document.getElementById('editByteWindow') as HTMLDivElement
-}
 
 export function radixBytePad(radix: RadixValues): number {
   switch (radix) {
