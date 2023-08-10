@@ -23,6 +23,7 @@ limitations under the License.
     seekOffsetInput,
     selectionDataStore,
     selectionSize,
+    viewportStartOffset,
   } from '../../../stores'
   import {
     EditByteModes,
@@ -60,8 +61,8 @@ limitations under the License.
 
   $: selectionOffsetText = setSelectionOffsetInfo(
     'Selection',
-    $selectionDataStore.startOffset,
-    $selectionDataStore.endOffset,
+    $viewportStartOffset + $selectionDataStore.startOffset,
+    $viewportStartOffset + $selectionDataStore.endOffset,
     $selectionSize,
     $addressRadix
   )

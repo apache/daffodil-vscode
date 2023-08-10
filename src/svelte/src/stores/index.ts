@@ -376,10 +376,12 @@ function validRequestableData(
 }
 
 export const dvOffset = derived(
-  [selectionDataStore, addressRadix],
-  ([$selectionData, $addressRadix]) => {
+  [viewportStartOffset, selectionDataStore, addressRadix],
+  ([$viewportStartOffset, $selectionData, $addressRadix]) => {
     return $selectionData.active
-      ? $selectionData.startOffset.toString($addressRadix).toUpperCase()
+      ? ($viewportStartOffset + $selectionData.startOffset)
+          .toString($addressRadix)
+          .toUpperCase()
       : ''
   }
 )
