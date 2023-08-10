@@ -34,7 +34,7 @@
     "scalawatch": "nodemon --config debugger/nodemon.json",
     "prewatch": "yarn gen-version-ts && yarn sbt",
     "watch": "run-func build/yarn-scripts.ts watch",
-    "watch:svelte": "yarn webpack -w -c ./src/svelte/webpack.config.js",
+    "watch:svelte": "yarn webpack --env development=true -w -c ./src/svelte/webpack.config.js",
     "webpack": "webpack --mode production --config ./webpack/ext-dev.webpack.config.js",
     "webpack:pkg": "webpack --mode production --config ./webpack/ext-package.webpack.config.js",
     "webpack:svelte": "webpack -c ./src/svelte/webpack.config.js",
