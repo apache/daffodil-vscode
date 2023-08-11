@@ -21,6 +21,7 @@ import { getConfig, osCheck } from '../utils'
 import { DFDLDebugger } from '../classes/dfdlDebugger'
 import { VSCodeLaunchConfigArgs } from '../classes/vscode-launch'
 import { DataEditorConfig } from '../classes/dataEditor'
+import { parse as jsoncParse } from 'jsonc-parser'
 
 const defaultConf = getConfig({
   name: 'Wizard Config',
@@ -84,7 +85,7 @@ async function createUpdateConfigFile(data, updateOrCreate) {
   }
 
   let newConf = JSON.parse(data).configurations[0]
-  let fileData = JSON.parse(
+  let fileData = jsoncParse(
     fs.readFileSync(`${rootPath}/.vscode/launch.json`).toString()
   )
 
@@ -146,7 +147,7 @@ async function updateWebViewConfigValues(configIndex) {
   let fileData =
     configIndex === -1
       ? null
-      : JSON.parse(
+      : jsoncParse(
           fs.readFileSync(`${rootPath}/.vscode/launch.json`).toString()
         )
 
@@ -314,7 +315,7 @@ class LaunchWizard {
     let fileData = JSON.parse('{}')
 
     if (fs.existsSync(`${rootPath}/.vscode/launch.json`)) {
-      fileData = JSON.parse(
+      fileData = jsoncParse(
         fs.readFileSync(`${rootPath}/.vscode/launch.json`).toString()
       )
 
