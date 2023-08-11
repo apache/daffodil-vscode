@@ -12,8 +12,9 @@
 const path = require('path')
 const unzip = require('unzip-stream')
 const fs = require('fs')
+const jsoncParse = require('jsonc-parser').parse
 
-const packageData = JSON.parse(
+const packageData = jsoncParse(
   fs.readFileSync(path.resolve('package.json')).toString()
 )
 const pkg_version = packageData['version']

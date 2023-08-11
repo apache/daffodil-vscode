@@ -26,10 +26,11 @@ const path = require('path')
 const unzip = require('unzip-stream')
 const fs = require('fs')
 const CopyPlugin = require('copy-webpack-plugin')
+const jsoncParse = require('jsonc-parser').parse
 
 const pkg_dir = path.resolve('dist/package')
 
-const packageData = JSON.parse(
+const packageData = jsoncParse(
   fs.readFileSync(path.resolve('package.json')).toString()
 )
 const pkg_version = packageData['version']

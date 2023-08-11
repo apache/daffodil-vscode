@@ -29,7 +29,7 @@ import {
 // Function to display an infomation message that the infoset file has been created
 // If the user wishes to open the file then they may click the 'Open' button
 async function openInfosetFilePrompt() {
-  let config = JSON.parse(JSON.stringify(getCurrentConfig()))
+  let config = getCurrentConfig()
 
   if (config.infosetOutput.type === 'file') {
     let rootPath = vscode.workspace.workspaceFolders

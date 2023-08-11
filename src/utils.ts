@@ -57,7 +57,7 @@ export function runCommand(command: string) {
 // Function for checking if config specifies if either the
 // infoset, infoset diff or hex view needs to be opened
 export async function onDebugStartDisplay(viewsToCheck: string[]) {
-  let config = JSON.parse(JSON.stringify(getCurrentConfig()))
+  let config = getCurrentConfig()
 
   viewsToCheck.forEach(async (viewToCheck) => {
     switch (viewToCheck) {

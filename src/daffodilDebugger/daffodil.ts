@@ -16,6 +16,7 @@
  */
 
 import * as fs from 'fs'
+import { parse as jsoncParse } from 'jsonc-parser'
 
 export const dataEvent = 'daffodil.data'
 export interface DaffodilData {
@@ -56,5 +57,5 @@ export interface BuildInfo {
 }
 
 export function getDaffodilVersion(filePath: fs.PathLike) {
-  return JSON.parse(fs.readFileSync(filePath).toString())['daffodilVersion']
+  return jsoncParse(fs.readFileSync(filePath).toString())['daffodilVersion']
 }
