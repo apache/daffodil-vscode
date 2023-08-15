@@ -35,7 +35,7 @@ limitations under the License.
     editorActionsAllowed,
     bytesPerRow,
   } from '../../../stores'
-  import { enterKeypressEvents } from '../../../utilities/enterKeypressEvents'
+  import { elementKeypressEventMap } from '../../../utilities/elementKeypressEvents'
   import type { ByteValue, EditAction } from './BinaryData'
   import {
     UIThemeCSSClass,
@@ -86,14 +86,6 @@ limitations under the License.
     },
   }
 
-  enterKeypressEvents.register({
-    id: actionElements.input.id,
-    run: () => {
-      if (invalid || inProgress) return
-      applyChanges('byte-input')
-    },
-  })
-
   export let byte: ByteValue
   let target: HTMLDivElement
   let targetParent: HTMLDivElement
@@ -140,6 +132,23 @@ limitations under the License.
     }
   }
 
+  elementKeypressEventMap.register('Enter', {
+    elementId: actionElements.input.id,
+    run: (keyEvent: KeyboardEvent) => {
+      if (is_input_invalid() || is_input_inprogress()) return
+      if (keyEvent.shiftKey && !keyEvent.ctrlKey) applyChanges('insert-after')
+      else if (!keyEvent.shiftKey && keyEvent.ctrlKey)
+        applyChanges('insert-before')
+      else applyChanges('byte-input')
+    },
+  })
+  elementKeypressEventMap.register('Delete', {
+    elementId: actionElements.input.id,
+    run: (keyEvent: KeyboardEvent) => {
+      applyChanges('delete')
+    },
+  })
+
   onMount(() => {
     target = document.getElementById(targetElementId) as HTMLDivElement
     if (target) targetParent = target.parentElement as HTMLDivElement
@@ -159,7 +168,12 @@ limitations under the License.
 
     return restore_original_target
   })
-
+  function is_input_invalid() {
+    return invalid
+  }
+  function is_input_inprogress() {
+    return inProgress
+  }
   function grab_action_element_refs() {
     for (const element in actionElements)
       actionElements[element as Actions].HTMLRef = document.getElementById(
