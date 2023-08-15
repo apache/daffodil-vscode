@@ -20,12 +20,13 @@ limitations under the License.
   import { onMount } from 'svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import { tooltipsEnabled } from '../../../stores'
+  import { shouldCollapseContent } from '../../../utilities/display'
   export let fn: (event?: Event) => void
   export let disabledBy = false
   export let width = ''
 
   onMount(() => {
-    collapseContent = document.body.clientWidth <= 1600
+    collapseContent = shouldCollapseContent()
   })
 
   export let description = ''
@@ -38,7 +39,7 @@ limitations under the License.
   window.addEventListener('resize', () => {
     clearTimeout(collapseContentFn)
     collapseContentFn = setTimeout(() => {
-      collapseContent = document.body.clientWidth <= 1500
+      collapseContent = shouldCollapseContent()
     }, 100)
   })
 </script>

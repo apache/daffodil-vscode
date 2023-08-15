@@ -208,3 +208,9 @@ export function humanReadableByteLength(byteLength: number): string {
 
   return ret
 }
+
+export const CLIENT_WIDTH_COLLAPSE_THRESHOLD = 1500
+
+export function shouldCollapseContent(): boolean {
+  return document.body.clientWidth <= CLIENT_WIDTH_COLLAPSE_THRESHOLD
+}
