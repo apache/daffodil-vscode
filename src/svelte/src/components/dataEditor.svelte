@@ -48,7 +48,10 @@ limitations under the License.
   import Main from './Main.svelte'
   import { EditByteModes, NUM_LINES_DISPLAYED } from '../stores/configuration'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
-  import { enterKeypressEvents } from '../utilities/enterKeypressEvents'
+  import {
+    elementKeypressEventMap,
+    key_is_mappable,
+  } from '../utilities/elementKeypressEvents'
   import type {
     EditEvent,
     ViewportData_t,
@@ -235,8 +238,8 @@ limitations under the License.
 
   function handleKeyBind(event: Event) {
     const kbdEvent = event as KeyboardEvent
-    if (kbdEvent.key === 'Enter') {
-      enterKeypressEvents.run(document.activeElement.id)
+    if (key_is_mappable(kbdEvent.key)) {
+      elementKeypressEventMap.run(document.activeElement.id, kbdEvent)
       return
     }
     if ($editMode === EditByteModes.Multiple) return
