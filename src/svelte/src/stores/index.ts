@@ -227,7 +227,6 @@ export const editByte = derived(
         : $viewport.data[$selectionData.startOffset]
             .toString($displayRadix)
             .padStart(radixBytePad($displayRadix), '0')
-            .toUpperCase()
     }
     return ''
   }
@@ -401,9 +400,9 @@ export const dvOffset = derived(
   [selectionDataStore, addressRadix, viewport],
   ([$selectionData, $addressRadix, $viewport]) => {
     return $selectionData.active
-      ? ($viewport.fileOffset + $selectionData.startOffset)
-          .toString($addressRadix)
-          .toUpperCase()
+      ? ($viewport.fileOffset + $selectionData.startOffset).toString(
+          $addressRadix
+        )
       : ''
   }
 )
@@ -422,7 +421,7 @@ export const dvInt8 = derived(
   ([$selectionData, $dataView, $displayRadix]) => {
     const value =
       $selectionData.active && $dataView.byteLength >= 1
-        ? $dataView.getInt8(0).toString($displayRadix).toUpperCase()
+        ? $dataView.getInt8(0).toString($displayRadix)
         : ''
     return value && $displayRadix === 2 ? value.padStart(8, '0') : value
   }
@@ -433,7 +432,7 @@ export const dvUint8 = derived(
   ([$selectionData, $dataView, $displayRadix]) => {
     const value =
       $selectionData.active && $dataView.byteLength >= 1
-        ? $dataView.getUint8(0).toString($displayRadix).toUpperCase()
+        ? $dataView.getUint8(0).toString($displayRadix)
         : ''
     return value && $displayRadix === 2 ? value.padStart(8, '0') : value
   }
@@ -447,7 +446,6 @@ export const dvInt16 = derived(
         ? $dataView
             .getInt16(0, $dataViewEndianness === 'le')
             .toString($displayRadix)
-            .toUpperCase()
         : ''
     return value && $displayRadix === 2 ? value.padStart(16, '0') : value
   }
@@ -461,7 +459,6 @@ export const dvUint16 = derived(
         ? $dataView
             .getUint16(0, $dataViewEndianness === 'le')
             .toString($displayRadix)
-            .toUpperCase()
         : ''
     return value && $displayRadix === 2 ? value.padStart(16, '0') : value
   }
@@ -475,7 +472,6 @@ export const dvInt32 = derived(
         ? $dataView
             .getInt32(0, $dataViewEndianness === 'le')
             .toString($displayRadix)
-            .toUpperCase()
         : ''
     return value && $displayRadix === 2 ? value.padStart(32, '0') : value
   }
@@ -489,7 +485,6 @@ export const dvUint32 = derived(
         ? $dataView
             .getUint32(0, $dataViewEndianness === 'le')
             .toString($displayRadix)
-            .toUpperCase()
         : ''
     return value && $displayRadix === 2 ? value.padStart(32, '0') : value
   }
@@ -503,7 +498,6 @@ export const dvInt64 = derived(
         ? $dataView
             .getBigInt64(0, $dataViewEndianness === 'le')
             .toString($displayRadix)
-            .toUpperCase()
         : ''
     return value && $displayRadix === 2 ? value.padStart(64, '0') : value
   }
@@ -517,7 +511,6 @@ export const dvUint64 = derived(
         ? $dataView
             .getBigUint64(0, $dataViewEndianness === 'le')
             .toString($displayRadix)
-            .toUpperCase()
         : ''
     return value && $displayRadix === 2 ? value.padStart(64, '0') : value
   }
