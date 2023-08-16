@@ -30,6 +30,7 @@ limitations under the License.
   })
 
   export let description = ''
+  export let tooltipAlwaysEnabled = false
 
   let collapseContentFn: NodeJS.Timeout
   let collapseContent = false
@@ -44,8 +45,8 @@ limitations under the License.
   })
 </script>
 
-{#if collapseContent}
-  <Tooltip {description}>
+<Tooltip alwaysEnabled={tooltipAlwaysEnabled} {description}>
+  {#if collapseContent}
     <button
       class={$UIThemeCSSClass + ' collapsed'}
       disabled={disabledBy}
@@ -62,27 +63,27 @@ limitations under the License.
         </svelte:fragment>
       </FlexContainer>
     </button>
-  </Tooltip>
-{:else}
-  <button
-    class={$UIThemeCSSClass}
-    disabled={disabledBy}
-    on:click={!disabledBy ? fn : () => {}}
-    style:width
-  >
-    <FlexContainer
-      --dir="row"
-      --align-items="center"
-      --justify-content="center"
+  {:else}
+    <button
+      class={$UIThemeCSSClass}
+      disabled={disabledBy}
+      on:click={!disabledBy ? fn : () => {}}
+      style:width
     >
-      <svelte:fragment>
-        <slot name="left" />
-        <slot />
-        <slot name="right" />
-      </svelte:fragment>
-    </FlexContainer>
-  </button>
-{/if}
+      <FlexContainer
+        --dir="row"
+        --align-items="center"
+        --justify-content="center"
+      >
+        <svelte:fragment>
+          <slot name="left" />
+          <slot />
+          <slot name="right" />
+        </svelte:fragment>
+      </FlexContainer>
+    </button>
+  {/if}
+</Tooltip>
 
 <style lang="scss">
   button {
