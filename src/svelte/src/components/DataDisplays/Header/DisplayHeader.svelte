@@ -76,7 +76,7 @@ limitations under the License.
 
     if (displayRadix != RADIX_OPTIONS.Binary) {
       for (let i = 0; i < bytesPerRow; i++) {
-        ret.push(i.toString(addressRadix).padStart(2, '0').toUpperCase())
+        ret.push(i.toString(addressRadix).padStart(2, '0'))
       }
     } else {
       for (let i = 0; i < 8; i++) {

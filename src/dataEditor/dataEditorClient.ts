@@ -372,15 +372,12 @@ export class DataEditorClient implements vscode.Disposable {
             message.data.selectionData &&
             message.data.selectionData.length > 0
           ) {
-            const bufSlice = Buffer.from(message.data.selectionData)
-            const displayData = dataToEncodedStr(bufSlice, encodeDataAs)
-
             await this.panel.webview.postMessage({
               command: MessageCommand.editorOnChange,
-              display:
-                message.data.encoding === 'hex'
-                  ? displayData.toUpperCase()
-                  : displayData,
+              display: dataToEncodedStr(
+                Buffer.from(message.data.selectionData),
+                encodeDataAs
+              ),
             })
           }
         }

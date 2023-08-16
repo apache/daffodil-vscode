@@ -43,18 +43,22 @@ limitations under the License.
     const days = Math.floor(uptimeSeconds / (60 * 60 * 24))
     const hours = Math.floor((uptimeSeconds % (60 * 60 * 24)) / (60 * 60))
     const minutes = Math.floor((uptimeSeconds % (60 * 60)) / 60)
+    const seconds = Math.floor(uptimeSeconds % 60)
 
     let uptimeString = ''
     if (days > 0) {
-      uptimeString += `${days} days, `
+      uptimeString += days === 1 ? `${days} day, ` : `${days} days, `
     }
     if (hours > 0) {
-      uptimeString += `${hours} hours, `
+      uptimeString += hours === 1 ? `${hours} hour, ` : `${hours} hours, `
     }
     if (minutes > 0) {
-      uptimeString += `${minutes} minutes, `
+      uptimeString +=
+        minutes === 1 ? `${minutes} minute, ` : `${minutes} minutes, `
     }
-    return uptimeString + `${Math.floor(uptimeSeconds % 60)} seconds`
+    return uptimeString + (seconds === 1)
+      ? `${seconds} second`
+      : `${seconds} seconds`
   }
 
   window.addEventListener('message', (msg) => {
@@ -82,7 +86,7 @@ limitations under the License.
 <FlexContainer --height="25pt" --align-items="center">
   {#if heartbeat.serverTimestamp !== 0}
     <div class="info">
-      &#9889; Powered by Ωedit v{heartbeat.serverVersion} on port {heartbeat.omegaEditPort}
+      &#9889; Powered by Ωedit™ v{heartbeat.serverVersion} on port {heartbeat.omegaEditPort}
     </div>
     <FlexContainer>
       <svg
@@ -117,7 +121,7 @@ limitations under the License.
       </div>
     </FlexContainer>
   {:else}
-    <div class="info">&#9889; Powered by Ωedit (heartbeat not received)</div>
+    <div class="info">&#9889; Powered by Ωedit™ (heartbeat not received)</div>
   {/if}
 </FlexContainer>
 

@@ -574,6 +574,11 @@ limitations under the License.
   div.bar {
     width: 1px;
     background-color: gray;
+    opacity: 0.75;
+  }
+
+  div.bar:hover {
+    opacity: 1;
   }
 
   div.bar.low {
