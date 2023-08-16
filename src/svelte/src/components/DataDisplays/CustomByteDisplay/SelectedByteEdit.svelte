@@ -42,6 +42,7 @@ limitations under the License.
     type CSSThemeClass,
   } from '../../../utilities/colorScheme'
   import { EditActionRestrictions } from '../../../stores/configuration'
+  import Tooltip from '../../layouts/Tooltip.svelte'
 
   const eventDispatcher = createEventDispatcher()
 
@@ -290,7 +291,7 @@ limitations under the License.
   }
 
   function send_insert(event: Event) {
-    const target = event.target as HTMLElement
+    const target = event.currentTarget as HTMLElement
     switch (target.id) {
       case actionElements['insert-after'].id:
         applyChanges('insert-after')
@@ -324,31 +325,6 @@ limitations under the License.
 </script>
 
 {#if $editorActionsAllowed == EditActionRestrictions.None}
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  {#if actionElements['insert-before'].render}
-    <div
-      class="insert-before {themeClass}"
-      id={actionElements['insert-before'].id}
-      style:width={elementDivWidth}
-      on:click={send_insert}
-    >
-      &#8676;
-    </div>
-  {/if}
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  {#if actionElements['insert-after'].render}
-    <div
-      class="insert-after {themeClass}"
-      id={actionElements['insert-after'].id}
-      style:width={elementDivWidth}
-      on:click={send_insert}
-    >
-      &#8677;
-    </div>
-  {/if}
-
   <span>
     <input
       class="insert {themeClass}"
@@ -369,9 +345,40 @@ limitations under the License.
       style:width={elementDivWidth}
       on:click={send_delete}
     >
-      &#10006;
+      <Tooltip alwaysEnabled={true} description={'Delete byte'}>
+        &#10006;
+      </Tooltip>
     </div>
   </span>
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
+
+  {#if actionElements['insert-before'].render}
+    <div
+      class="insert-before {themeClass}"
+      id={actionElements['insert-before'].id}
+      style:width={elementDivWidth}
+      on:click={send_insert}
+    >
+      <Tooltip alwaysEnabled={true} description={'Insert as preceding byte'}>
+        &#8676;
+      </Tooltip>
+    </div>
+  {/if}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
+  {#if actionElements['insert-after'].render}
+    <div
+      class="insert-after {themeClass}"
+      id={actionElements['insert-after'].id}
+      style:width={elementDivWidth}
+      on:click={send_insert}
+    >
+      <Tooltip alwaysEnabled={true} description={'Insert as following byte'}>
+        &#8677;
+      </Tooltip>
+    </div>
+  {/if}
 {:else}
   <span>
     <input
@@ -436,7 +443,6 @@ limitations under the License.
   div.delete {
     font-size: 20px;
     line-height: 1;
-    z-index: 1;
   }
   div.insert-before,
   div.insert-after {

@@ -533,6 +533,7 @@ limitations under the License.
         disabledBy={disableIncrement}
         width="30pt"
         description="Navigate to EOF"
+        tooltipAlwaysEnabled={true}
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >stat_minus_3</span
@@ -544,6 +545,7 @@ limitations under the License.
         width="30pt"
         description="Increment offset by {NUM_LINES_DISPLAYED *
           bytesPerRow} bytes"
+        tooltipAlwaysEnabled={true}
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >keyboard_double_arrow_down</span
@@ -554,6 +556,7 @@ limitations under the License.
         disabledBy={disableIncrement}
         width="30pt"
         description="Increment offset by {bytesPerRow} bytes"
+        tooltipAlwaysEnabled={true}
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >keyboard_arrow_down</span
@@ -564,6 +567,7 @@ limitations under the License.
         disabledBy={disableDecrement}
         width="30pt"
         description="Decrement offset by {bytesPerRow} bytes"
+        tooltipAlwaysEnabled={true}
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >keyboard_arrow_up</span
@@ -575,6 +579,7 @@ limitations under the License.
         width="30pt"
         description="Decrement offset by {NUM_LINES_DISPLAYED *
           bytesPerRow} bytes"
+        tooltipAlwaysEnabled={true}
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >keyboard_double_arrow_up</span
@@ -585,6 +590,7 @@ limitations under the License.
         disabledBy={disableDecrement}
         width="30pt"
         description="Navigate to offset 0"
+        tooltipAlwaysEnabled={true}
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >stat_3</span
