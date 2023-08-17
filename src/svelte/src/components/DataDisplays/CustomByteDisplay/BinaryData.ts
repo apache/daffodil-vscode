@@ -21,8 +21,6 @@ import { radixBytePad } from '../../../utilities/display'
 
 export const BYTE_ACTION_DIV_OFFSET: number = 24
 
-export const VIEWPORT_SCROLL_INCREMENT: number = 512
-
 export type EditAction =
   | 'insert-before'
   | 'insert-after'

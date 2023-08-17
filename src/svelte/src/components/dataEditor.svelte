@@ -46,7 +46,12 @@ limitations under the License.
   import { vscode } from '../utilities/vscode'
   import Header from './Header/Header.svelte'
   import Main from './Main.svelte'
-  import { EditByteModes, NUM_LINES_DISPLAYED } from '../stores/configuration'
+  import {
+    EditByteModes,
+    NUM_LINES_DISPLAYED,
+    VIEWPORT_CAPACITY_MAX,
+    VIEWPORT_SCROLL_INCREMENT,
+  } from '../stores/configuration'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
   import {
     elementKeypressEventMap,
@@ -86,7 +91,9 @@ limitations under the License.
 
     const fileSize = $fileMetrics.computedSize
     const viewportBoundary =
-      $viewport.length + $viewport.fileOffset - 20 * $bytesPerRow
+      $viewport.length +
+      $viewport.fileOffset -
+      NUM_LINES_DISPLAYED * $bytesPerRow
     const offset =
       offsetArg > 0 &&
       offsetArg < viewport.offsetMax &&
@@ -96,21 +103,26 @@ limitations under the License.
 
     const relativeFileLine = Math.floor(offset / $bytesPerRow)
     const relativeFileOffset = relativeFileLine * $bytesPerRow
-    const lineTopBoundary = Math.floor($viewport.length / $bytesPerRow) - 20
+    const lineTopBoundary =
+      Math.floor($viewport.length / $bytesPerRow) - NUM_LINES_DISPLAYED
     let relativeTargetLine = relativeFileLine
     let viewportStartOffset = $viewport.fileOffset
-
+    $dataFeedAwaitRefresh = true
     // make sure that the offset is within the loaded viewport
     if (
       offset < $viewport.fileOffset ||
       offset > viewportBoundary ||
       relativeTargetLine > lineTopBoundary
     ) {
-      let adjustedFileOffset = Math.max(0, relativeFileOffset - 512)
-      const fetchPastFileBoundary = fileSize - adjustedFileOffset < 1024
+      let adjustedFileOffset = Math.max(
+        0,
+        relativeFileOffset - VIEWPORT_SCROLL_INCREMENT
+      )
+      const fetchPastFileBoundary =
+        fileSize - adjustedFileOffset < VIEWPORT_CAPACITY_MAX
       if (fetchPastFileBoundary)
         adjustedFileOffset = byte_count_divisible_offset(
-          fileSize - 1024,
+          fileSize - VIEWPORT_CAPACITY_MAX,
           $bytesPerRow,
           1
         )
@@ -124,7 +136,6 @@ limitations under the License.
           ) -
           (NUM_LINES_DISPLAYED - 1)
         : viewport_offset_to_line_num(offset, viewportStartOffset, $bytesPerRow)
-      $dataFeedAwaitRefresh = true
 
       // NOTE: Scrolling the viewport will make the display bounce until it goes to the correct offset
       vscode.postMessage({
@@ -139,6 +150,7 @@ limitations under the License.
     }
 
     $dataFeedLineTop = relativeTargetLine
+    $dataFeedAwaitRefresh = false
     clearDataDisplays()
   }
 

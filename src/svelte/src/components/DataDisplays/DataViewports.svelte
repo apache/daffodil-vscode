@@ -32,11 +32,10 @@ limitations under the License.
   on:applyChanges
   on:handleEditorEvent
   viewportData={$viewport}
-  lineTop={$dataFeedLineTop}
   bytesPerRow={$bytesPerRow}
   dataRadix={$displayRadix}
   addressRadix={$addressRadix}
-  bind:awaitViewportScroll={$dataFeedAwaitRefresh}
+  bind:awaitViewportSeek={$dataFeedAwaitRefresh}
 />
 
 <style lang="scss">

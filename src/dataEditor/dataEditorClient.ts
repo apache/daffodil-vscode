@@ -245,9 +245,14 @@ export class DataEditorClient implements vscode.Disposable {
         ? (createSessionResponse.getFileSize() as number)
         : 0
     } catch {
-      vscode.window.showErrorMessage(
-        `Failed to create session for ${this.fileToEdit}`
-      )
+      const msg = `Failed to create session for ${this.fileToEdit}`
+      getLogger().error({
+        err: {
+          msg: msg,
+          stack: new Error().stack,
+        },
+      })
+      vscode.window.showErrorMessage(msg)
     }
 
     // create the viewport
@@ -264,9 +269,14 @@ export class DataEditorClient implements vscode.Disposable {
       await viewportSubscribe(this.panel, this.currentViewportId)
       await sendViewportRefresh(this.panel, viewportDataResponse)
     } catch {
-      vscode.window.showErrorMessage(
-        `Failed to create viewport for ${this.fileToEdit}`
-      )
+      const msg = `Failed to create viewport for ${this.fileToEdit}`
+      getLogger().error({
+        err: {
+          msg: msg,
+          stack: new Error().stack,
+        },
+      })
+      vscode.window.showErrorMessage(msg)
     }
 
     // send the initial file info to the webview
@@ -602,17 +612,22 @@ export class DataEditorClient implements vscode.Disposable {
     offset: number,
     bytesPerRow: number
   ) {
-    // start of the row containing the offset
-    const startOffset = offset - (offset % bytesPerRow)
+    // start of the row containing the offset, making sure the offset is never negative
+    const startOffset = Math.max(0, offset - (offset % bytesPerRow))
     try {
       await sendViewportRefresh(
         panel,
         await modifyViewport(viewportId, startOffset, VIEWPORT_CAPACITY_MAX)
       )
     } catch {
-      vscode.window.showErrorMessage(
-        `Failed to scroll viewport ${viewportId} to offset ${startOffset}`
-      )
+      const msg = `Failed to scroll viewport ${viewportId} to offset ${startOffset}`
+      getLogger().error({
+        err: {
+          msg: msg,
+          stack: new Error().stack,
+        },
+      })
+      vscode.window.showErrorMessage(msg)
     }
   }
 }
@@ -816,9 +831,10 @@ async function viewportSubscribe(
         .setInterest(ALL_EVENTS & ~ViewportEventKind.VIEWPORT_EVT_MODIFY)
     )
     .on('data', async (event: ViewportEvent) => {
-      getLogger().debug(
-        `viewport '${event.getViewportId()}' received event: ${event.getViewportEventKind()}`
-      )
+      getLogger().debug({
+        viewportId: event.getViewportId(),
+        event: event.getViewportEventKind(),
+      })
       await sendViewportRefresh(panel, await getViewportData(viewportId))
     })
     .on('error', (err) => {
