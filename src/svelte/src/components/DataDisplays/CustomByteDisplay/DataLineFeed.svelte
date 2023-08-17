@@ -21,21 +21,21 @@ limitations under the License.
     editMode,
     editorEncoding,
     focusedViewportId,
-    seekOffsetInput,
     selectionDataStore,
     selectionSize,
     selectedByte,
     fileMetrics,
     searchQuery,
     editorActionsAllowed,
+    dataFeedLineTop,
   } from '../../../stores'
   import {
     EditByteModes,
     NUM_LINES_DISPLAYED,
-    VIEWPORT_CAPACITY_MAX,
     type BytesPerRow,
     type RadixValues,
     EditActionRestrictions,
+    VIEWPORT_SCROLL_INCREMENT,
   } from '../../../stores/configuration'
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
@@ -65,8 +65,8 @@ limitations under the License.
     updateSearchResultsHighlights,
   } from '../../../utilities/highlights'
 
-  export let lineTop: number
-  export let awaitViewportScroll: boolean
+  // export let $dataFeedLineTop: number
+  export let awaitViewportSeek: boolean
   export let bytesPerRow: BytesPerRow = 16
   export let dataRadix: RadixValues = 16
   export let addressRadix: RadixValues = 16
@@ -76,43 +76,53 @@ limitations under the License.
   const CONTAINER_ID = 'viewportData-container'
   const eventDispatcher = createEventDispatcher()
 
-  function OFFSET_FETCH_ADJUSTMENT(direction: ViewportScrollDirection) {
+  function OFFSET_FETCH_ADJUSTMENT(
+    direction: ViewportScrollDirection,
+    numLinesToScroll: number
+  ) {
+    const newLineTopOffset =
+      numLinesToScroll * bytesPerRow + $dataFeedLineTop * bytesPerRow
+    let scroll_count = Math.floor(newLineTopOffset / VIEWPORT_SCROLL_INCREMENT)
+
     if (direction === ViewportScrollDirection.INCREMENT) {
-      const fetchBound = viewportData.fileOffset + VIEWPORT_CAPACITY_MAX / 2
+      const fetchBound =
+        viewportData.fileOffset + scroll_count * VIEWPORT_SCROLL_INCREMENT
       if (fetchBound > $fileMetrics.computedSize)
         return (
-          (fetchBound - $fileMetrics.computedSize / bytesPerRow) * bytesPerRow
+          ($fileMetrics.computedSize / bytesPerRow) * bytesPerRow -
+          NUM_LINES_DISPLAYED * bytesPerRow
         )
+
       return fetchBound
     } else {
       const validBytesRemaining =
-        viewportData.fileOffset - VIEWPORT_CAPACITY_MAX / 2 > 0
+        viewportData.fileOffset + scroll_count * VIEWPORT_SCROLL_INCREMENT > 0
       if (!validBytesRemaining) return 0
       else {
-        return viewportData.fileOffset - VIEWPORT_CAPACITY_MAX / 2
+        return (
+          viewportData.fileOffset + scroll_count * VIEWPORT_SCROLL_INCREMENT
+        )
       }
     }
   }
 
   const INCREMENT_LINE = () => {
-    handle_navigation(ViewportScrollDirection.INCREMENT)
+    handle_navigation(1)
   }
   const DECREMENT_LINE = () => {
-    handle_navigation(ViewportScrollDirection.DECREMENT)
+    handle_navigation(-1)
   }
   const INCREMENT_SEGMENT = () => {
-    handle_navigation(ViewportScrollDirection.INCREMENT, NUM_LINES_DISPLAYED)
+    handle_navigation(NUM_LINES_DISPLAYED)
   }
   const DECREMENT_SEGMENT = () => {
-    handle_navigation(ViewportScrollDirection.DECREMENT, -NUM_LINES_DISPLAYED)
+    handle_navigation(-NUM_LINES_DISPLAYED)
   }
   const SCROLL_TO_END = () => {
-    $seekOffsetInput = $fileMetrics.computedSize.toString(addressRadix)
-    eventDispatcher('seek')
+    handle_navigation(lineTopMaxFile)
   }
   const SCROLL_TO_TOP = () => {
-    $seekOffsetInput = '0'
-    eventDispatcher('seek')
+    handle_navigation(-lineTopMaxFile)
   }
 
   let totalLinesPerFilesize = 0
@@ -139,6 +149,7 @@ limitations under the License.
 
   enum ViewportScrollDirection {
     DECREMENT = -1,
+    NONE = 0,
     INCREMENT = 1,
   }
 
@@ -168,8 +179,8 @@ limitations under the License.
       0
     )
 
-    atViewportHead = lineTop === 0
-    atViewportTail = lineTop === lineTopMaxViewport
+    atViewportHead = $dataFeedLineTop === 0
+    atViewportTail = $dataFeedLineTop === lineTopMaxViewport
     atFileHead = viewportData.fileOffset === 0
     atFileTail = viewportData.bytesLeft === 0
 
@@ -177,16 +188,20 @@ limitations under the License.
       $selectionDataStore.active || (atViewportHead && atFileHead)
     disableIncrement =
       $selectionDataStore.active || (atViewportTail && atFileTail)
-    lineTopFileOffset = lineTop * bytesPerRow
+    lineTopFileOffset = $dataFeedLineTop * bytesPerRow
   }
 
   $: {
-    if (viewportData.fileOffset >= 0 && !awaitViewportScroll && lineTop >= 0) {
+    if (
+      viewportData.fileOffset >= 0 &&
+      !awaitViewportSeek &&
+      $dataFeedLineTop >= 0
+    ) {
       if (
         viewportLines.length !== 0 &&
         bytesPerRow !== viewportLines[0].bytes.length
       ) {
-        lineTop = viewport_offset_to_line_num(
+        $dataFeedLineTop = viewport_offset_to_line_num(
           parseInt(viewportLines[0].offset, addressRadix),
           viewportData.fileOffset,
           bytesPerRow
@@ -194,7 +209,7 @@ limitations under the License.
       }
 
       viewportLines = generate_line_data(
-        lineTop,
+        $dataFeedLineTop,
         dataRadix,
         addressRadix,
         bytesPerRow
@@ -273,29 +288,37 @@ limitations under the License.
       : atViewportTail && atFileTail
   }
 
-  function handle_navigation(
-    direction: ViewportScrollDirection,
-    linesToMove: number = direction
-  ) {
-    if (at_scroll_boundary(direction)) return
+  function direction_of_scroll(
+    numLinesToScroll: number
+  ): ViewportScrollDirection {
+    return Math.sign(numLinesToScroll) as ViewportScrollDirection
+  }
 
-    if (at_fetch_boundary(direction, linesToMove)) {
+  function handle_navigation(numLinesToScroll: number) {
+    const navDirection = direction_of_scroll(numLinesToScroll)
+
+    if (at_scroll_boundary(navDirection)) return
+
+    if (at_fetch_boundary(navDirection, numLinesToScroll)) {
       const viewportOffset = viewportData.fileOffset
       const lineTopOffset = viewportLines[0].bytes[0].offset
-      const nextViewportOffset = OFFSET_FETCH_ADJUSTMENT(direction)
+      const nextViewportOffset = OFFSET_FETCH_ADJUSTMENT(
+        navDirection,
+        numLinesToScroll
+      )
 
       eventDispatcher('traverse-file', {
         nextViewportOffset: nextViewportOffset,
         lineTopOnRefresh:
           Math.floor(
             (viewportOffset + lineTopOffset - nextViewportOffset) / bytesPerRow
-          ) + linesToMove,
+          ) + numLinesToScroll,
       })
       return
     }
 
-    const newLine = lineTop + linesToMove
-    lineTop = Math.max(0, Math.min(newLine, lineTopMaxViewport))
+    const newLine = $dataFeedLineTop + numLinesToScroll
+    $dataFeedLineTop = Math.max(0, Math.min(newLine, lineTopMaxViewport))
   }
 
   function at_fetch_boundary(
@@ -304,8 +327,8 @@ limitations under the License.
   ): boolean {
     if (linesToMove != direction)
       return direction === ViewportScrollDirection.INCREMENT
-        ? lineTop + linesToMove >= lineTopMaxViewport && !atFileTail
-        : lineTop + linesToMove <= 0 && !atFileHead
+        ? $dataFeedLineTop + linesToMove >= lineTopMaxViewport && !atFileTail
+        : $dataFeedLineTop + linesToMove <= 0 && !atFileHead
 
     return direction === ViewportScrollDirection.INCREMENT
       ? atViewportTail && !atFileTail
@@ -410,7 +433,7 @@ limitations under the License.
         },
       })
       lineTopOnRefresh = lineTopMaxViewport
-      awaitViewportScroll = true
+      awaitViewportSeek = true
     }
   }
 
@@ -433,9 +456,12 @@ limitations under the License.
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       case MessageCommand.viewportRefresh:
-        if (awaitViewportScroll) {
-          awaitViewportScroll = false
-          lineTop = Math.max(0, Math.min(lineTopMaxViewport, lineTop))
+        if (awaitViewportSeek) {
+          awaitViewportSeek = false
+          $dataFeedLineTop = Math.max(
+            0,
+            Math.min(lineTopMaxViewport, $dataFeedLineTop)
+          )
           if ($selectionDataStore.active)
             selectedByteElement = document.getElementById(
               $selectedByte.offset.toString()
@@ -520,7 +546,7 @@ limitations under the License.
     <FileTraversalIndicator
       totalLines={totalLinesPerFilesize}
       selectionActive={$selectionDataStore.active}
-      currentLine={lineTop}
+      currentLine={$dataFeedLineTop}
       fileOffset={viewportData.fileOffset}
       maxDisplayLines={NUM_LINES_DISPLAYED}
       bind:percentageTraversed
