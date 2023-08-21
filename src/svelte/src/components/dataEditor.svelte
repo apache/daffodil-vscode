@@ -33,9 +33,9 @@ limitations under the License.
     dataFeedLineTop,
     SelectionData_t,
     dataFeedAwaitRefresh,
-    fileMetrics,
     viewport,
     searchQuery,
+    regularSizedFile,
   } from '../stores'
   import {
     CSSThemeClass,
@@ -48,9 +48,8 @@ limitations under the License.
   import Main from './Main.svelte'
   import {
     EditByteModes,
-    NUM_LINES_DISPLAYED,
-    VIEWPORT_CAPACITY_MAX,
     VIEWPORT_SCROLL_INCREMENT,
+    type BytesPerRow,
   } from '../stores/configuration'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
   import {
@@ -61,10 +60,7 @@ limitations under the License.
     EditEvent,
     ViewportData_t,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
-  import {
-    byte_count_divisible_offset,
-    viewport_offset_to_line_num,
-  } from '../utilities/display'
+  import { byte_count_divisible_offset } from '../utilities/display'
   import { clearSearchResultsHighlights } from '../utilities/highlights'
 
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
@@ -86,71 +82,72 @@ limitations under the License.
     }
   }
 
+  function offset_to_viewport_line_number(
+    offset: number,
+    bytesPerRow: BytesPerRow,
+    viewportStartOffset: number = $viewport.fileOffset
+  ): number {
+    const nearestBPRdivisibleOffset = byte_count_divisible_offset(
+      offset - viewportStartOffset,
+      bytesPerRow
+    )
+    const offsetLineNumInViewport = nearestBPRdivisibleOffset / bytesPerRow
+    return offsetLineNumInViewport
+  }
+
+  function fetchable_content(offset: number): boolean {
+    return offset > $viewport.fileOffset
+      ? $viewport.bytesLeft > 0
+      : $viewport.fileOffset > 0
+  }
+
+  function should_fetch_new_viewoprt(offset: number) {
+    const lowerBound = viewport.lowerFetchBoundary()
+    const upperBound = viewport.upperFetchBoundary($bytesPerRow)
+    const fetchableContent = fetchable_content(offset)
+    if (!fetchableContent) return false
+
+    const boundaryTripped = offset < lowerBound || offset > upperBound
+
+    return boundaryTripped
+  }
+
+  function target_offset_in_viewport(offset: number): boolean {
+    return offset >= $viewport.fileOffset && offset <= $viewport.length
+  }
+
   function seek(offsetArg?: number) {
     if (!offsetArg) offsetArg = $seekOffset
 
-    const fileSize = $fileMetrics.computedSize
-    const viewportBoundary =
-      $viewport.length +
-      $viewport.fileOffset -
-      NUM_LINES_DISPLAYED * $bytesPerRow
-    const offset =
-      offsetArg > 0 &&
-      offsetArg < viewport.offsetMax &&
-      offsetArg % $bytesPerRow === 0
-        ? offsetArg + 1
-        : offsetArg
+    const shouldFetchData = should_fetch_new_viewoprt(offsetArg)
 
-    const relativeFileLine = Math.floor(offset / $bytesPerRow)
-    const relativeFileOffset = relativeFileLine * $bytesPerRow
-    const lineTopBoundary =
-      Math.floor($viewport.length / $bytesPerRow) - NUM_LINES_DISPLAYED
-    let relativeTargetLine = relativeFileLine
-    let viewportStartOffset = $viewport.fileOffset
-    $dataFeedAwaitRefresh = true
-    // make sure that the offset is within the loaded viewport
-    if (
-      offset < $viewport.fileOffset ||
-      offset > viewportBoundary ||
-      relativeTargetLine > lineTopBoundary
-    ) {
-      let adjustedFileOffset = Math.max(
-        0,
-        relativeFileOffset - VIEWPORT_SCROLL_INCREMENT
+    if (!shouldFetchData) {
+      $dataFeedLineTop = Math.min(
+        viewport.lineTopMax($bytesPerRow),
+        offset_to_viewport_line_number(offsetArg, $bytesPerRow)
       )
-      const fetchPastFileBoundary =
-        fileSize - adjustedFileOffset < VIEWPORT_CAPACITY_MAX
-      if (fetchPastFileBoundary)
-        adjustedFileOffset = byte_count_divisible_offset(
-          fileSize - VIEWPORT_CAPACITY_MAX,
-          $bytesPerRow,
-          1
-        )
-
-      viewportStartOffset = adjustedFileOffset
-      relativeTargetLine = fetchPastFileBoundary
-        ? viewport_offset_to_line_num(
-            offset,
-            viewportStartOffset,
-            $bytesPerRow
-          ) -
-          (NUM_LINES_DISPLAYED - 1)
-        : viewport_offset_to_line_num(offset, viewportStartOffset, $bytesPerRow)
-
-      // NOTE: Scrolling the viewport will make the display bounce until it goes to the correct offset
-      vscode.postMessage({
-        command: MessageCommand.scrollViewport,
-        data: {
-          // scroll the viewport with the offset in the middle
-          scrollOffset: viewportStartOffset,
-          bytesPerRow: $bytesPerRow,
-          numLinesDisplayed: $viewportNumLinesDisplayed,
-        },
-      })
+      return
     }
 
-    $dataFeedLineTop = relativeTargetLine
-    $dataFeedAwaitRefresh = false
+    $dataFeedAwaitRefresh = true
+
+    offsetArg = byte_count_divisible_offset(offsetArg, $bytesPerRow)
+    const fetchOffset = Math.max(0, offsetArg - VIEWPORT_SCROLL_INCREMENT)
+
+    $dataFeedLineTop = offset_to_viewport_line_number(
+      offsetArg,
+      $bytesPerRow,
+      fetchOffset
+    )
+
+    vscode.postMessage({
+      command: MessageCommand.scrollViewport,
+      data: {
+        scrollOffset: fetchOffset,
+        bytesPerRow: $bytesPerRow,
+        numLinesDisplayed: $viewportNumLinesDisplayed,
+      },
+    })
     clearDataDisplays()
   }
 
@@ -175,10 +172,12 @@ limitations under the License.
   }
 
   function handleEditorEvent(_: Event) {
-    if ($selectionSize < 0) {
+    if ($regularSizedFile && $selectionSize < 0) {
       clearDataDisplays()
       return
     }
+    if (!$regularSizedFile && $editorSelection.length == 0) return
+
     requestEditedData()
   }
 
@@ -187,7 +186,9 @@ limitations under the License.
 
     let editedData: Uint8Array
     let originalData = $originalDataSegment
-    let editedOffset = $selectionDataStore.startOffset + $viewport.fileOffset
+    let editedOffset = $regularSizedFile
+      ? $selectionDataStore.startOffset + $viewport.fileOffset
+      : 0
 
     // noinspection FallThroughInSwitchStatementJS
     switch (action) {
@@ -200,7 +201,10 @@ limitations under the License.
         editedData = $editedDataSegment.subarray(0, 1)
         break
       case 'insert-replace':
-        editedData = $editedDataSegment
+        editedData =
+          !$regularSizedFile && $editorSelection.length == 0
+            ? new Uint8Array(0)
+            : $editedDataSegment
         break
       case 'delete':
         editedData = new Uint8Array(0)

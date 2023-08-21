@@ -29,6 +29,7 @@ limitations under the License.
     searchErr,
     searchQuery,
     seekErr,
+    dataFeedAwaitRefresh,
   } from '../../../stores'
   import { vscode } from '../../../utilities/vscode'
   import { MessageCommand } from '../../../utilities/message'
@@ -255,6 +256,7 @@ limitations under the License.
         searchStarted = replaceStarted = false
         if (msg.data.data.replacementsCount > 0) {
           // subtract 1 from the next offset because search next will add 1
+          clearSearchResultsHighlights()
           matchOffset = msg.data.data.nextOffset - 1
           preReplaceHasPrev = hasPrev
           justReplaced = true

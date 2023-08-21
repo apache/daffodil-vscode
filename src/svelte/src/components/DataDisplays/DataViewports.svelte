@@ -17,9 +17,7 @@ limitations under the License.
 <script lang="ts">
   import {
     addressRadix,
-    bytesPerRow,
     displayRadix,
-    dataFeedLineTop,
     dataFeedAwaitRefresh,
     viewport,
   } from '../../stores'
@@ -32,7 +30,6 @@ limitations under the License.
   on:applyChanges
   on:handleEditorEvent
   viewportData={$viewport}
-  bytesPerRow={$bytesPerRow}
   dataRadix={$displayRadix}
   addressRadix={$addressRadix}
   bind:awaitViewportSeek={$dataFeedAwaitRefresh}

@@ -16,8 +16,16 @@
  */
 
 import { SimpleWritable } from '../../../stores/localStore'
-import type { RadixValues } from '../../../stores/configuration'
-import { radixBytePad } from '../../../utilities/display'
+import {
+  NUM_LINES_DISPLAYED,
+  type BytesPerRow,
+  type RadixValues,
+  VIEWPORT_CAPACITY_MAX,
+} from '../../../stores/configuration'
+import {
+  radixBytePad,
+  viewport_offset_to_line_num,
+} from '../../../utilities/display'
 
 export const BYTE_ACTION_DIV_OFFSET: number = 24
 
@@ -95,6 +103,32 @@ export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
   public set(value: ViewportData_t): void {
     this.store.set(value)
     this._offsetMax = value.fileOffset + value.bytesLeft + value.length
+  }
+
+  public lowerFetchBoundary(): number {
+    return this.storeData().fileOffset
+  }
+
+  public upperFetchBoundary(bytesPerRow: BytesPerRow): number {
+    const store = this.storeData()
+    const boundary =
+      store.fileOffset + store.length - NUM_LINES_DISPLAYED * bytesPerRow
+
+    return boundary
+  }
+
+  public lineTopMax(bytesPerRow: BytesPerRow): number {
+    const vpMaxOffset = Math.max(
+      0,
+      this.storeData().length - NUM_LINES_DISPLAYED * bytesPerRow
+    )
+    const vpLineTopMax = viewport_offset_to_line_num(
+      vpMaxOffset + this.storeData().fileOffset,
+      this.storeData().fileOffset,
+      bytesPerRow
+    )
+
+    return vpLineTopMax + 1
   }
 
   public physical_byte_values(

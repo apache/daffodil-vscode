@@ -50,6 +50,7 @@ export const selectionHighlights = derived(
 )
 
 export const searchResultsHighlights = readable(searchResultsHighlightLUT)
+export const searchResultsUpdated = writable(false)
 export function updateSearchResultsHighlights(
   data: number[],
   viewportFileOffset: number,
@@ -68,6 +69,7 @@ export function updateSearchResultsHighlights(
     for (let i = 0; i < byteWidth; i++)
       searchResultsHighlightLUT[offset - viewportFileOffset + i] = 1
   })
+  searchResultsUpdated.set(true)
 }
 export function clearSearchResultsHighlights() {
   searchResultsHighlightLUT.fill(0)
