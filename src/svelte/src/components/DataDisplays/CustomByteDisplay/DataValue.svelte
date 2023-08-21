@@ -39,7 +39,6 @@ limitations under the License.
 
   const eventDispatcher = createEventDispatcher()
 
-  let consideredForSelection = false
   let makingSelection = false
 
   $: {
@@ -50,6 +49,11 @@ limitations under the License.
 
   function mouse_enter_handle(event: MouseEvent) {
     if (!makingSelection) return
+    if (disabled) {
+      selectionData.endOffset = -1
+      makingSelection = false
+      return
+    }
     selectionData.endOffset = byte.offset
   }
   function mouse_leave_handle(event: MouseEvent) {
@@ -78,7 +82,6 @@ limitations under the License.
     class:isSelected
     class:isSearchResult
     class:possibleSelection
-    class:selecting={consideredForSelection}
     id={id + '-' + byte.offset.toString()}
     style:width
     on:mouseup={mouse_event_handle}
@@ -95,12 +98,13 @@ limitations under the License.
     class:isSelected
     class:isSearchResult
     class:possibleSelection
-    class:selecting={consideredForSelection}
     id={id + '-' + byte.offset.toString()}
     style:width={'20px'}
     class:latin1Undefined={latin1Undefined(byte.value)}
     on:mouseup={mouse_event_handle}
     on:mousedown={mouse_event_handle}
+    on:mouseenter={mouse_enter_handle}
+    on:mouseleave={mouse_leave_handle}
   >
     {latin1Undefined(byte.value) ? '' : String.fromCharCode(byte.value)}
   </div>

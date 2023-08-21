@@ -37,10 +37,6 @@ const ByteDivWidths = {
   2: '64px' as ByteDivWidth,
 }
 
-export type BinaryBytePrefix = 'B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB'
-
-export type BinaryBitPrefix = 'b' | 'Kb' | 'Mb' | 'Gb' | 'Tb' | 'Pb'
-
 export function radixBytePad(radix: RadixValues): number {
   switch (radix) {
     case 2:
@@ -181,7 +177,17 @@ export function viewport_offset_to_line_num(
   vpStartOffset: number,
   bytesPerRow: BytesPerRow
 ): number {
-  return Math.floor((offset - vpStartOffset) / bytesPerRow)
+  return Math.max(0, Math.floor((offset - vpStartOffset) / bytesPerRow))
+}
+
+export function line_num_to_file_offset(
+  lineNum: number,
+  viewportStartOffset: number,
+  bytesPerRow: BytesPerRow
+): number {
+  const offsetInViewport = lineNum * bytesPerRow
+  const offsetInFile = viewportStartOffset + offsetInViewport
+  return Math.max(0, offsetInFile)
 }
 
 export enum BinaryBytePrefixes {

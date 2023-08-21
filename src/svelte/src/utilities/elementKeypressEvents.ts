@@ -26,7 +26,6 @@ type ElementKeypressEvent = {
 }
 
 class ElementKeypressEventMap {
-  // private events: Array<ElementKeypressEvent> = []
   private events: {
     [key in ElementKeypressEventKey]: Array<ElementKeypressEvent>
   } = {

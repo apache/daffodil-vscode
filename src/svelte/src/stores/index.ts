@@ -89,9 +89,6 @@ export const dataViewEndianness = writable('le')
 // radix to use for displaying raw bytes (2, 8, 10, 16)
 export const displayRadix = writable(16 as RadixValues)
 
-// true if the edit byte window is hidden
-export const editByteWindowHidden = writable(true)
-
 // segment of data that is being edited in single or multiple byte modes
 export const editedDataSegment = writable(new Uint8Array(0))
 
@@ -108,8 +105,12 @@ export const seekOffsetInput = writable('')
 // writeable boolean, true indicates that the search is case insensitive for character sets that support it
 export const searchCaseInsensitive = writable(false)
 
+// Current viewport line number at the top of the data display
 export const dataFeedLineTop = writable(0)
+
+// Data display needs to wait from data from extension or function
 export const dataFeedAwaitRefresh = writable(false)
+
 export const rerenderActionElements = writable(false)
 
 // Viewport properties
@@ -124,6 +125,7 @@ export const selectedByte = writable({
   value: -1,
 } as ByteValue)
 
+// Omega Edit and Data Editor file information
 export const fileMetrics = new FileMetrics()
 
 export const searchQuery = new SearchQuery()
@@ -133,12 +135,20 @@ export const searchErr = new ErrorStore(ErrorComponentType.SYMBOL)
 export const replaceErr = new ErrorStore(ErrorComponentType.SYMBOL)
 export const seekErr = new ErrorStore(ErrorComponentType.SYMBOL)
 
+// Which types of edit restrictions are in place
 export const editorActionsAllowed = writable(EditActionRestrictions.None)
 export const tooltipsEnabled = writable(false)
+
+// If byte lengths should be in a human readable format
 export const sizeHumanReadable = writable(false)
 
 // tracks the start and end offsets of the current selection
 export const selectionDataStore = new SelectionData()
+
+// Can the user's selection derive both edit modes?
+export const regularSizedFile = derived(fileMetrics, ($fileMetrics) => {
+  return $fileMetrics.computedSize >= 2
+})
 
 export const searchable = derived(
   [searchQuery, editorEncoding],
@@ -187,8 +197,10 @@ export const replaceable = derived(
 
 // derived readable enumeration that indicates the edit mode (single byte or multiple bytes)
 export const editMode = derived(
-  selectionDataStore,
-  ($selectionData) => {
+  [selectionDataStore, regularSizedFile],
+  ([$selectionData, $regularSizedFile]) => {
+    if (!$regularSizedFile) return EditByteModes.Multiple
+
     return $selectionData.originalEndOffset - $selectionData.startOffset === 0
       ? EditByteModes.Single
       : EditByteModes.Multiple
@@ -211,7 +223,7 @@ export const seekOffset = derived(
   [seekOffsetInput, addressRadix],
   ([$seekOffsetInput, $addressRadix]) => {
     return $seekOffsetInput.length > 0
-      ? parseInt($seekOffsetInput, $addressRadix)
+      ? Math.max(0, parseInt($seekOffsetInput, $addressRadix))
       : 0
   }
 )
@@ -277,19 +289,21 @@ export const requestable = derived(
     applyErrMsg.update(() => {
       return ret.errMsg
     })
+
     return ret.valid
   }
 )
 
 export const originalDataSegment = derived(
-  [viewport, selectionDataStore],
-  ([$viewport, $selectionData]) => {
-    return !$viewport.data
-      ? []
-      : $viewport.data.slice(
-          $selectionData.startOffset,
-          $selectionData.originalEndOffset + 1
-        )
+  [viewport, selectionDataStore, regularSizedFile],
+  ([$viewport, $selectionData, $regularSizedFile]) => {
+    if (!$viewport.data) return []
+    if (!$regularSizedFile) return $viewport.data
+
+    return $viewport.data.slice(
+      $selectionData.startOffset,
+      $selectionData.originalEndOffset + 1
+    )
   }
 )
 
@@ -298,23 +312,36 @@ export const applicable = derived(
   [
     requestable,
     viewport,
+    editorSelection,
+    displayRadix,
     editedDataSegment,
     selectionDataStore,
     selectionSize,
     editMode,
     editedByteIsOriginalByte,
     editorActionsAllowed,
+    regularSizedFile,
   ],
   ([
     $requestable,
     $viewport,
+    $editorSelection,
+    $displayRadix,
     $selectedFileData,
     $selectionData,
     $selectionSize,
     $editMode,
     $editedByteIsOriginalByte,
     $editorActionsAllowed,
+    $regularSizedFile,
   ]) => {
+    if (!$regularSizedFile) {
+      return $viewport.data.length !=
+        $editorSelection.length / radixBytePad($displayRadix) &&
+        $editorActionsAllowed === EditActionRestrictions.OverwriteOnly
+        ? false
+        : $requestable
+    }
     if (
       !$requestable ||
       ($editedByteIsOriginalByte && $editMode === EditByteModes.Single)

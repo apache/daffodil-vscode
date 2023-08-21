@@ -16,13 +16,12 @@ limitations under the License.
 -->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
-
+  import { bytesPerRow } from '../../../stores'
   const eventDispatcher = createEventDispatcher()
 
   export let totalLines = 0
   export let currentLine = 0
   export let fileOffset = 0
-  export let bytesPerRow = 16
   export let percentageTraversed
   export let maxDisplayLines = 20
   export let selectionActive: boolean
@@ -42,7 +41,7 @@ limitations under the License.
     } else {
       indicatorClickDisabled = false
       percentageTraversed =
-        ((currentLine + (fileOffset / bytesPerRow + 20)) / totalLines) * 100.0
+        ((currentLine + (fileOffset / $bytesPerRow + 20)) / totalLines) * 100.0
       if (indicatorContainer)
         indicatorContainer.addEventListener('click', updatePercentageTraversed)
     }
