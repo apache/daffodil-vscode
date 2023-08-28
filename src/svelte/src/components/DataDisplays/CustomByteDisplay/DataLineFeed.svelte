@@ -261,7 +261,10 @@ limitations under the License.
         let byteOffset = viewportLineOffset + bytePos
         bytes.push({
           offset: byteOffset,
-          value: viewportData.data[byteOffset],
+          value:
+            viewportData.data[byteOffset] !== undefined
+              ? viewportData.data[byteOffset]
+              : -1,
           text:
             byteOffset < viewportData.length
               ? byte_value_string(viewportData.data[byteOffset], dataRadix)
@@ -524,7 +527,7 @@ limitations under the License.
             id={'physical'}
             radix={dataRadix}
             width={byteElementWidth}
-            disabled={!byte.value}
+            disabled={byte.value === -1}
             bind:selectionData={$selectionDataStore}
             on:mouseup={mouseup}
             on:mousedown={mousedown}
@@ -545,7 +548,7 @@ limitations under the License.
             id={'logical'}
             radix={dataRadix}
             width={byteElementWidth}
-            disabled={!byte.value}
+            disabled={byte.value === -1}
             bind:selectionData={$selectionDataStore}
             on:mouseup={mouseup}
             on:mousedown={mousedown}
