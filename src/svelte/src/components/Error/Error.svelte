@@ -15,15 +15,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
+  import Tooltip from '../layouts/Tooltip.svelte'
   import type { ErrorStore } from './Error'
 
   export let err: ErrorStore
   export let display: boolean
 </script>
 
-<div class="display" title={$err}>
+<div class="display">
   {#if display}
-    {@html err.innerHTML()}
+    <Tooltip alwaysEnabled={true} description={$err}>
+      {@html err.innerHTML()}
+    </Tooltip>
   {/if}
 </div>
 

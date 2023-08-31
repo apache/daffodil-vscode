@@ -22,6 +22,7 @@ import { derived, writable } from 'svelte/store'
 import { SimpleWritable } from './localStore'
 import { ErrorComponentType, ErrorStore } from '../components/Error/Error'
 import {
+  line_num_to_file_offset,
   radixBytePad,
   regexEditDataTest,
   validateEncodingStr,
@@ -32,6 +33,7 @@ import {
   type ByteValue,
 } from '../components/DataDisplays/CustomByteDisplay/BinaryData'
 import {
+  OffsetSearchType,
   ReplaceQuery,
   SearchQuery,
 } from '../components/Header/fieldsets/SearchReplace'
@@ -150,6 +152,18 @@ export const regularSizedFile = derived(fileMetrics, ($fileMetrics) => {
   return $fileMetrics.computedSize >= 2
 })
 
+export const dataFeedLineTopOffset = derived(
+  [dataFeedLineTop, viewport, bytesPerRow],
+  ([$dataFeedLineTop, $viewport, $bytesPerRow]) => {
+    const offset = line_num_to_file_offset(
+      $dataFeedLineTop,
+      $viewport.fileOffset,
+      $bytesPerRow
+    )
+    return Math.min(Math.max(0, offset), viewport.offsetMax)
+  }
+)
+
 export const searchable = derived(
   [searchQuery, editorEncoding],
   ([$searchQuery, $editorEncoding]) => {
@@ -218,14 +232,38 @@ export const selectionSize = derived(
   }
 )
 
+// How to handle the offset given in the input field for seek
+export const seekOffsetSearchType = derived(
+  seekOffsetInput,
+  ($seekOffsetInput) => {
+    const sign = $seekOffsetInput.substring(0, 1)
+    return sign === '+' || sign === '-'
+      ? OffsetSearchType.RELATIVE
+      : OffsetSearchType.ABSOLUTE
+  },
+  OffsetSearchType.ABSOLUTE
+)
+
 // derived from the seek offset input and the current address radix
 export const seekOffset = derived(
-  [seekOffsetInput, addressRadix],
-  ([$seekOffsetInput, $addressRadix]) => {
-    return $seekOffsetInput.length > 0
-      ? Math.max(0, parseInt($seekOffsetInput, $addressRadix))
-      : 0
-  }
+  [seekOffsetInput, seekOffsetSearchType, dataFeedLineTopOffset, addressRadix],
+  ([
+    $seekOffsetInput,
+    $seekOffsetSearchType,
+    $dataFeedLineTopOffset,
+    $addressRadix,
+  ]) => {
+    if ($seekOffsetSearchType === OffsetSearchType.ABSOLUTE) {
+      return $seekOffsetInput.length > 0
+        ? Math.max(0, parseInt($seekOffsetInput, $addressRadix))
+        : 0
+    } else
+      return (
+        Math.max(0, $dataFeedLineTopOffset) +
+        parseInt($seekOffsetInput, $addressRadix)
+      )
+  },
+  0
 )
 
 // derived readable string whose value is the selected encoded byte value with respect to the current focused viewport
@@ -371,11 +409,24 @@ export const applicable = derived(
 
 // derived readable boolean that indicates if the seek offset input is valid
 export const seekable = derived(
-  [seekOffset, seekOffsetInput, viewport, addressRadix],
-  ([$seekOffset, $seekOffsetInput, $viewport, $addressRadix]) => {
+  [seekOffset, seekOffsetInput, seekOffsetSearchType, viewport, addressRadix],
+  ([
+    $seekOffset,
+    $seekOffsetInput,
+    $seekOffsetSearchType,
+    $viewport,
+    $addressRadix,
+  ]) => {
+    $seekOffsetInput =
+      $seekOffsetSearchType === OffsetSearchType.RELATIVE
+        ? $seekOffsetInput.substring(1)
+        : $seekOffsetInput
+
     if ($seekOffsetInput.length <= 0) return { valid: false, seekErrMsg: '' }
     if ($seekOffset > viewport.offsetMax)
       return { valid: false, seekErrMsg: 'Exceeds filesize' }
+    if ($seekOffset < 0)
+      return { valid: false, seekErrMsg: 'Target offset < 0' }
     if (!regexEditDataTest($seekOffsetInput, $addressRadix))
       return { valid: false, seekErrMsg: 'Invalid characters' }
     return { valid: true, seekErrMsg: '' }

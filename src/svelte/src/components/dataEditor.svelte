@@ -112,10 +112,6 @@ limitations under the License.
     return boundaryTripped
   }
 
-  function target_offset_in_viewport(offset: number): boolean {
-    return offset >= $viewport.fileOffset && offset <= $viewport.length
-  }
-
   function seek(offsetArg?: number) {
     if (!offsetArg) offsetArg = $seekOffset
 
