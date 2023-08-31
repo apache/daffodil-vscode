@@ -22,6 +22,7 @@ limitations under the License.
     seekOffset,
     seekOffsetInput,
     selectionDataStore,
+    seekOffsetSearchType,
     selectionSize,
     bytesPerRow,
     viewport,
@@ -35,6 +36,7 @@ limitations under the License.
   } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import { createEventDispatcher } from 'svelte'
+  import { OffsetSearchType } from '../../Header/fieldsets/SearchReplace'
 
   type ViewportDivSpread = '24px' | '28px' | '68px'
 
@@ -103,9 +105,20 @@ limitations under the License.
 
   function updateAddressValue(event: Event) {
     const addrSelect = event.target as HTMLSelectElement
-    const newSeekInput = $seekOffset.toString(parseInt(addrSelect.value))
-    $seekOffsetInput = newSeekInput === 'NaN' ? '0' : newSeekInput
-    $addressRadix = parseInt(addrSelect.value) as RadixValues
+    const newAddrRadix = parseInt(addrSelect.value) as RadixValues
+
+    if ($seekOffsetSearchType === OffsetSearchType.RELATIVE) {
+      const sign = $seekOffsetInput.substring(0, 1)
+      const value = parseInt(
+        $seekOffsetInput.substring(1),
+        $addressRadix
+      ).toString(newAddrRadix)
+      $seekOffsetInput = value === 'NaN' ? '0' : sign + value
+    } else {
+      const newSeekInput = $seekOffset.toString(parseInt(addrSelect.value))
+      $seekOffsetInput = newSeekInput === 'NaN' ? '0' : newSeekInput
+    }
+    $addressRadix = newAddrRadix
   }
 
   function clearDataDisplays() {

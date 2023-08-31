@@ -19,6 +19,13 @@ import { SimpleWritable } from '../../../stores/localStore'
 import { addressRadix, seekOffsetInput } from '../../../stores'
 import { get } from 'svelte/store'
 
+export enum OffsetSearchType {
+  ABSOLUTE,
+  RELATIVE,
+}
+
+export type RelativeSeekSign = '+' | '-'
+
 interface QueryableData {
   input: string
   processing: boolean

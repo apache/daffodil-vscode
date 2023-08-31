@@ -29,7 +29,8 @@ limitations under the License.
     searchErr,
     searchQuery,
     seekErr,
-    dataFeedAwaitRefresh,
+    seekOffsetSearchType,
+    seekOffset,
   } from '../../../stores'
   import { vscode } from '../../../utilities/vscode'
   import { MessageCommand } from '../../../utilities/message'
@@ -47,6 +48,8 @@ limitations under the License.
   } from '../../../utilities/highlights'
   import { viewport } from '../../../stores'
   import { EditActionRestrictions } from '../../../stores/configuration'
+  import { OffsetSearchType } from './SearchReplace'
+  import Tooltip from '../../layouts/Tooltip.svelte'
 
   const eventDispatcher = createEventDispatcher()
 
@@ -281,7 +284,17 @@ limitations under the License.
         allowDefaultInput="true"
         bind:value={$seekOffsetInput}
         on:inputEnter={handleInputEnter}
-      />
+      >
+        {#if $seekOffsetSearchType === OffsetSearchType.RELATIVE}
+          <Tooltip
+            alwaysEnabled={true}
+            description={'Offset input is relative to current offset: ' +
+              $seekOffset.toString($addressRadix)}
+          >
+            <span class="btn-icon material-symbols-outlined">my_location</span>
+          </Tooltip>
+        {/if}
+      </Input>
       <Error
         err={seekErr}
         display={$seekOffsetInput.length > 0 && !$seekable.valid}
