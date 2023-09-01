@@ -81,7 +81,7 @@ object DAPSession {
 
   def resource(socket: Socket): Resource[IO, DAPSession[Request, Response, DebugEvent]] =
     for {
-      dispatcher <- Dispatcher[IO]
+      dispatcher <- Dispatcher.parallel[IO]
       requests <- Resource.eval(Queue.bounded[IO, Option[Request]](10))
       server <- Server.resource(socket.getInputStream, socket.getOutputStream, dispatcher, requests)
       session = DAPSession(server, Stream.fromQueueNoneTerminated(requests))
