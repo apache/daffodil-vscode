@@ -98,7 +98,7 @@ lazy val debugger = project
       "ch.qos.logback" % "logback-classic" % "1.2.11",
       "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.34.0",
       // scala-steward:on
-      "co.fs2" %% "fs2-io" % "3.2.14",
+      "co.fs2" %% "fs2-io" % "3.9.1",
       "com.monovore" %% "decline-effect" % "2.3.1",
       "org.typelevel" %% "log4cats-slf4j" % "2.5.0",
       "org.scalameta" %% "munit" % "0.7.29" % Test

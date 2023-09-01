@@ -1329,7 +1329,7 @@ object Parse {
         infosetFormat: String
     ): Resource[IO, DaffodilDebugger] =
       for {
-        dispatcher <- Dispatcher[IO]
+        dispatcher <- Dispatcher.parallel[IO]
       } yield new DaffodilDebugger(
         dispatcher,
         state,
