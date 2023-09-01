@@ -300,6 +300,11 @@ div.hide-scrollbar::-webkit-scrollbar {
   text-align: center;
   font-weight: bold;
   color: #fffdfa;
+  height: 25px;
+  align-content: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .dataEditor div.hd.dark {
   background-color: #2f3e4f;

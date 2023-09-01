@@ -30,6 +30,7 @@ limitations under the License.
   import ContentControls from '../DataDisplays/Fieldsets/ContentControls.svelte'
   import FlexContainer from '../layouts/FlexContainer.svelte'
   import DataView from '../DataDisplays/Fieldsets/DataView.svelte'
+  import HelpIcon from '../layouts/HelpIcon.svelte'
   const eventDispatcher = createEventDispatcher()
 
   let selectionOffsetText: string
@@ -86,7 +87,7 @@ limitations under the License.
   style:justify-content={displayTextEditorArea ? 'flex-end' : 'flex-start'}
 >
   <div class="hdr editor-header" >
-    <div class={$UIThemeCSSClass + ' hd'}>Editor</div>
+    <div class={$UIThemeCSSClass + ' hd'}>Editor <HelpIcon helpSectionId={'edit-instructions'}/></div>
     <div class={$UIThemeCSSClass + " measure selection-content"}>
       {#if $selectionDataStore.active && $editMode !== EditByteModes.Single}
         <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -101,13 +102,6 @@ limitations under the License.
         <div>
           {selectionOffsetText}
         </div>
-      {:else}
-        <sub
-          ><i
-            >To edit multiple bytes, highlight (by clicking and dragging) a
-            selection of bytes</i
-          ></sub
-        >
       {/if}
     </div>
   </div>

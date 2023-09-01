@@ -45,6 +45,7 @@ import {
   EditActionRestrictions,
   VIEWPORT_CAPACITY_MAX,
 } from './configuration'
+import type { AvailableHelpSections } from '../components/layouts/Help'
 
 export class SelectionData_t {
   startOffset = -1
@@ -143,6 +144,9 @@ export const tooltipsEnabled = writable(false)
 
 // If byte lengths should be in a human readable format
 export const sizeHumanReadable = writable(false)
+
+export const currentHelpSectionDisplayed = writable('' as AvailableHelpSections)
+export const currentHelpSectionEvent = writable({} as MouseEvent)
 
 // tracks the start and end offsets of the current selection
 export const selectionDataStore = new SelectionData()

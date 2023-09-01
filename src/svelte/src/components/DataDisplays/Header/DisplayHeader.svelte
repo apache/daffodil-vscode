@@ -37,8 +37,6 @@ limitations under the License.
   import { createEventDispatcher } from 'svelte'
   import { OffsetSearchType } from '../../Header/fieldsets/SearchReplace'
   import { byteDivWidthFromRadix } from '../../../utilities/display'
-
-  const eventDispatcher = createEventDispatcher()
   let bitIndexStr = '01234567'
   let selectionOffsetText: string
   let offsetLine: string[] = []

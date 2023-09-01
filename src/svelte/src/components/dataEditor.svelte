@@ -62,6 +62,7 @@ limitations under the License.
   } from './DataDisplays/CustomByteDisplay/BinaryData'
   import { byte_count_divisible_offset } from '../utilities/display'
   import { clearSearchResultsHighlights } from '../utilities/highlights'
+  import Help from './layouts/Help.svelte'
 
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 
@@ -317,6 +318,7 @@ limitations under the License.
     on:seek={seekEventHandler}
   />
 
+  <Help />
   <hr />
   <ServerMetrics />
 </body>
