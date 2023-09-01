@@ -43,7 +43,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 8
-      - uses: actions/checkout@v3.5.0
+      - uses: actions/checkout@v4.1.0
       - name: Install Node.js
         uses: actions/setup-node@v3.8.1
         with:
