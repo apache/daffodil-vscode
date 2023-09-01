@@ -65,7 +65,7 @@
     "@types/node": "^20.4.1",
     "@types/vscode": "^1.60.2",
     "@types/vscode-webview": "^1.57.1",
-    "@vscode/debugadapter-testsupport": "1.59.0",
+    "@vscode/debugadapter-testsupport": "1.63.0",
     "@vscode/test-electron": "2.1.5",
     "@vscode/vsce": "2.19.0",
     "chai": "^4.3.7",
