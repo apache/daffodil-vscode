@@ -22,6 +22,7 @@ limitations under the License.
   const TOOLTIP_MIN_HEIGHT = 25
   export let description: string
   export let alwaysEnabled = false
+  export let tooltipSizeExtended = false
   let showTooltip = false
   let left = 0,
     top = 0
@@ -68,7 +69,7 @@ limitations under the License.
 
   {#if showTooltip}
     <div
-      class="tooltip"
+      class="tooltip {tooltipSizeExtended ? 'extended' : 'fit-content'}"
       style:left={left.toString() + 'px'}
       style:top={top.toString() + 'px'}
     >
@@ -85,17 +86,25 @@ limitations under the License.
     display: flex;
     align-content: center;
     align-items: center;
-    max-width: 150px;
-    min-width: 50px;
-    max-height: 50px;
-    min-height: 25px;
-    font-size: 12px;
     text-align: center;
+    font-size: 12px;
     background-color: var(--color-secondary-darkest);
     color: var(--color-secondary-lightest);
     border: 2px solid var(--color-tertiary-mid);
     opacity: 0.85;
     z-index: 99;
+  }
+  .extended {
+    width: 250px;
+    height: 300px;
+    padding: 5px;
+  }
+
+  .fit-content {
+    max-width: 150px;
+    min-width: 50px;
+    max-height: 50px;
+    min-height: 25px;
     padding: 2px;
   }
 </style>
