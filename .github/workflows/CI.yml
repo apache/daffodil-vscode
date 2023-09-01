@@ -49,9 +49,9 @@ jobs:
     env:
       SBT: sbt -J-Xms1024m -J-Xmx5120m -J-XX:ReservedCodeCacheSize=512m -J-XX:MaxMetaspaceSize=1024m ++2.12.15
     steps:
-      - uses: actions/checkout@v3.5.0
+      - uses: actions/checkout@v4.1.0
       - name: Setup Node 16
-        uses: actions/setup-node@v3.6.0
+        uses: actions/setup-node@v3.8.1
         with:
           node-version: '16'
       - name: Setup Java 8
@@ -79,7 +79,7 @@ jobs:
           distribution: temurin
           java-version: 8
       - name: Check out Repository
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v4.1.0
         with:
           fetch-depth: 0
       - name: Run Rat Check
@@ -104,9 +104,9 @@ jobs:
         with:
           distribution: temurin
           java-version: 8
-      - uses: actions/checkout@v3.5.0
+      - uses: actions/checkout@v4.1.0
       - name: Install Node.js
-        uses: actions/setup-node@v3.6.0
+        uses: actions/setup-node@v3.8.1
         with:
           node-version: ${{ matrix.node}}
       - run: $SBT compile # used to initialize sbt, if not done sbt universal:packageBin ran by yarn package times out -- windows only
