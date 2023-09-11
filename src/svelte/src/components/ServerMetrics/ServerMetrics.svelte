@@ -20,13 +20,19 @@ limitations under the License.
 
   let heartbeat = {
     latency: 0,
-    omegaEditPort: 0,
     serverCpuLoadAverage: 0,
     serverTimestamp: 0,
     serverUptime: 0,
     serverUsedMemory: 0,
-    serverVersion: 'Unknown',
     sessionCount: 0,
+    omegaEditPort: 0,
+    serverVersion: 'Unknown',
+    serverHostname: 'Unknown',
+    serverProcessId: 0,
+    jvmVersion: 'Unknown',
+    jvmVendor: 'Unknown',
+    jvmPath: 'Unknown',
+    availableProcessors: 0,
   }
   let timerId: NodeJS.Timeout
 
@@ -65,13 +71,20 @@ limitations under the License.
     switch (msg.data.command) {
       case MessageCommand.heartbeat:
         heartbeat.latency = msg.data.data.latency
-        heartbeat.omegaEditPort = msg.data.data.omegaEditPort
         heartbeat.serverCpuLoadAverage = msg.data.data.serverCpuLoadAverage
         heartbeat.serverTimestamp = msg.data.data.serverTimestamp
         heartbeat.serverUptime = msg.data.data.serverUptime
         heartbeat.serverUsedMemory = msg.data.data.serverUsedMemory
-        heartbeat.serverVersion = msg.data.data.serverVersion
         heartbeat.sessionCount = msg.data.data.sessionCount
+        heartbeat.omegaEditPort = msg.data.data.serverInfo.omegaEditPort
+        heartbeat.serverVersion = msg.data.data.serverInfo.serverVersion
+        heartbeat.serverHostname = msg.data.data.serverInfo.serverHostname
+        heartbeat.serverProcessId = msg.data.data.serverInfo.serverProcessId
+        heartbeat.jvmVersion = msg.data.data.serverInfo.jvmVersion
+        heartbeat.jvmVendor = msg.data.data.serverInfo.jvmVendor
+        heartbeat.jvmPath = msg.data.data.serverInfo.jvmPath
+        heartbeat.availableProcessors =
+          msg.data.data.serverInfo.availableProcessors
 
         // set the serverTimestamp to 0 after 5 seconds of no heartbeat to indicate that no heartbeat has been received
         clearTimeout(timerId)
@@ -118,6 +131,8 @@ limitations under the License.
         {heartbeat.sessionCount},
         <b>Uptime:</b>
         {prettyPrintUptime(heartbeat.serverUptime)}
+        <b>JVM Version:</b>
+        {heartbeat.jvmVersion}
       </div>
     </FlexContainer>
   {:else}
