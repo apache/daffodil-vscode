@@ -33,11 +33,12 @@ import {
   getCounts,
   getLogger,
   getServerHeartbeat,
-  getServerVersion,
+  getServerInfo,
   getSessionCount,
   getViewportData,
   IOFlags,
   IServerHeartbeat,
+  IServerInfo,
   modifyViewport,
   numAscii,
   profileSession,
@@ -70,6 +71,7 @@ import {
 } from '../svelte/src/stores/configuration'
 import net from 'net'
 import * as vscode from 'vscode'
+import os from 'os'
 
 // *****************************************************************************
 // global constants
@@ -94,8 +96,19 @@ const OMEGA_EDIT_MIN_PORT: number = 1024
 // file-scoped types
 // *****************************************************************************
 
+class ServerInfo implements IServerInfo {
+  serverHostname: string = 'unknown' // hostname
+  serverProcessId: number = 0 // process id
+  serverVersion: string = 'unknown' // server version
+  jvmVersion: string = 'unknown' // jvm version
+  jvmVendor: string = 'unknown' // jvm vendor
+  jvmPath: string = 'unknown' // jvm path
+  availableProcessors: number = 0 // available processors
+}
+
 interface IHeartbeatInfo extends IServerHeartbeat {
-  omegaEditPort: number
+  omegaEditPort: number // Ωedit server port
+  serverInfo: IServerInfo // server info that remains constant
 }
 
 class HeartbeatInfo implements IHeartbeatInfo {
@@ -104,14 +117,12 @@ class HeartbeatInfo implements IHeartbeatInfo {
   serverCommittedMemory: number = 0 // committed memory in bytes
   serverCpuCount: number = 0 // cpu count
   serverCpuLoadAverage: number = 0 // cpu load average
-  serverHostname: string = 'unknown' // hostname
   serverMaxMemory: number = 0 // max memory in bytes
-  serverProcessId: number = 0 // process id
   serverTimestamp: number = 0 // timestamp in ms
   serverUptime: number = 0 // uptime in ms
   serverUsedMemory: number = 0 // used memory in bytes
-  serverVersion: string = 'unknown' // server version
   sessionCount: number = 0 // session count
+  serverInfo: IServerInfo = new ServerInfo()
 }
 
 // *****************************************************************************
@@ -123,6 +134,7 @@ let checkpointPath: string = ''
 let client: EditorClient
 let getHeartbeatIntervalId: NodeJS.Timeout | number | undefined = undefined
 let heartbeatInfo: IHeartbeatInfo = new HeartbeatInfo()
+let serverInfo: IServerInfo = new ServerInfo()
 let omegaEditPort: number = 0
 
 // *****************************************************************************
@@ -302,8 +314,17 @@ export class DataEditorClient implements vscode.Disposable {
         serverCpuLoadAverage: heartbeatInfo.serverCpuLoadAverage,
         serverUptime: heartbeatInfo.serverUptime,
         serverUsedMemory: heartbeatInfo.serverUsedMemory,
-        serverVersion: heartbeatInfo.serverVersion,
         sessionCount: heartbeatInfo.sessionCount,
+        serverInfo: {
+          omegaEditPort: heartbeatInfo.omegaEditPort,
+          serverVersion: heartbeatInfo.serverInfo.serverVersion,
+          serverHostname: heartbeatInfo.serverInfo.serverHostname,
+          serverProcessId: heartbeatInfo.serverInfo.serverProcessId,
+          jvmVersion: heartbeatInfo.serverInfo.jvmVersion,
+          jvmVendor: heartbeatInfo.serverInfo.jvmVendor,
+          jvmPath: heartbeatInfo.serverInfo.jvmPath,
+          availableProcessors: heartbeatInfo.serverInfo.availableProcessors,
+        },
       },
     })
   }
@@ -661,8 +682,8 @@ async function createDataEditorWebviewPanel(
     // initialize the first server heartbeat
     await getHeartbeat()
     assert(
-      heartbeatInfo.serverVersion.length > 0,
-      'heartbeat did not return a server version'
+      heartbeatInfo.serverInfo.serverVersion.length > 0,
+      'heartbeat did not receive a server version'
     )
   }
 
@@ -1096,14 +1117,12 @@ async function getHeartbeat() {
   heartbeatInfo.serverCommittedMemory = heartbeat.serverCommittedMemory
   heartbeatInfo.serverCpuCount = heartbeat.serverCpuCount
   heartbeatInfo.serverCpuLoadAverage = heartbeat.serverCpuLoadAverage
-  heartbeatInfo.serverHostname = heartbeat.serverHostname
   heartbeatInfo.serverMaxMemory = heartbeat.serverMaxMemory
-  heartbeatInfo.serverProcessId = heartbeat.serverProcessId
   heartbeatInfo.serverTimestamp = heartbeat.serverTimestamp
   heartbeatInfo.serverUptime = heartbeat.serverUptime
   heartbeatInfo.serverUsedMemory = heartbeat.serverUsedMemory
-  heartbeatInfo.serverVersion = heartbeat.serverVersion
   heartbeatInfo.sessionCount = heartbeat.sessionCount
+  heartbeatInfo.serverInfo = serverInfo
 }
 
 async function serverStart() {
@@ -1158,7 +1177,18 @@ async function serverStart() {
     throw new Error('Server failed to start or PID is invalid')
   }
   const clientVersion = getClientVersion()
-  const serverVersion = await getServerVersion()
+  serverInfo = await getServerInfo()
+  const serverVersion = serverInfo.serverVersion
+  // if the OS is not Windows, check that the server PID matches the one started
+  // NOTE: serverPid is the PID of the server wrapper script on Windows
+  if (
+    !os.platform().toLowerCase().startsWith('win') &&
+    serverInfo.serverProcessId !== serverPid
+  ) {
+    throw new Error(
+      `server PID mismatch ${serverInfo.serverProcessId} != ${serverPid}`
+    )
+  }
   if (serverVersion !== clientVersion) {
     throw new Error(
       `Server version ${serverVersion} and client version ${clientVersion} must match`
@@ -1167,7 +1197,7 @@ async function serverStart() {
   // get an initial heartbeat to ensure the server is up and running
   await getHeartbeat()
   clearInterval(animationIntervalId)
-  statusBarItem.text = `Ωedit server v${serverVersion} started on port ${omegaEditPort} with PID ${serverPid}`
+  statusBarItem.text = `Ωedit server v${serverVersion} started on port ${omegaEditPort} with PID ${serverInfo.serverProcessId}`
   setTimeout(() => {
     statusBarItem.dispose()
   }, 5000)

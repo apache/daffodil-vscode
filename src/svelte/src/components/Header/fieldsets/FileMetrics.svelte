@@ -22,7 +22,7 @@ limitations under the License.
   import { saveable, fileMetrics } from '../../../stores'
   import { createEventDispatcher } from 'svelte'
   import SidePanel from '../../layouts/SidePanel.svelte'
-  import ByteFrequencyGraph from '../../DataMetrics/ByteFrequencyGraph.svelte'
+  import ByteFrequencyGraph from '../../DataMetrics/DataMetrics.svelte'
   import { viewport } from '../../../stores'
   import { humanReadableByteLength } from '../../../utilities/display'
   import { DATA_PROFILE_MAX_LENGTH } from '../../../stores/configuration'

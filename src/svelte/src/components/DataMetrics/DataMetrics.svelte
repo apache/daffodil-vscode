@@ -25,6 +25,8 @@ limitations under the License.
   import { addressRadix } from '../../stores'
   import { radixToString, regexEditDataTest } from '../../utilities/display'
 
+  const PROFILE_DOS_EOL = 256
+
   // title for the byte profile graph
   export let title: string
 
@@ -473,6 +475,11 @@ limitations under the License.
     <label for="distinct-count"
       >&nbsp;&nbsp;&nbsp;Distinct: <span id="distinct-count" class="nowrap"
         >{numDistinct}</span
+      ></label
+    >
+    <label for="dos_eol-count"
+      >&nbsp;&nbsp;&nbsp;&nbsp;DOS EOL: <span id="dos_eol-count" class="nowrap"
+        >{byteProfile[PROFILE_DOS_EOL]}</span
       ></label
     >
     <label for="ascii-count"
