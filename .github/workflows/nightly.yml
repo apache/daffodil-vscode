@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         os: [ macos-11, ubuntu-20.04, windows-2019 ]
-        node: [ '14', '16' ]
+        node: [ '16', '18' ]
         vscode: [ 'stable', 'insiders' ]
       fail-fast: false  # don't immediately fail all other jobs if a single job fails
     runs-on: ${{ matrix.os }}
