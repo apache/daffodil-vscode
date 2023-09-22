@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { writable } from 'svelte/store'
-
 export type Radixes = 'Hexadecimal' | 'Decimal' | 'Octal' | 'Binary'
 
 export type RadixValues = 16 | 10 | 8 | 2
@@ -111,9 +109,10 @@ export const UNPRINTABLE_CHAR_STAND_IN = String.fromCharCode(9617)
 // Number of bytes to for the viewport to populate
 export const VIEWPORT_CAPACITY_MAX = 16 * 64 // 1024, Ωedit maximum viewport size is 1048576 (1024 * 1024)
 
+// Offset shift amount on viewport data fetch
+export const VIEWPORT_SCROLL_INCREMENT = VIEWPORT_CAPACITY_MAX / 2
+
 // Number of bytes to display in the viewport
 export const NUM_LINES_DISPLAYED = 20
 
 export const DATA_PROFILE_MAX_LENGTH = 10_000_000
-
-export const editorActionsAllowed = writable(EditActionRestrictions.None)

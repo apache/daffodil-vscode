@@ -26,11 +26,11 @@ limitations under the License.
     on:clearDataDisplays
     on:scrolledToTop
     on:scrolledToEnd
-    on:commitChanges
+    on:applyChanges
     on:handleEditorEvent
     on:scrollBoundary
     on:traverse-file
     on:seek
   />
-  <DataEditor on:commitChanges on:handleEditorEvent />
+  <DataEditor on:applyChanges on:handleEditorEvent />
 </main>

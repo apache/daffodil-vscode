@@ -16,15 +16,15 @@ limitations under the License.
 -->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
-
+  import { bytesPerRow } from '../../../stores'
   const eventDispatcher = createEventDispatcher()
 
   export let totalLines = 0
   export let currentLine = 0
   export let fileOffset = 0
-  export let bytesPerRow = 16
   export let percentageTraversed
   export let maxDisplayLines = 20
+  export let selectionActive: boolean
 
   let indicatorContainer: HTMLElement
   let indicatorClickDisabled: boolean = false
@@ -41,13 +41,13 @@ limitations under the License.
     } else {
       indicatorClickDisabled = false
       percentageTraversed =
-        ((currentLine + (fileOffset / bytesPerRow + 20)) / totalLines) * 100.0
+        ((currentLine + (fileOffset / $bytesPerRow + 20)) / totalLines) * 100.0
       if (indicatorContainer)
         indicatorContainer.addEventListener('click', updatePercentageTraversed)
     }
   }
-
   function updatePercentageTraversed(e: MouseEvent) {
+    if (selectionActive) return
     // Calculate the position of the click relative to the indicator container
     const relativeClickPosition =
       e.clientX - indicatorContainer.getBoundingClientRect().left
@@ -63,7 +63,12 @@ limitations under the License.
   }
 </script>
 
-<div class="traversal-container" bind:this={indicatorContainer}>
+<div
+  class="traversal-container {selectionActive || indicatorClickDisabled
+    ? 'disabled'
+    : 'enabled'}"
+  bind:this={indicatorContainer}
+>
   <div class="traversal-thumb" style:width="{percentageTraversed}%" />
 </div>
 
@@ -79,7 +84,11 @@ limitations under the License.
   div.traversal-thumb {
     height: 8px;
   }
-  div.traversal-container:hover {
+  div.traversal-container.enabled {
     cursor: pointer;
+  }
+  div.traversal-container.disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
   }
 </style>

@@ -19,10 +19,11 @@ import * as assert from 'assert'
 import * as fs from 'fs'
 import * as path from 'path'
 import { PROJECT_ROOT } from './common'
+import { parse as jsoncParse } from 'jsonc-parser'
 
 suite('Daffodil Version', () => {
   const versionFile = path.join(PROJECT_ROOT, 'src/version.ts')
-  const packageMapped = JSON.parse(
+  const packageMapped = jsoncParse(
     fs.readFileSync(path.join(PROJECT_ROOT, 'package.json')).toString()
   )
 

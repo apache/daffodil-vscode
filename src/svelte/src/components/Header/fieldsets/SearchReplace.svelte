@@ -18,11 +18,10 @@ limitations under the License.
   import {
     addressRadix,
     allowCaseInsensitiveSearch,
+    editorActionsAllowed,
     editorEncoding,
     seekable,
     seekOffsetInput,
-  } from '../../../stores'
-  import {
     replaceable,
     replaceErr,
     replaceQuery,
@@ -30,7 +29,8 @@ limitations under the License.
     searchErr,
     searchQuery,
     seekErr,
-  } from './SearchReplace'
+    dataFeedAwaitRefresh,
+  } from '../../../stores'
   import { vscode } from '../../../utilities/vscode'
   import { MessageCommand } from '../../../utilities/message'
 
@@ -38,18 +38,15 @@ limitations under the License.
   import Button from '../../Inputs/Buttons/Button.svelte'
   import Input from '../../Inputs/Input/Input.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import { createEventDispatcher, tick } from 'svelte'
+  import { createEventDispatcher } from 'svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import ToggleableButton from '../../Inputs/Buttons/ToggleableButton.svelte'
   import {
     clearSearchResultsHighlights,
     updateSearchResultsHighlights,
   } from '../../../utilities/highlights'
-  import { viewport } from '../../DataDisplays/CustomByteDisplay/BinaryData'
-  import {
-    EditActionRestrictions,
-    editorActionsAllowed,
-  } from '../../../stores/configuration'
+  import { viewport } from '../../../stores'
+  import { EditActionRestrictions } from '../../../stores/configuration'
 
   const eventDispatcher = createEventDispatcher()
 
@@ -71,7 +68,6 @@ limitations under the License.
   let direction: SearchDirection = 'Home'
   let preReplaceHasPrev: boolean = false
   let justReplaced: boolean = false
-  let searchInputByteLen: number = -1
   let searchReplaceButtonWidth = '85pt'
   let searchNavButtonWidth = '55pt'
   $: {
@@ -79,9 +75,14 @@ limitations under the License.
     inlineClass = CSSThemeClass('inline-container')
     inputClass = CSSThemeClass('actionable')
   }
+  $: clearOnEncodingChange($editorEncoding)
   $: searchErrDisplay = $searchErr.length > 0 && !$searchable
   $: replaceErrDisplay = $replaceErr.length > 0 && !$replaceable
   $: $seekErr = $seekable.seekErrMsg
+
+  function clearOnEncodingChange(encoding: string) {
+    cancel()
+  }
 
   function search(
     searchOffset: number,
@@ -207,6 +208,7 @@ limitations under the License.
       case MessageCommand.searchResults:
         if (msg.data.data.searchResults.length > 0) {
           $searchQuery.searchResults = msg.data.data.searchResults
+          $searchQuery.byteLength = msg.data.data.searchDataBytesLength
           switch (direction) {
             case 'Home':
               hasNext = msg.data.data.overflow
@@ -226,7 +228,7 @@ limitations under the License.
               hasPrev = msg.data.data.overflow
               break
           }
-          matchOffset = msg.data.data.searchResults[0]
+          matchOffset = $searchQuery.searchResults[0]
           scrollToMatch()
           if (searchStarted) {
             showReplaceOptions = false
@@ -240,12 +242,11 @@ limitations under the License.
           matchOffset = -1
           $searchQuery.overflow = showSearchOptions = showReplaceOptions = false
         }
-        $searchQuery.byteLength = msg.data.data.searchDataBytesLength
         searchStarted = replaceStarted = false
         updateSearchResultsHighlights(
-          msg.data.data.searchResults,
+          $searchQuery.searchResults,
           $viewport.fileOffset,
-          searchInputByteLen
+          $searchQuery.byteLength
         )
         $searchQuery.processing = false
         break
@@ -255,6 +256,7 @@ limitations under the License.
         searchStarted = replaceStarted = false
         if (msg.data.data.replacementsCount > 0) {
           // subtract 1 from the next offset because search next will add 1
+          clearSearchResultsHighlights()
           matchOffset = msg.data.data.nextOffset - 1
           preReplaceHasPrev = hasPrev
           justReplaced = true
@@ -367,7 +369,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchFirst}
-          disabledBy={!hasPrev}
+          disabledBy={!hasPrev || !$searchable}
           description="Seek to the first match"
         >
           <span slot="left" class="btn-icon material-symbols-outlined"
@@ -378,7 +380,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchPrev}
-          disabledBy={!hasPrev}
+          disabledBy={!hasPrev || !$searchable}
           description="Seek to the previous match"
         >
           <span slot="left" class="btn-icon material-symbols-outlined"
@@ -387,7 +389,11 @@ limitations under the License.
           <span slot="default">&nbsp;Prev</span></Button
         >
         {#if showReplaceOptions}
-          <Button fn={replace} description="Replace the current match">
+          <Button
+            fn={replace}
+            description="Replace the current match"
+            disabledBy={!replaceable}
+          >
             <span slot="left" class="btn-icon material-symbols-outlined"
               >find_replace</span
             >
@@ -397,7 +403,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchNext}
-          disabledBy={!hasNext}
+          disabledBy={!hasNext || !$searchable}
           description="Seek to the next match"
         >
           <span slot="default">Next&nbsp;</span>
@@ -408,7 +414,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchLast}
-          disabledBy={!hasNext}
+          disabledBy={!hasNext || !$searchable}
           description="Seek to the last match"
         >
           <span slot="default">Last&nbsp;</span>

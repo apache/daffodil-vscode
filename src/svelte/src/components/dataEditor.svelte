@@ -29,14 +29,13 @@ limitations under the License.
     requestable,
     selectionDataStore,
     selectionSize,
-    viewportCapacity,
-    viewportEndOffset,
-    viewportFollowingByteCount,
     viewportNumLinesDisplayed,
-    viewportStartOffset,
     dataFeedLineTop,
     SelectionData_t,
     dataFeedAwaitRefresh,
+    viewport,
+    searchQuery,
+    regularSizedFile,
   } from '../stores'
   import {
     CSSThemeClass,
@@ -47,22 +46,22 @@ limitations under the License.
   import { vscode } from '../utilities/vscode'
   import Header from './Header/Header.svelte'
   import Main from './Main.svelte'
-  import { EditByteModes } from '../stores/configuration'
-  import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
-  import { enterKeypressEvents } from '../utilities/enterKeypressEvents'
   import {
-    type EditEvent,
-    viewport,
+    EditByteModes,
+    VIEWPORT_SCROLL_INCREMENT,
+    type BytesPerRow,
+  } from '../stores/configuration'
+  import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
+  import {
+    elementKeypressEventMap,
+    key_is_mappable,
+  } from '../utilities/elementKeypressEvents'
+  import type {
+    EditEvent,
     ViewportData_t,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
-  import { fileMetrics } from './Header/fieldsets/FileMetrics'
-  import {
-    DISPLAYED_DATA_LINES,
-    byte_count_divisible_offset,
-    viewport_offset_to_line_num,
-  } from '../utilities/display'
+  import { byte_count_divisible_offset } from '../utilities/display'
   import { clearSearchResultsHighlights } from '../utilities/highlights'
-  import { searchQuery } from './Header/fieldsets/SearchReplace'
 
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 
@@ -83,106 +82,73 @@ limitations under the License.
     }
   }
 
+  function offset_to_viewport_line_number(
+    offset: number,
+    bytesPerRow: BytesPerRow,
+    viewportStartOffset: number = $viewport.fileOffset
+  ): number {
+    const nearestBPRdivisibleOffset = byte_count_divisible_offset(
+      offset - viewportStartOffset,
+      bytesPerRow
+    )
+    const offsetLineNumInViewport = nearestBPRdivisibleOffset / bytesPerRow
+    return offsetLineNumInViewport
+  }
+
+  function fetchable_content(offset: number): boolean {
+    return offset > $viewport.fileOffset
+      ? $viewport.bytesLeft > 0
+      : $viewport.fileOffset > 0
+  }
+
+  function should_fetch_new_viewoprt(offset: number) {
+    const lowerBound = viewport.lowerFetchBoundary()
+    const upperBound = viewport.upperFetchBoundary($bytesPerRow)
+    const fetchableContent = fetchable_content(offset)
+    if (!fetchableContent) return false
+
+    const boundaryTripped = offset < lowerBound || offset > upperBound
+
+    return boundaryTripped
+  }
+
+  function target_offset_in_viewport(offset: number): boolean {
+    return offset >= $viewport.fileOffset && offset <= $viewport.length
+  }
+
   function seek(offsetArg?: number) {
     if (!offsetArg) offsetArg = $seekOffset
 
-    const fileSize = $fileMetrics.computedSize
-    const viewportBoundary =
-      $viewport.length + $viewport.fileOffset - 20 * $bytesPerRow
-    const offset =
-      offsetArg > 0 &&
-      offsetArg < viewport.offsetMax &&
-      offsetArg % $bytesPerRow === 0
-        ? offsetArg + 1
-        : offsetArg
+    const shouldFetchData = should_fetch_new_viewoprt(offsetArg)
 
-    const relativeFileLine = Math.floor(offset / $bytesPerRow)
-    const relativeFileOffset = relativeFileLine * $bytesPerRow
-    const lineTopBoundary = Math.floor($viewport.length / $bytesPerRow) - 20
-    let relativeTargetLine = relativeFileLine
-    let viewportStartOffset = $viewport.fileOffset
-
-    // make sure that the offset is within the loaded viewport
-    if (
-      offset < $viewport.fileOffset ||
-      offset > viewportBoundary ||
-      relativeTargetLine > lineTopBoundary
-    ) {
-      let adjustedFileOffset = Math.max(0, relativeFileOffset - 512)
-      const fetchPastFileBoundary = fileSize - adjustedFileOffset < 1024
-      if (fetchPastFileBoundary)
-        adjustedFileOffset = byte_count_divisible_offset(
-          fileSize - 1024,
-          $bytesPerRow,
-          1
-        )
-
-      viewportStartOffset = adjustedFileOffset
-      relativeTargetLine = fetchPastFileBoundary
-        ? viewport_offset_to_line_num(
-            offset,
-            viewportStartOffset,
-            $bytesPerRow
-          ) -
-          (DISPLAYED_DATA_LINES - 1)
-        : viewport_offset_to_line_num(offset, viewportStartOffset, $bytesPerRow)
-      $dataFeedAwaitRefresh = true
-
-      // NOTE: Scrolling the viewport will make the display bounce until it goes to the correct offset
-      vscode.postMessage({
-        command: MessageCommand.scrollViewport,
-        data: {
-          // scroll the viewport with the offset in the middle
-          scrollOffset: viewportStartOffset,
-          bytesPerRow: $bytesPerRow,
-          numLinesDisplayed: $viewportNumLinesDisplayed,
-        },
-      })
+    if (!shouldFetchData) {
+      $dataFeedLineTop = Math.min(
+        viewport.lineTopMax($bytesPerRow),
+        offset_to_viewport_line_number(offsetArg, $bytesPerRow)
+      )
+      return
     }
 
-    $dataFeedLineTop = relativeTargetLine
+    $dataFeedAwaitRefresh = true
+
+    offsetArg = byte_count_divisible_offset(offsetArg, $bytesPerRow)
+    const fetchOffset = Math.max(0, offsetArg - VIEWPORT_SCROLL_INCREMENT)
+
+    $dataFeedLineTop = offset_to_viewport_line_number(
+      offsetArg,
+      $bytesPerRow,
+      fetchOffset
+    )
+
+    vscode.postMessage({
+      command: MessageCommand.scrollViewport,
+      data: {
+        scrollOffset: fetchOffset,
+        bytesPerRow: $bytesPerRow,
+        numLinesDisplayed: $viewportNumLinesDisplayed,
+      },
+    })
     clearDataDisplays()
-  }
-
-  function scrolledToEnd(_: Event) {
-    if ($viewportFollowingByteCount > 0) {
-      // top the display must be the last page of the current viewport, plus one line
-      const topOfLastPagePlusOneLine =
-        $viewportEndOffset +
-        $bytesPerRow -
-        $viewportNumLinesDisplayed * $bytesPerRow
-
-      vscode.postMessage({
-        command: MessageCommand.scrollViewport,
-        data: {
-          // scroll the viewport with the desired offset in the middle
-          scrollOffset: $viewportEndOffset - Math.floor($viewportCapacity / 2),
-          bytesPerRow: $bytesPerRow,
-          numLinesDisplayed: $viewportNumLinesDisplayed,
-        },
-      })
-      seek(topOfLastPagePlusOneLine)
-    }
-  }
-
-  function scrolledToTop(_: Event) {
-    if ($viewportStartOffset > 0) {
-      // offset to scroll to after the viewport is scrolled, which should be the previous line in the file
-      const topOfFirstPageMinusOneLine = $viewportStartOffset - $bytesPerRow
-      vscode.postMessage({
-        command: MessageCommand.scrollViewport,
-        data: {
-          // scroll the viewport with the desired offset in the middle
-          scrollOffset: Math.max(
-            topOfFirstPageMinusOneLine - Math.floor($viewportCapacity / 2),
-            0
-          ),
-          bytesPerRow: $bytesPerRow,
-          numLinesDisplayed: $viewportNumLinesDisplayed,
-        },
-      })
-      seek(topOfFirstPageMinusOneLine)
-    }
   }
 
   function seekEventHandler(_: CustomEvent) {
@@ -206,19 +172,23 @@ limitations under the License.
   }
 
   function handleEditorEvent(_: Event) {
-    if ($selectionSize < 0) {
+    if ($regularSizedFile && $selectionSize < 0) {
       clearDataDisplays()
       return
     }
+    if (!$regularSizedFile && $editorSelection.length == 0) return
+
     requestEditedData()
   }
 
-  function custom_commit_changes(event: CustomEvent<EditEvent>) {
+  function custom_apply_changes(event: CustomEvent<EditEvent>) {
     const action = event.detail.action
 
     let editedData: Uint8Array
     let originalData = $originalDataSegment
-    let editedOffset = $selectionDataStore.startOffset + $viewport.fileOffset
+    let editedOffset = $regularSizedFile
+      ? $selectionDataStore.startOffset + $viewport.fileOffset
+      : 0
 
     // noinspection FallThroughInSwitchStatementJS
     switch (action) {
@@ -231,7 +201,10 @@ limitations under the License.
         editedData = $editedDataSegment.subarray(0, 1)
         break
       case 'insert-replace':
-        editedData = $editedDataSegment
+        editedData =
+          !$regularSizedFile && $editorSelection.length == 0
+            ? new Uint8Array(0)
+            : $editedDataSegment
         break
       case 'delete':
         editedData = new Uint8Array(0)
@@ -239,7 +212,7 @@ limitations under the License.
     }
 
     vscode.postMessage({
-      command: MessageCommand.commit,
+      command: MessageCommand.applyChanges,
       data: {
         offset: editedOffset,
         originalSegment: originalData,
@@ -252,19 +225,19 @@ limitations under the License.
 
   function undo() {
     vscode.postMessage({
-      command: MessageCommand.undo,
+      command: MessageCommand.undoChange,
     })
   }
 
   function redo() {
     vscode.postMessage({
-      command: MessageCommand.redo,
+      command: MessageCommand.redoChange,
     })
   }
 
   function clearChangeStack() {
     vscode.postMessage({
-      command: MessageCommand.clear,
+      command: MessageCommand.clearChanges,
     })
   }
 
@@ -278,10 +251,11 @@ limitations under the License.
     searchQuery.clear()
     clearSearchResultsHighlights()
   }
+
   function handleKeyBind(event: Event) {
     const kbdEvent = event as KeyboardEvent
-    if (kbdEvent.key === 'Enter') {
-      enterKeypressEvents.run(document.activeElement.id)
+    if (key_is_mappable(kbdEvent.key)) {
+      elementKeypressEventMap.run(document.activeElement.id, kbdEvent)
       return
     }
     if ($editMode === EditByteModes.Multiple) return
@@ -325,15 +299,6 @@ limitations under the License.
         break
     }
   })
-
-  function scrollBoundaryEventHandler(e: CustomEvent) {
-    if (e.detail.scrolledTop) {
-      scrolledToTop(e)
-    }
-    if (e.detail.scrolledEnd) {
-      scrolledToEnd(e)
-    }
-  }
 </script>
 
 <svelte:window on:keydown|nonpassive={handleKeyBind} />
@@ -348,11 +313,8 @@ limitations under the License.
 
   <Main
     on:clearDataDisplays={clearDataDisplays}
-    on:commitChanges={custom_commit_changes}
+    on:applyChanges={custom_apply_changes}
     on:handleEditorEvent={handleEditorEvent}
-    on:scrolledToTop={scrolledToTop}
-    on:scrolledToEnd={scrolledToEnd}
-    on:scrollBoundary={scrollBoundaryEventHandler}
     on:traverse-file={traversalEventHandler}
     on:seek={seekEventHandler}
   />

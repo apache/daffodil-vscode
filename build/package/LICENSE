@@ -210,6 +210,7 @@ the source code for these subcomponents is subject to the terms and
 conditions of the following licenses.
 
 - 'abort-controller' in extension/dist/ext/extension.js
+- 'abort-controller' in node_modules/@omega-edit/client
   This product bundles 'abort-controller' from the above files.
   These packages are available under the MIT License:
     MIT License
@@ -234,7 +235,31 @@ conditions of the following licenses.
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
+- 'async' in extension/dist/ext/extension.js
+  This product bundles 'async' from the above files.
+  This package is available under the MIT License:
+    Copyright (c) 2010-2018 Caolan McMahon
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
+
 - 'atomic-sleep' in extension/dist/ext/extension.js
+- 'atomic-sleep' in node_modules/@omega-edit/client
   This product bundles 'atomic-sleep' from the above files.
   These packages are available under the MIT License:
     The MIT License (MIT)
@@ -260,9 +285,13 @@ conditions of the following licenses.
     OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 'ansi-regex' in extension/dist/ext/extension.js
+- 'ansi-regex' in node_modules/@omega-edit/client
 - 'ansi-styles' in extension/dist/ext/extension.js
+- 'ansi-styles' in node_modules/@omega-edit/client
 - 'string-width' in extension/dist/ext/extension.js
+- 'string-width' in node_modules/@omega-edit/client
 - 'wrap-ansi' in extension/dist/ext/extension.js
+- 'wrap-ansi' in node_modules/@omega-edit/client
   This product bundles 'ansi-regex', 'ansi-styles', 'string-width' and 'wrap-ansi' from the above files.
   These packages are available under the MIT License:
     MIT License
@@ -282,6 +311,7 @@ conditions of the following licenses.
     https://github.com/davidaq/node-await-notify
 
 - 'base64-js' in extension/dist/ext/extension.js
+- 'base64-js' in node_modules/@omega-edit/client
   This product bundles 'base64-js' from the above files.
   These files are available under the MIT License:
     The MIT License (MIT)
@@ -316,6 +346,7 @@ conditions of the following licenses.
     http://www.opensource.org/licenses/mit-license.php
 
 - 'buffer' in extension/dist/ext/extension.js
+- 'buffer' in node_modules/@omega-edit/client
   This product bundles 'buffer' from the above files.
   These files are available under the MIT License:
     The MIT License (MIT)
@@ -359,8 +390,11 @@ conditions of the following licenses.
     http://www.opensource.org/licenses/mit-license.php
 
 - 'cliui' in extension/dist/ext/extension.js
+- 'cliui' in node_modules/@omega-edit/client
 - 'y18n' in extension/dist/ext/extension.js
+- 'y18n' in node_modules/@omega-edit/client
 - 'yargs-parser' in extension/dist/ext/extension.js
+- 'yargs-parser' in node_modules/@omega-edit/client
   This product bundles 'cliui', 'y18n' and 'yargs-parser' from the above files.
   These packages are available under the ISC License:
     Copyright (c) 2015, Contributors
@@ -378,8 +412,8 @@ conditions of the following licenses.
     WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
     ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-
 - 'color-convert' in extension/dist/ext/extension.js
+- 'color-convert' in node_modules/@omega-edit/client
   This product bundles 'color-convert' from the above files.
   This package is available under the MIT License:
     Copyright (c) 2011-2016 Heather Arthur <fayearthur@gmail.com>.
@@ -405,6 +439,7 @@ conditions of the following licenses.
     WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 'color-name' in extension/dist/ext/extension.js
+- 'color-name' in node_modules/@omega-edit/client
   This product bundles 'color-name' from the above files.
   This package is available under the MIT License:
     The MIT License (MIT)
@@ -417,6 +452,7 @@ conditions of the following licenses.
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 'emoji-regex' in extension/dist/ext/extension.js
+- 'emoji-regex' in node_modules/@omega-edit/client
   This product bundles 'emoji-regex' from the above files.
   This package is available under the MIT License:
     Copyright Mathias Bynens <https://mathiasbynens.be/>
@@ -441,6 +477,7 @@ conditions of the following licenses.
     WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 'escalade' in extension/dist/ext/extension.js
+- 'escalade' in node_modules/@omega-edit/client
   This product bundles 'escalade' from the above files.
   This package is available under the MIT License:
     MIT License
@@ -454,6 +491,7 @@ conditions of the following licenses.
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 'event-target-shim' in extension/dist/ext/extension.js
+- 'event-target-shim' in node_modules/@omega-edit/client
   This product bundles 'event-target-shim' from the above files.
   This package is available under the MIT License:
     The MIT License (MIT)
@@ -479,6 +517,7 @@ conditions of the following licenses.
     SOFTWARE.
 
 - 'events' in extension/dist/ext/extension.js
+- 'events' in node_modules/@omega-edit/client
   This product bundles 'events' from the above files.
   This package is available under the MIT License:
     MIT
@@ -505,6 +544,7 @@ conditions of the following licenses.
     USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 'fast-redact' in extension/dist/ext/extension.js
+- 'fast-redact' in node_modules/@omega-edit/client
   This product bundles 'fast-redact' from the above files.
   This package is available under the MIT License:
     The MIT License (MIT)
@@ -556,6 +596,7 @@ conditions of the following licenses.
     THE SOFTWARE.
 
 - 'get-caller-file' in extension/dist/ext/extension.js
+- 'get-caller-file' in node_modules/@omega-edit/client
   This product bundles 'get-caller-file' from the above files.
   This package is available under the ISC License:
     ISC License (ISC)
@@ -565,8 +606,8 @@ conditions of the following licenses.
 
     THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-
 - 'has-flag' in extension/dist/ext/extension.js
+- 'has-flag' in node_modules/@omega-edit/client
   This product bundles 'has-flag' from the above files.
   This package is available under the MIT LICENSE:
 
@@ -609,6 +650,7 @@ conditions of the following licenses.
     OTHER DEALINGS IN THE SOFTWARE.
 
 - 'ieee754' in in extension/dist/ext/extension.js
+- 'ieee754' in node_modules/@omega-edit/client
   This product bundles 'ieee754' from the above files.
   This package is available under the BSD-3-Clause License:
     Copyright 2008 Fair Oaks Labs, Inc.
@@ -624,6 +666,7 @@ conditions of the following licenses.
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 - 'is-fullwidth-code-point' in extension/dist/ext/extension.js
+- 'is-fullwidth-code-point' in node_modules/@omega-edit/client
   This product bundles 'is-fullwidth-code-point' from the above files.
   These files are available under the MIT License:
     MIT License
@@ -636,7 +679,59 @@ conditions of the following licenses.
 
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+- 'jsonc-parser' in extension/dist/ext/extension.js
+  This product bundles 'jsonc-parser' from the above files.
+  This package is available under the MIT License:
+    The MIT License (MIT)
+
+    Copyright (c) Microsoft
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+- 'locate-java-home' in extension/dist/ext/extension.js
+- 'locate-java-home' in node_modules/@viperproject/locate-java-home
+  This product bundles 'locate-java-home' from the above files.
+  This package is available under the MIT License:
+    The MIT License (MIT)
+
+    Copyright (c) 2015 John Vilk
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
 - 'lodash.camelcase' in extension/dist/ext/extension.js
+- 'lodash.camelcase' in node_modules/@omega-edit/client
   This product bundles 'lodash.camelcase' from the above files.
   This package is available under the MIT License:
     The MIT License
@@ -689,6 +784,25 @@ conditions of the following licenses.
     licenses; we recommend you read them, as their terms may differ from the
     terms above.
 
+- 'lru-cache' in extension/dist/ext/extension.js
+  This product bundles 'lru-cache' from the above files.
+  This package is available under the ISC License:
+    The ISC License
+
+    Copyright (c) 2010-2023 Isaac Z. Schlueter and Contributors
+
+    Permission to use, copy, modify, and/or distribute this software for any
+    purpose with or without fee is hereby granted, provided that the above
+    copyright notice and this permission notice appear in all copies.
+
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+    IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
 - 'minimist' in extension/dist/ext/extension.js
   This product bundles 'minimist' from the above files.
   These files are available under the MIT License:
@@ -739,6 +853,7 @@ conditions of the following licenses.
     THE SOFTWARE.
 
 - 'ms' in extension/dist/ext/extension.js
+- 'ms' in node_modules/@omega-edit/client
   This product bundles 'ms' from the above files.
   This package is available under the MIT LICENSE:
 
@@ -765,6 +880,7 @@ conditions of the following licenses.
     SOFTWARE.
 
 - 'on-exit-leak-free' in extension/dist/ext/extension.js
+- 'on-exit-leak-free' in node_modules/@omega-edit/client
   This product bundles 'on-exit-leak-free' from the above files.
   These files are available under the MIT License:
     MIT License
@@ -818,6 +934,7 @@ conditions of the following licenses.
     OTHER DEALINGS IN THE SOFTWARE.
 
 - 'pino-abstract-transport' in extension/dist/ext/extension.js
+- 'pino-abstract-transport' in node_modules/@omega-edit/client
   This product bundles 'pino-abstract-transport' from the above files.
   These files are available under the MIT License:
     MIT License
@@ -843,6 +960,7 @@ conditions of the following licenses.
     SOFTWARE.
 
 - 'pino-std-serializers' in extension/dist/ext/extension.js
+- 'pino-std-serializers' in node_modules/@omega-edit/client
   This product bundles 'pino-std-serializers' from the above files.
   These files are available under the MIT License:
     Copyright Mateo Collina, David Mark Clements, James Sumners
@@ -854,6 +972,7 @@ conditions of the following licenses.
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 'pino' in extension/dist/ext/extension.js
+- 'pino' in node_modules/@omega-edit/client
   This product bundles 'pino' from the above files.
   These files are available under the MIT License:
     The MIT License (MIT)
@@ -882,6 +1001,7 @@ conditions of the following licenses.
     SOFTWARE.
 
 - 'process-warning' in extension/dist/ext/extension.js
+- 'process-warning' in node_modules/@omega-edit/client
   This product bundles 'process-warning' from the above files.
   These files are available under the MIT License:
     MIT License
@@ -907,6 +1027,7 @@ conditions of the following licenses.
     SOFTWARE.
 
 - 'process' in extension/dist/ext/extension.js
+- 'process' in node_modules/@omega-edit/client
   This product bundles 'process' from the above files.
   These files are available under the MIT License:
     (The MIT License)
@@ -933,6 +1054,7 @@ conditions of the following licenses.
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 'protobufjs' in extension/dist/ext/extension.js
+- 'protobufjs' in node_modules/@omega-edit/client
   This product bundles 'protobufjs' from the above files.
   These packages are available under the BSD-3-Clause License:
     This license applies to all parts of protobuf.js except those files
@@ -975,8 +1097,9 @@ conditions of the following licenses.
     standalone and requires a support library to be linked with it. This
     support library is itself covered by the above license.
 
-- 'quick-format-unescape' in extension/dist/ext/extension.js
-  This product bundles 'quick-format-unescape' from the above files.
+- 'quick-format-unescaped' in extension/dist/ext/extension.js
+- 'quick-format-unescaped' in node_modules/@omega-edit/client
+  This product bundles 'quick-format-unescaped' from the above files.
   These files are available under the MIT License:
     The MIT License (MIT)
 
@@ -1001,6 +1124,7 @@ conditions of the following licenses.
     SOFTWARE.
 
 - 'readable-stream' in extension/dist/ext/extension.js
+- 'readable-stream' in node_modules/@omega-edit/client
   This product bundles 'readable-stream' from the above files.
   These files are available under the MIT License:
     Node.js is licensed for use as follows:
@@ -1052,6 +1176,7 @@ conditions of the following licenses.
     """
 
 - 'real-require' in extension/dist/ext/extension.js
+- 'real-require' in node_modules/@omega-edit/client
   This product bundles 'real-require' from the above files.
   These files are available under the MIT License:
     The MIT License (MIT)
@@ -1077,6 +1202,7 @@ conditions of the following licenses.
     SOFTWARE.
 
 - 'require-directory' in extension/dist/ext/extension.js
+- 'require-directory' in node_modules/@omega-edit/client
   This product bundles 'require-directory' from the above files.
   This package is available under the MIT License:
     The MIT License (MIT)
@@ -1102,7 +1228,33 @@ conditions of the following licenses.
     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+- 'safe-buffer' in node_modules/@omega-edit/client
+  This product bundles 'safe-buffer' from the above files.
+  These files are available under the MIT License:
+    The MIT License (MIT)
+
+    Copyright (c) Feross Aboukhadijeh
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
+
 - 'safe-stable-stringify' in extension/dist/ext/extension.js
+- 'safe-stable-stringify' in node_modules/@omega-edit/client
   This product bundles 'safe-stable-stringify' from the above files.
   These files are available under the MIT License:
     The MIT License (MIT)
@@ -1127,7 +1279,27 @@ conditions of the following licenses.
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
+- 'semver' in extension/dist/ext/extension.js
+- 'semver' in node_modules/semver
+
+    The ISC License
+
+    Copyright (c) Isaac Z. Schlueter and Contributors
+
+    Permission to use, copy, modify, and/or distribute this software for any
+    purpose with or without fee is hereby granted, provided that the above
+    copyright notice and this permission notice appear in all copies.
+
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+    IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
 - 'sonic-boom' in extension/dist/ext/extension.js
+- 'sonic-boom' in node_modules/@omega-edit/client
   This product bundles 'sonic-boom' from the above files.
   These files are available under the MIT License:
     MIT License
@@ -1153,6 +1325,7 @@ conditions of the following licenses.
     SOFTWARE.
 
 - 'split2' in in extension/dist/ext/extension.js
+- 'split2' in node_modules/@omega-edit/client
   This product bundles 'split2' from the above files.
   This package is available under the ISC License:
     Copyright (c) 2014-2018, Matteo Collina <hello@matteocollina.com>
@@ -1169,7 +1342,59 @@ conditions of the following licenses.
     ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
     IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+- 'string_decoder' in node_modules/@omega-edit/client
+  This product bundles 'string_decoder' from the above files.
+  These files are available under the MIT License:
+    Node.js is licensed for use as follows:
+
+    """
+    Copyright Node.js contributors. All rights reserved.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to
+    deal in the Software without restriction, including without limitation the
+    rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+    sell copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
+    """
+
+    This license applies to parts of Node.js originating from the
+    https://github.com/joyent/node repository:
+
+    """
+    Copyright Joyent, Inc. and other Node contributors. All rights reserved.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to
+    deal in the Software without restriction, including without limitation the
+    rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+    sell copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
+    """
+
 - 'strip-ansi' in extension/dist/ext/extension.js
+- 'strip-ansi' in node_modules/@omega-edit/client
   This product bundles 'strip-ansi' from the above files.
   This package is available under the MIT LICENSE:
 
@@ -1184,6 +1409,7 @@ conditions of the following licenses.
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 'supports-color' in extension/dist/ext/extension.js
+- 'supports-color' in node_modules/@omega-edit/client
   This product bundles 'supports-color' from the above files.
   This package is available under the MIT LICENSE:
 
@@ -1198,6 +1424,7 @@ conditions of the following licenses.
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 'thread-stream' in extension/dist/ext/extension.js
+- 'thread-stream' in node_modules/@omega-edit/client
   This product bundles 'thread-stream' from the above files.
   These files are available under the MIT License:
     MIT License
@@ -1278,15 +1505,25 @@ conditions of the following licenses.
     WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - '@protobufjs/aspromise' in extension/dist/ext/extension.js
+- '@protobufjs/aspromise' in node_modules/@omega-edit/client
 - '@protobufjs/base64' in extension/dist/ext/extension.js
+- '@protobufjs/base64' in node_modules/@omega-edit/client
 - '@protobufjs/codegen' in extension/dist/ext/extension.js
+- '@protobufjs/codegen' in node_modules/@omega-edit/client
 - '@protobufjs/eventemitter' in extension/dist/ext/extension.js
+- '@protobufjs/eventemitter' in node_modules/@omega-edit/client
 - '@protobufjs/fetch' in extension/dist/ext/extension.js
+- '@protobufjs/fetch' in node_modules/@omega-edit/client
 - '@protobufjs/float' in extension/dist/ext/extension.js
+- '@protobufjs/float' in node_modules/@omega-edit/client
 - '@protobufjs/inquire' in extension/dist/ext/extension.js
+- '@protobufjs/inquire' in node_modules/@omega-edit/client
 - '@protobufjs/path' in extension/dist/ext/extension.js
+- '@protobufjs/path' in node_modules/@omega-edit/client
 - '@protobufjs/pool' in extension/dist/ext/extension.js
+- '@protobufjs/pool' in node_modules/@omega-edit/client
 - '@protobufjs/utf8' in extension/dist/ext/extension.js
+- '@protobufjs/utf8' in node_modules/@omega-edit/client
   This product bundles multiple '@protobufjs' packages from the above files.
   This package is available under the BSD-3-Clause LICENSE:
 
@@ -1331,6 +1568,7 @@ conditions of the following licenses.
     support library is itself covered by the above license.
 
 - '@types/long' in extension/dist/ext/extension.js
+- '@types/long' in node_modules/@omega-edit/client
   This product bundles '@types/long' from the above files.
   These packages are available under the MIT License:
     This project is licensed under the MIT license.
@@ -1456,7 +1694,27 @@ conditions of the following licenses.
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
     OTHER DEALINGS IN THE SOFTWARE.
 
+- 'yallist' in extension/dist/ext/extension.js
+  This product bundles 'yallist' from the above files.
+  This package is available under the ISC License:
+    The ISC License
+
+    Copyright (c) 2015-2022 Isaac Z. Schlueter and Contributors
+
+    Permission to use, copy, modify, and/or distribute this software for any
+    purpose with or without fee is hereby granted, provided that the above
+    copyright notice and this permission notice appear in all copies.
+
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+    IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
 - 'yargs' in extension/dist/ext/extension.js
+- 'yargs' in node_modules/@omega-edit/client
   This product bundles 'yargs' from the above files.
   This package is available under the MIT License:
     MIT License
@@ -1675,6 +1933,7 @@ conditions of the following licenses.
     suitability for any purpose.
 
 - '@types/node' in extension/dist/ext/extension.js
+- '@types/node' in node_modules/@omega-edit/client
   This product bundles '@types/long' from the above files.
   These packages are available under the MIT License:
     This project is licensed under the MIT license.
@@ -1701,6 +1960,7 @@ conditions of the following licenses.
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 'wait-port' in extension/dist/ext/extension.js
+- 'wait-port' in node_modules/@omega-edit/client
   This product bundles 'wait-port' from the above files.
   This package is available under the MIT LICENSE:
 
@@ -1727,6 +1987,7 @@ conditions of the following licenses.
     SOFTWARE.
 
 - 'chalk' in extension/dist/ext/extension.js
+- 'chalk' in node_modules/@omega-edit/client
   This product bundles 'chalk' from the above files.
   This package is available under the MIT LICENSE:
 
@@ -1741,6 +2002,7 @@ conditions of the following licenses.
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 'commander' in extension/dist/ext/extension.js
+- 'commander' in node_modules/@omega-edit/client
   This product bundles 'commander' from the above files.
   This package is available under the MIT LICENSE:
 
@@ -1768,6 +2030,7 @@ conditions of the following licenses.
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 'debug' in extension/dist/ext/extension.js
+- 'debug' in node_modules/@omega-edit/client
   This product bundles 'debug' from the above files.
   This package is available under the MIT LICENSE:
 
@@ -1792,6 +2055,7 @@ conditions of the following licenses.
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - '@types/google-protobuf' in extension/dist/ext/extension.js
+- '@types/google-protobuf' in node_modules/@omega-edit/client
   This product bundles '@types/google-protobuf' from the above files.
   This package is available under the MIT LICENSE:
 
@@ -1805,6 +2069,7 @@ conditions of the following licenses.
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 'google-protobuf' in extension/dist/ext/extension.js
+- 'google-protobuf' in node_modules/@omega-edit/client
   This product bundles 'google-protobuf' from the above files.
   This package is available under the BSD-3-Clause LICENSE:
 
@@ -1960,7 +2225,7 @@ conditions of the following licenses.
 
     COPYRIGHT AND PERMISSION NOTICE (ICU 58 and later)
 
-    Copyright © 1991-2020 Unicode, Inc. All rights reserved.
+    Copyright © 1991-2023 Unicode, Inc. All rights reserved.
     Distributed under the Terms of Use in https://www.unicode.org/copyright.html.
 
     Permission is hereby granted, free of charge, to any person obtaining
@@ -2880,7 +3145,7 @@ conditions of the following licenses.
   This product bundles 'slf4j' from the above files.
   These files are available under the MIT license:
 
-    Copyright (c) 2004-2017 QOS.ch
+    Copyright (c) 2004-2022 QOS.ch
     All rights reserved.
 
     Permission is hereby granted, free  of charge, to any person obtaining
@@ -3446,3 +3711,230 @@ conditions of the following licenses.
     Linking this library statically or dynamically with other modules is making a combined work based on this library.  Thus, the terms and conditions of the GNU General Public License Version 2 cover the whole combination.
 
     As a special exception, the copyright holders of this library give you permission to link this library with independent modules to produce an executable, regardless of the license terms of these independent modules, and to copy and distribute the resulting executable under terms of your choice, provided that you also meet, for each linked independent module, the terms and conditions of the license of that module.  An independent module is a module which is not derived from or based on this library.  If you modify this library, you may extend this exception to your version of the library, but you are not obligated to do so.  If you do not wish to do so, delete this exception statement from your version.
+
+- src/svelte/src/resources/fonts/RedHatMono-Regular.woff2
+  This product bundles the above files from the 'RedHatFont' repo. (https://github.com/RedHatOfficial/RedHatFont)
+  These files are available under the SIL Open Font License, Version 1.1:
+    Copyright 2021 Red Hat, Inc.,
+    with Reserved Font Name Red Hat.
+
+    This Font Software is licensed under the SIL Open Font License, Version 1.1.
+    This license is copied below, and is also available with a FAQ at:
+    http://scripts.sil.org/OFL
+
+
+    -----------------------------------------------------------
+    SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+    -----------------------------------------------------------
+
+    PREAMBLE
+    The goals of the Open Font License (OFL) are to stimulate worldwide
+    development of collaborative font projects, to support the font creation
+    efforts of academic and linguistic communities, and to provide a free and
+    open framework in which fonts may be shared and improved in partnership
+    with others.
+
+    The OFL allows the licensed fonts to be used, studied, modified and
+    redistributed freely as long as they are not sold by themselves. The
+    fonts, including any derivative works, can be bundled, embedded,
+    redistributed and/or sold with any software provided that any reserved
+    names are not used by derivative works. The fonts and derivatives,
+    however, cannot be released under any other type of license. The
+    requirement for fonts to remain under this license does not apply
+    to any document created using the fonts or their derivatives.
+
+    DEFINITIONS
+    "Font Software" refers to the set of files released by the Copyright
+    Holder(s) under this license and clearly marked as such. This may
+    include source files, build scripts and documentation.
+
+    "Reserved Font Name" refers to any names specified as such after the
+    copyright statement(s).
+
+    "Original Version" refers to the collection of Font Software components as
+    distributed by the Copyright Holder(s).
+
+    "Modified Version" refers to any derivative made by adding to, deleting,
+    or substituting -- in part or in whole -- any of the components of the
+    Original Version, by changing formats or by porting the Font Software to a
+    new environment.
+
+    "Author" refers to any designer, engineer, programmer, technical
+    writer or other person who contributed to the Font Software.
+
+    PERMISSION & CONDITIONS
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of the Font Software, to use, study, copy, merge, embed, modify,
+    redistribute, and sell modified and unmodified copies of the Font
+    Software, subject to the following conditions:
+
+    1) Neither the Font Software nor any of its individual components,
+    in Original or Modified Versions, may be sold by itself.
+
+    2) Original or Modified Versions of the Font Software may be bundled,
+    redistributed and/or sold with any software, provided that each copy
+    contains the above copyright notice and this license. These can be
+    included either as stand-alone text files, human-readable headers or
+    in the appropriate machine-readable metadata fields within text or
+    binary files as long as those fields can be easily viewed by the user.
+
+    3) No Modified Version of the Font Software may use the Reserved Font
+    Name(s) unless explicit written permission is granted by the corresponding
+    Copyright Holder. This restriction only applies to the primary font name as
+    presented to the users.
+
+    4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+    Software shall not be used to promote, endorse or advertise any
+    Modified Version, except to acknowledge the contribution(s) of the
+    Copyright Holder(s) and the Author(s) or with their explicit written
+    permission.
+
+    5) The Font Software, modified or unmodified, in part or in whole,
+    must be distributed entirely under this license, and must not be
+    distributed under any other license. The requirement for fonts to
+    remain under this license does not apply to any document created
+    using the Font Software.
+
+    TERMINATION
+    This license becomes null and void if any of the above conditions are
+    not met.
+
+    DISCLAIMER
+    THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+    OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+    COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+    INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+    DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+    OTHER DEALINGS IN THE FONT SOFTWARE.
+
+- src/svelte/src/resources/fonts/SpaceGrotesk-Variable.woff2
+  This product bundles the above files from the 'space-grotest' repo. (https://github.com/floriankarsten/space-grotesk)
+  These files are available under the SIL Open Font License, Version 1.1:
+    Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)
+
+    This Font Software is licensed under the SIL Open Font License, Version 1.1.
+    This license is copied below, and is also available with a FAQ at:
+    http://scripts.sil.org/OFL
+
+
+    -----------------------------------------------------------
+    SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+    -----------------------------------------------------------
+
+    PREAMBLE
+    The goals of the Open Font License (OFL) are to stimulate worldwide
+    development of collaborative font projects, to support the font creation
+    efforts of academic and linguistic communities, and to provide a free and
+    open framework in which fonts may be shared and improved in partnership
+    with others.
+
+    The OFL allows the licensed fonts to be used, studied, modified and
+    redistributed freely as long as they are not sold by themselves. The
+    fonts, including any derivative works, can be bundled, embedded, 
+    redistributed and/or sold with any software provided that any reserved
+    names are not used by derivative works. The fonts and derivatives,
+    however, cannot be released under any other type of license. The
+    requirement for fonts to remain under this license does not apply
+    to any document created using the fonts or their derivatives.
+
+    DEFINITIONS
+    "Font Software" refers to the set of files released by the Copyright
+    Holder(s) under this license and clearly marked as such. This may
+    include source files, build scripts and documentation.
+
+    "Reserved Font Name" refers to any names specified as such after the
+    copyright statement(s).
+
+    "Original Version" refers to the collection of Font Software components as
+    distributed by the Copyright Holder(s).
+
+    "Modified Version" refers to any derivative made by adding to, deleting,
+    or substituting -- in part or in whole -- any of the components of the
+    Original Version, by changing formats or by porting the Font Software to a
+    new environment.
+
+    "Author" refers to any designer, engineer, programmer, technical
+    writer or other person who contributed to the Font Software.
+
+    PERMISSION & CONDITIONS
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of the Font Software, to use, study, copy, merge, embed, modify,
+    redistribute, and sell modified and unmodified copies of the Font
+    Software, subject to the following conditions:
+
+    1) Neither the Font Software nor any of its individual components,
+    in Original or Modified Versions, may be sold by itself.
+
+    2) Original or Modified Versions of the Font Software may be bundled,
+    redistributed and/or sold with any software, provided that each copy
+    contains the above copyright notice and this license. These can be
+    included either as stand-alone text files, human-readable headers or
+    in the appropriate machine-readable metadata fields within text or
+    binary files as long as those fields can be easily viewed by the user.
+
+    3) No Modified Version of the Font Software may use the Reserved Font
+    Name(s) unless explicit written permission is granted by the corresponding
+    Copyright Holder. This restriction only applies to the primary font name as
+    presented to the users.
+
+    4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+    Software shall not be used to promote, endorse or advertise any
+    Modified Version, except to acknowledge the contribution(s) of the
+    Copyright Holder(s) and the Author(s) or with their explicit written
+    permission.
+
+    5) The Font Software, modified or unmodified, in part or in whole,
+    must be distributed entirely under this license, and must not be
+    distributed under any other license. The requirement for fonts to
+    remain under this license does not apply to any document created
+    using the Font Software.
+
+    TERMINATION
+    This license becomes null and void if any of the above conditions are
+    not met.
+
+    DISCLAIMER
+    THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+    OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+    COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+    INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+    DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+    OTHER DEALINGS IN THE FONT SOFTWARE.
+    
+- src/language/semantics/dfdlExt.ts
+- src/language/semantics/documentChangeHandler.ts
+- src/language/semantics/functionData.ts
+- src/language/semantics/xPathDocumentChangeHandler.ts
+- src/language/semantics/xpLexer.ts
+- src/language/semantics/xslLexer.ts
+- src/language/semantics/xsltTokenDiagnostics.ts
+  This product modifies and bundles the above files from the 'XSLT/XPath for Visual Studio Code' extension. (https://github.com/DeltaXML/vscode-xslt-tokenizer)
+  These files are available under the MIT License:
+
+    MIT License
+
+    Copyright (c) 2020 DeltaXML Ltd
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.

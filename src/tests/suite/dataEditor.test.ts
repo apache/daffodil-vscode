@@ -24,7 +24,7 @@ import { after, before } from 'mocha'
 import {
   createSimpleFileLogger,
   getClientVersion,
-  getServerVersion,
+  getServerInfo,
   setLogger,
   startServer,
   stopServerUsingPID,
@@ -133,7 +133,8 @@ suite('Data Editor Test Suite', () => {
 
     test('server and client versions match', async () => {
       const clientVersion = getClientVersion()
-      const serverVersion = await getServerVersion()
+      const serverInfo = await getServerInfo()
+      const serverVersion = serverInfo.serverVersion
       assert.strictEqual(serverVersion, clientVersion)
       assert.strictEqual(fs.existsSync(serverLogFile), true)
       assert.strictEqual(fs.existsSync(logFile), true)

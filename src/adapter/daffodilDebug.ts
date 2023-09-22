@@ -275,9 +275,8 @@ export class DaffodilDebugSession extends LoggingDebugSession {
       bp.id = id
       return bp
     })
-    const actualBreakpoints = await Promise.all<DebugProtocol.Breakpoint>(
-      actualBreakpoints0
-    )
+    const actualBreakpoints =
+      await Promise.all<DebugProtocol.Breakpoint>(actualBreakpoints0)
 
     // send back the actual breakpoint positions
     response.body = {

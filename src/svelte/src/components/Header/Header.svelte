@@ -16,11 +16,13 @@ limitations under the License.
 -->
 <script lang="ts">
   import FileMetrics from './fieldsets/FileMetrics.svelte'
-  import { fileMetrics } from './fieldsets/FileMetrics'
   import SearchReplace from './fieldsets/SearchReplace.svelte'
   import Settings from './fieldsets/Settings.svelte'
   import FlexContainer from '../layouts/FlexContainer.svelte'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
+  import { fileMetrics } from '../../stores'
+  import Tooltip from '../layouts/Tooltip.svelte'
+
   let hideChildren = false
 </script>
 
@@ -28,12 +30,14 @@ limitations under the License.
   <FlexContainer>
     <FlexContainer --justify-content="space-between" --align-items="center">
       <div class="filename-display"><b>File:</b> {$fileMetrics.name}</div>
-      <button
-        class={$UIThemeCSSClass + ' minmax-icon'}
-        on:click={() => {
-          hideChildren = hideChildren ? false : true
-        }}><span class="material-symbols-outlined">expand_all</span></button
-      >
+      <Tooltip alwaysEnabled={true} description={'Maximize header'}>
+        <button
+          class={$UIThemeCSSClass + ' minmax-icon'}
+          on:click={() => {
+            hideChildren = hideChildren ? false : true
+          }}><span class="material-symbols-outlined">expand_all</span></button
+        >
+      </Tooltip>
     </FlexContainer>
   </FlexContainer>
 {:else}
@@ -46,12 +50,22 @@ limitations under the License.
       </FlexContainer>
     </header>
     <div class="display-icons">
-      <button
-        class={$UIThemeCSSClass + ' minmax-icon'}
-        on:click={() => {
-          hideChildren = hideChildren ? false : true
-        }}><span class="material-symbols-outlined">expand_all</span></button
-      >
+      <Tooltip alwaysEnabled={true} description={'Minimize header'}>
+        <button
+          class={$UIThemeCSSClass + ' minmax-icon'}
+          on:click={() => {
+            hideChildren = !hideChildren
+          }}
+        >
+          <span class="material-symbols-outlined">
+            {#if hideChildren}
+              expand_all
+            {:else}
+              expand_less
+            {/if}
+          </span>
+        </button>
+      </Tooltip>
     </div>
   </FlexContainer>
 {/if}

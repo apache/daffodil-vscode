@@ -27,8 +27,8 @@ import scala.xml.XML
 import java.nio.charset.StandardCharsets
 
 class TDMLSuite extends munit.FunSuite {
-  val basePath = Paths.get("./debugger/").toAbsolutePath()
-  val basePathStr = "debugger/"
+  val basePath = Paths.get(".").toAbsolutePath()
+  val basePathStr = ""
   val infosetPath = Paths.get("./debugger/src/test/data/emptyInfoset.xml").toAbsolutePath()
   val schemaPath = Paths.get("./debugger/src/test/data/emptySchema.xml").toAbsolutePath()
   val dataPath = Paths.get("./debugger/src/test/data/emptyData.xml").toAbsolutePath()

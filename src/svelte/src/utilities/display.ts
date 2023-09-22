@@ -13,18 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { writable } from 'svelte/store'
 import {
   EditByteModes,
   type BytesPerRow,
   type RadixValues,
 } from '../stores/configuration'
-
-export type ViewportReferences = {
-  physical: HTMLTextAreaElement
-  address: HTMLTextAreaElement
-  logical: HTMLTextAreaElement
-}
 
 export type Viewport = 'physical' | 'address' | 'logical'
 
@@ -44,31 +37,6 @@ const ByteDivWidths = {
   2: '64px' as ByteDivWidth,
 }
 
-export type BinaryBytePrefix = 'B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB'
-export type BinaryBitPrefix = 'b' | 'Kb' | 'Mb' | 'Gb' | 'Tb' | 'Pb'
-type ValidByteOctetCount = 1 | 2 | 3 | 4
-
-export const DISPLAYED_DATA_LINES = 20
-
-export const tooltipsEnabled = writable(false)
-export const sizeHumanReadable = writable(false)
-
-export function viewport_references(
-  viewport?: Viewport
-): ViewportReferences | HTMLTextAreaElement {
-  return viewport
-    ? (document.getElementById(viewport) as HTMLTextAreaElement)
-    : {
-        physical: document.getElementById('physical') as HTMLTextAreaElement,
-        address: document.getElementById('address') as HTMLTextAreaElement,
-        logical: document.getElementById('logical') as HTMLTextAreaElement,
-      }
-}
-
-export function edit_byte_window_ref(): HTMLDivElement {
-  return document.getElementById('editByteWindow') as HTMLDivElement
-}
-
 export function radixBytePad(radix: RadixValues): number {
   switch (radix) {
     case 2:
@@ -86,15 +54,14 @@ export function radixBytePad(radix: RadixValues): number {
 export function radixToString(radix: RadixValues): string {
   switch (radix) {
     case 2:
-      return 'binary'
+      return 'bin'
     case 8:
-      return 'octal'
+      return 'oct'
     case 10:
-      return 'decimal'
+      return 'dec'
     case 16:
       return 'hex'
   }
-  return 'binary'
 }
 
 export function byteDivWidthFromRadix(radix: RadixValues): ByteDivWidth {
@@ -210,7 +177,17 @@ export function viewport_offset_to_line_num(
   vpStartOffset: number,
   bytesPerRow: BytesPerRow
 ): number {
-  return Math.floor((offset - vpStartOffset) / bytesPerRow)
+  return Math.max(0, Math.floor((offset - vpStartOffset) / bytesPerRow))
+}
+
+export function line_num_to_file_offset(
+  lineNum: number,
+  viewportStartOffset: number,
+  bytesPerRow: BytesPerRow
+): number {
+  const offsetInViewport = lineNum * bytesPerRow
+  const offsetInFile = viewportStartOffset + offsetInViewport
+  return Math.max(0, offsetInFile)
 }
 
 export enum BinaryBytePrefixes {
@@ -236,4 +213,10 @@ export function humanReadableByteLength(byteLength: number): string {
   }
 
   return ret
+}
+
+export const CLIENT_WIDTH_COLLAPSE_THRESHOLD = 1500
+
+export function shouldCollapseContent(): boolean {
+  return document.body.clientWidth <= CLIENT_WIDTH_COLLAPSE_THRESHOLD
 }

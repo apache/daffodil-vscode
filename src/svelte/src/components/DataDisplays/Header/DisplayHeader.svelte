@@ -23,6 +23,8 @@ limitations under the License.
     seekOffsetInput,
     selectionDataStore,
     selectionSize,
+    bytesPerRow,
+    viewport,
   } from '../../../stores'
   import {
     EditByteModes,
@@ -33,7 +35,6 @@ limitations under the License.
   } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import { createEventDispatcher } from 'svelte'
-  import { bytesPerRow } from '../CustomByteDisplay/BinaryData'
 
   type ViewportDivSpread = '24px' | '28px' | '68px'
 
@@ -60,9 +61,10 @@ limitations under the License.
 
   $: selectionOffsetText = setSelectionOffsetInfo(
     'Selection',
-    $selectionDataStore.startOffset,
-    $selectionDataStore.endOffset,
-    $selectionSize
+    $viewport.fileOffset + $selectionDataStore.startOffset,
+    $viewport.fileOffset + $selectionDataStore.endOffset,
+    $selectionSize,
+    $addressRadix
   )
 
   function generate_offset_headers(
@@ -74,7 +76,7 @@ limitations under the License.
 
     if (displayRadix != RADIX_OPTIONS.Binary) {
       for (let i = 0; i < bytesPerRow; i++) {
-        ret.push(i.toString(addressRadix).padStart(2, '0').toUpperCase())
+        ret.push(i.toString(addressRadix).padStart(2, '0'))
       }
     } else {
       for (let i = 0; i < 8; i++) {
@@ -91,9 +93,12 @@ limitations under the License.
     from: string,
     start: number,
     end: number,
-    size: number
+    size: number,
+    radix: RadixValues
   ): string {
-    return `${from} [${start} - ${end}] Size: ${size} `
+    return `${from} [${start.toString(radix)} - ${end.toString(
+      radix
+    )}] Size: ${size.toString(radix)} `
   }
 
   function updateAddressValue(event: Event) {

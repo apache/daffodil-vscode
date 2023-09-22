@@ -15,34 +15,35 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { createEventDispatcher, onMount, tick } from 'svelte'
+  import { createEventDispatcher, onMount } from 'svelte'
   import {
     editedDataSegment,
     editMode,
     editorEncoding,
     focusedViewportId,
-    seekOffsetInput,
     selectionDataStore,
     selectionSize,
+    selectedByte,
+    fileMetrics,
+    searchQuery,
+    editorActionsAllowed,
+    dataFeedLineTop,
+    seekOffsetInput,
   } from '../../../stores'
   import {
     EditByteModes,
     NUM_LINES_DISPLAYED,
-    VIEWPORT_CAPACITY_MAX,
-    type BytesPerRow,
     type RadixValues,
-    editorActionsAllowed,
     EditActionRestrictions,
+    VIEWPORT_SCROLL_INCREMENT,
   } from '../../../stores/configuration'
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
-  import { fileMetrics } from '../../Header/fieldsets/FileMetrics'
   import Button from '../../Inputs/Buttons/Button.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import {
     byte_value_string,
     null_byte,
-    selectedByte,
     type ByteSelectionEvent,
     type ByteValue,
     type ViewportData_t,
@@ -51,6 +52,7 @@ limitations under the License.
   import FileTraversalIndicator from './FileTraversalIndicator.svelte'
   import {
     byteDivWidthFromRadix,
+    line_num_to_file_offset,
     viewport_offset_to_line_num,
   } from '../../../utilities/display'
   import SelectedByteEdit from './SelectedByteEdit.svelte'
@@ -59,15 +61,13 @@ limitations under the License.
     type CSSThemeClass,
   } from '../../../utilities/colorScheme'
   import {
-    activeSelectionHighlights,
+    selectionHighlights,
     searchResultsHighlights,
     updateSearchResultsHighlights,
+    searchResultsUpdated,
   } from '../../../utilities/highlights'
-  import { searchQuery } from '../../Header/fieldsets/SearchReplace'
-
-  export let lineTop: number
-  export let awaitViewportScroll: boolean
-  export let bytesPerRow: BytesPerRow = 16
+  import { bytesPerRow } from '../../../stores'
+  export let awaitViewportSeek: boolean
   export let dataRadix: RadixValues = 16
   export let addressRadix: RadixValues = 16
   export let viewportData: ViewportData_t
@@ -76,35 +76,67 @@ limitations under the License.
   const CONTAINER_ID = 'viewportData-container'
   const eventDispatcher = createEventDispatcher()
 
-  function OFFSET_FETCH_ADJUSTMENT(direction: ViewportScrollDirection) {
+  function OFFSET_FETCH_ADJUSTMENT(
+    direction: ViewportScrollDirection,
+    numLinesToScroll: number
+  ) {
+    const newLineTopOffset =
+      numLinesToScroll * $bytesPerRow + $dataFeedLineTop * $bytesPerRow
+    let scroll_count = Math.floor(newLineTopOffset / VIEWPORT_SCROLL_INCREMENT)
+
     if (direction === ViewportScrollDirection.INCREMENT) {
-      const fetchBound = viewportData.fileOffset + VIEWPORT_CAPACITY_MAX / 2
+      const fetchBound =
+        viewportData.fileOffset + scroll_count * VIEWPORT_SCROLL_INCREMENT
       if (fetchBound > $fileMetrics.computedSize)
         return (
-          (fetchBound - $fileMetrics.computedSize / bytesPerRow) * bytesPerRow
+          ($fileMetrics.computedSize / $bytesPerRow) * $bytesPerRow -
+          NUM_LINES_DISPLAYED * $bytesPerRow
         )
+
       return fetchBound
     } else {
       const validBytesRemaining =
-        viewportData.fileOffset - VIEWPORT_CAPACITY_MAX / 2 > 0
+        viewportData.fileOffset + scroll_count * VIEWPORT_SCROLL_INCREMENT > 0
       if (!validBytesRemaining) return 0
       else {
-        return viewportData.fileOffset - VIEWPORT_CAPACITY_MAX / 2
+        return (
+          viewportData.fileOffset + scroll_count * VIEWPORT_SCROLL_INCREMENT
+        )
       }
     }
   }
 
   const INCREMENT_LINE = () => {
-    handle_navigation(ViewportScrollDirection.INCREMENT)
+    $seekOffsetInput = line_num_to_file_offset(
+      $dataFeedLineTop + 1,
+      viewportData.fileOffset,
+      $bytesPerRow
+    ).toString(addressRadix)
+    eventDispatcher('seek')
   }
   const DECREMENT_LINE = () => {
-    handle_navigation(ViewportScrollDirection.DECREMENT)
+    $seekOffsetInput = line_num_to_file_offset(
+      $dataFeedLineTop - 1,
+      viewportData.fileOffset,
+      $bytesPerRow
+    ).toString(addressRadix)
+    eventDispatcher('seek')
   }
   const INCREMENT_SEGMENT = () => {
-    handle_navigation(ViewportScrollDirection.INCREMENT, NUM_LINES_DISPLAYED)
+    $seekOffsetInput = line_num_to_file_offset(
+      $dataFeedLineTop + NUM_LINES_DISPLAYED,
+      viewportData.fileOffset,
+      $bytesPerRow
+    ).toString(addressRadix)
+    eventDispatcher('seek')
   }
   const DECREMENT_SEGMENT = () => {
-    handle_navigation(ViewportScrollDirection.DECREMENT, -NUM_LINES_DISPLAYED)
+    $seekOffsetInput = line_num_to_file_offset(
+      $dataFeedLineTop - NUM_LINES_DISPLAYED,
+      viewportData.fileOffset,
+      $bytesPerRow
+    ).toString(addressRadix)
+    eventDispatcher('seek')
   }
   const SCROLL_TO_END = () => {
     $seekOffsetInput = $fileMetrics.computedSize.toString(addressRadix)
@@ -119,7 +151,6 @@ limitations under the License.
   let totalLinesPerViewport = 0
   let lineTopMaxViewport = 64
   let lineTopMaxFile = 64
-  let viewportFileSegment = 1
   let atViewportHead = true
   let atViewportTail = false
   let atFileHead = true
@@ -140,6 +171,7 @@ limitations under the License.
 
   enum ViewportScrollDirection {
     DECREMENT = -1,
+    NONE = 0,
     INCREMENT = 1,
   }
 
@@ -161,17 +193,16 @@ limitations under the License.
 
   $: themeClass = $UIThemeCSSClass
   $: {
-    totalLinesPerFilesize = Math.ceil($fileMetrics.computedSize / bytesPerRow)
-    totalLinesPerViewport = Math.ceil(viewportData.data.length / bytesPerRow)
+    totalLinesPerFilesize = Math.ceil($fileMetrics.computedSize / $bytesPerRow)
+    totalLinesPerViewport = Math.ceil(viewportData.data.length / $bytesPerRow)
     lineTopMaxFile = Math.max(totalLinesPerFilesize - NUM_LINES_DISPLAYED, 0)
     lineTopMaxViewport = Math.max(
       totalLinesPerViewport - NUM_LINES_DISPLAYED,
       0
     )
-    viewportFileSegment = viewportData.fileOffset / viewportData.length + 1
 
-    atViewportHead = lineTop === 0
-    atViewportTail = lineTop === lineTopMaxViewport
+    atViewportHead = $dataFeedLineTop === 0
+    atViewportTail = $dataFeedLineTop === lineTopMaxViewport
     atFileHead = viewportData.fileOffset === 0
     atFileTail = viewportData.bytesLeft === 0
 
@@ -179,56 +210,61 @@ limitations under the License.
       $selectionDataStore.active || (atViewportHead && atFileHead)
     disableIncrement =
       $selectionDataStore.active || (atViewportTail && atFileTail)
-    lineTopFileOffset = lineTop * bytesPerRow
+    lineTopFileOffset = $dataFeedLineTop * $bytesPerRow
   }
 
   $: {
-    if (viewportData.fileOffset >= 0 && !awaitViewportScroll && lineTop >= 0) {
+    activeSelection = $selectionHighlights
+    searchResults = $searchResultsHighlights
+    if (
+      (viewportData.fileOffset >= 0 &&
+        !awaitViewportSeek &&
+        $dataFeedLineTop >= 0) ||
+      $searchResultsUpdated
+    ) {
       if (
         viewportLines.length !== 0 &&
-        bytesPerRow !== viewportLines[0].bytes.length
+        $bytesPerRow !== viewportLines[0].bytes.length
       ) {
-        lineTop = viewport_offset_to_line_num(
+        $dataFeedLineTop = viewport_offset_to_line_num(
           parseInt(viewportLines[0].offset, addressRadix),
           viewportData.fileOffset,
-          bytesPerRow
+          $bytesPerRow
         )
       }
 
       viewportLines = generate_line_data(
-        lineTop,
+        $dataFeedLineTop,
         dataRadix,
-        addressRadix,
-        bytesPerRow
+        addressRadix
       )
+      $searchResultsUpdated = false
     }
   }
   $: byteElementWidth = byteDivWidthFromRadix(dataRadix)
-  $: {
-    activeSelection = $activeSelectionHighlights
-    searchResults = $searchResultsHighlights
-  }
 
   function generate_line_data(
     startIndex: number,
     dataRadix: RadixValues,
     addressRadix: RadixValues,
-    bytesPerRow: BytesPerRow,
     endIndex: number = startIndex + (NUM_LINES_DISPLAYED - 1)
   ): Array<ViewportLineData> {
     let ret = []
     for (let i = startIndex; i <= endIndex; i++) {
-      const viewportLineOffset = i * bytesPerRow
+      const viewportLineOffset = i * $bytesPerRow
       const fileOffset = viewportLineOffset + viewportData.fileOffset
 
       let bytes: Array<ByteValue> = []
       const highlight = i % 2 === 0
 
-      for (let bytePos = 0; bytePos < bytesPerRow; bytePos++) {
+      for (let bytePos = 0; bytePos < $bytesPerRow; bytePos++) {
         let byteOffset = viewportLineOffset + bytePos
         bytes.push({
           offset: byteOffset,
-          value: viewportData.data[byteOffset],
+          value:
+            viewportData.data[byteOffset] !== undefined
+              ? viewportData.data[byteOffset]
+              : -1,
           text:
             byteOffset < viewportData.length
               ? byte_value_string(viewportData.data[byteOffset], dataRadix)
@@ -238,7 +274,7 @@ limitations under the License.
 
       ret.push({
         offset: fileOffset.toString(addressRadix).padStart(8, '0'),
-        fileLine: fileOffset / bytesPerRow,
+        fileLine: fileOffset / $bytesPerRow,
         bytes: bytes,
         highlight: highlight ? 'even' : 'odd',
       })
@@ -275,29 +311,37 @@ limitations under the License.
       : atViewportTail && atFileTail
   }
 
-  function handle_navigation(
-    direction: ViewportScrollDirection,
-    linesToMove: number = direction
-  ) {
-    if (at_scroll_boundary(direction)) return
+  function direction_of_scroll(
+    numLinesToScroll: number
+  ): ViewportScrollDirection {
+    return Math.sign(numLinesToScroll) as ViewportScrollDirection
+  }
 
-    if (at_fetch_boundary(direction, linesToMove)) {
+  function handle_navigation(numLinesToScroll: number) {
+    const navDirection = direction_of_scroll(numLinesToScroll)
+
+    if (at_scroll_boundary(navDirection)) return
+
+    if (at_fetch_boundary(navDirection, numLinesToScroll)) {
       const viewportOffset = viewportData.fileOffset
       const lineTopOffset = viewportLines[0].bytes[0].offset
-      const nextViewportOffset = OFFSET_FETCH_ADJUSTMENT(direction)
+      const nextViewportOffset = OFFSET_FETCH_ADJUSTMENT(
+        navDirection,
+        numLinesToScroll
+      )
 
       eventDispatcher('traverse-file', {
         nextViewportOffset: nextViewportOffset,
         lineTopOnRefresh:
           Math.floor(
-            (viewportOffset + lineTopOffset - nextViewportOffset) / bytesPerRow
-          ) + linesToMove,
+            (viewportOffset + lineTopOffset - nextViewportOffset) / $bytesPerRow
+          ) + numLinesToScroll,
       })
       return
     }
 
-    const newLine = lineTop + linesToMove
-    lineTop = Math.max(0, Math.min(newLine, lineTopMaxViewport))
+    const newLine = $dataFeedLineTop + numLinesToScroll
+    $dataFeedLineTop = Math.max(0, Math.min(newLine, lineTopMaxViewport))
   }
 
   function at_fetch_boundary(
@@ -306,8 +350,8 @@ limitations under the License.
   ): boolean {
     if (linesToMove != direction)
       return direction === ViewportScrollDirection.INCREMENT
-        ? lineTop + linesToMove >= lineTopMaxViewport && !atFileTail
-        : lineTop + linesToMove <= 0 && !atFileHead
+        ? $dataFeedLineTop + linesToMove >= lineTopMaxViewport && !atFileTail
+        : $dataFeedLineTop + linesToMove <= 0 && !atFileHead
 
     return direction === ViewportScrollDirection.INCREMENT
       ? atViewportTail && !atFileTail
@@ -360,7 +404,6 @@ limitations under the License.
         ? selectionEvent.targetByte
         : null_byte()
 
-    // update_byte_action_offsets(selectionEvent.targetElement)
     selectedByteElement = selectionEvent.targetElement
 
     editedDataSegment.update(() => {
@@ -393,9 +436,9 @@ limitations under the License.
     const offset =
       Math.ceil(
         ($fileMetrics.computedSize * (percentageTraversed / 100.0)) /
-          bytesPerRow
-      ) * bytesPerRow
-    const firstPageThreshold = bytesPerRow * NUM_LINES_DISPLAYED
+          $bytesPerRow
+      ) * $bytesPerRow
+    const firstPageThreshold = $bytesPerRow * NUM_LINES_DISPLAYED
     const lastPageThreshold = $fileMetrics.computedSize - firstPageThreshold
     if (offset <= firstPageThreshold) {
       // scroll to the top because we are somewhere in the first page
@@ -405,15 +448,10 @@ limitations under the License.
       SCROLL_TO_END()
     } else {
       // scroll to the offset since we are not in the first or last page
-      vscode.postMessage({
-        command: MessageCommand.scrollViewport,
-        data: {
-          scrollOffset: offset,
-          bytesPerRow: bytesPerRow,
-        },
-      })
+      $seekOffsetInput = offset.toString(addressRadix)
+      eventDispatcher('seek')
       lineTopOnRefresh = lineTopMaxViewport
-      awaitViewportScroll = true
+      awaitViewportSeek = true
     }
   }
 
@@ -436,9 +474,12 @@ limitations under the License.
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
       case MessageCommand.viewportRefresh:
-        if (awaitViewportScroll) {
-          awaitViewportScroll = false
-          lineTop = Math.max(0, Math.min(lineTopMaxViewport, lineTop))
+        if (awaitViewportSeek) {
+          awaitViewportSeek = false
+          $dataFeedLineTop = Math.max(
+            0,
+            Math.min(lineTopMaxViewport, $dataFeedLineTop)
+          )
           if ($selectionDataStore.active)
             selectedByteElement = document.getElementById(
               $selectedByte.offset.toString()
@@ -460,7 +501,7 @@ limitations under the License.
     <SelectedByteEdit
       byte={$selectedByte}
       on:seek
-      on:commitChanges
+      on:applyChanges
       on:handleEditorEvent
     />
   {/key}
@@ -468,14 +509,10 @@ limitations under the License.
 
 <div class="container" style:height id={CONTAINER_ID}>
   {#each viewportLines as viewportLine, i}
-    <div
-      class={`line ${viewportLine.highlight} ${themeClass}`}
-      title={`file line #${viewportLine.fileLine}`}
-    >
+    <div class={`line ${viewportLine.highlight} ${themeClass}`}>
       <div class="address" id="address">
         <b>{viewportLine.offset}</b>
       </div>
-
       <div
         class="byte-line"
         id="physical-line-{i.toString(16).padStart(2, '0')}"
@@ -483,20 +520,20 @@ limitations under the License.
         {#each viewportLine.bytes as byte}
           <DataValue
             {byte}
-            isSelected={activeSelection[byte.offset]}
+            isSelected={activeSelection[byte.offset] === 1}
+            possibleSelection={activeSelection[byte.offset] === 2}
             isSearchResult={searchResults[byte.offset] >>
               activeSelection[byte.offset]}
             id={'physical'}
             radix={dataRadix}
             width={byteElementWidth}
-            disabled={byte.offset > viewportData.length}
-            selectionData={$selectionDataStore}
+            disabled={byte.value === -1}
+            bind:selectionData={$selectionDataStore}
             on:mouseup={mouseup}
             on:mousedown={mousedown}
           />
         {/each}
       </div>
-
       <div
         class="byte-line"
         id="logical-line-{i.toString(16).padStart(2, '0')}"
@@ -504,14 +541,15 @@ limitations under the License.
         {#each viewportLine.bytes as byte}
           <DataValue
             {byte}
-            isSelected={activeSelection[byte.offset]}
+            isSelected={activeSelection[byte.offset] === 1}
+            possibleSelection={activeSelection[byte.offset] === 2}
             isSearchResult={searchResults[byte.offset] >>
               activeSelection[byte.offset]}
             id={'logical'}
             radix={dataRadix}
             width={byteElementWidth}
-            disabled={byte.offset > viewportData.length}
-            selectionData={$selectionDataStore}
+            disabled={byte.value === -1}
+            bind:selectionData={$selectionDataStore}
             on:mouseup={mouseup}
             on:mousedown={mousedown}
           />
@@ -523,12 +561,12 @@ limitations under the License.
   <FlexContainer --dir="column">
     <FileTraversalIndicator
       totalLines={totalLinesPerFilesize}
-      currentLine={lineTop}
+      selectionActive={$selectionDataStore.active}
+      currentLine={$dataFeedLineTop}
       fileOffset={viewportData.fileOffset}
       maxDisplayLines={NUM_LINES_DISPLAYED}
       bind:percentageTraversed
       on:indicatorClicked={handleClickedIndicator}
-      {bytesPerRow}
     />
     <FlexContainer --dir="row">
       <Button
@@ -536,6 +574,7 @@ limitations under the License.
         disabledBy={disableIncrement}
         width="30pt"
         description="Navigate to EOF"
+        tooltipAlwaysEnabled={true}
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >stat_minus_3</span
@@ -546,7 +585,8 @@ limitations under the License.
         disabledBy={disableIncrement}
         width="30pt"
         description="Increment offset by {NUM_LINES_DISPLAYED *
-          bytesPerRow} bytes"
+          $bytesPerRow} bytes"
+        tooltipAlwaysEnabled={true}
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >keyboard_double_arrow_down</span
@@ -556,7 +596,8 @@ limitations under the License.
         fn={INCREMENT_LINE}
         disabledBy={disableIncrement}
         width="30pt"
-        description="Increment offset by {bytesPerRow} bytes"
+        description="Increment offset by {$bytesPerRow} bytes"
+        tooltipAlwaysEnabled={true}
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >keyboard_arrow_down</span
@@ -566,7 +607,8 @@ limitations under the License.
         fn={DECREMENT_LINE}
         disabledBy={disableDecrement}
         width="30pt"
-        description="Decrement offset by {bytesPerRow} bytes"
+        description="Decrement offset by {$bytesPerRow} bytes"
+        tooltipAlwaysEnabled={true}
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >keyboard_arrow_up</span
@@ -577,7 +619,8 @@ limitations under the License.
         disabledBy={disableDecrement}
         width="30pt"
         description="Decrement offset by {NUM_LINES_DISPLAYED *
-          bytesPerRow} bytes"
+          $bytesPerRow} bytes"
+        tooltipAlwaysEnabled={true}
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >keyboard_double_arrow_up</span
@@ -588,6 +631,7 @@ limitations under the License.
         disabledBy={disableDecrement}
         width="30pt"
         description="Navigate to offset 0"
+        tooltipAlwaysEnabled={true}
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
           >stat_3</span

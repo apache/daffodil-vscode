@@ -15,10 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { tooltipsEnabled } from '../../utilities/display'
+  import { tooltipsEnabled } from '../../stores'
 
   const NULL = () => {}
-
+  const TOOLTIP_MIN_WIDTH = 50
+  const TOOLTIP_MIN_HEIGHT = 25
   export let description: string
   export let alwaysEnabled = false
   let showTooltip = false
@@ -30,8 +31,23 @@ limitations under the License.
 
     switch (event.type) {
       case 'mouseenter':
-        left = targetElement.offsetLeft
-        top = targetElement.offsetTop + targetElement.offsetHeight + 5
+        const clientWidth = document.body.clientWidth
+        const targetOffsetLeft = targetElement.offsetLeft
+        const clientHeight = window.innerHeight
+        const targetOffsetTop = targetElement.offsetTop
+        const targetHeight = targetElement.offsetHeight
+
+        left =
+          clientWidth - targetOffsetLeft + TOOLTIP_MIN_WIDTH > targetOffsetLeft
+            ? targetOffsetLeft
+            : targetOffsetLeft - TOOLTIP_MIN_WIDTH
+
+        top =
+          targetOffsetTop + targetHeight + TOOLTIP_MIN_HEIGHT <
+          clientHeight - TOOLTIP_MIN_HEIGHT
+            ? targetOffsetTop + targetHeight + 5
+            : targetOffsetTop - TOOLTIP_MIN_HEIGHT
+
         showTooltip = true
         break
       case 'mouseleave':
@@ -51,13 +67,13 @@ limitations under the License.
   </span>
 
   {#if showTooltip}
-    <span
+    <div
       class="tooltip"
       style:left={left.toString() + 'px'}
       style:top={top.toString() + 'px'}
     >
       {description}
-    </span>
+    </div>
   {/if}
 {:else}
   <span><slot /></span>
@@ -66,8 +82,13 @@ limitations under the License.
 <style lang="scss">
   .tooltip {
     position: absolute;
+    display: flex;
+    align-content: center;
+    align-items: center;
     max-width: 150px;
+    min-width: 50px;
     max-height: 50px;
+    min-height: 25px;
     font-size: 12px;
     text-align: center;
     background-color: var(--color-secondary-darkest);

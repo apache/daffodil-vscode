@@ -19,11 +19,17 @@ limitations under the License.
     RADIX_OPTIONS,
     ENCODING_GROUPS,
     EDIT_ACTIONS,
-    editorActionsAllowed,
   } from '../../../stores/configuration'
-  import { displayRadix, editorEncoding } from '../../../stores'
+  import {
+    displayRadix,
+    editorEncoding,
+    editorActionsAllowed,
+    bytesPerRow,
+  } from '../../../stores'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
+
+  $: $bytesPerRow = $displayRadix === RADIX_OPTIONS.Binary ? 8 : 16
 </script>
 
 <fieldset>

@@ -21,6 +21,7 @@ import { getConfig, osCheck } from '../utils'
 import { DFDLDebugger } from '../classes/dfdlDebugger'
 import { VSCodeLaunchConfigArgs } from '../classes/vscode-launch'
 import { DataEditorConfig } from '../classes/dataEditor'
+import { parse as jsoncParse } from 'jsonc-parser'
 
 const defaultConf = getConfig({
   name: 'Wizard Config',
@@ -84,7 +85,7 @@ async function createUpdateConfigFile(data, updateOrCreate) {
   }
 
   let newConf = JSON.parse(data).configurations[0]
-  let fileData = JSON.parse(
+  let fileData = jsoncParse(
     fs.readFileSync(`${rootPath}/.vscode/launch.json`).toString()
   )
 
@@ -146,7 +147,7 @@ async function updateWebViewConfigValues(configIndex) {
   let fileData =
     configIndex === -1
       ? null
-      : JSON.parse(
+      : jsoncParse(
           fs.readFileSync(`${rootPath}/.vscode/launch.json`).toString()
         )
 
@@ -314,7 +315,7 @@ class LaunchWizard {
     let fileData = JSON.parse('{}')
 
     if (fs.existsSync(`${rootPath}/.vscode/launch.json`)) {
-      fileData = JSON.parse(
+      fileData = jsoncParse(
         fs.readFileSync(`${rootPath}/.vscode/launch.json`).toString()
       )
 
@@ -523,7 +524,7 @@ class LaunchWizard {
 
       <div id="openInfosetDiffViewDiv" class="setting-div" onclick="check('openInfosetDiffView')">
         <p>Open Infoset Diff View:</p>
-        <label class="container">Open hexview on debug start.
+        <label class="container">Open infoset view on debug start.
           <input type="checkbox" id="openInfosetDiffView" ${openInfosetDiffView}>
           <span class="checkmark"></span>
         </label>
@@ -531,7 +532,7 @@ class LaunchWizard {
 
       <div id="openInfosetViewDiv" class="setting-div" onclick="check('openInfosetView')">
         <p>Open Infoset View:</p>
-        <label class="container">Open hexview on debug start.
+        <label class="container">Open infoset diff on debug start.
           <input type="checkbox" id="openInfosetView" ${openInfosetView}>
           <span class="checkmark"></span>
         </label>

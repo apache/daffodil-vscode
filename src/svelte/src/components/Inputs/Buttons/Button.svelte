@@ -15,20 +15,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
+  import Tooltip from '../../layouts/Tooltip.svelte'
+  import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { onMount } from 'svelte'
+  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
+  import { tooltipsEnabled } from '../../../stores'
+  import { shouldCollapseContent } from '../../../utilities/display'
   export let fn: (event?: Event) => void
   export let disabledBy = false
   export let width = ''
-  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
-  import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import Tooltip from '../../layouts/Tooltip.svelte'
-  import { tooltipsEnabled } from '../../../utilities/display'
 
   onMount(() => {
-    collapseContent = document.body.clientWidth <= 1600
+    collapseContent = shouldCollapseContent()
   })
 
   export let description = ''
+  export let tooltipAlwaysEnabled = false
 
   let collapseContentFn: NodeJS.Timeout
   let collapseContent = false
@@ -38,13 +40,13 @@ limitations under the License.
   window.addEventListener('resize', () => {
     clearTimeout(collapseContentFn)
     collapseContentFn = setTimeout(() => {
-      collapseContent = document.body.clientWidth <= 1500
+      collapseContent = shouldCollapseContent()
     }, 100)
   })
 </script>
 
-{#if collapseContent}
-  <Tooltip {description}>
+<Tooltip alwaysEnabled={tooltipAlwaysEnabled} {description}>
+  {#if collapseContent}
     <button
       class={$UIThemeCSSClass + ' collapsed'}
       disabled={disabledBy}
@@ -61,27 +63,27 @@ limitations under the License.
         </svelte:fragment>
       </FlexContainer>
     </button>
-  </Tooltip>
-{:else}
-  <button
-    class={$UIThemeCSSClass}
-    disabled={disabledBy}
-    on:click={!disabledBy ? fn : () => {}}
-    style:width
-  >
-    <FlexContainer
-      --dir="row"
-      --align-items="center"
-      --justify-content="center"
+  {:else}
+    <button
+      class={$UIThemeCSSClass}
+      disabled={disabledBy}
+      on:click={!disabledBy ? fn : () => {}}
+      style:width
     >
-      <svelte:fragment>
-        <slot name="left" />
-        <slot />
-        <slot name="right" />
-      </svelte:fragment>
-    </FlexContainer>
-  </button>
-{/if}
+      <FlexContainer
+        --dir="row"
+        --align-items="center"
+        --justify-content="center"
+      >
+        <svelte:fragment>
+          <slot name="left" />
+          <slot />
+          <slot name="right" />
+        </svelte:fragment>
+      </FlexContainer>
+    </button>
+  {/if}
+</Tooltip>
 
 <style lang="scss">
   button {

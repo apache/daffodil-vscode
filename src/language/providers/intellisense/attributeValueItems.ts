@@ -30,14 +30,35 @@ export const noChoiceAttributes = [
   'outputValueCalc',
   'hiddenGroupRef',
   'choiceBranchKey',
+  'textOutputMinLength',
+  'textStandardDecimalSeparator',
+  'textStandardGroupingSeparator',
+  'textZonedSignStyle',
   'textNumberRoundingIncrement',
+  'textBooleanTrueRep',
+  'textBooleanFalseRep',
+  'textBooleanJustification',
+  'textBooleanPadCharacter',
   'separator',
   'terminator',
   'choiceLength',
   'fillByte',
   'initiator',
   'choiceDispatchKey',
+  'binaryDecimalVirtualPoint',
+  'binaryPackedSignCodes',
+  'binaryBooleantrueRep',
+  'binaryBooleanFalseRep',
+  'calendarPattern',
+  'calendarTimeZone',
+  'calendarCenturyStart',
+  'calendarLanguage',
   'escapeSchemeRef',
+  'escapeCharacter',
+  'escapeBlockStart',
+  'escapeBlockEnd',
+  'escapeEscapeCharacter',
+  'extraEscapedCharacters',
   'test',
   'testPattern',
   'message',
@@ -112,6 +133,9 @@ export function attributeValues(
     case 'nilValueDelimiterPolicy':
       insertSnippet('"${1|initiator,terminator,both,none|}"$0', startPos)
       break
+    case 'useNilForDefault':
+      insertSnippet('"${1|yes,no|}"$0', startPos)
+      break
     case 'alignment':
       insertSnippet('"${1|1,2,implicit|}"$0', startPos)
       break
@@ -143,19 +167,19 @@ export function attributeValues(
       insertSnippet('"${1|left,right,center|}"$0', startPos)
       break
     case 'textStandardZeroRep':
-      insertSnippet('"0"$0', startPos)
+      insertSnippet('"0$1"$0', startPos)
       break
     case 'textStandardInfinityRep':
-      insertSnippet('"Inf"$0', startPos)
+      insertSnippet('"Inf$1"$0', startPos)
       break
     case 'textStandardExponentRep':
-      insertSnippet('"E"$0', startPos)
+      insertSnippet('"E$1"$0', startPos)
       break
     case 'textStandardNaNRep':
-      insertSnippet('"NaN"$0', startPos)
+      insertSnippet('"NaN$1"$0', startPos)
       break
     case 'textNumberPattern':
-      insertSnippet('"#,##0.###;-#,##0.###"$0', startPos)
+      insertSnippet('"#,##0.###;-#,##0.###$1"$0', startPos)
       break
     case 'textNumberRep':
       insertSnippet('"${1|standard,zoned|}"$0', startPos)
@@ -178,8 +202,11 @@ export function attributeValues(
     case 'textOutputMinLength':
       insertSnippet('"0"$0', startPos)
       break
+    case 'textStandardDecimalSeparator':
+      insertSnippet('"$1"$0', startPos)
+      break
     case 'textStandardGroupingSeparator':
-      insertSnippet('","$0', startPos)
+      insertSnippet('",$1"$0', startPos)
       break
     case 'textPadKind':
       insertSnippet('"${1|none,padChar|}"$0', startPos)
@@ -187,8 +214,23 @@ export function attributeValues(
     case 'textStandardBase':
       insertSnippet('"${1|2,8,10,16|}"$0', startPos)
       break
+    case 'textZonedSignStyle':
+      insertSnippet('"$1"$0', startPos)
+      break
     case 'textTrimKind':
       insertSnippet('"${1|none,padChar|}"$0', startPos)
+      break
+    case 'textBooleanTrueRep':
+      insertSnippet('"$1"$0', startPos)
+      break
+    case 'textBooleanFalseRep':
+      insertSnippet('"$1"$0', startPos)
+      break
+    case 'textBooleanJustification':
+      insertSnippet('"${1|left,right,center|}"$0', startPos)
+      break
+    case 'textBooleanPadCharacter':
+      insertSnippet('"$1"$0', startPos)
       break
     case 'leadingSkip':
       insertSnippet('"0$1"$0', startPos)
@@ -253,8 +295,47 @@ export function attributeValues(
     case 'binaryFloatRep':
       insertSnippet('"${1|ieee,ibm390Hex|}"$0', startPos)
       break
+    case 'binaryDecimalVirtualPoint':
+      insertSnippet('"$1"$0', startPos)
+      break
+    case 'binaryPackedSignCodes':
+      insertSnippet('"$1"$0', startPos)
+      break
+    case 'binaryNumberCheckPolicy':
+      insertSnippet('"${1|strict,lax|}"$0', startPos)
+      break
+    case 'dfdl:binaryBooleanTrueRep':
+      insertSnippet('"$1"$0', startPos)
+      break
+    case 'dfdl:binaryBooleanFalseRep':
+      insertSnippet('"$1"$0', startPos)
+      break
+    case 'calendarPattern':
+      insertSnippet('"$1"$0', startPos)
+      break
     case 'calendarPatternKind':
       insertSnippet('"${1|explicit,implicit|}"$0', startPos)
+      break
+    case 'dfdl:calendarCheckPolicy':
+      insertSnippet('"${1|strict,lax|}"$0', startPos)
+      break
+    case 'dfdl:calendarTimeZone':
+      insertSnippet('"$1"$0', startPos)
+      break
+    case 'dfdl:calendarObserveDST':
+      insertSnippet('"${1|yes,no|}"$0', startPos)
+      break
+    case 'dfdl:calendarFirstDayOfWeek':
+      insertSnippet('"${1|Monday,Sunday|}"$0', startPos)
+      break
+    case 'dfdl:calendarDaysInFirstWeek':
+      insertSnippet('"${1|1,2,3,4,5,6,7|}"$0', startPos)
+      break
+    case 'dfdl:calendarCenturyStart':
+      insertSnippet('"$1"$0', startPos)
+      break
+    case 'dfdl:calendarLanguage':
+      insertSnippet('"$1"$0', startPos)
       break
     case 'documentFinalTerminatorCanBeMissing':
       insertSnippet('"${1|yes,no|}"$0', startPos)
@@ -262,8 +343,35 @@ export function attributeValues(
     case 'emptyValueDelimiterPolicy':
       insertSnippet('"${1|initiator,terminator,both,none|}"$0', startPos)
       break
+    case 'emptyElementParsePolicy':
+      insertSnippet('"${1|treatAsAbsent,treatAsEmpty|}"$0', startPos)
+      break
     case 'escapeSchemeRef':
       insertSnippet('"$1"$0', startPos)
+      break
+    case 'escapeKind':
+      insertSnippet('"${1|escapeCharacter,escapeBlock|}"$0', startPos)
+      break
+    case ':escapeCharacter':
+      insertSnippet('"$1"$0', startPos)
+      break
+    case 'escapeBlockStart':
+      insertSnippet('"$1"$0', startPos)
+      break
+    case 'escapeBlockEnd':
+      insertSnippet('"$1"$0', startPos)
+      break
+    case 'escapeEscapeCharacter':
+      insertSnippet('"$1"$0', startPos)
+      break
+    case 'extraEscapedCharacters':
+      insertSnippet('"$1"$0', startPos)
+      break
+    case 'generateEscapeBlock':
+      insertSnippet('"${1|always,whenNeeded|}"$0', startPos)
+      break
+    case 'escapeCharacterPolicy':
+      insertSnippet('"${1|all,delimiters|}"$0', startPos)
       break
     case 'testKind':
       insertSnippet('"${1|expression,pattern|}"$0', startPos)

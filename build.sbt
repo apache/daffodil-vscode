@@ -47,6 +47,7 @@ lazy val commonSettings =
     dependencyOverrides ++= Seq(
       "org.apache.commons" % "commons-lang3" % "3.12.0"
     ),
+    fork := true, // needed to pass javaOptions to tests, for example
     licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
     maintainer := "Apache Daffodil <dev@daffodil.apache.org>",
     organization := "org.apache.daffodil",
@@ -63,7 +64,8 @@ lazy val commonSettings =
 lazy val ratSettings = Seq(
   ratLicenses := Seq(
     ("MIT  ", Rat.MIT_LICENSE_NAME, Rat.MIT_LICENSE_TEXT_MICROSOFT),
-    ("CC0  ", Rat.CREATIVE_COMMONS_LICENSE_NAME, Rat.CREATIVE_COMMONS_LICENSE_TEXT)
+    ("CC0  ", Rat.CREATIVE_COMMONS_LICENSE_NAME, Rat.CREATIVE_COMMONS_LICENSE_TEXT),
+    ("MIT  ", Rat.MIT_LICENSE_NAME, Rat.MIT_LICENSE_TEXT_DELTAXML)
   ),
   ratLicenseFamilies := Seq(
     Rat.MIT_LICENSE_NAME,
@@ -106,9 +108,6 @@ lazy val debugger = project
     packageName := s"${name.value}-$daffodilVer"
   )
 
-lazy val javaMajorVersion: Int =
-  System.getProperty("java.version").stripPrefix("1.").takeWhile(_.isDigit).toInt
-lazy val isAtLeastJava17: Boolean = javaMajorVersion >= 17
 /* Workaround: certain reflection (used by JAXB) isn't allowed by default in JDK 17:
  * https://docs.oracle.com/en/java/javase/17/migrate/migrating-jdk-8-later-jdk-releases.html#GUID-7BB28E4D-99B3-4078-BDC4-FC24180CE82B
  *
@@ -116,8 +115,8 @@ lazy val isAtLeastJava17: Boolean = javaMajorVersion >= 17
  * a user's JVM version. We'll provide documentation and an extension setting
  * to add these flags to the extension-launched debugger backend.
  */
-lazy val extraXjcJvmOpts: Seq[String] =
-  if (isAtLeastJava17)
+lazy val extraJvmOptions: Seq[String] =
+  if (scala.util.Properties.isJavaAtLeast("17"))
     Seq(
       "--add-opens",
       "java.base/java.lang=ALL-UNNAMED"
@@ -132,11 +131,12 @@ lazy val xjcSettings =
       "org.apache.daffodil" %% "daffodil-lib" % daffodilVer % Test,
       "org.glassfish.jaxb" % "jaxb-xjc" % "2.2.11"
     ),
+    Test / javaOptions ++= extraJvmOptions, // tests use JAXB at runtime
     xjcCommandLine += "-nv",
     xjcCommandLine += "-p",
     xjcCommandLine += "org.apache.daffodil.tdml",
     xjcBindings += "debugger/src/main/resources/bindings.xjb",
-    xjcJvmOpts ++= extraXjcJvmOpts,
+    xjcJvmOpts ++= extraJvmOptions,
     xjcLibs := Seq(
       "org.glassfish.jaxb" % "jaxb-xjc" % "2.2.11",
       "com.sun.xml.bind" % "jaxb-impl" % "2.2.11",

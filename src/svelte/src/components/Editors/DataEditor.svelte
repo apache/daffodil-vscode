@@ -15,7 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { editorSelection, editMode, selectionDataStore } from '../../stores'
+  import {
+    editorSelection,
+    editMode,
+    selectionDataStore,
+    regularSizedFile,
+  } from '../../stores'
   import { EditByteModes } from '../../stores/configuration'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import { createEventDispatcher } from 'svelte'
@@ -30,7 +35,9 @@ limitations under the License.
         {
           const eventDetails = event as InputEvent
           const editorElement = eventDetails.target as HTMLTextAreaElement
-          $editorSelection = editorElement.value
+          editorSelection.update(() => {
+            return editorElement.value
+          })
         }
 
         break
@@ -45,7 +52,7 @@ limitations under the License.
 </script>
 
 <div class="editView" id="edit_view">
-  {#if $editMode === EditByteModes.Multiple && $selectionDataStore.active}
+  {#if $editMode === EditByteModes.Multiple && ($selectionDataStore.active || !$regularSizedFile)}
     <textarea
       class={$UIThemeCSSClass}
       id="selectedContent"
@@ -57,11 +64,11 @@ limitations under the License.
     />
 
     <FlexContainer>
-      <ContentControls on:commitChanges />
+      <ContentControls on:applyChanges />
     </FlexContainer>
   {:else}
     <FlexContainer>
-      <DataView on:commitChanges />
+      <DataView on:applyChanges />
     </FlexContainer>
   {/if}
 </div>

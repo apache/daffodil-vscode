@@ -33,11 +33,12 @@ import {
   getCounts,
   getLogger,
   getServerHeartbeat,
-  getServerVersion,
+  getServerInfo,
   getSessionCount,
   getViewportData,
   IOFlags,
   IServerHeartbeat,
+  IServerInfo,
   modifyViewport,
   numAscii,
   profileSession,
@@ -70,6 +71,7 @@ import {
 } from '../svelte/src/stores/configuration'
 import net from 'net'
 import * as vscode from 'vscode'
+import os from 'os'
 
 // *****************************************************************************
 // global constants
@@ -94,8 +96,19 @@ const OMEGA_EDIT_MIN_PORT: number = 1024
 // file-scoped types
 // *****************************************************************************
 
+class ServerInfo implements IServerInfo {
+  serverHostname: string = 'unknown' // hostname
+  serverProcessId: number = 0 // process id
+  serverVersion: string = 'unknown' // server version
+  jvmVersion: string = 'unknown' // jvm version
+  jvmVendor: string = 'unknown' // jvm vendor
+  jvmPath: string = 'unknown' // jvm path
+  availableProcessors: number = 0 // available processors
+}
+
 interface IHeartbeatInfo extends IServerHeartbeat {
-  omegaEditPort: number
+  omegaEditPort: number // Ωedit server port
+  serverInfo: IServerInfo // server info that remains constant
 }
 
 class HeartbeatInfo implements IHeartbeatInfo {
@@ -104,14 +117,12 @@ class HeartbeatInfo implements IHeartbeatInfo {
   serverCommittedMemory: number = 0 // committed memory in bytes
   serverCpuCount: number = 0 // cpu count
   serverCpuLoadAverage: number = 0 // cpu load average
-  serverHostname: string = 'unknown' // hostname
   serverMaxMemory: number = 0 // max memory in bytes
-  serverProcessId: number = 0 // process id
   serverTimestamp: number = 0 // timestamp in ms
   serverUptime: number = 0 // uptime in ms
   serverUsedMemory: number = 0 // used memory in bytes
-  serverVersion: string = 'unknown' // server version
   sessionCount: number = 0 // session count
+  serverInfo: IServerInfo = new ServerInfo()
 }
 
 // *****************************************************************************
@@ -121,8 +132,9 @@ class HeartbeatInfo implements IHeartbeatInfo {
 let activeSessions: string[] = []
 let checkpointPath: string = ''
 let client: EditorClient
-let getHeartbeatIntervalId: NodeJS.Timer | undefined = undefined
+let getHeartbeatIntervalId: NodeJS.Timeout | number | undefined = undefined
 let heartbeatInfo: IHeartbeatInfo = new HeartbeatInfo()
+let serverInfo: IServerInfo = new ServerInfo()
 let omegaEditPort: number = 0
 
 // *****************************************************************************
@@ -153,7 +165,8 @@ export class DataEditorClient implements vscode.Disposable {
   private omegaSessionId = ''
   private contentType = ''
   private fileSize = 0
-  private sendHeartbeatIntervalId: NodeJS.Timer | undefined = undefined
+  private sendHeartbeatIntervalId: NodeJS.Timeout | number | undefined =
+    undefined
 
   constructor(
     protected context: vscode.ExtensionContext,
@@ -244,9 +257,14 @@ export class DataEditorClient implements vscode.Disposable {
         ? (createSessionResponse.getFileSize() as number)
         : 0
     } catch {
-      vscode.window.showErrorMessage(
-        `Failed to create session for ${this.fileToEdit}`
-      )
+      const msg = `Failed to create session for ${this.fileToEdit}`
+      getLogger().error({
+        err: {
+          msg: msg,
+          stack: new Error().stack,
+        },
+      })
+      vscode.window.showErrorMessage(msg)
     }
 
     // create the viewport
@@ -263,9 +281,14 @@ export class DataEditorClient implements vscode.Disposable {
       await viewportSubscribe(this.panel, this.currentViewportId)
       await sendViewportRefresh(this.panel, viewportDataResponse)
     } catch {
-      vscode.window.showErrorMessage(
-        `Failed to create viewport for ${this.fileToEdit}`
-      )
+      const msg = `Failed to create viewport for ${this.fileToEdit}`
+      getLogger().error({
+        err: {
+          msg: msg,
+          stack: new Error().stack,
+        },
+      })
+      vscode.window.showErrorMessage(msg)
     }
 
     // send the initial file info to the webview
@@ -291,8 +314,17 @@ export class DataEditorClient implements vscode.Disposable {
         serverCpuLoadAverage: heartbeatInfo.serverCpuLoadAverage,
         serverUptime: heartbeatInfo.serverUptime,
         serverUsedMemory: heartbeatInfo.serverUsedMemory,
-        serverVersion: heartbeatInfo.serverVersion,
         sessionCount: heartbeatInfo.sessionCount,
+        serverInfo: {
+          omegaEditPort: heartbeatInfo.omegaEditPort,
+          serverVersion: heartbeatInfo.serverInfo.serverVersion,
+          serverHostname: heartbeatInfo.serverInfo.serverHostname,
+          serverProcessId: heartbeatInfo.serverInfo.serverProcessId,
+          jvmVersion: heartbeatInfo.serverInfo.jvmVersion,
+          jvmVendor: heartbeatInfo.serverInfo.jvmVendor,
+          jvmPath: heartbeatInfo.serverInfo.jvmPath,
+          availableProcessors: heartbeatInfo.serverInfo.availableProcessors,
+        },
       },
     })
   }
@@ -351,9 +383,6 @@ export class DataEditorClient implements vscode.Disposable {
         break
 
       case MessageCommand.scrollViewport:
-        vscode.window.showInformationMessage(
-          `scrollViewport offset: ${message.data.scrollOffset}, bytesPerRow: ${message.data.bytesPerRow}`
-        )
         await this.scrollViewport(
           this.panel,
           this.currentViewportId,
@@ -374,21 +403,18 @@ export class DataEditorClient implements vscode.Disposable {
             message.data.selectionData &&
             message.data.selectionData.length > 0
           ) {
-            const bufSlice = Buffer.from(message.data.selectionData)
-            const displayData = dataToEncodedStr(bufSlice, encodeDataAs)
-
             await this.panel.webview.postMessage({
               command: MessageCommand.editorOnChange,
-              display:
-                message.data.encoding === 'hex'
-                  ? displayData.toUpperCase()
-                  : displayData,
+              display: dataToEncodedStr(
+                Buffer.from(message.data.selectionData),
+                encodeDataAs
+              ),
             })
           }
         }
         break
 
-      case MessageCommand.commit:
+      case MessageCommand.applyChanges:
         await edit(
           this.omegaSessionId,
           message.data.offset,
@@ -398,12 +424,12 @@ export class DataEditorClient implements vscode.Disposable {
         await this.sendChangesInfo()
         break
 
-      case MessageCommand.undo:
+      case MessageCommand.undoChange:
         await undo(this.omegaSessionId)
         await this.sendChangesInfo()
         break
 
-      case MessageCommand.redo:
+      case MessageCommand.redoChange:
         await redo(this.omegaSessionId)
         await this.sendChangesInfo()
         break
@@ -429,7 +455,7 @@ export class DataEditorClient implements vscode.Disposable {
         }
         break
 
-      case MessageCommand.clear:
+      case MessageCommand.clearChanges:
         if (
           (await vscode.window.showInformationMessage(
             'Are you sure you want to revert all changes?',
@@ -607,17 +633,22 @@ export class DataEditorClient implements vscode.Disposable {
     offset: number,
     bytesPerRow: number
   ) {
-    // start of the row containing the offset
-    const startOffset = offset - (offset % bytesPerRow)
+    // start of the row containing the offset, making sure the offset is never negative
+    const startOffset = Math.max(0, offset - (offset % bytesPerRow))
     try {
       await sendViewportRefresh(
         panel,
         await modifyViewport(viewportId, startOffset, VIEWPORT_CAPACITY_MAX)
       )
     } catch {
-      vscode.window.showErrorMessage(
-        `Failed to scroll viewport ${viewportId} to offset ${startOffset}`
-      )
+      const msg = `Failed to scroll viewport ${viewportId} to offset ${startOffset}`
+      getLogger().error({
+        err: {
+          msg: msg,
+          stack: new Error().stack,
+        },
+      })
+      vscode.window.showErrorMessage(msg)
     }
   }
 }
@@ -651,8 +682,8 @@ async function createDataEditorWebviewPanel(
     // initialize the first server heartbeat
     await getHeartbeat()
     assert(
-      heartbeatInfo.serverVersion.length > 0,
-      'heartbeat did not return a server version'
+      heartbeatInfo.serverInfo.serverVersion.length > 0,
+      'heartbeat did not receive a server version'
     )
   }
 
@@ -821,9 +852,10 @@ async function viewportSubscribe(
         .setInterest(ALL_EVENTS & ~ViewportEventKind.VIEWPORT_EVT_MODIFY)
     )
     .on('data', async (event: ViewportEvent) => {
-      getLogger().debug(
-        `viewport '${event.getViewportId()}' received event: ${event.getViewportEventKind()}`
-      )
+      getLogger().debug({
+        viewportId: event.getViewportId(),
+        event: event.getViewportEventKind(),
+      })
       await sendViewportRefresh(panel, await getViewportData(viewportId))
     })
     .on('error', (err) => {
@@ -1085,14 +1117,12 @@ async function getHeartbeat() {
   heartbeatInfo.serverCommittedMemory = heartbeat.serverCommittedMemory
   heartbeatInfo.serverCpuCount = heartbeat.serverCpuCount
   heartbeatInfo.serverCpuLoadAverage = heartbeat.serverCpuLoadAverage
-  heartbeatInfo.serverHostname = heartbeat.serverHostname
   heartbeatInfo.serverMaxMemory = heartbeat.serverMaxMemory
-  heartbeatInfo.serverProcessId = heartbeat.serverProcessId
   heartbeatInfo.serverTimestamp = heartbeat.serverTimestamp
   heartbeatInfo.serverUptime = heartbeat.serverUptime
   heartbeatInfo.serverUsedMemory = heartbeat.serverUsedMemory
-  heartbeatInfo.serverVersion = heartbeat.serverVersion
   heartbeatInfo.sessionCount = heartbeat.sessionCount
+  heartbeatInfo.serverInfo = serverInfo
 }
 
 async function serverStart() {
@@ -1147,7 +1177,18 @@ async function serverStart() {
     throw new Error('Server failed to start or PID is invalid')
   }
   const clientVersion = getClientVersion()
-  const serverVersion = await getServerVersion()
+  serverInfo = await getServerInfo()
+  const serverVersion = serverInfo.serverVersion
+  // if the OS is not Windows, check that the server PID matches the one started
+  // NOTE: serverPid is the PID of the server wrapper script on Windows
+  if (
+    !os.platform().toLowerCase().startsWith('win') &&
+    serverInfo.serverProcessId !== serverPid
+  ) {
+    throw new Error(
+      `server PID mismatch ${serverInfo.serverProcessId} != ${serverPid}`
+    )
+  }
   if (serverVersion !== clientVersion) {
     throw new Error(
       `Server version ${serverVersion} and client version ${clientVersion} must match`
@@ -1156,7 +1197,7 @@ async function serverStart() {
   // get an initial heartbeat to ensure the server is up and running
   await getHeartbeat()
   clearInterval(animationIntervalId)
-  statusBarItem.text = `Ωedit server v${serverVersion} started on port ${omegaEditPort} with PID ${serverPid}`
+  statusBarItem.text = `Ωedit server v${serverVersion} started on port ${omegaEditPort} with PID ${serverInfo.serverProcessId}`
   setTimeout(() => {
     statusBarItem.dispose()
   }, 5000)

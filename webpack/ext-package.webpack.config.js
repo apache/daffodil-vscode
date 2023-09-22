@@ -26,10 +26,11 @@ const path = require('path')
 const unzip = require('unzip-stream')
 const fs = require('fs')
 const CopyPlugin = require('copy-webpack-plugin')
+const jsoncParse = require('jsonc-parser').parse
 
 const pkg_dir = path.resolve('dist/package')
 
-const packageData = JSON.parse(
+const packageData = jsoncParse(
   fs.readFileSync(path.resolve('package.json')).toString()
 )
 const pkg_version = packageData['version']
@@ -94,8 +95,8 @@ module.exports = /** @type WebpackConfig */ {
         { from: 'build/package/NOTICE', to: `${pkg_dir}` },
         { from: 'dist/styles.css', to: `${pkg_dir}/dist/styles.css` },
         {
-          from: 'dist/views/dataEditor/index.js',
-          to: `${pkg_dir}/dist/views/dataEditor/index.js`,
+          from: 'dist/views/',
+          to: `${pkg_dir}/dist/views/`,
         },
         { from: 'images', to: `${pkg_dir}/images` },
         { from: 'language', to: `${pkg_dir}/language` },

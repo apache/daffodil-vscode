@@ -30,12 +30,12 @@ limitations under the License.
     dvUint8,
     selectionDataStore,
     editedDataSegment,
+    selectedByte,
   } from '../../../stores'
   import { ENDIANNESS_OPTIONS } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
-  import Input from '../../Inputs/Input/Input.svelte'
   import { createEventDispatcher } from 'svelte'
-  import { selectedByte } from '../CustomByteDisplay/BinaryData'
+  import Input from '../../Inputs/Input/Input.svelte'
 
   const eventDispatcher = createEventDispatcher()
   const ERROR_MESSAGE_TIMEOUT = 5000
@@ -118,7 +118,7 @@ limitations under the License.
       editedDataSegment.update(() => {
         return new Uint8Array(dv.buffer, 0, byteSize)
       })
-      eventDispatcher('commitChanges', {
+      eventDispatcher('applyChanges', {
         byte: $selectedByte,
         action: 'insert-replace',
       })

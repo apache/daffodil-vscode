@@ -20,8 +20,12 @@ limitations under the License.
   import { MessageCommand } from '../../utilities/message'
   import { onMount } from 'svelte'
   import Input from '../Inputs/Input/Input.svelte'
-  import { offsetMax } from '../DataDisplays/CustomByteDisplay/BinaryData'
+  import { viewport } from '../../stores'
   import { DATA_PROFILE_MAX_LENGTH } from '../../stores/configuration'
+  import { addressRadix } from '../../stores'
+  import { radixToString, regexEditDataTest } from '../../utilities/display'
+
+  const PROFILE_DOS_EOL = 256
 
   // title for the byte profile graph
   export let title: string
@@ -44,14 +48,16 @@ limitations under the License.
   let variance: number = 0
   let stdDev: number = 0
   let numAscii: number = 0
-  let isEditing = ''
-  let statusMessage = ''
-  let warningMessage = ''
-  let errorMessage = ''
-  let statusMessageTimeout: number | null = null
-  let warningMessageTimeout: number | null = null
-  let errorMessageTimeout: number | null = null
-  let asciiOverlay = true
+  let numDistinct: number = 0
+  let fieldBeingEdited: string = ''
+  let statusMessage: string = ''
+  let warningMessage: string = ''
+  let errorMessage: string = ''
+  let statusMessageTimeout: NodeJS.Timeout | null = null
+  let warningMessageTimeout: NodeJS.Timeout | null = null
+  let errorMessageTimeout: NodeJS.Timeout | null = null
+  let asciiOverlay: boolean = true
+  let logScale: boolean = false
 
   $: {
     sum = byteProfile.reduce((a, b) => a + b, 0)
@@ -62,6 +68,7 @@ limitations under the License.
     let squareDiffs = byteProfile.map((value) => Math.pow(value - mean, 2))
     variance = squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length
     stdDev = Math.sqrt(variance)
+    numDistinct = byteProfile.filter((value) => value > 0).length
 
     colorScaleData = byteProfile.map((value) => {
       if (value < mean - stdDev) return 'low'
@@ -69,7 +76,12 @@ limitations under the License.
       return 'average'
     })
 
-    scaledData = byteProfile.map((d) => Math.round((d / maxFrequency) * 300)) // 300 is the max height of the chart
+    scaledData = byteProfile.map((d) => {
+      // Note: 300 is the max height of the chart. byteFrequency values are >= 0.
+      return logScale
+        ? Math.round((Math.log2(d + 1) / Math.log2(maxFrequency + 1)) * 300) // adding 1 to prevent log(0)
+        : Math.round((d / maxFrequency) * 300)
+    })
   }
 
   function setStatusMessage(msg: string, timeout: number = 5000) {
@@ -135,9 +147,15 @@ limitations under the License.
     switch (e.detail.id) {
       case 'start-offset-input':
         {
-          const startOffsetTemp = parseInt(e.detail.value)
-          if (isNaN(startOffsetTemp)) {
-            setErrorMessage('Start offset must be a decimal number')
+          const startOffsetTemp = parseInt(e.detail.value, $addressRadix)
+          if (
+            isNaN(startOffsetTemp) ||
+            !regexEditDataTest(e.detail.value, $addressRadix)
+          ) {
+            setErrorMessage(
+              `End offset must be a ${radixToString($addressRadix)} number`
+            )
+            return
           } else if (startOffsetTemp < 0) {
             setErrorMessage('Start offset must be greater than or equal to 0')
             return
@@ -159,15 +177,21 @@ limitations under the License.
         break
       case 'end-offset-input':
         {
-          const endOffsetTemp = parseInt(e.detail.value)
-          if (isNaN(endOffsetTemp)) {
-            setErrorMessage('End offset must be a decimal number')
+          const endOffsetTemp = parseInt(e.detail.value, $addressRadix)
+          if (
+            isNaN(endOffsetTemp) ||
+            !regexEditDataTest(e.detail.value, $addressRadix)
+          ) {
+            setErrorMessage(
+              `End offset must be a ${radixToString($addressRadix)} number`
+            )
+            return
           } else if (endOffsetTemp <= startOffset) {
             setErrorMessage('End offset must be greater than start offset')
             return
-          } else if (endOffsetTemp > $offsetMax) {
+          } else if (endOffsetTemp > viewport.offsetMax) {
             setErrorMessage(
-              `End offset must be less than or equal to ${$offsetMax}`
+              `End offset must be less than or equal to ${viewport.offsetMax}`
             )
             return
           }
@@ -185,15 +209,23 @@ limitations under the License.
         break
       case 'length-input':
         {
-          const lengthTemp = parseInt(e.detail.value)
-          if (isNaN(lengthTemp)) {
-            setErrorMessage('Length must be a decimal number')
+          const lengthTemp = parseInt(e.detail.value, $addressRadix)
+          if (
+            isNaN(lengthTemp) ||
+            !regexEditDataTest(e.detail.value, $addressRadix)
+          ) {
+            setErrorMessage(
+              `End offset must be a ${radixToString($addressRadix)} number`
+            )
+            return
           } else if (lengthTemp <= 0) {
             setErrorMessage('Length must be greater than 0')
             return
-          } else if (lengthTemp > $offsetMax - startOffset) {
+          } else if (lengthTemp > viewport.offsetMax - startOffset) {
             setErrorMessage(
-              `Length must be less than or equal to ${$offsetMax - startOffset}`
+              `Length must be less than or equal to ${
+                viewport.offsetMax - startOffset
+              }`
             )
             return
           }
@@ -211,11 +243,11 @@ limitations under the License.
       default:
         break
     }
-    isEditing = ''
+    fieldBeingEdited = ''
     requestSessionProfile(startOffset, length)
   }
   function handleBlur() {
-    isEditing = ''
+    fieldBeingEdited = ''
   }
 
   onMount(() => {
@@ -225,9 +257,6 @@ limitations under the License.
         case MessageCommand.profile:
           numAscii = msg.data.data.numAscii as number
           byteProfile = msg.data.data.byteProfile as number[]
-          console.assert(byteProfile.length === 256)
-          console.assert(startOffset === msg.data.data.startOffset)
-          console.assert(length === msg.data.data.length)
           setStatusMessage(
             `Profiled bytes from ${startOffset} to ${startOffset + length}`
           )
@@ -279,8 +308,21 @@ limitations under the License.
   <hr />
   <div>
     <div class="input-container">
+      <label for="scale"
+        >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Scale:
+        <span
+          id="scale"
+          class="editable"
+          on:click={() => {
+            logScale = !logScale
+          }}>{logScale ? 'Logarithmic' : 'Linear'}</span
+        >
+      </label>
+    </div>
+    <div class="input-container">
       <label for="ascii-overlay-toggle"
         >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Overlay:
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
         <span
           id="ascii-overlay-toggle"
           class="editable"
@@ -290,14 +332,16 @@ limitations under the License.
         >
       </label>
     </div>
-    {#if isEditing === 'startOffset'}
+    {#if fieldBeingEdited === 'startOffset'}
       <div class="input-container">
         <label for="start-offset-input" class="label"
           >Start Offset:
           <Input
             id="start-offset-input"
-            placeholder={startOffset}
-            value={startOffset}
+            placeholder="{startOffset.toString($addressRadix)} ({radixToString(
+              $addressRadix
+            )})"
+            value={startOffset.toString($addressRadix)}
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
             width="20ch"
@@ -306,26 +350,31 @@ limitations under the License.
         </label>
       </div>
     {:else}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <div
         on:click={() => {
-          isEditing = 'startOffset'
+          fieldBeingEdited = 'startOffset'
         }}
       >
         <label for="start-offset"
           >Start Offset: <span id="start-offset" class="editable"
-            >{startOffset}</span
+            >{startOffset.toString($addressRadix)} ({radixToString(
+              $addressRadix
+            )})</span
           ></label
         >
       </div>
     {/if}
-    {#if isEditing === 'endOffset'}
+    {#if fieldBeingEdited === 'endOffset'}
       <div class="input-container">
         <label for="end-offset-input" class="label"
           >&nbsp;&nbsp;End Offset:
           <Input
             id="end-offset-input"
-            placeholder={endOffset}
-            value={endOffset}
+            placeholder="{endOffset.toString($addressRadix)} ({radixToString(
+              $addressRadix
+            )})"
+            value={endOffset.toString($addressRadix)}
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
             width="20ch"
@@ -334,26 +383,31 @@ limitations under the License.
         </label>
       </div>
     {:else}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <div
         on:click={() => {
-          isEditing = 'endOffset'
+          fieldBeingEdited = 'endOffset'
         }}
       >
         <label for="end-offset"
           >&nbsp;&nbsp;End Offset: <span id="end-offset" class="editable"
-            >{endOffset}</span
+            >{endOffset.toString($addressRadix)} ({radixToString(
+              $addressRadix
+            )})</span
           ></label
         >
       </div>
     {/if}
-    {#if isEditing === 'length'}
+    {#if fieldBeingEdited === 'length'}
       <div class="input-container">
         <label for="length-input" class="label"
           >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Length:
           <Input
             id="length-input"
-            placeholder={length}
-            value={length}
+            placeholder="{length.toString($addressRadix)} ({radixToString(
+              $addressRadix
+            )})"
+            value={length.toString($addressRadix)}
             on:inputEnter={handleInputEnter}
             on:inputFocusOut={handleBlur}
             width="20ch"
@@ -362,15 +416,19 @@ limitations under the License.
         </label>
       </div>
     {:else}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <div
         on:click={() => {
-          isEditing = 'length'
+          fieldBeingEdited = 'length'
         }}
       >
         <label for="length"
           >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Length: <span
             id="length"
-            class="editable">{length}</span
+            class="editable"
+            >{length.toString($addressRadix)} ({radixToString(
+              $addressRadix
+            )})</span
           ></label
         >
       </div>
@@ -380,7 +438,9 @@ limitations under the License.
   <div class="stats">
     <label for="computed-size"
       >&nbsp;Max Offset: <span id="computed-size" class="nowrap"
-        >{$offsetMax}</span
+        >{viewport.offsetMax.toString($addressRadix)} ({radixToString(
+          $addressRadix
+        )})</span
       ></label
     >
     <label for="min-frequency"
@@ -410,6 +470,16 @@ limitations under the License.
     >
     <label for="byte-count"
       >&nbsp;Byte Count: <span id="byte-count" class="nowrap">{sum}</span
+      ></label
+    >
+    <label for="distinct-count"
+      >&nbsp;&nbsp;&nbsp;Distinct: <span id="distinct-count" class="nowrap"
+        >{numDistinct}</span
+      ></label
+    >
+    <label for="dos_eol-count"
+      >&nbsp;&nbsp;&nbsp;&nbsp;DOS EOL: <span id="dos_eol-count" class="nowrap"
+        >{byteProfile[PROFILE_DOS_EOL]}</span
       ></label
     >
     <label for="ascii-count"
@@ -511,6 +581,11 @@ limitations under the License.
   div.bar {
     width: 1px;
     background-color: gray;
+    opacity: 0.75;
+  }
+
+  div.bar:hover {
+    opacity: 1;
   }
 
   div.bar.low {
@@ -532,7 +607,7 @@ limitations under the License.
     color: black;
     border: 1px solid blue;
     pointer-events: none;
-    opacity: 0.75;
+    opacity: 0.95;
     font-size: smaller;
   }
 

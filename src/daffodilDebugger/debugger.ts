@@ -53,29 +53,6 @@ async function getTDMLConfig(
     // Might need to add `program` here if we move the `Execute TDML` command
     //   away from the detected dfdl language in VSCode.
     config.data = ''
-  } else {
-    // Get program file before debugger starts to avoid timeout
-    if (config.program.includes('${command:AskForProgramName}')) {
-      config.program = await vscode.commands.executeCommand(
-        'extension.dfdl-debug.getProgramName'
-      )
-    }
-
-    if (config.program === '') {
-      // need to invalidate a variable data file so the DebugConfigurationProvider doesn't try to resolve it after we return
-      if (config.data.includes('${command:AskForDataName}')) {
-        config.data = ''
-      }
-
-      return false
-    }
-
-    // Get data file before debugger starts to avoid timeout
-    if (config.data.includes('${command:AskForDataName}')) {
-      config.data = await vscode.commands.executeCommand(
-        'extension.dfdl-debug.getDataName'
-      )
-    }
   }
 
   if (
@@ -172,27 +149,39 @@ async function getDaffodilDebugClasspath(
 export async function getDebugger(
   context: vscode.ExtensionContext,
   config: vscode.DebugConfiguration
-) {
+): Promise<vscode.DebugConfiguration | undefined> {
   config = getConfig(config) // make sure all config attributes are set
 
-  if (!config.useExistingServer) {
-    if (vscode.workspace.workspaceFolders !== undefined) {
-      await stopDebugger()
+  if (vscode.workspace.workspaceFolders !== undefined) {
+    await stopDebugger()
 
-      if (!(await getTDMLConfig(config))) {
-        return await stopDebugging()
-      }
-
-      let workspaceFolder = vscode.workspace.workspaceFolders
-        ? vscode.workspace.workspaceFolders[0].uri.fsPath
-        : vscode.Uri.parse('').fsPath
-
-      // Get daffodilDebugger class paths to be added to the debugger
-      const daffodilDebugClasspath = await getDaffodilDebugClasspath(
-        config,
-        workspaceFolder
+    // Get program file before debugger starts to avoid timeout
+    if (config.program.includes('${command:AskForProgramName}')) {
+      config.program = await vscode.commands.executeCommand(
+        'extension.dfdl-debug.getProgramName'
       )
+    }
 
+    // Get data file before debugger starts to avoid timeout
+    if (config.data.includes('${command:AskForDataName}')) {
+      config.data = await vscode.commands.executeCommand(
+        'extension.dfdl-debug.getDataName'
+      )
+    }
+
+    if (!(await getTDMLConfig(config))) {
+      return await stopDebugging().then((_) => undefined)
+    }
+
+    let workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath
+
+    // Get daffodilDebugger class paths to be added to the debugger
+    const daffodilDebugClasspath = await getDaffodilDebugClasspath(
+      config,
+      workspaceFolder
+    )
+
+    if (!config.useExistingServer) {
       await runDebugger(
         context.asAbsolutePath('./'),
         daffodilDebugClasspath,
@@ -202,4 +191,6 @@ export async function getDebugger(
       )
     }
   }
+
+  return config
 }

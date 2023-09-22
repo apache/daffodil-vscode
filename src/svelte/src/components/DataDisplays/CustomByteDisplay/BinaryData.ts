@@ -15,14 +15,19 @@
  * limitations under the License.
  */
 
-import { writable, derived } from 'svelte/store'
 import { SimpleWritable } from '../../../stores/localStore'
-import type { BytesPerRow, RadixValues } from '../../../stores/configuration'
-import { radixBytePad } from '../../../utilities/display'
+import {
+  NUM_LINES_DISPLAYED,
+  type BytesPerRow,
+  type RadixValues,
+  VIEWPORT_CAPACITY_MAX,
+} from '../../../stores/configuration'
+import {
+  radixBytePad,
+  viewport_offset_to_line_num,
+} from '../../../utilities/display'
 
 export const BYTE_ACTION_DIV_OFFSET: number = 24
-
-export const VIEWPORT_SCROLL_INCREMENT: number = 512
 
 export type EditAction =
   | 'insert-before'
@@ -53,17 +58,6 @@ export interface EditByteEvent extends EditEvent {
   targetByte: ByteValue
 }
 
-export enum ViewportBoundaryTrigger {
-  SCROLL_TOP,
-  SCROLL_BOTTOM,
-}
-
-export const scroll_boundary_event = (top: boolean, end: boolean) => {
-  return top
-    ? ViewportBoundaryTrigger.SCROLL_TOP
-    : ViewportBoundaryTrigger.SCROLL_BOTTOM
-}
-
 export const byte_value_string = (value: number, radix: RadixValues) => {
   if (value > 255)
     throw `Value {${value}} is larger than an unsigned int (255).`
@@ -87,8 +81,6 @@ export const RADIX_REGEX_MATCH_STR = {
   2: /[0-1]{8}/g,
 }
 
-export const processingViewportRefresh = writable(false)
-
 export class ViewportData_t {
   data = new Uint8Array(0)
   fileOffset = -1
@@ -111,6 +103,32 @@ export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
   public set(value: ViewportData_t): void {
     this.store.set(value)
     this._offsetMax = value.fileOffset + value.bytesLeft + value.length
+  }
+
+  public lowerFetchBoundary(): number {
+    return this.storeData().fileOffset
+  }
+
+  public upperFetchBoundary(bytesPerRow: BytesPerRow): number {
+    const store = this.storeData()
+    const boundary =
+      store.fileOffset + store.length - NUM_LINES_DISPLAYED * bytesPerRow
+
+    return boundary
+  }
+
+  public lineTopMax(bytesPerRow: BytesPerRow): number {
+    const vpMaxOffset = Math.max(
+      0,
+      this.storeData().length - NUM_LINES_DISPLAYED * bytesPerRow
+    )
+    const vpLineTopMax = viewport_offset_to_line_num(
+      vpMaxOffset + this.storeData().fileOffset,
+      this.storeData().fileOffset,
+      bytesPerRow
+    )
+
+    return vpLineTopMax + 1
   }
 
   public physical_byte_values(
@@ -160,98 +178,6 @@ export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
   }
 }
 
-export const viewport = new ViewportDataStore_t()
-
-export type ByteActionPxOffsets = {
-  insertBefore: {
-    left: number
-    top: number
-  }
-  insertAfter: {
-    left: number
-    top: number
-  }
-  delete: {
-    left: number
-    top: number
-  }
-  input: {
-    left: number
-    top: number
-  }
-}
-
 export function latin1Undefined(charCode: number): boolean {
   return charCode < 32 || (charCode > 126 && charCode < 160)
-}
-
-export function update_byte_action_offsets(
-  targetDiv: HTMLDivElement,
-  offsetTopBy: number = 0,
-  offsetLeftBy: number = 0
-) {
-  const targetWidth = parseInt(targetDiv.style.width.replace('px', '')) + 4
-  byteActionPxOffsets.update((currentOffsets) => {
-    currentOffsets.delete = {
-      left: targetDiv.offsetLeft + offsetLeftBy,
-      top: targetDiv.offsetTop + BYTE_ACTION_DIV_OFFSET - offsetTopBy,
-    }
-    currentOffsets.input = {
-      left: targetDiv.offsetLeft + offsetLeftBy,
-      top: targetDiv.offsetTop - offsetTopBy,
-    }
-    currentOffsets.insertAfter = {
-      left: targetDiv.offsetLeft + targetWidth + offsetLeftBy,
-      top: targetDiv.offsetTop - offsetTopBy,
-    }
-    currentOffsets.insertBefore = {
-      left: targetDiv.offsetLeft - targetWidth + offsetLeftBy,
-      top: targetDiv.offsetTop - offsetTopBy,
-    }
-
-    return currentOffsets
-  })
-}
-
-export enum ByteValuePxWidths {
-  DISPLAY = 20,
-  EDITING = 68,
-}
-
-export let ByteValueArray: Array<ByteValue> = []
-
-export const bytesPerRow = writable(16 as BytesPerRow)
-export const editingByte = writable(false)
-export const selectedByte = writable({
-  text: '',
-  offset: -1,
-  value: -1,
-} as ByteValue)
-export const byteActionPxOffsets = writable({
-  insertBefore: {
-    left: 0,
-    top: 0,
-  },
-  insertAfter: {
-    left: 0,
-    top: 0,
-  },
-  delete: {
-    left: 0,
-    top: 0,
-  },
-  input: {
-    left: 0,
-    top: 0,
-  },
-} as ByteActionPxOffsets)
-export const mouseSelectionBytes = writable({ mousedown: -1, mouseup: -1 })
-
-// derived readable number whose value is the computed number of bytes in the edited file
-export const offsetMax = derived(viewport, ($viewport) => {
-  // this should be the same as the computed file size
-  return $viewport.fileOffset + $viewport.length + $viewport.bytesLeft
-})
-export function focus_byte_input() {
-  document.getElementById('byte-input').focus()
 }

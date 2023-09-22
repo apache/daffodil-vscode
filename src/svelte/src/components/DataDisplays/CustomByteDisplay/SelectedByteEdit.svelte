@@ -26,23 +26,23 @@ limitations under the License.
     displayRadix,
     editByte,
     selectionDataStore,
-    commitErrMsg,
-    committable,
+    applyErrMsg,
+    applicable,
     seekOffsetInput,
     addressRadix,
     rerenderActionElements,
     focusedViewportId,
+    editorActionsAllowed,
+    bytesPerRow,
   } from '../../../stores'
-  import { enterKeypressEvents } from '../../../utilities/enterKeypressEvents'
-  import { bytesPerRow, type ByteValue, type EditAction } from './BinaryData'
+  import { elementKeypressEventMap } from '../../../utilities/elementKeypressEvents'
+  import type { ByteValue, EditAction } from './BinaryData'
   import {
     UIThemeCSSClass,
     type CSSThemeClass,
   } from '../../../utilities/colorScheme'
-  import {
-    EditActionRestrictions,
-    editorActionsAllowed,
-  } from '../../../stores/configuration'
+  import { EditActionRestrictions } from '../../../stores/configuration'
+  import Tooltip from '../../layouts/Tooltip.svelte'
 
   const eventDispatcher = createEventDispatcher()
 
@@ -55,6 +55,7 @@ limitations under the License.
     id: string
     position: ActionElementPosition
     HTMLRef: HTMLDivElement | HTMLInputElement
+    render: boolean
   }
   type ActionElements = {
     [k in Actions]: ActionElement
@@ -63,32 +64,28 @@ limitations under the License.
     input: {
       id: 'binary-action-input',
       HTMLRef: undefined as HTMLInputElement,
+      render: true,
       position: { viewportLine: -1, viewportByteIndex: -1 },
     },
     'insert-before': {
       id: 'binary-action-before',
       HTMLRef: undefined,
+      render: true,
       position: { viewportLine: -1, viewportByteIndex: -1 },
     },
     'insert-after': {
       id: 'binary-action-after',
       HTMLRef: undefined,
+      render: true,
       position: { viewportLine: -1, viewportByteIndex: -1 },
     },
     delete: {
       id: 'binary-action-delete',
       HTMLRef: undefined,
+      render: true,
       position: { viewportLine: -1, viewportByteIndex: -1 },
     },
   }
-
-  enterKeypressEvents.register({
-    id: actionElements.input.id,
-    run: () => {
-      if (invalid || inProgress) return
-      commitChanges('byte-input')
-    },
-  })
 
   export let byte: ByteValue
   let target: HTMLDivElement
@@ -117,15 +114,15 @@ limitations under the License.
   }
   $: {
     if (
-      !$committable &&
-      $commitErrMsg.length > 0 &&
+      !$applicable &&
+      $applyErrMsg.length > 0 &&
       $editorSelection.length >= radixBytePad($displayRadix)
     ) {
       invalid = true
       inProgress = false
     } else if (
-      !$committable &&
-      $commitErrMsg.length > 0 &&
+      !$applicable &&
+      $applyErrMsg.length > 0 &&
       $editorSelection.length < radixBytePad($displayRadix)
     ) {
       invalid = false
@@ -135,6 +132,23 @@ limitations under the License.
       inProgress = false
     }
   }
+
+  elementKeypressEventMap.register('Enter', {
+    elementId: actionElements.input.id,
+    run: (keyEvent: KeyboardEvent) => {
+      if (is_input_invalid() || is_input_inprogress()) return
+      if (keyEvent.shiftKey && !keyEvent.ctrlKey) applyChanges('insert-after')
+      else if (!keyEvent.shiftKey && keyEvent.ctrlKey)
+        applyChanges('insert-before')
+      else applyChanges('byte-input')
+    },
+  })
+  elementKeypressEventMap.register('Delete', {
+    elementId: actionElements.input.id,
+    run: (keyEvent: KeyboardEvent) => {
+      applyChanges('delete')
+    },
+  })
 
   onMount(() => {
     target = document.getElementById(targetElementId) as HTMLDivElement
@@ -155,7 +169,12 @@ limitations under the License.
 
     return restore_original_target
   })
-
+  function is_input_invalid() {
+    return invalid
+  }
+  function is_input_inprogress() {
+    return inProgress
+  }
   function grab_action_element_refs() {
     for (const element in actionElements)
       actionElements[element as Actions].HTMLRef = document.getElementById(
@@ -190,7 +209,7 @@ limitations under the License.
   }
 
   function send_delete(_: Event) {
-    commitChanges('delete')
+    applyChanges('delete')
   }
 
   function setup_action_element(element: Actions) {
@@ -210,7 +229,10 @@ limitations under the License.
             previousByteId
           ) as HTMLDivElement
 
-          if (!elementToReplace) break
+          if (!elementToReplace) {
+            actionElements[element].render = false
+            break
+          }
 
           targetParent.contains(elementToReplace)
             ? apply_element_replacements(
@@ -236,7 +258,10 @@ limitations under the License.
             nextByteId
           ) as HTMLDivElement
 
-          if (!elementToReplace) break
+          if (!elementToReplace) {
+            actionElements[element].render = false
+            break
+          }
 
           targetParent.contains(elementToReplace)
             ? apply_element_replacements(
@@ -266,18 +291,18 @@ limitations under the License.
   }
 
   function send_insert(event: Event) {
-    const target = event.target as HTMLElement
+    const target = event.currentTarget as HTMLElement
     switch (target.id) {
       case actionElements['insert-after'].id:
-        commitChanges('insert-after')
+        applyChanges('insert-after')
         break
       case actionElements['insert-before'].id:
-        commitChanges('insert-before')
+        applyChanges('insert-before')
         break
     }
   }
 
-  function commitChanges(action: EditAction) {
+  function applyChanges(action: EditAction) {
     if (action === 'byte-input') {
       update_selectedByte({
         text: $editorSelection,
@@ -286,7 +311,7 @@ limitations under the License.
       })
     }
 
-    eventDispatcher('commitChanges', {
+    eventDispatcher('applyChanges', {
       byte: byte,
       action: action,
     })
@@ -297,37 +322,9 @@ limitations under the License.
   function byteOffsetToElementId(byteOffset: number): string {
     return $focusedViewportId + '-' + byteOffset.toString()
   }
-  function element_byteline_position(
-    targetElement: HTMLDivElement
-  ): number | undefined {
-    const index = parseInt(targetElement.id) + 1
-    return index % BPR
-  }
 </script>
 
 {#if $editorActionsAllowed == EditActionRestrictions.None}
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div
-    class="insert-before {themeClass}"
-    id={actionElements['insert-before'].id}
-    style:width={elementDivWidth}
-    on:click={send_insert}
-  >
-    &#8676;
-  </div>
-
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div
-    class="insert-after {themeClass}"
-    id={actionElements['insert-after'].id}
-    style:width={elementDivWidth}
-    on:click={send_insert}
-  >
-    &#8677;
-  </div>
-
   <span>
     <input
       class="insert {themeClass}"
@@ -348,9 +345,40 @@ limitations under the License.
       style:width={elementDivWidth}
       on:click={send_delete}
     >
-      &#10006;
+      <Tooltip alwaysEnabled={true} description={'Delete byte'}>
+        &#10006;
+      </Tooltip>
     </div>
   </span>
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
+
+  {#if actionElements['insert-before'].render}
+    <div
+      class="insert-before {themeClass}"
+      id={actionElements['insert-before'].id}
+      style:width={elementDivWidth}
+      on:click={send_insert}
+    >
+      <Tooltip alwaysEnabled={true} description={'Insert as preceding byte'}>
+        &#8676;
+      </Tooltip>
+    </div>
+  {/if}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
+  {#if actionElements['insert-after'].render}
+    <div
+      class="insert-after {themeClass}"
+      id={actionElements['insert-after'].id}
+      style:width={elementDivWidth}
+      on:click={send_insert}
+    >
+      <Tooltip alwaysEnabled={true} description={'Insert as following byte'}>
+        &#8677;
+      </Tooltip>
+    </div>
+  {/if}
 {:else}
   <span>
     <input
@@ -415,7 +443,6 @@ limitations under the License.
   div.delete {
     font-size: 20px;
     line-height: 1;
-    z-index: 1;
   }
   div.insert-before,
   div.insert-after {

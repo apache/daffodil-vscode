@@ -47,6 +47,9 @@
         <jxb:bindings node="//xs:attributeGroup[@name='BaseAGQualified']/xs:attribute[@name='ref']">
             <jxb:property name="RefAttribute"/>
         </jxb:bindings>
+         <jxb:bindings node="//xs:attributeGroup[@name='CommonAG']/xs:attribute[@name='emptyElementParsePolicy']">
+            <jxb:property name="EmptyElementParsePolicyAttribute"/>
+        </jxb:bindings>
     </jxb:bindings>
     <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/org/apache/daffodil/xsd/DFDL_part1_simpletypes.xsd" version="1.0">
         <jxb:bindings node="//xs:simpleType[@name='ByteOrderEnum']">
@@ -54,6 +57,9 @@
         </jxb:bindings>
         <jxb:bindings node="//xs:simpleType[@name='BitOrderEnum']">
             <jxb:typesafeEnumClass name="BitOrderEnumType"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:simpleType[@name='EmptyElementParsePolicyEnum']">
+            <jxb:typesafeEnumClass name="EmptyElementParsePolicyEnumType"/>
         </jxb:bindings>
     </jxb:bindings>
     <jxb:bindings schemaLocation="../../../target/scala-2.12/resource_managed/xsd/org/apache/daffodil/xsd/dafext.xsd" version="1.0">

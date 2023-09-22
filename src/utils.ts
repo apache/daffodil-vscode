@@ -22,7 +22,6 @@ import * as child_process from 'child_process'
 import path from 'path'
 import { VSCodeLaunchConfigArgs } from './classes/vscode-launch'
 
-const defaultConf = vscode.workspace.getConfiguration()
 let currentConfig: vscode.DebugConfiguration
 
 const terminalName = 'daffodil-debugger'
@@ -57,7 +56,7 @@ export function runCommand(command: string) {
 // Function for checking if config specifies if either the
 // infoset, infoset diff or hex view needs to be opened
 export async function onDebugStartDisplay(viewsToCheck: string[]) {
-  let config = JSON.parse(JSON.stringify(getCurrentConfig()))
+  let config = getCurrentConfig()
 
   viewsToCheck.forEach(async (viewToCheck) => {
     switch (viewToCheck) {
@@ -84,6 +83,8 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
   const launchConfigArgs: VSCodeLaunchConfigArgs = JSON.parse(
     JSON.stringify(jsonArgs)
   )
+  // NOTE: Don't make this a static value as extension configuration may change while the extension is loaded.
+  const defaultConf = vscode.workspace.getConfiguration()
 
   const defaultValues = {
     program: defaultConf.get('program', '${command:AskForProgramName}'),

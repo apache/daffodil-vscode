@@ -23,10 +23,6 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
         item: 'xml version',
         snippetString: '<?xml version="1.0" encoding="UTF-8"?>\n$0',
       },
-/*      {
-        item: nsPrefix + 'schema',
-        snippetString: '<${1|\0,xs:,xsd:|}$2' + 'schema xmlns:xs="http://www.w3.org/2001/xmlSchema"\n\t\txmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"\n\t\txmlns:daf="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext"\n\t\txmlns:fn="http:/www.w3.org/2005/xpath-functions"\n\t\t elementFormDefault="unqualified">\n$0\n</' + nsPrefix + 'schema>',
-      },*/
       {
         item: nsPrefix + 'schema',
         snippetString: '<${1|\0,xs:,xsd:|}$2' + 'schema xmlns:xs="http://www.w3.org/2001/xmlSchema"\n\t\txmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"\n\t\txmlns:daf="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext"\n\t\txmlns:fn="http:/www.w3.org/2005/xpath-functions"\nelementFormDefault="unqualified"$0',
@@ -63,7 +59,7 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
       },
       {
         item: 'dfdl:format',
-        snippetString: '<dfdl:format $0/>',
+        snippetString: '<dfdl:format $0',
         markdownString: 'Defines the physical data format properties for multiple DFDL schema constructs',
       },
       {
@@ -105,6 +101,11 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
         markdownString: 'Define group of mutually exclusive elements that resolve points of uncertainty that cannot be resolved by speculative parsing',
       },
       {
+        item: 'dfdl:newVariableInstance',
+        snippetString: '<dfdl:newVariableInstance ref="$1"$0',
+        markdownString: 'Defines the name, type, and optional default value for the variable'
+      },
+      {
         item: 'dfdl:defineVariable',
         snippetString: '<dfdl:defineVariable name="$1"$0',
         markdownString: 'Defines the name, type, and optionally default value for the variable.',
@@ -125,6 +126,11 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
         markdownString: 'Defines a named, reusable escapeScheme',
       },
       {
+        item: 'dfdl:escapeScheme',
+        snippetString: '<dfdl:escapeScheme $0',
+        markdownString: 'Allows a common set of properties to be defined that can be reused',
+      },
+      {
         item: 'dfdl:simpleType',
         snippetString: '<dfdl:simpleType $1/>$0',
         markdownString: 'Defines the physical data format properties of an xs:simpleType',
@@ -132,7 +138,27 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
       {
         item: 'dfdl:element',
         snippetString: '<dfdl:element $1/>$0',
-        markdownString: 'Defines the physical data format properties of an xs:element and xs:element reference',
+        markdownString: 'Defines the physical data format properties of an xs:element',
+      },
+      {
+        item: 'dfdl:sequence',
+        snippetString: '<dfdl:sequence $1/>$0',
+        markdownString: 'Defines the physical data format properties of an xs:sequence group',
+      },
+      {
+        item: 'dfdl:group',
+        snippetString: '<dfdl:group $1/>$0',
+        markdownString: 'Defines the physical data format properties of an xs:group reference',
+      },
+      {
+        item: 'dfdl:choice',
+        snippetString: '<dfdl:choice $1/>$0',
+        markdownString: 'Defines the physical data format properties of an xs:choice group',
+      },
+      {
+        item: 'dfdl:property',
+        snippetString: '<dfdl:property name="$1">\n\t$2\n</dfdl:property>$0',
+        markdownString: 'Used in the syntax of format annotations',
       },
       {
         item: 'restriction',
@@ -159,6 +185,40 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
         item: 'maxExclusive',
         snippetString: '<' + nsPrefix + 'maxExclusive value="$1"/>$0',
         markdownString: 'Used to check the validity of an element'
+      },
+      {
+        item: 'pattern',
+        snippetString: '<' + nsPrefix + 'pattern value="$1"/>$0',
+        markdownString: 'Used to derive new simple types by specifying a regular expression against which values of the type are compared'
+      },
+      {
+        item: 'totalDigits',
+        snippetString: '<' + nsPrefix + 'totalDigits value="$1"/>$0',
+        markdownString: 'Indicates the maximum allowed value for the number of digits'
+      },
+      {
+        item: 'fractionDigits',
+        snippetString: '<' + nsPrefix + 'fractionDigits value="$1"/>$0',
+        markdownString: 'Indicates the maximum number of digits in the fractional part'
+      },
+      {
+        item: 'enumeration',
+        snippetString: '<' + nsPrefix + 'enumeration value="$1"/>$0',
+        markdownString: 'Used to restrict a datatype to a finite set of values'
+      },
+      {
+        item: 'include',
+        snippetString: '<' + nsPrefix + 'include "$1"/>$0',
+        markdownString: 'Used to add all the components of an included schema'
+      },
+      {
+        item: 'documentation',
+        snippetString: '<' + nsPrefix + 'documentation>\n\t$1\n</documentation>$0'
+      },
+      {
+        item: 'import',
+        snippetString: '<' + nsPrefix + 'import "$1"/>$0',
+        markdownString: 'Used to add all the components of an included schema'
       },
       {
         item: '<[CDATA[]]>',
