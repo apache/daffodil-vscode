@@ -20,7 +20,6 @@
 const path = require('path')
 const fs = require('fs')
 const glob = require('glob')
-const nodemon = require('nodemon')
 const concurrently = require('concurrently')
 
 function rmFileOrDirectory(path) {
@@ -82,7 +81,6 @@ const scalaclean = () => {
 function watch() {
   concurrently(
     [
-      'yarn scalawatch',
       'webpack --watch --devtool nosources-source-map --config ./webpack/ext-dev.webpack.config.js',
       'yarn watch:svelte',
     ],
