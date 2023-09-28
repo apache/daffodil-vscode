@@ -497,8 +497,8 @@ limitations under the License.
   })
 </script>
 
-{#if $selectionDataStore.active && $editMode == EditByteModes.Single}
-  {#key $selectedByte || selectedByteElement || dataRadix || $editorActionsAllowed == EditActionRestrictions.None}
+{#if $selectionDataStore.active && $editMode === EditByteModes.Single}
+  {#key $selectedByte || selectedByteElement || dataRadix || $editorActionsAllowed === EditActionRestrictions.None}
     <SelectedByteEdit
       byte={$selectedByte}
       on:seek

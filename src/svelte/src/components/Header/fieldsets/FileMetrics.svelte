@@ -27,6 +27,7 @@ limitations under the License.
   import { humanReadableByteLength } from '../../../utilities/display'
   import { DATA_PROFILE_MAX_LENGTH } from '../../../stores/configuration'
   import Tooltip from '../../layouts/Tooltip.svelte'
+  import ISO6391 from 'iso-639-1'
   const eventDispatcher = createEventDispatcher()
 
   let displayOpts = false
@@ -73,6 +74,9 @@ limitations under the License.
           }
           if ('type' in msg.data.data) {
             $fileMetrics.type = msg.data.data.type
+          }
+          if ('language' in msg.data.data) {
+            $fileMetrics.language = msg.data.data.language
           }
           if ('diskFileSize' in msg.data.data) {
             $fileMetrics.diskSize = msg.data.data.diskFileSize
@@ -182,7 +186,19 @@ limitations under the License.
     </FlexContainer>
     <FlexContainer --dir="column">
       <label for="content_type">Content Type</label>
-      <span id="content_type" class="nowrap">{$fileMetrics.type}</span>
+      <Tooltip
+        description="{$fileMetrics.type}"
+        alwaysEnabled={true}>
+      <span id="content_type" class="nowrap">{$fileMetrics.type.split('/').pop()}</span>
+        </Tooltip>
+    </FlexContainer>
+    <FlexContainer --dir="column">
+      <label for="language">Language</label>
+      <Tooltip
+        description="{ISO6391.getName($fileMetrics.language)}"
+        alwaysEnabled={true}>
+      <span id="language" class="nowrap">{$fileMetrics.language}</span>
+      </Tooltip>
     </FlexContainer>
   </FlexContainer>
   <hr />

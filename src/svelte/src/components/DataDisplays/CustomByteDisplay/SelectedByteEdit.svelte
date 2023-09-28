@@ -324,7 +324,7 @@ limitations under the License.
   }
 </script>
 
-{#if $editorActionsAllowed == EditActionRestrictions.None}
+{#if $editorActionsAllowed === EditActionRestrictions.None}
   <span>
     <input
       class="insert {themeClass}"

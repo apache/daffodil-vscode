@@ -28,7 +28,20 @@ limitations under the License.
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import ViewportVisibilityIcon from '../../Icons/ViewportVisibilityIcon.svelte'
+  import {MessageCommand} from "../../../utilities/message";
 
+  window.addEventListener('message', (msg) => {
+    switch (msg.data.command) {
+      case MessageCommand.fileInfo:
+      {
+        if ('byteOrderMark' in msg.data.data) {
+            const { byteOrderMark } = msg.data.data
+            if (byteOrderMark === 'UTF-8') $editorEncoding = 'utf-8'
+            else if (byteOrderMark === 'UTF-16LE') $editorEncoding = 'utf-16le'
+        }
+      }
+    }
+  })
 </script>
 
 <fieldset>

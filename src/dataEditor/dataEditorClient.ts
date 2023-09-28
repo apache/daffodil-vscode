@@ -20,6 +20,7 @@ import {
   ALL_EVENTS,
   beginSessionTransaction,
   clear,
+  countCharacters,
   CountKind,
   createSession,
   createSimpleFileLogger,
@@ -30,11 +31,13 @@ import {
   EditorClient,
   endSessionTransaction,
   EventSubscriptionRequest,
+  getByteOrderMark,
   getClient,
   getClientVersion,
   getComputedFileSize,
   getContentType,
   getCounts,
+  getLanguage,
   getLogger,
   getServerHeartbeat,
   getServerInfo,
@@ -167,8 +170,6 @@ export class DataEditorClient implements vscode.Disposable {
   private currentViewportId: string
   private fileToEdit: string = ''
   private omegaSessionId = ''
-  private contentType = ''
-  private fileSize = 0
   private sendHeartbeatIntervalId: NodeJS.Timeout | number | undefined =
     undefined
 
@@ -191,8 +192,6 @@ export class DataEditorClient implements vscode.Disposable {
     this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
     this.currentViewportId = ''
-    this.contentType = ''
-    this.fileSize = 0
     this.fileToEdit = fileToEdit
     this.displayState = new DisplayState(this.panel)
   }
@@ -241,6 +240,17 @@ export class DataEditorClient implements vscode.Disposable {
       'checkpointPath is not set'
     )
 
+    let data = {
+      byteOrderMark: '',
+      changeCount: 0,
+      computedFileSize: 0,
+      diskFileSize: 0,
+      fileName: this.fileToEdit,
+      language: '',
+      type: '',
+      undoCount: 0,
+    }
+
     // create a session and capture the session id, content type, and file size
     try {
       const createSessionResponse = await createSession(
@@ -252,17 +262,39 @@ export class DataEditorClient implements vscode.Disposable {
       assert(this.omegaSessionId.length > 0, 'omegaSessionId is not set')
       addActiveSession(this.omegaSessionId)
 
-      this.fileSize = createSessionResponse.hasFileSize()
-        ? (createSessionResponse.getFileSize() as number)
-        : 0
+      data.diskFileSize = data.computedFileSize =
+        createSessionResponse.hasFileSize()
+          ? (createSessionResponse.getFileSize() as number)
+          : 0
 
       const contentTypeResponse = await getContentType(
         this.omegaSessionId,
         0,
-        Math.min(1024, this.fileSize)
+        Math.min(1024, data.computedFileSize)
       )
-      this.contentType = contentTypeResponse.getContentType()
-      assert(this.contentType.length > 0, 'contentType is not set')
+      data.type = contentTypeResponse.getContentType()
+      assert(data.type.length > 0, 'contentType is not set')
+
+      const byteOrderMarkResponse = await getByteOrderMark(
+        this.omegaSessionId,
+        0
+      )
+      data.byteOrderMark = byteOrderMarkResponse.getByteOrderMark()
+      assert(data.byteOrderMark.length > 0, 'byteOrderMark is not set')
+
+      const languageResponse = await getLanguage(
+        this.omegaSessionId,
+        0,
+        Math.min(1024, data.computedFileSize),
+        data.byteOrderMark
+      )
+      data.language = languageResponse.getLanguage()
+      assert(data.language.length > 0, 'language is not set')
+
+      data.diskFileSize = data.computedFileSize =
+        createSessionResponse.hasFileSize()
+          ? (createSessionResponse.getFileSize() as number)
+          : 0
     } catch {
       const msg = `Failed to create session for ${this.fileToEdit}`
       getLogger().error({
@@ -301,14 +333,7 @@ export class DataEditorClient implements vscode.Disposable {
     // send the initial file info to the webview
     await this.panel.webview.postMessage({
       command: MessageCommand.fileInfo,
-      data: {
-        changeCount: 0,
-        computedFileSize: this.fileSize,
-        diskFileSize: this.fileSize,
-        fileName: this.fileToEdit,
-        type: this.contentType,
-        undoCount: 0,
-      },
+      data: data,
     })
   }
 
@@ -450,6 +475,22 @@ export class DataEditorClient implements vscode.Disposable {
             startOffset,
             length
           )
+          const characterCount = await countCharacters(
+            this.omegaSessionId,
+            startOffset,
+            length
+          )
+          const contentTypeResponse = await getContentType(
+            this.omegaSessionId,
+            startOffset,
+            length
+          )
+          const languageResponse = await getLanguage(
+            this.omegaSessionId,
+            startOffset,
+            length,
+            characterCount.getByteOrderMark()
+          )
           await this.panel.webview.postMessage({
             command: MessageCommand.profile,
             data: {
@@ -457,6 +498,17 @@ export class DataEditorClient implements vscode.Disposable {
               length: length,
               byteProfile: byteProfile,
               numAscii: numAscii(byteProfile),
+              language: languageResponse.getLanguage(),
+              contentType: contentTypeResponse.getContentType(),
+              characterCount: {
+                byteOrderMark: characterCount.getByteOrderMark(),
+                byteOrderMarkBytes: characterCount.getByteOrderMarkBytes(),
+                singleByteCount: characterCount.getSingleByteChars(),
+                doubleByteCount: characterCount.getDoubleByteChars(),
+                tripleByteCount: characterCount.getTripleByteChars(),
+                quadByteCount: characterCount.getQuadByteChars(),
+                invalidBytes: characterCount.getInvalidBytes(),
+              },
             },
           })
         }
@@ -714,16 +766,16 @@ export class DataEditorClient implements vscode.Disposable {
 
     if (saved) {
       this.fileToEdit = fileToSave
-      this.fileSize = await getComputedFileSize(this.omegaSessionId)
+      const fileSize = await getComputedFileSize(this.omegaSessionId)
       await this.panel.webview.postMessage({
         command: MessageCommand.fileInfo,
         data: {
-          computedFileSize: this.fileSize,
-          diskFileSize: this.fileSize,
-          fileName: this.fileToEdit,
+          computedFileSize: fileSize,
+          diskFileSize: fileSize,
+          fileName: fileToSave,
         },
       })
-      vscode.window.showInformationMessage(`Saved: ${this.fileToEdit}`)
+      vscode.window.showInformationMessage(`Saved: ${fileToSave}`)
     } else if (cancelled) {
       vscode.window.showInformationMessage(`Cancelled save: ${fileToSave}`)
     } else {
@@ -1269,7 +1321,7 @@ async function serverStart() {
       getPidFile(omegaEditPort),
       logConfigFile
     ),
-    new Promise((resolve, reject) => {
+    new Promise((_resolve, reject) => {
       setTimeout(() => {
         reject((): Error => {
           return new Error(
