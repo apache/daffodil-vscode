@@ -65,3 +65,8 @@ daffodil-debugger-*
 
 # ignore generated schema files
 server/sbtXjc/resources/xsd/*.xsd
+
+# generated documents
+doc/*.docx
+doc/*.html
+doc/.wiki/
