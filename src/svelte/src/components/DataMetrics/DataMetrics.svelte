@@ -16,14 +16,15 @@ limitations under the License.
 -->
 <script lang="ts">
   import Button from '../Inputs/Buttons/Button.svelte'
-  import { vscode } from '../../utilities/vscode'
-  import { MessageCommand } from '../../utilities/message'
-  import { onMount } from 'svelte'
+  import {vscode} from '../../utilities/vscode'
+  import {MessageCommand} from '../../utilities/message'
+  import {onMount} from 'svelte'
   import Input from '../Inputs/Input/Input.svelte'
-  import { viewport } from '../../stores'
-  import { DATA_PROFILE_MAX_LENGTH } from '../../stores/configuration'
-  import { addressRadix } from '../../stores'
-  import { radixToString, regexEditDataTest } from '../../utilities/display'
+  import {addressRadix, viewport} from '../../stores'
+  import {DATA_PROFILE_MAX_LENGTH} from '../../stores/configuration'
+  import {radixToString, regexEditDataTest} from '../../utilities/display'
+  import ISO6391 from "iso-639-1";
+  import Tooltip from "src/components/layouts/Tooltip.svelte";
 
   const PROFILE_DOS_EOL = 256
 
@@ -36,8 +37,20 @@ limitations under the License.
   // number of bytes to profile from the start offset
   export let length: number
 
+  class CharacterCountData {
+    byteOrderMark: string = ''
+    byteOrderMarkBytes: number = 0
+    singleByteCount: number = 0
+    doubleByteCount: number = 0
+    tripleByteCount: number = 0
+    quadByteCount: number = 0
+    invalidBytes: number = 0
+  }
+
   let endOffset: number = 0
   let byteProfile: number[] = []
+  let language: string = ''
+  let contentType: string = ''
   let currentTooltip: { index: number; value: number } | null = null
   let colorScaleData: string[] = []
   let scaledData: number[] = []
@@ -47,6 +60,7 @@ limitations under the License.
   let mean: number = 0
   let variance: number = 0
   let stdDev: number = 0
+  let characterCountData: CharacterCountData = new CharacterCountData()
   let numAscii: number = 0
   let numDistinct: number = 0
   let fieldBeingEdited: string = ''
@@ -267,6 +281,18 @@ limitations under the License.
         case MessageCommand.profile:
           numAscii = msg.data.data.numAscii as number
           byteProfile = msg.data.data.byteProfile as number[]
+          language = msg.data.data.language as string
+          contentType = msg.data.data.contentType as string
+
+          // character count data
+          characterCountData.byteOrderMark = msg.data.data.characterCount.byteOrderMark as string
+          characterCountData.byteOrderMarkBytes = msg.data.data.characterCount.byteOrderMarkBytes as number
+          characterCountData.singleByteCount = msg.data.data.characterCount.singleByteCount as number
+          characterCountData.doubleByteCount = msg.data.data.characterCount.doubleByteCount as number
+          characterCountData.tripleByteCount = msg.data.data.characterCount.tripleByteCount as number
+          characterCountData.quadByteCount = msg.data.data.characterCount.quadByteCount as number
+          characterCountData.invalidBytes = msg.data.data.characterCount.invalidBytes as number
+
           setStatusMessage(
             `Profiled bytes from ${startOffset} to ${startOffset + length}`
           )
@@ -447,60 +473,79 @@ limitations under the License.
   <hr />
   <div class="stats">
     <label for="computed-size"
-      >&nbsp;Max Offset: <span id="computed-size" class="nowrap"
+      >&nbsp;&nbsp;Max Offset: <span id="computed-size" class="nowrap"
         >{viewport.offsetMax.toString($addressRadix)} ({radixToString(
           $addressRadix
         )})</span
       ></label
     >
+    <label for="language">&nbsp;&nbsp;&nbsp;&nbsp;Language:<Tooltip
+            description="{ISO6391.getName(language)}"
+            alwaysEnabled={true}><span id="language" class="nowrap"
+        >{language}</span></Tooltip></label>
+    <label for="content-type"
+      >Content Type: <span id="content-type" class="nowrap"
+        >{contentType}</span
+      ></label
+    >
     <label for="min-frequency"
-      >&nbsp;&nbsp;Min Freq.: <span id="min-frequency" class="nowrap"
+      >&nbsp;&nbsp;&nbsp;Min Freq.: <span id="min-frequency" class="nowrap"
         >{minFrequency}</span
       ></label
     >
     <label for="max-frequency"
-      >&nbsp;&nbsp;Max Freq.: <span id="max-frequency" class="nowrap"
+      >&nbsp;&nbsp;&nbsp;Max Freq.: <span id="max-frequency" class="nowrap"
         >{maxFrequency}</span
       ></label
     >
     <label for="mean-frequency"
-      >&nbsp;Mean Freq.: <span id="mean-frequency" class="nowrap"
+      >&nbsp;&nbsp;Mean Freq.: <span id="mean-frequency" class="nowrap"
         >{mean.toFixed(2)}</span
       ></label
     >
     <label for="variance"
-      >&nbsp;&nbsp;&nbsp;Variance: <span id="variance" class="nowrap"
+      >&nbsp;&nbsp;&nbsp;&nbsp;Variance: <span id="variance" class="nowrap"
         >{variance.toFixed(2)}</span
       ></label
     >
     <label for="stddev"
-      >&nbsp;&nbsp;Std. Dev.: <span id="stddev" class="nowrap"
+      >&nbsp;&nbsp;&nbsp;Std. Dev.: <span id="stddev" class="nowrap"
         >{stdDev.toFixed(2)}</span
       ></label
     >
     <label for="byte-count"
-      >&nbsp;Byte Count: <span id="byte-count" class="nowrap">{sum}</span
+      >&nbsp;&nbsp;Byte Count: <span id="byte-count" class="nowrap">{sum}</span
       ></label
     >
     <label for="distinct-count"
-      >&nbsp;&nbsp;&nbsp;Distinct: <span id="distinct-count" class="nowrap"
+      >&nbsp;&nbsp;&nbsp;&nbsp;Distinct: <span id="distinct-count" class="nowrap"
         >{numDistinct}</span
       ></label
     >
     <label for="dos_eol-count"
-      >&nbsp;&nbsp;&nbsp;&nbsp;DOS EOL: <span id="dos_eol-count" class="nowrap"
+      >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DOS EOL: <span id="dos_eol-count" class="nowrap"
         >{byteProfile[PROFILE_DOS_EOL]}</span
       ></label
     >
     <label for="ascii-count"
-      >ASCII Count: <span id="ascii-count" class="nowrap">{numAscii}</span
+      >&nbsp;ASCII Count: <span id="ascii-count" class="nowrap">{numAscii}</span
       ></label
     >
     <label for="ascii-percent"
-      >&nbsp;&nbsp;&nbsp;&nbsp;% ASCII: <span id="ascii-percent" class="nowrap"
+      >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;% ASCII: <span id="ascii-percent" class="nowrap"
         >{((numAscii / sum) * 100).toFixed(2)}</span
       >
     </label>
+    </div>
+    <hr />
+  <div class="char-count">
+    <label for="char-count-bom">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BOM: <span id="char-count-bom" class="nowrap">{characterCountData.byteOrderMark}</span></label>
+    <label for="char-count-bom-bytes">&nbsp;&nbsp;BOM Bytes: <span id="char-count-bom-bytes" class="nowrap">{characterCountData.byteOrderMarkBytes}</span></label>
+    <label for="char-count-single">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Single: <span id="char-count-single" class="nowrap">{characterCountData.singleByteCount}</span></label>
+    <label for="char-count-double">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Double: <span id="char-count-double" class="nowrap">{characterCountData.doubleByteCount}</span></label>
+    <label for="char-count-triple">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Triple: <span id="char-count-triple" class="nowrap">{characterCountData.tripleByteCount}</span></label>
+    <label for="char-count-quad">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Quad: <span id="char-count-quad" class="nowrap">{characterCountData.quadByteCount}</span></label>
+    <label for="char-count-invalid">&nbsp;&nbsp;&nbsp;&nbsp;Invalid: <span id="char-count-invalid" class="nowrap">{characterCountData.invalidBytes}</span></label>
   </div>
   <hr />
   <Button fn={handleCsvProfileDownload} description="Download profiled data as .csv">

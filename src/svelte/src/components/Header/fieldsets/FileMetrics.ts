@@ -18,6 +18,7 @@ import { SimpleWritable } from '../../../stores/localStore'
 class FileMetricsData {
   name: string = ''
   type: string = ''
+  language: string = ''
   diskSize: number = 0
   computedSize: number = 0
   changeCount: number = 0
