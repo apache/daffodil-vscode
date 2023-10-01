@@ -66,7 +66,7 @@
     "@vscode/debugadapter-testsupport": "1.63.0",
     "@vscode/test-electron": "2.3.4",
     "@vscode/vsce": "2.21.0",
-    "chai": "^4.3.8",
+    "chai": "^4.3.10",
     "concurrently": "^8.2.1",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.8.1",
