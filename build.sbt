@@ -135,6 +135,7 @@ lazy val xjcSettings =
     xjcCommandLine += "-nv",
     xjcCommandLine += "-p",
     xjcCommandLine += "org.apache.daffodil.tdml",
+    xjcCommandLine += "-no-header",
     xjcBindings += "debugger/src/main/resources/bindings.xjb",
     xjcJvmOpts ++= extraJvmOptions,
     xjcLibs := Seq(
