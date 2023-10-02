@@ -37,21 +37,14 @@ limitations under the License.
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import { createEventDispatcher } from 'svelte'
   import { OffsetSearchType } from '../../Header/fieldsets/SearchReplace'
+  import { byteDivWidthFromRadix } from '../../../utilities/display'
 
   type ViewportDivSpread = '24px' | '28px' | '68px'
 
   const eventDispatcher = createEventDispatcher()
   const bitNumText = '01234567'
-  const physicalOffsetSpreads = {
-    16: '24px',
-    10: '28px',
-    8: '28px',
-    2: '68px',
-  }
-
-  let phyiscalOffsetSpread: ViewportDivSpread
   let selectionOffsetText: string
-  let offsetLine = []
+  let offsetLine: string[] = []
 
   $: {
     offsetLine = generate_offset_headers(
@@ -85,9 +78,6 @@ limitations under the License.
         ret.push(i.toString(10))
       }
     }
-    phyiscalOffsetSpread = physicalOffsetSpreads[
-      displayRadix
-    ] as ViewportDivSpread
     return ret
   }
 
@@ -145,21 +135,24 @@ limitations under the License.
 <div class={$UIThemeCSSClass + ' measure physical-viewport-header'}>
   {#if $displayRadix === RADIX_OPTIONS.Binary}
     {#each offsetLine as offset}
-      <div class="phyiscal-addr-seg binary" style:width={phyiscalOffsetSpread}>
+      <div class="physical-addr-seg binary" style:width={byteDivWidthFromRadix($displayRadix)}>
         <div>{offset}</div>
         <div>{bitNumText}</div>
       </div>
     {/each}
   {:else}
     {#each offsetLine as offset}
-      <div class="physical-addr-seg" style:width={phyiscalOffsetSpread}>
+      <div class="physical-addr-seg" style:width={byteDivWidthFromRadix($displayRadix)}>
         {offset}
       </div>
     {/each}
   {/if}
 </div>
 
-<div class={$UIThemeCSSClass + ' measure logical-viewport-header'}>
+<div 
+  class={$UIThemeCSSClass + ' measure logical-viewport-header'}
+  style:align-items={$displayRadix === RADIX_OPTIONS.Binary ? 'flex-end' : 'normal'}  
+>
   {#each offsetLine as offset}
     <div class="logical-addr-seg">{offset}</div>
   {/each}
@@ -197,15 +190,18 @@ limitations under the License.
     writing-mode: vertical-lr;
     text-orientation: upright;
     cursor: default;
+    border-width: 0 2px 0 2px;
+    border-style: solid;
+    border-color: transparent;
   }
   div.logical-addr-seg {
-    width: 24px;
+    width: 20px;
   }
-  div.div.physical-addr-seg.binary {
+  div.physical-addr-seg.binary {
     writing-mode: horizontal-tb;
     text-orientation: sideways;
   }
   div.physical-viewport-header {
-    padding-left: 4px;
+    padding-left: 2px;
   }
 </style>
