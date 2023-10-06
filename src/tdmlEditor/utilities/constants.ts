@@ -15,9 +15,17 @@
  * limitations under the License.
  */
 
-export interface TDMLConfig {
-  action: String
-  name?: String
-  description?: String
-  path?: String
+export class AppConstants {
+  static addNewTestCommand = 'tdml-editor.addNewTest'
+  static deleteTestCommand = 'tdml-editor.deleteTest'
+  static viewTypeId = 'tdml-editor.editor'
+  static promptTestName = 'Provide a Name for the Test'
+  static promptTestDescription = 'Provide a Description for the Test'
+  static promptTestModel = 'Provide Model for the test'
+  static promptDfdlInfoset = 'Provide dfdl Infoset for the test'
+  static prompDataDocuments = 'Provide Data docuemnts for the test'
+  static addNewTitle = 'Add new Test Case'
+  static openInTextEditorCommand = 'tdml-editor.openInTextEditor'
+  static openPreviewCommand = 'tdml-editor.openPreview'
+  static openInTdmlEditorCommand = 'tdml-editor.openInTdmlEditor'
 }

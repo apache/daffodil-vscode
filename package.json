@@ -27,7 +27,7 @@
     "nodeclean": "run-func build/yarn-scripts.ts nodeclean",
     "scalaclean": "run-func build/yarn-scripts.ts scalaclean",
     "clean": "yarn nodeclean && yarn scalaclean",
-    "precompile": "yarn nodeclean && yarn gen-version-ts && yarn webpack:svelte",
+    "precompile": "yarn nodeclean && yarn gen-version-ts && yarn webpack:svelte && yarn compile:tdmlEditorJS",
     "compile": "tsc -p ./ && yarn sbt",
     "lint": "yarn prettier src -c",
     "lint:fix": "yarn prettier src -w",
@@ -35,9 +35,11 @@
     "watch": "run-func build/yarn-scripts.ts watch",
     "watch:svelte": "yarn webpack --env development=true -w -c ./src/svelte/webpack.config.js",
     "watch:svelte-tests" : "mocha -r ts-node/register -w ./src/svelte/tests/**/*.test.ts",
+    "watch:tdmlEditorJS": "esbuild src/tdmlEditor/webview/webview.js --outfile=dist/views/tdmlEditor/webview/webview.js --bundle --platform=node --format=cjs --watch",
     "webpack": "webpack --mode production --config ./webpack/ext-dev.webpack.config.js",
     "webpack:pkg": "webpack --mode production --config ./webpack/ext-package.webpack.config.js",
     "webpack:svelte": "webpack -c ./src/svelte/webpack.config.js",
+    "compile:tdmlEditorJS": "esbuild src/tdmlEditor/webview/webview.js --outfile=dist/views/tdmlEditor/webview/webview.js --bundle --platform=node --format=cjs",
     "prepackage": "yarn install && yarn compile && yarn webpack:pkg",
     "package": "run-func build/yarn-scripts.ts package && yarn --cwd dist/package install && yarn --cwd dist/package vsce package --out ../../",
     "pretest": "yarn compile && yarn webpack",
@@ -50,12 +52,15 @@
     "@omega-edit/client": "0.9.78",
     "@viperproject/locate-java-home": "1.1.13",
     "@vscode/debugadapter": "1.63.0",
+    "@vscode/webview-ui-toolkit": "^1.2.2",
     "await-notify": "1.0.1",
     "hexy": "0.3.5",
     "iso-639-1": "^3.1.0",
     "jsonc-parser": "3.2.0",
     "semver": "7.5.4",
     "unzip-stream": "0.3.1",
+    "xml-formatter": "^3.6.0",
+    "xml-js": "^1.6.11",
     "wait-port": "1.1.0",
     "xdg-app-paths": "8.3.0"
   },
@@ -74,6 +79,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.8.1",
     "css-minimizer-webpack-plugin": "^5.0.1",
+    "esbuild": "^0.19.9",
     "glob": "8.1.0",
     "mini-css-extract-plugin": "^2.7.6",
     "mocha": "10.2.0",
@@ -105,9 +111,9 @@
     "onCommand:extension.dfdl-debug.getDataName",
     "onCommand:extension.dfdl-debug.runEditorContents",
     "onCommand:extension.dfdl-debug.debugEditorContents",
-    "onCommand:extension.dfdl-debug.generateTDML",
     "onCommand:extension.dfdl-debug.appendTDML",
     "onCommand:extension.dfdl-debug.executeTDML",
+    "onCommand:extension.dfdl-debug.copyTDML",
     "onCommand:extension.dfdl-debug.getTDMLName",
     "onCommand:extension.dfdl-debug.getTDMLDescription",
     "onCommand:extension.dfdl-debug.getTDMLPath",
@@ -130,6 +136,31 @@
           ".dfdl.xsd"
         ],
         "configuration": "./language/dfdl.json"
+      },
+      {
+        "id": "tdml",
+        "aliases": [
+          "tdml"
+        ],
+        "extensions": [
+          ".tdml",
+          ".tdml.xsd"
+        ],
+        "configuration": "./language/tdml.json"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "tdml-editor.editor",
+        "displayName": "TDML Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.tdml"
+          },
+          {
+            "filenamePattern": "*.tdml.xsd"
+          }
+        ]
       }
     ],
     "grammars": [
@@ -137,6 +168,11 @@
         "language": "dfdl",
         "scopeName": "text.xml.dfdl.xsd",
         "path": "./language/syntaxes/dfdl.tmLanguage.json"
+      },
+      {
+        "language": "tdml",
+        "scopeName": "text.xml.tdml.xsd",
+        "path": "./language/syntaxes/tdml.tmLanguage.json"
       }
     ],
     "menus": {
@@ -154,6 +190,27 @@
           "command": "infoset.diff",
           "when": "resourceLangId == dfdl",
           "group": "navigation@3"
+        },
+        {
+          "command": "tdml-editor.openInTextEditor",
+          "when": "activeCustomEditorId == 'tdml-editor.editor' && activeEditorIsNotPreview == false",
+          "group": "navigation@1"
+        },
+        {
+          "command": "tdml-editor.openPreview",
+          "when": "(resourceExtname == '.tdml' || resourceExtname == '.tdml.xsd') && activeEditor == 'workbench.editors.files.textFileEditor'",
+          "group": "navigation@1"
+        },
+        {
+          "command": "tdml-editor.openInTdmlEditor",
+          "when": "(resourceExtname == '.tdml' || resourceExtname == '.tdml.xsd') && activeEditor == 'workbench.editors.files.textFileEditor'",
+          "group": "navigation@1"
+        }
+      ],
+      "webview/context": [
+        {
+          "command": "tdml-editor.deleteTest",
+          "when": "activeCustomEditorId == 'tdml-editor.editor'"
         }
       ],
       "editor/title/run": [
@@ -170,15 +227,15 @@
           "when": "resourceLangId == dfdl"
         },
         {
-          "command": "extension.dfdl-debug.generateTDML",
-          "when": "resourceLangId == dfdl"
-        },
-        {
           "command": "extension.dfdl-debug.appendTDML",
-          "when": "resourceLangId == dfdl"
+          "when": "resourceLangId == tdml"
         },
         {
           "command": "extension.dfdl-debug.executeTDML",
+          "when": "resourceLangId == tdml"
+        },
+        {
+          "command": "extension.dfdl-debug.copyTDML",
           "when": "resourceLangId == dfdl"
         }
       ],
@@ -192,15 +249,15 @@
           "when": "resourceLangId == dfdl"
         },
         {
-          "command": "extension.dfdl-debug.generateTDML",
-          "when": "resourceLangId == dfdl"
-        },
-        {
           "command": "extension.dfdl-debug.appendTDML",
-          "when": "resourceLangId == dfdl"
+          "when": "resourceLangId == tdml"
         },
         {
           "command": "extension.dfdl-debug.executeTDML",
+          "when": "resourceLangId == tdml"
+        },
+        {
+          "command": "extension.dfdl-debug.copyTDML",
           "when": "resourceLangId == dfdl"
         },
         {
@@ -209,6 +266,26 @@
         {
           "command": "extension.dfdl-debug.debugLastEditorContents",
           "when": "resourceLangId == dfdl"
+        },
+        {
+          "command": "tdml-editor.deleteTest",
+          "when": "false"
+        },
+        {
+          "command": "tdml-editor.addNewTest",
+          "when": "activeCustomEditorId == 'tdml-editor.editor'"
+        },
+        {
+          "command": "tdml-editor.openInTextEditor",
+          "when": "activeCustomEditorId == 'tdml-editor.editor'"
+        },
+        {
+          "command": "tdml-editor.openPreview",
+          "when": "false"
+        },
+        {
+          "command": "tdml-editor.openInTdmlEditor",
+          "when": "(resourceExtname == '.tdml' || resourceExtname == '.tdml.xsd') && activeCustomEditorId != 'tdml-editor.editor'"
         }
       ],
       "debug/variables/context": [
@@ -241,12 +318,6 @@
         "icon": "$(debug-alt)"
       },
       {
-        "command": "extension.dfdl-debug.generateTDML",
-        "title": "Generate TDML",
-        "category": "Daffodil Debug",
-        "enablement": "!inDebugMode"
-      },
-      {
         "command": "extension.dfdl-debug.appendTDML",
         "title": "Append TDML",
         "category": "Daffodil Debug",
@@ -255,6 +326,12 @@
       {
         "command": "extension.dfdl-debug.executeTDML",
         "title": "Execute TDML",
+        "category": "Daffodil Debug",
+        "enablement": "!inDebugMode"
+      },
+      {
+        "command": "extension.dfdl-debug.copyTDML",
+        "title": "Copy TDML File",
         "category": "Daffodil Debug",
         "enablement": "!inDebugMode"
       },
@@ -299,6 +376,34 @@
         "command": "position.goto",
         "title": "Go to position",
         "category": "Daffodil Debug"
+      },
+      {
+        "command": "tdml-editor.deleteTest",
+        "title": "Delete Resource",
+        "category": "TDML Editor"
+      },
+      {
+        "command": "tdml-editor.addNewTest",
+        "title": "Add New Test",
+        "category": "TDML Editor"
+      },
+      {
+        "command": "tdml-editor.openInTextEditor",
+        "title": "Open in Text Editor",
+        "category": "TDML Editor",
+        "icon": "$(notebook-open-as-text)"
+      },
+      {
+        "command": "tdml-editor.openPreview",
+        "title": "Open Preview",
+        "category": "TDML Editor",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "tdml-editor.openInTdmlEditor",
+        "title": "Open in TDML Editor",
+        "category": "TDML Editor",
+        "icon": "$(notebook-render-output)"
       }
     ],
     "keybindings": [
@@ -421,10 +526,7 @@
                   }
                 },
                 "default": {
-                  "action": "generate",
-                  "name": "${command:AskForTDMLName}",
-                  "description": "${command:AskForTDMLDescription}",
-                  "path": "${command:AskForTDMLPath}"
+                  "action": "generate"
                 }
               },
               "stopOnEntry": {
@@ -574,10 +676,7 @@
               "path": "${workspaceFolder}/target/infoset.xml"
             },
             "tdmlConfig": {
-              "action": "none",
-              "name": "${command:AskForTDMLName}",
-              "description": "${command:AskForTDMLDescription}",
-              "path": "${command:AskForTDMLPath}"
+              "action": "generate"
             },
             "debugServer": 4711,
             "openDataEditor": false,
@@ -622,10 +721,7 @@
                 "path": "${workspaceFolder}/target/infoset.xml"
               },
               "tdmlConfig": {
-                "action": "none",
-                "name": "${command:AskForTDMLName}",
-                "description": "${command:AskForTDMLDescription}",
-                "path": "${command:AskForTDMLPath}"
+                "action": "generate"
               },
               "debugServer": 4711,
               "openDataEditor": false,
@@ -653,9 +749,6 @@
         "variables": {
           "AskForSchemaName": "extension.dfdl-debug.getSchemaName",
           "AskForDataName": "extension.dfdl-debug.getDataName",
-          "AskForTDMLName": "extension.dfdl-debug.getTDMLName",
-          "AskForTDMLDescription": "extension.dfdl-debug.getTDMLDescription",
-          "AskForTDMLPath": "extension.dfdl-debug.getTDMLPath",
           "AskForValidatedTDMLPath": "extension.dfdl-debug.getValidatedTDMLPath"
         }
       }
@@ -686,10 +779,7 @@
             "type": "object",
             "description": "Configuration for TDML Actions",
             "default": {
-              "action": "none",
-              "name": "${command:AskForTDMLName}",
-              "description": "${command:AskForTDMLDescription}",
-              "path": "${command:AskForTDMLPath}"
+              "action": "generate"
             }
           },
           "infosetOutput": {
@@ -774,6 +864,16 @@
                 "file": "${workspaceFolder}/daffodil-debugger.log"
               }
             }
+          }
+        }
+      },
+      {
+        "title": "TDML Editor",
+        "properties": {
+          "tdml-editor.verboseLogging": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable verbose logging"
           }
         }
       }

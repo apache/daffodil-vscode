@@ -26,11 +26,11 @@ export interface VSCodeLaunchConfigArgs {
   request: string
   type: string
   schema: SchemaData
-  data: string | boolean
+  data: string
   debugServer: number | boolean
   infosetFormat: string | null
   infosetOutput: InfosetOutput | null
-  tdmlConfig: TDMLConfig | null
+  tdmlConfig: TDMLConfig
   dataEditor: DataEditorConfig | null
   stopOnEntry: boolean
   useExistingServer: boolean

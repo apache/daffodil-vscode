@@ -24,4 +24,12 @@
             <ns1:dfdlInfoset type="file">noInfoset.xml</ns1:dfdlInfoset>
         </ns1:infoset>
     </ns1:parserTestCase>
+    <ns1:parserTestCase name="SecondTestTDMLName" root="file" model="test.dfdl.xsd" roundTrip="onePass" description="Test TDML Description">
+        <ns1:document>
+            <ns1:documentPart type="file">noData.xml</ns1:documentPart>
+        </ns1:document>
+        <ns1:infoset>
+            <ns1:dfdlInfoset type="file">noInfoset.xml</ns1:dfdlInfoset>
+        </ns1:infoset>
+    </ns1:parserTestCase>
 </ns1:testSuite>

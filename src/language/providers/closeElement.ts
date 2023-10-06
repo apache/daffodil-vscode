@@ -111,6 +111,86 @@ export function getCloseElementProvider() {
   )
 }
 
+export function getTDMLCloseElementProvider() {
+  return vscode.languages.registerCompletionItemProvider(
+    'tdml',
+    {
+      async provideCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position
+      ) {
+        if (
+          checkBraceOpen(document, position) ||
+          cursorWithinBraces(document, position) ||
+          cursorWithinQuotes(document, position) ||
+          cursorAfterEquals(document, position) ||
+          isInXPath(document, position)
+        ) {
+          return undefined
+        }
+
+        let backpos = position.with(position.line, position.character)
+        let backpos3 = position.with(position.line, position.character)
+
+        if (position.character > 0) {
+          backpos = position.with(position.line, position.character - 1)
+        }
+
+        if (position.character > 2) {
+          backpos3 = position.with(position.line, position.character - 3)
+        }
+
+        let nsPrefix = getXsdNsPrefix(document, position)
+        const origPrefix = nsPrefix
+
+        const nearestTagNotClosed = checkMissingCloseTag(
+          document,
+          position,
+          nsPrefix
+        )
+        nsPrefix = getItemPrefix(nearestTagNotClosed, origPrefix)
+        const triggerText = document
+          .lineAt(position)
+          .text.substring(0, position.character)
+
+        let itemsOnLine = getItemsOnLineCount(triggerText)
+
+        if (nearestTagNotClosed.includes('none')) {
+          return undefined
+        }
+
+        let range = new vscode.Range(position, position)
+
+        if (
+          (triggerText.endsWith('>') && itemsOnLine < 2) ||
+          (triggerText.endsWith('>>') && itemsOnLine > 1) ||
+          (triggerText.endsWith('.=>') && itemsOnLine === 0)
+        ) {
+          range = new vscode.Range(backpos, position)
+
+          await vscode.window.activeTextEditor?.edit((editBuilder) => {
+            editBuilder.replace(range, '')
+          })
+
+          checkItemsOnLine(
+            document,
+            position,
+            range,
+            itemsOnLine,
+            triggerText,
+            nsPrefix,
+            nearestTagNotClosed,
+            backpos,
+            backpos3
+          )
+        }
+        return undefined
+      },
+    },
+    '>' // triggered whenever a '>' is typed
+  )
+}
+
 function checkItemsOnLine(
   document: vscode.TextDocument,
   position: vscode.Position,

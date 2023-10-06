@@ -1,4 +1,5 @@
-{
+[
+	{
 	"name": "dfdl",
 	"patterns": [
 		{
@@ -20,4 +21,28 @@
 		}
 	},
 	"scopeName": "source.dfdl.xsd"
-}
+	},
+	{
+	"name": "tdml",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": []
+		},
+		"strings": {
+			"name": "string.quoted.double.tdml",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": []
+		}
+	},
+	"scopeName": "source.tdml.xsd"
+	}
+]

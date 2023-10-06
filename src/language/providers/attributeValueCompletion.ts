@@ -79,6 +79,61 @@ export function getAttributeValueCompletionProvider() {
   )
 }
 
+export function getTDMLAttributeValueCompletionProvider() {
+  return vscode.languages.registerCompletionItemProvider(
+    'dfdl',
+    {
+      async provideCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position
+      ) {
+        if (
+          checkBraceOpen(document, position) ||
+          cursorWithinBraces(document, position)
+        ) {
+          return undefined
+        }
+        const nsPrefix = getXsdNsPrefix(document, position)
+        let additionalItems = getDefinedTypes(document, nsPrefix)
+        let [attributeName, startPos, endPos] = getAttributeDetails(
+          document,
+          position
+        )
+
+        if (attributeName !== 'none') {
+          let replaceValue = ''
+          if (startPos === endPos) {
+            replaceValue = ' '
+          }
+
+          if (attributeName.includes(':')) {
+            attributeName = attributeName.substring(
+              attributeName.indexOf(':') + 1
+            )
+          }
+
+          if (noChoiceAttributes.includes(attributeName)) {
+            return undefined
+          }
+
+          let startPosition = position.with(position.line, startPos)
+          let endPosition = position.with(position.line, endPos + 1)
+
+          let range = new vscode.Range(startPosition, endPosition)
+
+          await vscode.window.activeTextEditor?.edit((editBuilder) => {
+            editBuilder.replace(range, replaceValue)
+          })
+
+          attributeValues(attributeName, startPosition, additionalItems)
+        }
+        return undefined
+      },
+    },
+    ' ' // triggered whenever a newline is typed
+  )
+}
+
 function getAttributeDetails(
   document: vscode.TextDocument,
   position: vscode.Position
