@@ -29,13 +29,13 @@ limitations under the License.
     requestable,
     selectionDataStore,
     selectionSize,
-    viewportNumLinesDisplayed,
     dataFeedLineTop,
     SelectionData_t,
     dataFeedAwaitRefresh,
     viewport,
     searchQuery,
     regularSizedFile,
+    dataDislayLineAmount,
   } from '../stores'
   import {
     CSSThemeClass,
@@ -48,8 +48,8 @@ limitations under the License.
   import Main from './Main.svelte'
   import {
     EditByteModes,
-    VIEWPORT_SCROLL_INCREMENT,
     type BytesPerRow,
+    VIEWPORT_SCROLL_INCREMENT,
   } from '../stores/configuration'
   import ServerMetrics from './ServerMetrics/ServerMetrics.svelte'
   import {
@@ -87,12 +87,15 @@ limitations under the License.
     bytesPerRow: BytesPerRow,
     viewportStartOffset: number = $viewport.fileOffset
   ): number {
-    const nearestBPRdivisibleOffset = byte_count_divisible_offset(
-      offset - viewportStartOffset,
+    const nearestBPRdivisibleTargetFileOffset = byte_count_divisible_offset(
+      offset,
       bytesPerRow
     )
-    const offsetLineNumInViewport = nearestBPRdivisibleOffset / bytesPerRow
-    return offsetLineNumInViewport
+    const nearestBPRdivisibleViewportFileOffset = byte_count_divisible_offset(
+      viewportStartOffset,
+      bytesPerRow
+    ) 
+    return (nearestBPRdivisibleTargetFileOffset - nearestBPRdivisibleViewportFileOffset) / bytesPerRow
   }
 
   function fetchable_content(offset: number): boolean {
@@ -127,8 +130,7 @@ limitations under the License.
 
     $dataFeedAwaitRefresh = true
 
-    offsetArg = byte_count_divisible_offset(offsetArg, $bytesPerRow)
-    const fetchOffset = Math.max(0, offsetArg - VIEWPORT_SCROLL_INCREMENT)
+    const fetchOffset = Math.max(0, byte_count_divisible_offset(offsetArg - (VIEWPORT_SCROLL_INCREMENT-$bytesPerRow), $bytesPerRow))
 
     $dataFeedLineTop = offset_to_viewport_line_number(
       offsetArg,
@@ -141,7 +143,7 @@ limitations under the License.
       data: {
         scrollOffset: fetchOffset,
         bytesPerRow: $bytesPerRow,
-        numLinesDisplayed: $viewportNumLinesDisplayed,
+        numLinesDisplayed: $dataDislayLineAmount,
       },
     })
     clearDataDisplays()
@@ -321,6 +323,7 @@ limitations under the License.
 
 <!-- svelte-ignore css-unused-selector -->
 <style lang="scss">
+
   div.test {
     display: flex;
     flex-wrap: wrap;

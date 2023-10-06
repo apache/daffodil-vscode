@@ -24,6 +24,7 @@ limitations under the License.
   export let fn: (event?: Event) => void
   export let disabledBy = false
   export let width = ''
+  export let fixedWidth = ''
 
   onMount(() => {
     collapseContent = shouldCollapseContent()
@@ -51,6 +52,7 @@ limitations under the License.
       class={$UIThemeCSSClass + ' collapsed'}
       disabled={disabledBy}
       on:click={!disabledBy ? fn : () => {}}
+      style:width={fixedWidth}
     >
       <FlexContainer
         --dir="row"
@@ -68,7 +70,7 @@ limitations under the License.
       class={$UIThemeCSSClass}
       disabled={disabledBy}
       on:click={!disabledBy ? fn : () => {}}
-      style:width
+      style:width = { fixedWidth.length > 0 ? fixedWidth : width }
     >
       <FlexContainer
         --dir="row"

@@ -43,6 +43,7 @@ import {
   type RadixValues,
   type BytesPerRow,
   EditActionRestrictions,
+  VIEWPORT_CAPACITY_MAX,
 } from './configuration'
 
 export class SelectionData_t {
@@ -117,7 +118,6 @@ export const rerenderActionElements = writable(false)
 
 // Viewport properties
 export const viewport = new ViewportDataStore_t()
-export const viewportNumLinesDisplayed = writable(20)
 
 export const bytesPerRow = writable(16 as BytesPerRow)
 export const editingByte = writable(false)
@@ -147,6 +147,10 @@ export const sizeHumanReadable = writable(false)
 // tracks the start and end offsets of the current selection
 export const selectionDataStore = new SelectionData()
 
+export const dataDislayLineAmount = writable(20)
+
+export type VisibleViewports = 'physical' | 'logical' | 'all'
+export const visableViewports = writable('all' as VisibleViewports)
 // Can the user's selection derive both edit modes?
 export const regularSizedFile = derived(fileMetrics, ($fileMetrics) => {
   return $fileMetrics.computedSize >= 2
@@ -288,7 +292,7 @@ export const editedByteIsOriginalByte = derived(
   ([$editorSelection, $selectedByte, $focusedViewportId]) => {
     return $focusedViewportId === 'logical'
       ? $editorSelection === $selectedByte.text
-      : $editorSelection.toLowerCase() === $selectedByte.text.toLowerCase()
+      : $editorSelection.toLowerCase() === $selectedByte.text!.toLowerCase()
   }
 )
 

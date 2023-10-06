@@ -20,8 +20,11 @@ limitations under the License.
     editMode,
     selectionDataStore,
     regularSizedFile,
+    viewport,
+    selectionSize,
+    addressRadix,
   } from '../../stores'
-  import { EditByteModes } from '../../stores/configuration'
+  import { EditByteModes, type RadixValues } from '../../stores/configuration'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import { createEventDispatcher } from 'svelte'
   import ContentControls from '../DataDisplays/Fieldsets/ContentControls.svelte'
@@ -29,6 +32,21 @@ limitations under the License.
   import DataView from '../DataDisplays/Fieldsets/DataView.svelte'
   const eventDispatcher = createEventDispatcher()
 
+  let selectionOffsetText: string
+  $: selectionOffsetText = setSelectionOffsetInfo(
+    'Selection',
+    $viewport.fileOffset + $selectionDataStore.startOffset,
+    $viewport.fileOffset + $selectionDataStore.endOffset,
+    $selectionSize,
+    $addressRadix
+  )
+
+  let displayTextEditorArea: boolean
+  $: displayTextEditorArea = $editMode === EditByteModes.Multiple && ($selectionDataStore.active || !$regularSizedFile)
+
+  function clearDataDisplays() {
+    eventDispatcher('clearDataDisplays')
+  }
   function handleEditorEvent(event: Event) {
     switch (event.type) {
       case 'input':
@@ -49,26 +67,82 @@ limitations under the License.
     }
     eventDispatcher('handleEditorEvent', event)
   }
+  export function setSelectionOffsetInfo(
+    from: string,
+    start: number,
+    end: number,
+    size: number,
+    radix: RadixValues
+  ): string {
+    return `${from} [${start.toString(radix)} - ${end.toString(
+      radix
+    )}] Size: ${size.toString(radix)} `
+  }
 </script>
 
-<div class="editView" id="edit_view">
-  {#if $editMode === EditByteModes.Multiple && ($selectionDataStore.active || !$regularSizedFile)}
-    <textarea
-      class={$UIThemeCSSClass}
-      id="selectedContent"
-      contenteditable="true"
-      on:keyup|nonpassive={handleEditorEvent}
-      on:click={handleEditorEvent}
-      on:input={handleEditorEvent}
-      bind:value={$editorSelection}
-    />
+<div 
+  class="editView" 
+  id="edit_view"
+  style:justify-content={displayTextEditorArea ? 'flex-end' : 'flex-start'}
+>
+  <div class="hdr editor-header" >
+    <div class={$UIThemeCSSClass + ' hd'}>Editor</div>
+    <div class={$UIThemeCSSClass + " measure selection-content"}>
+      {#if $selectionDataStore.active && $editMode !== EditByteModes.Single}
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <div
+          class="clear-selection"
+          title="Clear selection data"
+          on:click={clearDataDisplays}
+          on:keypress={clearDataDisplays}
+        >
+          &#10006;
+        </div>
+        <div>
+          {selectionOffsetText}
+        </div>
+      {:else}
+        <sub
+          ><i
+            >To edit multiple bytes, highlight (by clicking and dragging) a
+            selection of bytes</i
+          ></sub
+        >
+      {/if}
+    </div>
+  </div>
+    {#if displayTextEditorArea}
+      <textarea
+        class={$UIThemeCSSClass}
+        id="selectedContent"
+        contenteditable="true"
+        on:keyup|nonpassive={handleEditorEvent}
+        on:click={handleEditorEvent}
+        on:input={handleEditorEvent}
+        bind:value={$editorSelection}
+      />
+  
+      <FlexContainer>
+        <ContentControls on:applyChanges />
+      </FlexContainer>
+    {:else}
+      <FlexContainer>
+        <DataView on:applyChanges />
+      </FlexContainer>
+    {/if}
 
-    <FlexContainer>
-      <ContentControls on:applyChanges />
-    </FlexContainer>
-  {:else}
-    <FlexContainer>
-      <DataView on:applyChanges />
-    </FlexContainer>
-  {/if}
 </div>
+
+<style lang="scss">
+  div.hdr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #2f3e4f;
+    border: 0;
+  }
+  .selection-content {
+    display: flex;
+    width: 100%;
+  }
+</style>

@@ -29,10 +29,11 @@ limitations under the License.
     editorActionsAllowed,
     dataFeedLineTop,
     seekOffsetInput,
+    visableViewports,
+    dataDislayLineAmount,
   } from '../../../stores'
   import {
     EditByteModes,
-    NUM_LINES_DISPLAYED,
     type RadixValues,
     EditActionRestrictions,
     VIEWPORT_SCROLL_INCREMENT,
@@ -90,7 +91,7 @@ limitations under the License.
       if (fetchBound > $fileMetrics.computedSize)
         return (
           ($fileMetrics.computedSize / $bytesPerRow) * $bytesPerRow -
-          NUM_LINES_DISPLAYED * $bytesPerRow
+          $dataDislayLineAmount * $bytesPerRow
         )
 
       return fetchBound
@@ -124,7 +125,7 @@ limitations under the License.
   }
   const INCREMENT_SEGMENT = () => {
     $seekOffsetInput = line_num_to_file_offset(
-      $dataFeedLineTop + NUM_LINES_DISPLAYED,
+      $dataFeedLineTop + $dataDislayLineAmount,
       viewportData.fileOffset,
       $bytesPerRow
     ).toString(addressRadix)
@@ -132,7 +133,7 @@ limitations under the License.
   }
   const DECREMENT_SEGMENT = () => {
     $seekOffsetInput = line_num_to_file_offset(
-      $dataFeedLineTop - NUM_LINES_DISPLAYED,
+      $dataFeedLineTop - $dataDislayLineAmount,
       viewportData.fileOffset,
       $bytesPerRow
     ).toString(addressRadix)
@@ -175,7 +176,7 @@ limitations under the License.
     INCREMENT = 1,
   }
 
-  let height = `calc(${NUM_LINES_DISPLAYED} * 20)px`
+  let height = `calc(${$dataDislayLineAmount} * 20)px`
   let viewportLines: Array<ViewportLineData> = []
   let viewportDataContainer: HTMLDivElement
   let selectedByteElement: HTMLDivElement
@@ -195,9 +196,9 @@ limitations under the License.
   $: {
     totalLinesPerFilesize = Math.ceil($fileMetrics.computedSize / $bytesPerRow)
     totalLinesPerViewport = Math.ceil(viewportData.data.length / $bytesPerRow)
-    lineTopMaxFile = Math.max(totalLinesPerFilesize - NUM_LINES_DISPLAYED, 0)
+    lineTopMaxFile = Math.max(totalLinesPerFilesize - $dataDislayLineAmount, 0)
     lineTopMaxViewport = Math.max(
-      totalLinesPerViewport - NUM_LINES_DISPLAYED,
+      totalLinesPerViewport - $dataDislayLineAmount,
       0
     )
 
@@ -247,9 +248,9 @@ limitations under the License.
     startIndex: number,
     dataRadix: RadixValues,
     addressRadix: RadixValues,
-    endIndex: number = startIndex + (NUM_LINES_DISPLAYED - 1)
+    endIndex: number = startIndex + ($dataDislayLineAmount - 1)
   ): Array<ViewportLineData> {
-    let ret = []
+    let ret: Array<ViewportLineData> = []
     for (let i = startIndex; i <= endIndex; i++) {
       const viewportLineOffset = i * $bytesPerRow
       const fileOffset = viewportLineOffset + viewportData.fileOffset
@@ -438,7 +439,7 @@ limitations under the License.
         ($fileMetrics.computedSize * (percentageTraversed / 100.0)) /
           $bytesPerRow
       ) * $bytesPerRow
-    const firstPageThreshold = $bytesPerRow * NUM_LINES_DISPLAYED
+    const firstPageThreshold = $bytesPerRow * $dataDislayLineAmount
     const lastPageThreshold = $fileMetrics.computedSize - firstPageThreshold
     if (offset <= firstPageThreshold) {
       // scroll to the top because we are somewhere in the first page
@@ -513,6 +514,8 @@ limitations under the License.
       <div class="address" id="address">
         <b>{viewportLine.offset}</b>
       </div>
+
+      {#if $visableViewports === 'physical' || $visableViewports === 'all'}
       <div
         class="byte-line"
         id="physical-line-{i.toString(16).padStart(2, '0')}"
@@ -534,6 +537,8 @@ limitations under the License.
           />
         {/each}
       </div>
+      {/if}
+      {#if $visableViewports === 'logical' || $visableViewports === 'all'}
       <div
         class="byte-line"
         id="logical-line-{i.toString(16).padStart(2, '0')}"
@@ -555,6 +560,7 @@ limitations under the License.
           />
         {/each}
       </div>
+      {/if}
     </div>
   {/each}
 
@@ -564,7 +570,7 @@ limitations under the License.
       selectionActive={$selectionDataStore.active}
       currentLine={$dataFeedLineTop}
       fileOffset={viewportData.fileOffset}
-      maxDisplayLines={NUM_LINES_DISPLAYED}
+      maxDisplayLines={$dataDislayLineAmount}
       bind:percentageTraversed
       on:indicatorClicked={handleClickedIndicator}
     />
@@ -584,7 +590,7 @@ limitations under the License.
         fn={INCREMENT_SEGMENT}
         disabledBy={disableIncrement}
         width="30pt"
-        description="Increment offset by {NUM_LINES_DISPLAYED *
+        description="Increment offset by {$dataDislayLineAmount *
           $bytesPerRow} bytes"
         tooltipAlwaysEnabled={true}
       >
@@ -618,7 +624,7 @@ limitations under the License.
         fn={DECREMENT_SEGMENT}
         disabledBy={disableDecrement}
         width="30pt"
-        description="Decrement offset by {NUM_LINES_DISPLAYED *
+        description="Decrement offset by {$dataDislayLineAmount *
           $bytesPerRow} bytes"
         tooltipAlwaysEnabled={true}
       >
@@ -637,6 +643,45 @@ limitations under the License.
           >stat_3</span
         >
       </Button>
+      <span class="separator" />
+      <Button
+        fn={() => { 
+            $dataDislayLineAmount += 1
+            viewportLines = generate_line_data(
+              $dataFeedLineTop,
+              dataRadix,
+              addressRadix
+              )
+          }
+        }
+        disabledBy={ (($dataDislayLineAmount+1)*$bytesPerRow >= VIEWPORT_SCROLL_INCREMENT) }
+        description={"Increment display lines (" + ($dataDislayLineAmount+1) + ")"}
+        tooltipAlwaysEnabled={true}
+        width="30pt"
+      >
+        <span slot="left" class="btn-icon material-symbols-outlined">
+          playlist_add
+        </span>
+      </Button>
+      <Button
+        fn={() => { 
+            $dataDislayLineAmount -= 1
+            viewportLines = generate_line_data(
+              $dataFeedLineTop,
+              dataRadix,
+              addressRadix
+              )
+          }
+        }
+        disabledBy={$dataDislayLineAmount === 1}
+        description={"Decrement display lines (" + ($dataDislayLineAmount-1) + ")"}
+        tooltipAlwaysEnabled={true}
+        width="30pt"
+      >
+        <span slot="left" class="btn-icon material-symbols-outlined">
+          playlist_remove
+        </span>
+      </Button>
     </FlexContainer>
   </FlexContainer>
 </div>
@@ -644,6 +689,22 @@ limitations under the License.
 <style lang="scss">
   span {
     font-weight: bold;
+  }
+  span.separator {
+    border: 1px solid grey;
+    opacity: 0.5;
+    display: flex;
+    flex-direction: column;
+    margin: 0 5px;
+  }
+  span.submit-bpr-input {
+    font-size: 14px;
+    cursor: pointer;
+    margin: 0 5px;
+  }
+  span.submit-bpr-input:hover {
+    font-weight: bold;
+    cursor: pointer;
   }
   div.container {
     display: flex;
@@ -659,7 +720,7 @@ limitations under the License.
   div.container div.line {
     display: flex;
     flex-direction: row;
-    width: 100%;
+    width: fit-content;
     height: 24px;
   }
   div.container div.line div {

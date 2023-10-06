@@ -21,16 +21,32 @@ limitations under the License.
 </script>
 
 <main class="dataEditor">
-  <DisplayHeader on:clearDataDisplays />
-  <DataViewports
-    on:clearDataDisplays
-    on:scrolledToTop
-    on:scrolledToEnd
-    on:applyChanges
-    on:handleEditorEvent
-    on:scrollBoundary
-    on:traverse-file
-    on:seek
-  />
-  <DataEditor on:applyChanges on:handleEditorEvent />
+  <div class="data-viewports">
+    <DisplayHeader on:clearDataDisplays/>
+    <DataViewports
+      on:clearDataDisplays
+      on:scrolledToTop
+      on:scrolledToEnd
+      on:applyChanges
+      on:handleEditorEvent
+      on:scrollBoundary
+      on:traverse-file
+      on:seek
+    />    
+  </div>
+  <div class="data-editor">
+    <DataEditor on:applyChanges on:handleEditorEvent on:clearDataDisplays/>
+  </div>
 </main>
+
+<style lang="scss">
+  .data-viewports {
+    display: flex;
+    flex-direction: column;
+  }
+  .data-editor {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+</style>
