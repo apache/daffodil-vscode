@@ -24,12 +24,11 @@ limitations under the License.
     displayRadix,
     editorEncoding,
     editorActionsAllowed,
-    bytesPerRow,
   } from '../../../stores'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
+  import ViewportVisibilityIcon from '../../Icons/ViewportVisibilityIcon.svelte'
 
-  $: $bytesPerRow = $displayRadix === RADIX_OPTIONS.Binary ? 8 : 16
 </script>
 
 <fieldset>
@@ -76,6 +75,7 @@ limitations under the License.
     </FlexContainer>
 
     <hr />
+    <ViewportVisibilityIcon dimension={20}/>
   </FlexContainer>
 </fieldset>
 

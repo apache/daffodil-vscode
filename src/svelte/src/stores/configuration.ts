@@ -19,7 +19,7 @@ export type Radixes = 'Hexadecimal' | 'Decimal' | 'Octal' | 'Binary'
 
 export type RadixValues = 16 | 10 | 8 | 2
 
-export type BytesPerRow = 16 | 8
+export type BytesPerRow = 16 | 8 | 24
 
 export enum EditByteModes {
   Single = 'single',
@@ -108,11 +108,13 @@ export const UNPRINTABLE_CHAR_STAND_IN = String.fromCharCode(9617)
 
 // Number of bytes to for the viewport to populate
 export const VIEWPORT_CAPACITY_MAX = 16 * 64 // 1024, Ωedit maximum viewport size is 1048576 (1024 * 1024)
-
-// Offset shift amount on viewport data fetch
 export const VIEWPORT_SCROLL_INCREMENT = VIEWPORT_CAPACITY_MAX / 2
 
-// Number of bytes to display in the viewport
-export const NUM_LINES_DISPLAYED = 20
+export const BYTES_PER_ROW_MAX_LINE_NUM: { [k in BytesPerRow]: number } = {
+  16: Math.floor(VIEWPORT_SCROLL_INCREMENT / 16),
+  8: Math.floor(VIEWPORT_SCROLL_INCREMENT / 8),
+  24: Math.floor(VIEWPORT_SCROLL_INCREMENT / 24),
+}
 
+// Number of bytes to display in the viewport
 export const DATA_PROFILE_MAX_LENGTH = 10_000_000

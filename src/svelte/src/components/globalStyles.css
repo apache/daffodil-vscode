@@ -278,15 +278,10 @@ div.hide-scrollbar::-webkit-scrollbar {
 
 /* Global Style Classes */
 .dataEditor {
-  display: grid;
-  grid-template-columns: 110px max-content max-content auto;
-  grid-template-rows: max-content auto;
-  /*noinspection CssUnresolvedCustomProperty*/
+  display: flex;
   font-family: 'Red Hat Mono';
 }
-/* display of binary encoded data takes more space in the physical view */
 .dataEditor.binary {
-  /* I think this should be 16em instead of 10em for 16 characters, but that didn't work */
   grid-template-columns: max-content max-content 10em auto;
 }
 .dataEditor div {
@@ -316,8 +311,6 @@ div.hide-scrollbar::-webkit-scrollbar {
   display: flex;
   font-family: 'Red Hat Mono';
   height: 25pt;
-  border-width: 0 0 2px 0;
-  border-style: solid;
 }
 .dataEditor div.measure.dark {
   display: flex;
@@ -341,7 +334,8 @@ div.hide-scrollbar::-webkit-scrollbar {
 .dataEditor div.measure span {
   align-self: flex-end;
 }
-.dataEditor div.measure div {
+.dataEditor div.measure div,
+.dataEditor div.measure sub {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -405,18 +399,15 @@ div.hide-scrollbar::-webkit-scrollbar {
   color: #02060b;
 }
 .dataEditor div.editView {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 75%;
-  grid-row-start: 3;
-  grid-row-end: 5;
-  gap: 10pt;
-  overflow-x: hidden;
-  word-break: break-all;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
   margin-left: 4px;
 }
 .dataEditor div.editView textarea {
   width: auto;
+  height: 100%;
 }
 .dataEditor textarea.selectedContent {
   background: #2c2c2c;
@@ -427,6 +418,9 @@ div.hide-scrollbar::-webkit-scrollbar {
 .dataEditor select.content-select {
   float: right;
   max-width: 110px;
+}
+div.viewport-hdr-content {
+  height: 35px;
 }
 
 .tooltip {

@@ -18,7 +18,6 @@ limitations under the License.
   import {
     addressRadix,
     displayRadix,
-    editMode,
     seekOffset,
     seekOffsetInput,
     selectionDataStore,
@@ -26,9 +25,9 @@ limitations under the License.
     selectionSize,
     bytesPerRow,
     viewport,
+    visableViewports
   } from '../../../stores'
   import {
-    EditByteModes,
     ADDRESS_RADIX_OPTIONS,
     type RadixValues,
     type BytesPerRow,
@@ -37,21 +36,12 @@ limitations under the License.
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import { createEventDispatcher } from 'svelte'
   import { OffsetSearchType } from '../../Header/fieldsets/SearchReplace'
-
-  type ViewportDivSpread = '24px' | '28px' | '68px'
+  import { byteDivWidthFromRadix } from '../../../utilities/display'
 
   const eventDispatcher = createEventDispatcher()
-  const bitNumText = '01234567'
-  const physicalOffsetSpreads = {
-    16: '24px',
-    10: '28px',
-    8: '28px',
-    2: '68px',
-  }
-
-  let phyiscalOffsetSpread: ViewportDivSpread
+  let bitIndexStr = '01234567'
   let selectionOffsetText: string
-  let offsetLine = []
+  let offsetLine: string[] = []
 
   $: {
     offsetLine = generate_offset_headers(
@@ -74,20 +64,17 @@ limitations under the License.
     displayRadix: RadixValues,
     bytesPerRow: BytesPerRow
   ) {
-    let ret = []
+    let ret: string[] = []
 
     if (displayRadix != RADIX_OPTIONS.Binary) {
       for (let i = 0; i < bytesPerRow; i++) {
         ret.push(i.toString(addressRadix).padStart(2, '0'))
       }
     } else {
-      for (let i = 0; i < 8; i++) {
-        ret.push(i.toString(10))
+      for (let i = 0; i < bytesPerRow; i++) {
+        ret.push(i.toString(addressRadix))
       }
     }
-    phyiscalOffsetSpread = physicalOffsetSpreads[
-      displayRadix
-    ] as ViewportDivSpread
     return ret
   }
 
@@ -120,92 +107,102 @@ limitations under the License.
     }
     $addressRadix = newAddrRadix
   }
-
-  function clearDataDisplays() {
-    eventDispatcher('clearDataDisplays')
-  }
 </script>
 
-<div class={$UIThemeCSSClass + ' hd'}>Address</div>
-<div class={$UIThemeCSSClass + ' hd'}>Physical</div>
-<div class={$UIThemeCSSClass + ' hd'}>Logical</div>
-<div class={$UIThemeCSSClass + ' hd'}>Edit</div>
-<div class={$UIThemeCSSClass + ' measure'} style="align-items: center;">
-  <select
-    class={$UIThemeCSSClass + ' address_type'}
-    id="address_numbering"
-    on:change={updateAddressValue}
-  >
-    {#each ADDRESS_RADIX_OPTIONS as { name, value }}
-      <option {value}>{name}</option>
-    {/each}
-  </select>
-</div>
-
-<div class={$UIThemeCSSClass + ' measure physical-viewport-header'}>
-  {#if $displayRadix === RADIX_OPTIONS.Binary}
-    {#each offsetLine as offset}
-      <div class="phyiscal-addr-seg binary" style:width={phyiscalOffsetSpread}>
-        <div>{offset}</div>
-        <div>{bitNumText}</div>
-      </div>
-    {/each}
-  {:else}
-    {#each offsetLine as offset}
-      <div class="physical-addr-seg" style:width={phyiscalOffsetSpread}>
-        {offset}
-      </div>
-    {/each}
-  {/if}
-</div>
-
-<div class={$UIThemeCSSClass + ' measure logical-viewport-header'}>
-  {#each offsetLine as offset}
-    <div class="logical-addr-seg">{offset}</div>
-  {/each}
-</div>
-
-<div class={$UIThemeCSSClass + ' measure selection'}>
-  {#if $selectionDataStore.active && $editMode !== EditByteModes.Single}
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <div
-      class="clear-selection"
-      title="Clear selection data"
-      on:click={clearDataDisplays}
-      on:keypress={clearDataDisplays}
+<div class="headers">
+  <div class="hdr address-header" style:min-width=110px>
+    <div class={$UIThemeCSSClass + ' hd'}>Address</div>
+    <select
+      class={$UIThemeCSSClass + ' address_type'}
+      id="address_numbering"
+      on:change={updateAddressValue}
     >
-      &#10006;
+      {#each ADDRESS_RADIX_OPTIONS as { name, value }}
+        <option {value}>{name}</option>
+      {/each}
+    </select>
+  </div>
+  {#if $visableViewports === 'physical' || $visableViewports === 'all'}
+  <div class="hdr physical-header" >
+    <div class={$UIThemeCSSClass + ' hd'}>Physical</div>
+    <div class={$UIThemeCSSClass + ' measure physical-viewport-header'}>
+      {#if $displayRadix === RADIX_OPTIONS.Binary}
+        {#each offsetLine as offset}
+          <div class="physical-addr-seg binary" style:min-width={byteDivWidthFromRadix($displayRadix)}>
+            <div>{offset}</div>
+            <div>{bitIndexStr}</div>
+          </div>
+        {/each}
+      {:else}
+        {#each offsetLine as offset}
+          <div class="physical-addr-seg" style:min-width={byteDivWidthFromRadix($displayRadix)}>
+            {offset}
+          </div>
+        {/each}
+      {/if}
     </div>
-    <div>
-      {selectionOffsetText}
+  </div>
+  {/if}
+  {#if $visableViewports === 'logical' || $visableViewports === 'all'}
+  <div class="hdr logical-header" >
+    <div class={$UIThemeCSSClass + ' hd'}>Logical</div>
+    <div 
+      class={$UIThemeCSSClass + ' measure logical logical-viewport-header'}
+      style:align-items={$displayRadix === RADIX_OPTIONS.Binary ? 'flex-end' : 'normal'} 
+    >
+      {#each offsetLine as offset}
+        <div 
+          class="logical-addr-seg"
+          style:min-width={byteDivWidthFromRadix(RADIX_OPTIONS.Hexadecimal)}>{offset}</div>
+      {/each}
     </div>
-  {:else}
-    <div>
-      <sub
-        ><i
-          >To edit multiple bytes, highlight (by clicking and dragging) a
-          selection of bytes</i
-        ></sub
-      >
-    </div>
+  </div>
   {/if}
 </div>
 
 <style lang="scss">
-  div.physical-addr-seg,
-  div.logical-addr-seg {
+  div.hdr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  div.hdr .measure {
+    flex-direction: row;
+  }
+  div.headers {
+    display: flex;
+    flex-direction: row;
+  }
+  div.logical-addr-seg,
+  div.physical-addr-seg {
     writing-mode: vertical-lr;
     text-orientation: upright;
     cursor: default;
+    border-width: 0 2px 0 2px;
+    border-style: solid;
+    border-color: transparent;
   }
   div.logical-addr-seg {
-    width: 24px;
+    width: 20px;
   }
-  div.div.physical-addr-seg.binary {
+  div.physical-addr-seg.binary {
     writing-mode: horizontal-tb;
     text-orientation: sideways;
   }
   div.physical-viewport-header {
-    padding-left: 4px;
+    padding-left: 2px;
+  }
+  div.physical-viewport-header ,
+  div.logical-viewport-header {
+    display: flex;
+  }
+  div.physical-header,
+  div.logical-header,
+  div.address-header {
+    background: #2f3e4f;
+  }
+  div.logical-header,
+  div.physical-header {
+    border: 1px solid transparent;
   }
 </style>
