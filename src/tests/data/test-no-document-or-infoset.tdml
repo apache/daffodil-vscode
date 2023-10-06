@@ -17,11 +17,6 @@
 -->
 <ns1:testSuite xmlns:ns1="http://www.ibm.com/xmlns/dfdl/testData" xmlns:ns2="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext" xmlns:ns3="http://www.ogf.org/dfdl/dfdl-1.0/" xmlns:ns4="http://www.ogf.org/dfdl/dfdl-1.0/extensions" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ns6="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:int" suiteName="TestTDMLSuiteName" defaultRoundTrip="onePass">
     <ns1:parserTestCase name="TestTDMLName" root="file" model="test.dfdl.xsd" roundTrip="onePass" description="Test TDML Description">
-        <ns1:document>
-            <ns1:documentPart type="file">noData.xml</ns1:documentPart>
-        </ns1:document>
-        <ns1:infoset>
-            <ns1:dfdlInfoset type="file">noInfoset.xml</ns1:dfdlInfoset>
-        </ns1:infoset>
+      <dummyElement />
     </ns1:parserTestCase>
 </ns1:testSuite>

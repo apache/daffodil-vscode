@@ -118,6 +118,58 @@ export function getAttributeCompletionProvider() {
   )
 }
 
+export function getTDMLAttributeCompletionProvider() {
+  return vscode.languages.registerCompletionItemProvider(
+    { language: 'tdml' },
+    {
+      provideCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position
+      ) {
+        const triggerText = document
+          .lineAt(position)
+          .text.substring(0, position.character)
+        const charBeforeTrigger = triggerText.charAt(position.character - 1)
+        const charAfterTrigger = triggerText.charAt(position.character)
+        let nearestOpenItem = nearestOpen(document, position)
+        let itemsOnLine = getItemsOnLineCount(triggerText)
+        const nsPrefix = getXsdNsPrefix(document, position)
+        let additionalItems = getDefinedTypes(document, nsPrefix)
+
+        if (isInXPath(document, position)) return undefined
+
+        if (
+          checkBraceOpen(document, position) ||
+          cursorWithinBraces(document, position) ||
+          cursorWithinQuotes(document, position) ||
+          cursorAfterEquals(document, position) ||
+          nearestOpenItem.includes('none')
+        ) {
+          return undefined
+        }
+        let preVal =
+          !triggerText.includes('<' + nsPrefix + nearestOpenItem) &&
+          lineCount(document, position, nearestOpenItem) === 1 &&
+          itemsOnLine < 2
+            ? '\t'
+            : ''
+
+        return checkNearestOpenItem(
+          nearestOpenItem,
+          triggerText,
+          nsPrefix,
+          preVal,
+          additionalItems,
+          charBeforeTrigger,
+          charAfterTrigger
+        )
+      },
+    },
+    ' ',
+    '\n' // triggered whenever a newline is typed
+  )
+}
+
 export function getDefinedTypes(
   document: vscode.TextDocument,
   nsPrefix: string

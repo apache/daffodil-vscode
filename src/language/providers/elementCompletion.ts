@@ -97,6 +97,71 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
   })
 }
 
+export function getTDMLElementCompletionProvider(tdmlFormatString: string) {
+  return vscode.languages.registerCompletionItemProvider('tdml', {
+    provideCompletionItems(
+      document: vscode.TextDocument,
+      position: vscode.Position,
+      token: vscode.CancellationToken,
+      context: vscode.CompletionContext
+    ) {
+      if (
+        checkBraceOpen(document, position) ||
+        cursorWithinBraces(document, position) ||
+        cursorWithinQuotes(document, position) ||
+        cursorAfterEquals(document, position) ||
+        isInXPath(document, position)
+      ) {
+        return undefined
+      }
+
+      let nsPrefix = getXsdNsPrefix(document, position)
+      let [triggerLine, triggerPos] = [position.line, position.character]
+      let triggerText = document.lineAt(triggerLine).text
+      let itemsOnLine = getItemsOnLineCount(triggerText)
+      let nearestOpenItem = nearestOpen(document, position)
+      let lastCloseSymbol = triggerText.lastIndexOf('>')
+      let firstOpenSymbol = triggerText.indexOf('<')
+
+      let missingCloseTag = checkMissingCloseTag(document, position, nsPrefix)
+
+      if (nearestOpenItem.includes('none')) {
+        if (missingCloseTag !== 'none') {
+          return undefined
+        }
+        if (
+          missingCloseTag === 'none' &&
+          itemsOnLine > 1 &&
+          (triggerPos === lastCloseSymbol + 1 || triggerPos === firstOpenSymbol)
+        ) {
+          return undefined
+        }
+
+        let definedVariables = getDefinedVariables(document)
+
+        let [tagNearestTrigger, tagPosition] = getTagNearestTrigger(
+          document,
+          position,
+          triggerText,
+          triggerLine,
+          triggerPos,
+          itemsOnLine,
+          nsPrefix
+        )
+
+        return nearestOpenTagChildElements(
+          document,
+          position,
+          tagNearestTrigger,
+          tagPosition,
+          definedVariables,
+          nsPrefix
+        )
+      }
+    },
+  })
+}
+
 function getElementCompletionItems(
   itemsToUse: string[],
   preVal: string = '',

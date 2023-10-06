@@ -20,6 +20,10 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { getConfig } from '../utils'
 import { runDebugger, stopDebugger, stopDebugging } from './utils'
+import {
+  getDefaultTDMLTestCaseDescription,
+  getDefaultTDMLTestCaseName,
+} from '../tdmlEditor/utilities/tdmlXmlUtils'
 
 // Function to get data file given a folder
 export async function getDataFileFromFolder(dataFolder: string) {
@@ -42,7 +46,7 @@ async function getTDMLConfig(
   config: vscode.DebugConfiguration
 ): Promise<boolean> {
   // If not supported TDML action entered, delete tdml config so no errors are thrown
-  if (!['execute', 'generate', 'append'].includes(config?.tdmlConfig?.action)) {
+  if (!['execute', 'generate', 'none'].includes(config?.tdmlConfig?.action)) {
     delete config.tdmlConfig
   }
 
@@ -53,43 +57,22 @@ async function getTDMLConfig(
     // Might need to add `schema` here if we move the `Execute TDML` command
     //   away from the detected dfdl language in VSCode.
     config.data = ''
+
+    if (config?.tdmlConfig?.path === undefined)
+      config.tdmlConfig.path = await vscode.commands.executeCommand(
+        'extension.dfdl-debug.getValidatedTDMLPath'
+      )
   }
 
   if (
     config?.tdmlConfig?.action === 'generate' ||
-    config?.tdmlConfig?.action === 'append' ||
     config?.tdmlConfig?.action === 'execute'
   ) {
-    if (
-      config?.tdmlConfig?.name === undefined ||
-      config?.tdmlConfig?.name.includes('${command:AskForTDMLName}')
-    )
-      config.tdmlConfig.name = await vscode.commands.executeCommand(
-        'extension.dfdl-debug.getTDMLName'
-      )
+    if (config?.tdmlConfig?.name === undefined)
+      config.tdmlConfig.name = getDefaultTDMLTestCaseName()
 
-    if (
-      config?.tdmlConfig?.description === undefined ||
-      config?.tdmlConfig?.description.includes(
-        '${command:AskForTDMLDescription}'
-      )
-    )
-      config.tdmlConfig.description = await vscode.commands.executeCommand(
-        'extension.dfdl-debug.getTDMLDescription'
-      )
-
-    if (
-      config?.tdmlConfig?.path === undefined ||
-      config?.tdmlConfig?.path.includes('${command:AskForTDMLPath}')
-    )
-      if (config?.tdmlConfig?.action === 'generate')
-        config.tdmlConfig.path = await vscode.commands.executeCommand(
-          'extension.dfdl-debug.getTDMLPath'
-        )
-      else
-        config.tdmlConfig.path = await vscode.commands.executeCommand(
-          'extension.dfdl-debug.getValidatedTDMLPath'
-        )
+    if (config?.tdmlConfig?.description === undefined)
+      config.tdmlConfig.description = getDefaultTDMLTestCaseDescription()
   }
 
   if (config?.tdmlConfig?.action !== 'execute' && config.data === '') {

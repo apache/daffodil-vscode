@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
-export interface TDMLConfig {
-  action: String
-  name?: String
-  description?: String
-  path?: String
+export function getNonce() {
+  let noText = ''
+  const possible =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  for (let i = 0; i < 32; i++) {
+    noText += possible.charAt(Math.floor(Math.random() * possible.length))
+  }
+  return noText
 }

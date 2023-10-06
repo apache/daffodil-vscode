@@ -30,8 +30,10 @@ object Rat {
       * well.
       */
     file("language/dfdl.json"),
+    file("language/tdml.json"),
     file("language/syntax.json"),
     file("language/syntaxes/dfdl.tmLanguage.json"),
+    file("language/syntaxes/tdml.tmLanguage.json"),
     file("package.json"),
     file("svelte/package.json"),
     file(".prettierrc"),

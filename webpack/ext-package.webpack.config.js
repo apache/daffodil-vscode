@@ -111,6 +111,10 @@ module.exports = /** @type WebpackConfig */ {
           to: `${pkg_dir}/node_modules/@omega-edit/server/lib`,
         },
         {
+          from: 'node_modules/@vscode/webview-ui-toolkit',
+          to: `${pkg_dir}/node_modules/@vscode/webview-ui-toolkit`,
+        },
+        {
           from: 'src/language/providers/intellisense/DFDLGeneralFormat.dfdl.xsd',
           to: `${pkg_dir}/src/language/providers/intellisense/DFDLGeneralFormat.dfdl.xsd`,
         },
@@ -121,6 +125,10 @@ module.exports = /** @type WebpackConfig */ {
         {
           from: 'src/styles/styles.css',
           to: `${pkg_dir}/src/styles/styles.css`,
+        },
+        {
+          from: 'src/tdmlEditor/',
+          to: `${pkg_dir}/src/tdmlEditor`,
         },
       ],
     }),

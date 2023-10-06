@@ -83,6 +83,7 @@ function watch() {
     [
       'webpack --watch --devtool nosources-source-map --config ./webpack/ext-dev.webpack.config.js',
       'yarn watch:svelte',
+      'yarn watch:tdmlEditorJS',
     ],
     {
       killOthers: ['failure', 'success'],
@@ -114,6 +115,7 @@ function package() {
 **/node_modules/**/*
 !node_modules/@omega-edit/server/bin
 !node_modules/@omega-edit/server/lib
+!node_modules/@vscode/webview-ui-toolkit/**/*
 `
   )
 }

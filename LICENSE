@@ -364,6 +364,7 @@ conditions of the following licenses.
     SOFTWARE.
 
 - language/syntaxes/dfdl.tmLanguage.json
+- language/syntaxes/tdml.tmLanguage.json
   This product bundles the above files from the "XML language support in Atom" github repo (https://github.com/atom/language-xml)
   These files are avaiable under the MIT License:
 

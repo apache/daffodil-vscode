@@ -85,6 +85,62 @@ export function getCloseElementSlashProvider() {
   )
 }
 
+export function getTDMLCloseElementSlashProvider() {
+  return vscode.languages.registerCompletionItemProvider(
+    'tdml',
+    {
+      async provideCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position
+      ) {
+        let backpos = position.with(position.line, position.character - 1)
+        const nsPrefix = getXsdNsPrefix(document, position)
+        const triggerText = document
+          .lineAt(position)
+          .text.substring(0, position.character)
+        let nearestTagNotClosed = checkMissingCloseTag(
+          document,
+          position,
+          nsPrefix
+        )
+        const itemsOnLine = getItemsOnLineCount(triggerText)
+
+        if (
+          checkBraceOpen(document, position) ||
+          cursorWithinBraces(document, position) ||
+          cursorWithinQuotes(document, position) ||
+          cursorAfterEquals(document, position) ||
+          isInXPath(document, position)
+        ) {
+          return undefined
+        }
+
+        if (triggerText.endsWith('/')) {
+          let range = new vscode.Range(backpos, position)
+
+          await vscode.window.activeTextEditor?.edit((editBuilder) => {
+            editBuilder.replace(range, '')
+          })
+
+          checkItemsOnLine(
+            document,
+            position,
+            itemsOnLine,
+            nearestTagNotClosed,
+            backpos,
+            nsPrefix,
+            triggerText
+          )
+        }
+
+        return undefined
+      },
+    },
+    '/'
+    // triggered whenever a '/' is typed
+  )
+}
+
 function checkItemsOnLine(
   document: vscode.TextDocument,
   position: vscode.Position,
