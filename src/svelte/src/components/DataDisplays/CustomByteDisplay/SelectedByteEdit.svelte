@@ -343,7 +343,7 @@ limitations under the License.
       class="delete {themeClass}"
       id={actionElements['delete'].id}
       style:width={elementDivWidth}
-      on:click={send_delete}
+      on:mousedown|stopPropagation={send_delete}
     >
       <Tooltip alwaysEnabled={true} description={'Delete byte'}>
         &#10006;
@@ -358,7 +358,7 @@ limitations under the License.
       class="insert-before {themeClass}"
       id={actionElements['insert-before'].id}
       style:width={elementDivWidth}
-      on:click={send_insert}
+      on:mousedown|stopPropagation={send_insert}
     >
       <Tooltip alwaysEnabled={true} description={'Insert as preceding byte'}>
         &#8676;
@@ -372,7 +372,7 @@ limitations under the License.
       class="insert-after {themeClass}"
       id={actionElements['insert-after'].id}
       style:width={elementDivWidth}
-      on:click={send_insert}
+      on:mousedown|stopPropagation={send_insert}
     >
       <Tooltip alwaysEnabled={true} description={'Insert as following byte'}>
         &#8677;

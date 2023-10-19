@@ -61,8 +61,8 @@ limitations under the License.
     ViewportData_t,
   } from './DataDisplays/CustomByteDisplay/BinaryData'
   import { byte_count_divisible_offset } from '../utilities/display'
-  import { clearSearchResultsHighlights } from '../utilities/highlights'
   import Help from './layouts/Help.svelte'
+  import { viewportByteIndicators } from '../utilities/highlights'
 
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 
@@ -248,16 +248,15 @@ limitations under the License.
 
   function clearQueryableData() {
     searchQuery.clear()
-    clearSearchResultsHighlights()
   }
 
   function handleKeyBind(event: Event) {
     const kbdEvent = event as KeyboardEvent
     if (key_is_mappable(kbdEvent.key)) {
-      elementKeypressEventMap.run(document.activeElement.id, kbdEvent)
+      if(document.activeElement) // document.activeElement is possibly undefined / null
+        elementKeypressEventMap.run(document.activeElement.id, kbdEvent)
       return
     }
-    if ($editMode === EditByteModes.Multiple) return
     switch (kbdEvent.key) {
       case 'Escape':
         clearDataDisplays()

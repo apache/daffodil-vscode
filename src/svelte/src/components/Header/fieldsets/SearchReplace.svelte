@@ -42,13 +42,8 @@ limitations under the License.
   import { createEventDispatcher } from 'svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import ToggleableButton from '../../Inputs/Buttons/ToggleableButton.svelte'
-  import {
-    clearSearchResultsHighlights,
-    updateSearchResultsHighlights,
-  } from '../../../utilities/highlights'
-  import { viewport } from '../../../stores'
   import { EditActionRestrictions } from '../../../stores/configuration'
-  import { OffsetSearchType } from './SearchReplace'
+  import { OffsetSearchType, clear_queryable_results } from './SearchReplace'
   import Tooltip from '../../layouts/Tooltip.svelte'
 
   const eventDispatcher = createEventDispatcher()
@@ -201,7 +196,8 @@ limitations under the License.
     searchStarted = false
     replaceStarted = false
     matchOffset = -1
-    clearSearchResultsHighlights()
+    clear_queryable_results()
+
     eventDispatcher('clearDataDisplays')
   }
 
@@ -210,25 +206,24 @@ limitations under the License.
       // handle search results
       case MessageCommand.searchResults:
         if (msg.data.data.searchResults.length > 0) {
-          $searchQuery.searchResults = msg.data.data.searchResults
-          $searchQuery.byteLength = msg.data.data.searchDataBytesLength
+          searchQuery.updateSearchResults(msg.data.data)
           switch (direction) {
             case 'Home':
-              hasNext = msg.data.data.overflow
+              hasNext = $searchQuery.overflow
               hasPrev = false
               break
             case 'End':
               hasNext = false
-              hasPrev = msg.data.data.overflow
+              hasPrev = $searchQuery.overflow
               break
             case 'Forward':
-              hasNext = msg.data.data.overflow
+              hasNext = $searchQuery.overflow
               hasPrev = justReplaced ? preReplaceHasPrev : true
               justReplaced = false
               break
             case 'Backward':
               hasNext = true
-              hasPrev = msg.data.data.overflow
+              hasPrev = $searchQuery.overflow
               break
           }
           matchOffset = $searchQuery.searchResults[0]
@@ -240,17 +235,12 @@ limitations under the License.
             showReplaceOptions = true
             showSearchOptions = false
           }
-          $searchQuery.overflow = msg.data.data.overflow
         } else {
           matchOffset = -1
           $searchQuery.overflow = showSearchOptions = showReplaceOptions = false
+          searchQuery.clear()
         }
         searchStarted = replaceStarted = false
-        updateSearchResultsHighlights(
-          $searchQuery.searchResults,
-          $viewport.fileOffset,
-          $searchQuery.byteLength
-        )
         $searchQuery.processing = false
         break
 
@@ -259,8 +249,11 @@ limitations under the License.
         searchStarted = replaceStarted = false
         if (msg.data.data.replacementsCount > 0) {
           // subtract 1 from the next offset because search next will add 1
-          clearSearchResultsHighlights()
           matchOffset = msg.data.data.nextOffset - 1
+          replaceQuery.addResult({
+            byteLength: msg.data.data.replaceDataBytesLength, 
+            offset: msg.data.data.nextOffset - msg.data.data.replaceDataBytesLength
+          })
           preReplaceHasPrev = hasPrev
           justReplaced = true
           searchNext()
@@ -270,6 +263,11 @@ limitations under the License.
         }
         $replaceQuery.processing = false
         break
+  
+      case MessageCommand.clearChanges:
+        cancel()
+        break
+
     }
   })
 </script>

@@ -43,7 +43,6 @@ import {
   type RadixValues,
   type BytesPerRow,
   EditActionRestrictions,
-  VIEWPORT_CAPACITY_MAX,
 } from './configuration'
 import type { AvailableHelpSections } from '../components/layouts/Help'
 
@@ -60,6 +59,34 @@ export class SelectionData_t {
       this.originalEndOffset >= 0
     )
   }
+  public editedLength(): number {
+    return this.endOffset - this.startOffset
+  }
+  public originalLength(): number {
+    return this.originalEndOffset - this.startOffset
+  }
+  public selectionIndexIsAnEdit(index: number): boolean {
+    const editOffsetLength = this.originalLength() - this.editedLength()
+    const editStartOffset = this.originalEndOffset - editOffsetLength
+
+    return index <= this.originalEndOffset
+      ? index >= editStartOffset
+      : index <= editStartOffset
+  }
+  public isEmpty(): boolean {
+    return this.editedLength() + 1 == 0
+  }
+  public editStartOffset() {
+    return (
+      this.originalEndOffset - (this.originalLength() - this.editedLength())
+    )
+  }
+  public editLengthDelta() {
+    return this.endOffset - this.originalEndOffset + 1
+  }
+  public makingSelection() {
+    return this.startOffset >= 0 && this.originalEndOffset === -1
+  }
 }
 
 class SelectionData extends SimpleWritable<SelectionData_t> {
@@ -75,6 +102,10 @@ export enum EditModeRestrictions {
   None,
   OverwriteOnly,
 }
+
+/**************************************************************************/
+/*                          Writable Stores                               */
+/**************************************************************************/
 
 // noinspection JSUnusedGlobalSymbols
 
@@ -155,6 +186,12 @@ export const dataDislayLineAmount = writable(20)
 
 export type VisibleViewports = 'physical' | 'logical' | 'all'
 export const visableViewports = writable('all' as VisibleViewports)
+
+export const searchResultsUpdated = writable(false)
+
+/**************************************************************************/
+/*                          Derived Stores                                */
+/**************************************************************************/
 // Can the user's selection derive both edit modes?
 export const regularSizedFile = derived(fileMetrics, ($fileMetrics) => {
   return $fileMetrics.computedSize >= 2
@@ -204,7 +241,7 @@ export const replaceable = derived(
     }
     if ($selectionData.active) {
       replaceErr.update(() => {
-        return 'Cannot replace while viewport data is selected'
+        return "Can't replace while selection active"
       })
       return false
     }

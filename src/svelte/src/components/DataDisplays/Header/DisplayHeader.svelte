@@ -20,11 +20,8 @@ limitations under the License.
     displayRadix,
     seekOffset,
     seekOffsetInput,
-    selectionDataStore,
     seekOffsetSearchType,
-    selectionSize,
     bytesPerRow,
-    viewport,
     visableViewports
   } from '../../../stores'
   import {
@@ -34,11 +31,9 @@ limitations under the License.
     RADIX_OPTIONS,
   } from '../../../stores/configuration'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
-  import { createEventDispatcher } from 'svelte'
   import { OffsetSearchType } from '../../Header/fieldsets/SearchReplace'
   import { byteDivWidthFromRadix } from '../../../utilities/display'
   let bitIndexStr = '01234567'
-  let selectionOffsetText: string
   let offsetLine: string[] = []
 
   $: {
@@ -48,14 +43,6 @@ limitations under the License.
       $bytesPerRow
     )
   }
-
-  $: selectionOffsetText = setSelectionOffsetInfo(
-    'Selection',
-    $viewport.fileOffset + $selectionDataStore.startOffset,
-    $viewport.fileOffset + $selectionDataStore.endOffset,
-    $selectionSize,
-    $addressRadix
-  )
 
   function generate_offset_headers(
     addressRadix: RadixValues,
@@ -127,14 +114,14 @@ limitations under the License.
       {#if $displayRadix === RADIX_OPTIONS.Binary}
         {#each offsetLine as offset}
           <div class="physical-addr-seg binary" style:min-width={byteDivWidthFromRadix($displayRadix)}>
-            <div>{offset}</div>
-            <div>{bitIndexStr}</div>
+            <div><b>{offset}</b></div>
+            <div><b>{bitIndexStr}</b></div>
           </div>
         {/each}
       {:else}
         {#each offsetLine as offset}
           <div class="physical-addr-seg" style:min-width={byteDivWidthFromRadix($displayRadix)}>
-            {offset}
+            <b>{offset}</b>
           </div>
         {/each}
       {/if}

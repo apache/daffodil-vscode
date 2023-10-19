@@ -459,11 +459,17 @@ export class DataEditorClient implements vscode.Disposable {
       case MessageCommand.undoChange:
         await undo(this.omegaSessionId)
         await this.sendChangesInfo()
+        this.panel.webview.postMessage({
+          command: MessageCommand.clearChanges,
+        })
         break
 
       case MessageCommand.redoChange:
         await redo(this.omegaSessionId)
         await this.sendChangesInfo()
+        this.panel.webview.postMessage({
+          command: MessageCommand.clearChanges,
+        })
         break
 
       case MessageCommand.profile:
@@ -525,6 +531,9 @@ export class DataEditorClient implements vscode.Disposable {
         ) {
           await clear(this.omegaSessionId)
           await this.sendChangesInfo()
+          this.panel.webview.postMessage({
+            command: MessageCommand.clearChanges,
+          })
         }
         break
 

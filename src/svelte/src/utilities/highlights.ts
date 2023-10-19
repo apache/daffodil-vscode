@@ -15,62 +15,144 @@
  * limitations under the License.
  */
 
-import { derived, readable, writable } from 'svelte/store'
-import { selectionDataStore } from '../stores'
+import { SelectionData_t, searchResultsUpdated } from '../stores'
+import { VIEWPORT_CAPACITY_MAX } from '../stores/configuration'
+import { SimpleWritable } from '../stores/localStore'
+import type {
+  DataReplacement,
+  ReplaceData,
+  SearchData,
+} from '../components/Header/fieldsets/SearchReplace'
+import { ViewportByteCategories } from './ByteCategories/CategoryIndications'
 
-let selectionHighlightLUT = new Uint8Array(1024)
-export let selectionHighlightMask = writable(0)
+class ViewportByteIndications extends SimpleWritable<Uint8Array> {
+  protected init(): Uint8Array {
+    return new Uint8Array(VIEWPORT_CAPACITY_MAX).fill(0)
+  }
+  public clearIndication(indicationName: string) {
+    this.store.update((indications) => {
+      ViewportByteCategories.clearIndication(indications, indicationName)
+      return indications
+    })
+  }
+  public updateSearchIndications(
+    searchQuery: SearchData,
+    viewportFileOffset: number
+  ) {
+    if (searchQuery.searchResults.length > 0) {
+      const resultsIterable =
+        searchQuery.iterableDataFromOffset(viewportFileOffset)
+      const { data } = resultsIterable
+      const start = data[0]
+      const byteLength = searchQuery.byteLength
 
-let searchResultsHighlightLUT = new Uint8Array(1024).fill(0)
+      this.store.update((indications) => {
+        ViewportByteCategories.clearAndSetIf(
+          indications,
+          'searchresult',
+          (_, i) => {
+            const adjustIndex = i + viewportFileOffset
+            return adjustIndex >= start && adjustIndex < start + byteLength
+          }
+        )
+        searchResultsUpdated.set(true)
+        return indications
+      })
+    }
+  }
 
-export enum HightlightCategoryMasks {
-  None = 0,
-  ActiveSelection = 1,
-  ConsideredForSelection = 2,
-  SearchResult = 4,
+  public updateReplaceIndications(
+    replaceData: ReplaceData,
+    viewportFileOffset: number
+  ) {
+    const resultsIterable =
+      replaceData.iterableDataFromOffset(viewportFileOffset)
+
+    if (resultsIterable.data.length > 0) {
+      const { offset, byteLength } = resultsIterable.data[0] as DataReplacement
+      this.store.update((indications) => {
+        ViewportByteCategories.clearAndSetIf(
+          indications,
+          'replacement',
+          (_, i) => {
+            const adjustIndex = i + viewportFileOffset
+            return adjustIndex >= offset && adjustIndex < offset + byteLength
+          }
+        )
+        return indications
+      })
+    }
+  }
+  public updateSelectionIndications(selectionData: SelectionData_t) {
+    const category1 = ViewportByteCategories.category('one')
+    const start = selectionData.startOffset
+    const editedEnd = selectionData.endOffset + 1
+    const originalEnd = selectionData.originalEndOffset
+
+    if (!selectionData.makingSelection() && !selectionData.active) {
+      this.store.update((indications) => {
+        ViewportByteCategories.clearIndication(indications, 'selected')
+        return indications
+      })
+    }
+    if (selectionData.active || selectionData.makingSelection()) {
+      const offsetPartitions = [
+        generateSelectionCategoryParition(0, start, (byte) => {
+          byte[0] &= ~category1.indexOf('selected')
+        }),
+        generateSelectionCategoryParition(start, editedEnd, (byte) => {
+          byte[0] |= category1.indexOf('selected')
+        }),
+        generateSelectionCategoryParition(
+          Math.max(originalEnd, editedEnd),
+          VIEWPORT_CAPACITY_MAX - start,
+          (byte) => {
+            byte[0] &= ~category1.indexOf('selected')
+          }
+        ),
+      ]
+      this.store.update((indications) => {
+        for (const partition of offsetPartitions) {
+          for (let i = partition.start; i < partition.end; i++)
+            partition.assignByte(indications.subarray(i, i + 1))
+        }
+        return indications
+      })
+    }
+  }
 }
 
-export const selectionHighlights = derived(
-  [selectionDataStore, selectionHighlightMask],
-  ([$selectionData, $selectionHighlightMask]) => {
-    let start = $selectionData.startOffset
-    let end =
-      $selectionHighlightMask === 0
-        ? $selectionData.originalEndOffset
-        : $selectionData.endOffset
-    if (start > end && end > -1) [start, end] = [end, start]
+export const viewportByteIndicators = new ViewportByteIndications()
 
-    for (let i = 0; i < 1024; i++) {
-      selectionHighlightLUT[i] =
-        i >= start && i <= end ? 1 << $selectionHighlightMask : 0
-    }
-
-    return selectionHighlightLUT
+type CategoryOffsetParition = {
+  start: number
+  end: number
+  assignByte: (byte: Uint8Array) => void
+}
+function generateSelectionCategoryParition(
+  start: number,
+  end: number,
+  assignmentFn: (byte: Uint8Array) => void
+): CategoryOffsetParition {
+  return {
+    start,
+    end,
+    assignByte: assignmentFn,
   }
-)
+}
 
-export const searchResultsHighlights = readable(searchResultsHighlightLUT)
-export const searchResultsUpdated = writable(false)
-export function updateSearchResultsHighlights(
-  data: number[],
-  viewportFileOffset: number,
-  byteWidth: number
-) {
-  const criteriaStart = data.findIndex((x) => x >= viewportFileOffset)
-  const criteriaEnd = data.findIndex((x) => x >= viewportFileOffset + 1024)
-  const searchCriteria = data.slice(
-    criteriaStart,
-    criteriaEnd >= 0 ? criteriaEnd : data.length
+export function categoryCSSSelectors(byteIndicationValue: number): string {
+  let ret = ''
+  const CategoryOneSelector = ViewportByteCategories.categoryCSSSelector(
+    ViewportByteCategories.category('one'),
+    byteIndicationValue
+  )
+  const CategoryTwoSelector = ViewportByteCategories.categoryCSSSelector(
+    ViewportByteCategories.category('two'),
+    byteIndicationValue
   )
 
-  searchResultsHighlightLUT.fill(0)
+  ret += CategoryOneSelector + ' ' + CategoryTwoSelector
 
-  searchCriteria.forEach((offset) => {
-    for (let i = 0; i < byteWidth; i++)
-      searchResultsHighlightLUT[offset - viewportFileOffset + i] = 1
-  })
-  searchResultsUpdated.set(true)
-}
-export function clearSearchResultsHighlights() {
-  searchResultsHighlightLUT.fill(0)
+  return ret
 }

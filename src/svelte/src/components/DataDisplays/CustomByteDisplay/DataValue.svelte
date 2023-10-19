@@ -15,61 +15,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte'
   import {
     latin1Undefined,
-    type ByteSelectionEvent,
     type ByteValue,
     type ViewportDataType,
   } from './BinaryData'
-  import type { SelectionData_t } from '../../../stores'
   import type { ByteDivWidth } from '../../../utilities/display'
-  import type { RadixValues } from '../../../stores/configuration'
-  import { selectionHighlightMask } from '../../../utilities/highlights'
 
   export let id: ViewportDataType
   export let byte: ByteValue
-  export let selectionData: SelectionData_t
-  export let radix: RadixValues
   export let disabled = false
   export let width: ByteDivWidth = '20px'
-  export let isSelected = false
-  export let possibleSelection = false
-  export let isSearchResult = 0
-
-  const eventDispatcher = createEventDispatcher()
-
-  let makingSelection = false
-
-  $: {
-    makingSelection =
-      selectionData.startOffset >= 0 && selectionData.active === false
-    $selectionHighlightMask = makingSelection === true ? 1 : 0
-  }
-
-  function mouse_enter_handle(event: MouseEvent) {
-    if (!makingSelection) return
-    if (disabled) {
-      selectionData.endOffset = -1
-      makingSelection = false
-      return
-    }
-    selectionData.endOffset = byte.offset
-  }
-  function mouse_leave_handle(event: MouseEvent) {
-    if (!makingSelection) return
-    selectionData.endOffset = -1
-  }
-  function mouse_event_handle(event: MouseEvent) {
-    const type = event.type
-    const targetElement = event.target
-    if (id === 'logical') byte.text = String.fromCharCode(byte.value)
-    eventDispatcher(type, {
-      targetElement: targetElement,
-      targetByte: byte,
-      fromViewport: id,
-    } as ByteSelectionEvent)
-  }
+  export let categoryIndicationSelectors: string
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -78,33 +35,21 @@ limitations under the License.
 {:else if id === 'physical'}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
-    class="byte"
-    class:isSelected
-    class:isSearchResult
-    class:possibleSelection
+    class={'byte ' + categoryIndicationSelectors}
     id={id + '-' + byte.offset.toString()}
     style:width
-    on:mouseup={mouse_event_handle}
-    on:mousedown={mouse_event_handle}
-    on:mouseenter={mouse_enter_handle}
-    on:mouseleave={mouse_leave_handle}
+    offset={byte.offset}
   >
     {byte.text}
   </div>
 {:else}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
-    class="byte"
-    class:isSelected
-    class:isSearchResult
-    class:possibleSelection
+    class={'byte ' + categoryIndicationSelectors}
     id={id + '-' + byte.offset.toString()}
     style:width={'20px'}
     class:latin1Undefined={latin1Undefined(byte.value)}
-    on:mouseup={mouse_event_handle}
-    on:mousedown={mouse_event_handle}
-    on:mouseenter={mouse_enter_handle}
-    on:mouseleave={mouse_leave_handle}
+    offset={byte.offset}
   >
     {latin1Undefined(byte.value) ? '' : String.fromCharCode(byte.value)}
   </div>
@@ -118,29 +63,24 @@ limitations under the License.
     align-items: center;
     flex-direction: row;
     font-family: var(--monospace-font);
-    /* border-radius: 5px; */
     border-style: solid;
     border-width: 2px;
     border-color: transparent;
     height: 20px;
     text-align: center;
     transition: all 0.25s;
-  }
-  div.byte.isSelected,
-  div.byte.isSearchResult,
-  div.byte.possibleSelection {
     border-radius: 5px;
+    user-select: none;
   }
-  div.byte.isSelected {
+  div.byte.selected {
     background-color: var(--color-secondary-light);
     color: var(--color-secondary-darkest);
   }
-  div.byte.isSearchResult {
-    background-color: var(--color-tertiary-light);
-    color: var(--color-secondary-darkest);
+  div.byte.searchresult {
+    border-color: var(--color-search-result);
   }
-  div.byte.possibleSelection {
-    border-color: var(--color-secondary-light);
+  div.byte.replacement {
+    border-color: var(--color-replace-result);
   }
   div.byte:hover {
     border-color: var(--color-secondary-mid);
