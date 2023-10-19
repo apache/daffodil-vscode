@@ -30,6 +30,7 @@ import {
   getClient,
   getClientVersion,
   getComputedFileSize,
+  getContentType,
   getCounts,
   getLogger,
   getServerHeartbeat,
@@ -248,14 +249,17 @@ export class DataEditorClient implements vscode.Disposable {
       assert(this.omegaSessionId.length > 0, 'omegaSessionId is not set')
       addActiveSession(this.omegaSessionId)
 
-      this.contentType = createSessionResponse.hasContentType()
-        ? (createSessionResponse.getContentType() as string)
-        : 'unknown'
-      assert(this.contentType.length > 0, 'contentType is not set')
-
       this.fileSize = createSessionResponse.hasFileSize()
         ? (createSessionResponse.getFileSize() as number)
         : 0
+
+      const contentTypeResponse = await getContentType(
+        this.omegaSessionId,
+        0,
+        Math.min(1024, this.fileSize)
+      )
+      this.contentType = contentTypeResponse.getContentType()
+      assert(this.contentType.length > 0, 'contentType is not set')
     } catch {
       const msg = `Failed to create session for ${this.fileToEdit}`
       getLogger().error({
@@ -669,12 +673,12 @@ async function createDataEditorWebviewPanel(
   configureOmegaEditPort()
   assert(omegaEditPort > 0, 'omega edit port not configured')
 
-  // only start uo the server if one is not already running
+  // only start up the server if one is not already running
   if (!(await checkServerListening(omegaEditPort, OMEGA_EDIT_HOST))) {
     await setupLogging()
     setAutoFixViewportDataLength(true)
     await serverStart()
-    client = getClient(omegaEditPort, OMEGA_EDIT_HOST)
+    client = await getClient(omegaEditPort, OMEGA_EDIT_HOST)
     assert(
       await checkServerListening(omegaEditPort, OMEGA_EDIT_HOST),
       'server not listening'
@@ -1138,9 +1142,9 @@ async function serverStart() {
   const animationInterval = 400 // ms per frame
   const animationFrames = ['', '.', '..', '...']
   const animationIntervalId = setInterval(() => {
-    const frame = animationFrames[animationFrame % animationFrames.length]
-    statusBarItem.text = `${serverStartingText} ${frame}`
-    ++animationFrame
+    statusBarItem.text = `${serverStartingText} ${
+      animationFrames[++animationFrame % animationFrames.length]
+    }`
   }, animationInterval)
   const config = vscode.workspace.getConfiguration('dataEditor')
   const logLevel =
@@ -1152,6 +1156,8 @@ async function serverStart() {
     logLevel
   )
   if (!fs.existsSync(logConfigFile)) {
+    clearInterval(animationIntervalId)
+    statusBarItem.dispose()
     throw new Error(`Log config file '${logConfigFile}' not found`)
   }
 
@@ -1173,11 +1179,35 @@ async function serverStart() {
       }, SERVER_START_TIMEOUT * 1000)
     }),
   ])) as number | undefined
+  clearInterval(animationIntervalId)
   if (serverPid === undefined || serverPid <= 0) {
+    statusBarItem.dispose()
     throw new Error('Server failed to start or PID is invalid')
   }
-  const clientVersion = getClientVersion()
-  serverInfo = await getServerInfo()
+  // this makes sure the server if fully online and ready to take requests
+  statusBarItem.text = `Initializing Ωedit server on port ${omegaEditPort}`
+  for (let i = 1; i <= 60; ++i) {
+    try {
+      await getServerInfo()
+      break
+    } catch (err) {
+      statusBarItem.text = `Initializing Ωedit server on port ${omegaEditPort} (${i}/60)`
+    }
+    // wait 1 second before trying again
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(true)
+      }, 1000)
+    })
+  }
+  try {
+    serverInfo = await getServerInfo()
+  } catch (err) {
+    statusBarItem.dispose()
+    await serverStop()
+    throw new Error('Server failed to initialize')
+  }
+  statusBarItem.text = `Ωedit server on port ${omegaEditPort} initialized`
   const serverVersion = serverInfo.serverVersion
   // if the OS is not Windows, check that the server PID matches the one started
   // NOTE: serverPid is the PID of the server wrapper script on Windows
@@ -1185,19 +1215,21 @@ async function serverStart() {
     !os.platform().toLowerCase().startsWith('win') &&
     serverInfo.serverProcessId !== serverPid
   ) {
+    statusBarItem.dispose()
     throw new Error(
       `server PID mismatch ${serverInfo.serverProcessId} != ${serverPid}`
     )
   }
+  const clientVersion = getClientVersion()
   if (serverVersion !== clientVersion) {
+    statusBarItem.dispose()
     throw new Error(
       `Server version ${serverVersion} and client version ${clientVersion} must match`
     )
   }
-  // get an initial heartbeat to ensure the server is up and running
+  // get an initial heartbeat
   await getHeartbeat()
-  clearInterval(animationIntervalId)
-  statusBarItem.text = `Ωedit server v${serverVersion} started on port ${omegaEditPort} with PID ${serverInfo.serverProcessId}`
+  statusBarItem.text = `Ωedit server v${serverVersion} ready on port ${omegaEditPort} with PID ${serverInfo.serverProcessId}`
   setTimeout(() => {
     statusBarItem.dispose()
   }, 5000)
