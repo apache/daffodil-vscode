@@ -101,7 +101,7 @@ limitations under the License.
   }
 
   .fit-content {
-    max-width: 150px;
+    max-width: 250px;
     min-width: 50px;
     max-height: 50px;
     min-height: 25px;

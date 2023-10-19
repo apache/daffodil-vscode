@@ -31,6 +31,8 @@ limitations under the License.
     seekOffsetInput,
     visableViewports,
     dataDislayLineAmount,
+    replaceQuery,
+    searchResultsUpdated,
   } from '../../../stores'
   import {
     EditByteModes,
@@ -62,10 +64,8 @@ limitations under the License.
     type CSSThemeClass,
   } from '../../../utilities/colorScheme'
   import {
-    selectionHighlights,
-    searchResultsHighlights,
-    updateSearchResultsHighlights,
-    searchResultsUpdated,
+    viewportByteIndicators,
+    categoryCSSSelectors,
   } from '../../../utilities/highlights'
   import { bytesPerRow } from '../../../stores'
   export let awaitViewportSeek: boolean
@@ -169,7 +169,7 @@ limitations under the License.
     bytes: Array<ByteValue>
     highlight: 'even' | 'odd'
   }
-
+  
   enum ViewportScrollDirection {
     DECREMENT = -1,
     NONE = 0,
@@ -181,10 +181,13 @@ limitations under the License.
   let viewportDataContainer: HTMLDivElement
   let selectedByteElement: HTMLDivElement
   let themeClass: CSSThemeClass
-  let activeSelection: Uint8Array
   let lineTopFileOffset: number
-  let searchResults: Uint8Array
+  let makingSelection = false
 
+  $: {
+    makingSelection =
+      $selectionDataStore.startOffset >= 0 && $selectionDataStore.active === false
+  }
   onMount(() => {
     viewportDataContainer = document.getElementById(
       CONTAINER_ID
@@ -215,13 +218,10 @@ limitations under the License.
   }
 
   $: {
-    activeSelection = $selectionHighlights
-    searchResults = $searchResultsHighlights
     if (
-      (viewportData.fileOffset >= 0 &&
-        !awaitViewportSeek &&
-        $dataFeedLineTop >= 0) ||
-      $searchResultsUpdated
+      viewportData.fileOffset >= 0 &&
+      !awaitViewportSeek &&
+      $dataFeedLineTop >= 0
     ) {
       if (
         viewportLines.length !== 0 &&
@@ -243,6 +243,10 @@ limitations under the License.
     }
   }
   $: byteElementWidth = byteDivWidthFromRadix(dataRadix)
+  $: viewportByteIndicators.updateSelectionIndications($selectionDataStore)
+  $: viewportByteIndicators.updateSearchIndications($searchQuery, viewportData.fileOffset)
+  $: viewportByteIndicators.updateReplaceIndications($replaceQuery, viewportData.fileOffset)
+  
 
   function generate_line_data(
     startIndex: number,
@@ -359,21 +363,21 @@ limitations under the License.
       : atViewportHead && !atFileHead
   }
 
-  function mousedown(event: CustomEvent<ByteSelectionEvent>) {
+  function mousedown(event: ByteSelectionEvent) {
     selectionDataStore.update((selections) => {
       selections.active = false
-      selections.startOffset = event.detail.targetByte.offset
+      selections.startOffset = event.targetByte.offset
       selections.endOffset = -1
       selections.originalEndOffset = -1
       return selections
     })
   }
 
-  function mouseup(event: CustomEvent<ByteSelectionEvent>) {
+  function mouseup(event: ByteSelectionEvent) {
     selectionDataStore.update((selections) => {
       selections.active = true
-      selections.endOffset = event.detail.targetByte.offset
-      selections.originalEndOffset = event.detail.targetByte.offset
+      selections.endOffset = event.targetByte.offset
+      selections.originalEndOffset = event.targetByte.offset
       adjust_event_offsets()
       return selections
     })
@@ -383,7 +387,7 @@ limitations under the License.
       return
     }
 
-    set_byte_selection(event.detail)
+    setByteSelection(event)
   }
 
   function adjust_event_offsets() {
@@ -391,13 +395,15 @@ limitations under the License.
     const end = $selectionDataStore.endOffset
 
     if (start > end) {
-      $selectionDataStore.startOffset = end
-      $selectionDataStore.originalEndOffset = start
-      $selectionDataStore.endOffset = start
+      selectionDataStore.update( selections => {
+        selections.startOffset = end
+        selections.endOffset = start
+        return selections
+      })
     }
   }
 
-  function set_byte_selection(selectionEvent: ByteSelectionEvent) {
+  function setByteSelection(selectionEvent: ByteSelectionEvent) {
     $focusedViewportId = selectionEvent.fromViewport
 
     $selectedByte =
@@ -471,6 +477,47 @@ limitations under the License.
     }
   }
 
+  function mouseover_handler(e: Event) {
+    if(!makingSelection) return 
+
+    const target = e.target as HTMLDivElement
+    let targetViewportIndex = parseInt(target.getAttribute('offset')!)
+    
+    selectionDataStore.update((selections) => {
+      selections.endOffset = targetViewportIndex
+      adjust_event_offsets()
+      return selections
+    })
+  }
+
+  function mouseclick_handler(e: Event) {
+    const type = e.type
+    const targetElement = e.target as HTMLDivElement
+    let targetViewportIndex = parseInt(targetElement.getAttribute('offset')!)
+    let byteText: string | undefined = targetElement.innerHTML
+    let byteValue: number = byteText === undefined ? -1 : parseInt(byteText)
+
+    let targetByte: ByteValue = {
+      offset: targetViewportIndex,
+      text: byteText,
+      value: byteValue
+    }
+    const byteSelectionEvent: ByteSelectionEvent = 
+      {
+        targetElement: targetElement,
+        targetByte: targetByte,
+        fromViewport: targetElement.id.includes('logical') ? 'logical' : 'physical',
+      } 
+
+    switch(type) {
+      case 'mousedown':
+        mousedown(byteSelectionEvent)
+        break
+      case 'mouseup':
+        mouseup(byteSelectionEvent)
+    }
+  }
+
   window.addEventListener('keydown', navigation_keydown_event)
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
@@ -485,30 +532,31 @@ limitations under the License.
             selectedByteElement = document.getElementById(
               $selectedByte.offset.toString()
             ) as HTMLDivElement
-
-          updateSearchResultsHighlights(
-            $searchQuery.searchResults,
-            viewportData.fileOffset,
-            $searchQuery.byteLength
-          )
         }
         break
     }
   })
+
 </script>
 
-{#if $selectionDataStore.active && $editMode === EditByteModes.Single}
-  {#key $selectedByte || selectedByteElement || dataRadix || $editorActionsAllowed === EditActionRestrictions.None}
-    <SelectedByteEdit
-      byte={$selectedByte}
-      on:seek
-      on:applyChanges
-      on:handleEditorEvent
-    />
-  {/key}
-{/if}
 
-<div class="container" style:height id={CONTAINER_ID}>
+<svelte:window on:mousemove={mouseover_handler}/>
+<!-- svelte-ignore a11y-mouse-events-have-key-events -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<div class="container" style:height id={CONTAINER_ID} 
+  on:mousedown={mouseclick_handler}
+  on:mouseup={mouseclick_handler}
+>
+  {#if $selectionDataStore.active && $editMode == EditByteModes.Single}
+    {#key $selectedByte || selectedByteElement || dataRadix || $editorActionsAllowed == EditActionRestrictions.None}
+      <SelectedByteEdit
+        byte={$selectedByte}
+        on:seek
+        on:applyChanges
+        on:handleEditorEvent
+      />
+    {/key}
+  {/if}
   {#each viewportLines as viewportLine, i}
     <div class={`line ${viewportLine.highlight} ${themeClass}`}>
       <div class="address" id="address">
@@ -523,17 +571,10 @@ limitations under the License.
         {#each viewportLine.bytes as byte}
           <DataValue
             {byte}
-            isSelected={activeSelection[byte.offset] === 1}
-            possibleSelection={activeSelection[byte.offset] === 2}
-            isSearchResult={searchResults[byte.offset] >>
-              activeSelection[byte.offset]}
             id={'physical'}
-            radix={dataRadix}
+            categoryIndicationSelectors={categoryCSSSelectors($viewportByteIndicators[byte.offset])}
             width={byteElementWidth}
             disabled={byte.value === -1}
-            bind:selectionData={$selectionDataStore}
-            on:mouseup={mouseup}
-            on:mousedown={mousedown}
           />
         {/each}
       </div>
@@ -546,17 +587,10 @@ limitations under the License.
         {#each viewportLine.bytes as byte}
           <DataValue
             {byte}
-            isSelected={activeSelection[byte.offset] === 1}
-            possibleSelection={activeSelection[byte.offset] === 2}
-            isSearchResult={searchResults[byte.offset] >>
-              activeSelection[byte.offset]}
+            categoryIndicationSelectors={categoryCSSSelectors($viewportByteIndicators[byte.offset])}
             id={'logical'}
-            radix={dataRadix}
             width={byteElementWidth}
             disabled={byte.value === -1}
-            bind:selectionData={$selectionDataStore}
-            on:mouseup={mouseup}
-            on:mousedown={mousedown}
           />
         {/each}
       </div>
@@ -696,15 +730,6 @@ limitations under the License.
     display: flex;
     flex-direction: column;
     margin: 0 5px;
-  }
-  span.submit-bpr-input {
-    font-size: 14px;
-    cursor: pointer;
-    margin: 0 5px;
-  }
-  span.submit-bpr-input:hover {
-    font-weight: bold;
-    cursor: pointer;
   }
   div.container {
     display: flex;

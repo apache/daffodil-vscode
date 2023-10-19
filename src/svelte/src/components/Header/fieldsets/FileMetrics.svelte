@@ -19,7 +19,7 @@ limitations under the License.
   import FlexContainer from '../../layouts/FlexContainer.svelte'
   import { MessageCommand } from '../../../utilities/message'
   import { vscode } from '../../../utilities/vscode'
-  import { saveable, fileMetrics } from '../../../stores'
+  import { saveable, fileMetrics, replaceQuery } from '../../../stores'
   import { createEventDispatcher } from 'svelte'
   import SidePanel from '../../layouts/SidePanel.svelte'
   import ByteFrequencyGraph from '../../DataMetrics/DataMetrics.svelte'

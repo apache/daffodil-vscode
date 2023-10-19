@@ -60,6 +60,8 @@ html {
   --color-tertiary-dark: #5f816b;
   --color-tertiary-darkest: #232f27;
   --color-alternate-grey: #bbb5bd;
+  --color-search-result: #69a0a7;
+  --color-replace-result: #5f816b;
 }
 
 /* Global LEGEND Styles */

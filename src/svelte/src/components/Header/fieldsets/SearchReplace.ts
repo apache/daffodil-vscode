@@ -16,8 +16,9 @@
  */
 
 import { SimpleWritable } from '../../../stores/localStore'
-import { addressRadix, seekOffsetInput } from '../../../stores'
-import { get } from 'svelte/store'
+import { replaceQuery, searchQuery } from '../../../stores'
+import { VIEWPORT_CAPACITY_MAX } from '../../../stores/configuration'
+import { viewportByteIndicators } from '../../../utilities/highlights'
 
 export enum OffsetSearchType {
   ABSOLUTE,
@@ -29,16 +30,38 @@ export type RelativeSeekSign = '+' | '-'
 interface QueryableData {
   input: string
   processing: boolean
-  isValid: boolean
+  initiaited: boolean
+  iterableDataFromOffset(offset: number): IndexCriteria
 }
-class SearchData implements QueryableData {
+
+export type IndexCriteria = {
+  start: number
+  end: number
+  data: any[]
+}
+export class SearchData implements QueryableData {
   input: string = ''
   processing: boolean = false
-  isValid: boolean = false
+  initiaited: boolean = false
   searchIndex: number = 0
   searchResults: Array<number> = []
   overflow: boolean = false
   byteLength: number = 0
+  iterableDataFromOffset(offset: number): IndexCriteria {
+    const start = this.searchResults.findIndex((x) => x >= offset)
+    const end = this.searchResults.findIndex(
+      (x) => x >= offset + VIEWPORT_CAPACITY_MAX
+    )
+    let ret: IndexCriteria = {
+      start: start,
+      end: end,
+      data: this.searchResults.slice(
+        start,
+        end >= 0 ? end : this.searchResults.length
+      ),
+    }
+    return ret
+  }
 }
 export class SearchQuery extends SimpleWritable<SearchData> {
   protected init(): SearchData {
@@ -47,39 +70,84 @@ export class SearchQuery extends SimpleWritable<SearchData> {
   public clear() {
     this.update((query) => {
       query.processing = false
+      query.initiaited = false
       query.searchIndex = 0
       query.searchResults = []
+      viewportByteIndicators.clearIndication('searchresult')
       return query
     })
   }
-  public updateSearchResults(offset?: number) {
+  public updateSearchResults(msgData: any) {
     this.update((query) => {
-      query.searchIndex = !offset
-        ? Math.abs(
-            (query.searchResults.length + query.searchIndex) %
-              query.searchResults.length
-          )
-        : Math.abs(
-            (query.searchResults.length + offset) % query.searchResults.length
-          )
-
-      seekOffsetInput.update((_) => {
-        return query.searchResults[query.searchIndex].toString(
-          get(addressRadix)
-        )
-      })
+      query.initiaited = true
+      query.searchResults = msgData.searchResults
+      query.byteLength = msgData.searchDataBytesLength
+      query.overflow = msgData.overflow
       return query
     })
   }
 }
 
-class ReplaceData implements QueryableData {
+/**
+Object that defines describes an instance of a replacement that occured during a Search & Replace query.
+@param offset **File** offset of where the replacement occured.
+@param byteLength Byte length of the replacement data.
+*/
+export type DataReplacement = {
+  offset: number
+  byteLength: number
+}
+
+export class ReplaceData implements QueryableData {
   input: string = ''
   processing: boolean = false
-  isValid: boolean = false
+  initiaited: boolean = false
+  results: Array<DataReplacement> = []
+  iterableDataFromOffset(offset: number): IndexCriteria {
+    const start = this.results.findIndex((x) => x.offset >= offset)
+    const end = this.results.findIndex(
+      (x) => x.offset >= offset + VIEWPORT_CAPACITY_MAX
+    )
+    const withinRange = start >= 0
+    const data = withinRange
+      ? this.results.slice(start, end >= 0 ? end : this.results.length)
+      : []
+    let ret: IndexCriteria = {
+      start: start,
+      end: end,
+      data: data,
+    }
+    return ret
+  }
 }
 export class ReplaceQuery extends SimpleWritable<ReplaceData> {
   protected init(): ReplaceData {
     return new ReplaceData()
   }
+  public addResult(result: DataReplacement) {
+    this.update((data) => {
+      data.initiaited = true
+      data.results.push(result)
+      return data
+    })
+  }
+  public pop() {
+    this.update((data) => {
+      data.results.pop()
+      return data
+    })
+  }
+  public clear() {
+    this.update((data) => {
+      data.processing = false
+      data.results = []
+      data.initiaited = false
+      return data
+    })
+  }
+}
+
+export function clear_queryable_results() {
+  searchQuery.clear()
+  replaceQuery.clear()
 }
