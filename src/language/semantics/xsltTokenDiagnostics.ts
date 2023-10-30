@@ -311,7 +311,8 @@ export class XsltTokenDiagnostics {
     globalInstructionData: GlobalInstructionData[],
     importedInstructionData: GlobalInstructionData[],
     symbols: vscode.DocumentSymbol[],
-    globalVariables: string[]
+    globalVariables: string[],
+    xmlNamespaces: string[]
   ): vscode.Diagnostic[] => {
     let inScopeVariablesList: VariableData[] = []
     let xpathVariableCurrentlyBeingDefined: boolean
@@ -330,7 +331,7 @@ export class XsltTokenDiagnostics {
     let topLevelSymbols: vscode.DocumentSymbol[] = symbols
     let tagIdentifierName: string = ''
     let lastTokenIndex = allTokens.length - 1
-    let inheritedPrefixes: string[] = []
+    let inheritedPrefixes: string[] = xmlNamespaces
     let globalVariableData: VariableData[] = []
     let checkedGlobalVarNames: string[] = []
     let checkedGlobalFnNames: string[] = []
@@ -567,7 +568,8 @@ export class XsltTokenDiagnostics {
                 inScopeXPathVariablesList,
                 xpathStack,
                 inScopeVariablesList,
-                elementStack
+                elementStack,
+                xmlNamespaces
               )
             if (unResolvedToken !== null) {
               unresolvedXsltVariableReferences.push(unResolvedToken)
@@ -1624,7 +1626,8 @@ export class XsltTokenDiagnostics {
     inScopeXPathVariablesList: VariableData[],
     xpathStack: XPathData[],
     inScopeVariablesList: VariableData[],
-    elementStack: ElementData[]
+    elementStack: ElementData[],
+    xmlNamespaces: string[]
   ): BaseToken | null {
     let fullVarName = XsltTokenDiagnostics.getTextForToken(
       token.line,
@@ -1665,6 +1668,13 @@ export class XsltTokenDiagnostics {
     if (!resolved) {
       importedResolved =
         globalVarName !== varName && importedVariables.indexOf(varName) > -1
+    }
+    // Parse the namespaces from the DFDL document that contains the XPath segments. If the variable is
+    // defined in an external namespace that we are importing, don't flag it. This is a temporary solution
+    // that we can remove once we have the ability to create a DFDL model outside of a Parse operation.
+    if (!resolved && !importedResolved && varName.includes(':')) {
+      let splits = varName.split(':')
+      resolved = xmlNamespaces.includes(splits[0]) ? token : undefined
     }
     if (!resolved && !importedResolved) {
       result = token
