@@ -47,6 +47,7 @@ export class FunctionData {
     'collection#1',
     'compare#2',
     'compare#3',
+    'concat#2',
     'concat#3',
     'contains#2',
     'contains#3',

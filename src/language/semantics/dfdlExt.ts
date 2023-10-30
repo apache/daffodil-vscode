@@ -3,19 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { EOL } from 'os'
 import * as vscode from 'vscode'
-import {
-  XPathLexer,
-  ExitCondition,
-  LexPosition,
-  Token,
-  BaseToken,
-} from './xpLexer'
-import {
-  XslLexer,
-  GlobalInstructionData,
-  GlobalInstructionType,
-} from './xslLexer'
+import { XPathLexer, ExitCondition, LexPosition, Token } from './xpLexer'
+import { XslLexer } from './xslLexer'
 import { XsltTokenDiagnostics } from './xsltTokenDiagnostics'
 import { DocumentChangeHandler } from './documentChangeHandler'
 
@@ -53,40 +44,13 @@ export class XPathSemanticTokensProvider
     this.collection = collection
   }
 
-  private static globalInstructionData: GlobalInstructionData[] = []
-
-  public static getGlobalInstructionData() {
-    return XPathSemanticTokensProvider.globalInstructionData
-  }
-
-  public static setVariableNames = (names: string[]) => {
-    const data: GlobalInstructionData[] = []
-
-    names.forEach((name) => {
-      const token: BaseToken = {
-        line: 1,
-        startCharacter: 0,
-        length: 1,
-        value: name,
-        tokenType: 0,
-      }
-      const variableInstruction: GlobalInstructionData = {
-        type: GlobalInstructionType.Variable,
-        name: name,
-        token: token,
-        idNumber: 0,
-      }
-      data.push(variableInstruction)
-    })
-    XPathSemanticTokensProvider.globalInstructionData = data
-  }
-
   async provideDocumentSemanticTokens(
     document: vscode.TextDocument,
     token: vscode.CancellationToken
   ): Promise<vscode.SemanticTokens> {
     this.xpLexer.documentTokens = []
-    let variables: string[] = this.findAllVariables(document.getText())
+    let [variables, namespaces]: [string[], string[]] =
+      this.findAllVariablesandNamespaces(document.getText())
     let tokens: Token[] = []
 
     const tokenPositions = this.findAllXPath(document.getText())
@@ -118,7 +82,10 @@ export class XPathSemanticTokensProvider
 
       // This was moved to inside the loop. If it isn't, the sections of XPath will be treated
       //   as a single XPath section instead of multiples
-      setTimeout(() => this.reportProblems(tmpTokens, document, variables), 0)
+      setTimeout(
+        () => this.reportProblems(tmpTokens, document, variables, namespaces),
+        0
+      )
 
       // Reset the xpLexer. If this is not done, existing tokens will not be flushed
       //   and will be re-added to the tokens list. This might not affect the operation, but it does
@@ -201,14 +168,27 @@ export class XPathSemanticTokensProvider
   }
 
   // Find the names of all variables in the file
-  private findAllVariables(document: String | undefined): string[] {
+  private findAllVariablesandNamespaces(
+    document: String | undefined
+  ): [string[], string[]] {
     if (document === undefined) {
-      return []
+      return [[], []]
     }
 
-    const lines = document.split('\n')
+    const lines = document.split(EOL)
+
     const variableRegex = /(dfdl:defineVariable.*name=\")(.*?)\"/
-    const variables: string[] = []
+    // These are built-in predefined variables. Double check if we still need to hardcode these
+    // once we have the ability to create a DFDL model outside of a Parse operation.
+    const variables: string[] = [
+      'dfdl:encoding',
+      'dfdl:byteOrder',
+      'dfdl:binaryFloatRep',
+      'dfdl:outputNewLine',
+    ]
+
+    const namespaceRegex = /xmlns:(.*?)=\"/g
+    const namespaces: string[] = []
 
     // Capture and return a list of variable names
     for (let i = 0; i < lines.length; i++) {
@@ -217,24 +197,39 @@ export class XPathSemanticTokensProvider
       if (variableMatch) {
         variables.push(variableMatch[2])
       }
+
+      // If a DFDL schema has multiple namespaces defined on the same line, we need to make sure we are globally
+      // matching for the namespace pattern so that we don't miss any
+      let namespaceMatch: RegExpExecArray | null = null
+
+      // Continue matching until we don't find any more namespaces on the same line
+      do {
+        namespaceMatch = namespaceRegex.exec(lines[i])
+
+        if (namespaceMatch) {
+          namespaces.push(namespaceMatch[1])
+        }
+      } while (namespaceMatch)
     }
 
-    return variables
+    return [variables, namespaces]
   }
 
   // This function will produce the error/warning list for vscode
   private reportProblems(
     allTokens: Token[],
     document: vscode.TextDocument,
-    variables: string[]
+    variables: string[],
+    namespaces: string[]
   ) {
     let diagnostics = XsltTokenDiagnostics.calculateDiagnostics(
       document,
       allTokens,
       DocumentChangeHandler.lastXMLDocumentGlobalData,
-      XPathSemanticTokensProvider.globalInstructionData,
       [],
-      variables
+      [],
+      variables,
+      namespaces
     )
     diagnostics.forEach((diag) => {
       this.diagnosticList.push(diag)
