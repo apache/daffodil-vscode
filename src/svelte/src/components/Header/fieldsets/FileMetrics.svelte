@@ -65,6 +65,9 @@ limitations under the License.
     switch (msg.data.command) {
       case MessageCommand.fileInfo:
         {
+          // reset the profiler if changes have been made
+          isProfilerOpen = false
+          startOffset = length = 0
           if ('fileName' in msg.data.data) {
             $fileMetrics.name = msg.data.data.fileName
           }

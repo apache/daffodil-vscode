@@ -129,6 +129,16 @@ limitations under the License.
     link.click()
   }
 
+  function saveSegmentAs() {
+    vscode.postMessage({
+      command: MessageCommand.saveSegment,
+        data: {
+            offset: startOffset,
+            length: length,
+        },
+    })
+  }
+
   function requestSessionProfile(startOffset: number, length: number) {
     setStatusMessage(
       `Profiling bytes from ${startOffset} to ${startOffset + length}...`,
@@ -493,13 +503,13 @@ limitations under the License.
     </label>
   </div>
   <hr />
-  <Button
-    fn={handleCsvProfileDownload}
-    description="Download profiled data as .csv"
-  >
+  <Button fn={handleCsvProfileDownload} description="Download profiled data as .csv">
     <span slot="left" class="btn-icon material-symbols-outlined">download</span>
-    <span>Profile&nbsp;as&nbsp;CSV</span></Button
-  >
+    <span>Profile&nbsp;as&nbsp;CSV</span></Button>
+  <Button fn={saveSegmentAs} description="Save segment as">
+    <span slot="left" class="btn-icon material-symbols-outlined">save_as</span>
+    <span slot="default">Save&nbsp;Segment&nbsp;As</span>
+  </Button>
   <hr />
   {#if statusMessage.length > 0}
     <div class="message status">&nbsp;{statusMessage}&nbsp;</div>
