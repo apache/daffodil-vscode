@@ -129,7 +129,7 @@ lazy val xjcSettings =
       "com.sun.xml.bind" % "jaxb-impl" % "2.3.9",
       "javax.activation" % "activation" % "1.1.1",
       "org.apache.daffodil" %% "daffodil-lib" % daffodilVer % Test,
-      "org.glassfish.jaxb" % "jaxb-xjc" % "2.2.11"
+      "org.glassfish.jaxb" % "jaxb-xjc" % "2.3.9"
     ),
     Test / javaOptions ++= extraJvmOptions, // tests use JAXB at runtime
     xjcCommandLine += "-nv",
@@ -139,8 +139,8 @@ lazy val xjcSettings =
     xjcBindings += "debugger/src/main/resources/bindings.xjb",
     xjcJvmOpts ++= extraJvmOptions,
     xjcLibs := Seq(
-      "org.glassfish.jaxb" % "jaxb-xjc" % "2.2.11",
       "com.sun.xml.bind" % "jaxb-impl" % "2.3.9",
+      "org.glassfish.jaxb" % "jaxb-xjc" % "2.3.9",
       "javax.activation" % "activation" % "1.1.1"
     ),
     Compile / xjc / sources := Seq(
