@@ -18,14 +18,17 @@
 import fs from 'fs'
 import {
   ALL_EVENTS,
+  beginSessionTransaction,
   clear,
   CountKind,
   createSession,
   createSimpleFileLogger,
   createViewport,
+  del,
   destroySession,
   edit,
   EditorClient,
+  endSessionTransaction,
   EventSubscriptionRequest,
   getClient,
   getClientVersion,
@@ -489,6 +492,22 @@ export class DataEditorClient implements vscode.Disposable {
         }
         break
 
+      case MessageCommand.saveSegment:
+        {
+          const uri = await vscode.window.showSaveDialog({
+            title: 'Save Segment',
+            saveLabel: 'Save',
+          })
+          if (uri && uri.fsPath) {
+            await this.saveFileSegment(
+              uri.fsPath,
+              message.data.offset,
+              message.data.length
+            )
+          }
+        }
+        break
+
       case MessageCommand.requestEditedData:
         {
           const [selectionData, selectionDisplay] = fillRequestData(message)
@@ -575,6 +594,87 @@ export class DataEditorClient implements vscode.Disposable {
           })
         }
         break
+    }
+  }
+
+  private async saveFileSegment(
+    fileToSave: string,
+    offset: number,
+    length: number
+  ) {
+    // if the file to save is the same as the file being edited then we can save the file with a single transaction to
+    // trim the file to contain only the desired segment, preserving session state
+    if (this.fileToEdit === fileToSave) {
+      const computedFileSize = await getComputedFileSize(this.omegaSessionId)
+      if (offset === 0) {
+        if (offset + length !== computedFileSize) {
+          // delete from length to the end of the file
+          await del(this.omegaSessionId, length, computedFileSize - length)
+          await this.sendChangesInfo()
+        }
+      } else if (offset + length === computedFileSize) {
+        // delete from 0 to offset
+        await del(this.omegaSessionId, 0, offset)
+        await this.sendChangesInfo()
+      } else {
+        // delete from length to the end of the file and from 0 to offset in a single transaction
+        await beginSessionTransaction(this.omegaSessionId)
+        await del(
+          this.omegaSessionId,
+          offset + length,
+          computedFileSize - length
+        )
+        await del(this.omegaSessionId, 0, offset)
+        await endSessionTransaction(this.omegaSessionId)
+        await this.sendChangesInfo()
+      }
+      // save the segment to the file using the typical save method
+      await this.saveFile(fileToSave)
+    } else {
+      let saved = false
+      let cancelled = false
+
+      // try to save the file with overwrite
+      const saveResponse = await saveSession(
+        this.omegaSessionId,
+        fileToSave,
+        IOFlags.IO_FLG_OVERWRITE,
+        offset,
+        length
+      )
+      if (saveResponse.getSaveStatus() === SaveStatus.MODIFIED) {
+        // the file was modified since the session was created, query user to overwrite the modified file
+        if (
+          (await vscode.window.showInformationMessage(
+            'File has been modified since being opened overwrite the file anyway?',
+            { modal: true },
+            'Yes',
+            'No'
+          )) === 'Yes'
+        ) {
+          // the user decided to overwrite the file, try to save again with force overwrite
+          const saveResponse2 = await saveSession(
+            this.omegaSessionId,
+            fileToSave,
+            IOFlags.IO_FLG_FORCE_OVERWRITE,
+            offset,
+            length
+          )
+          saved = saveResponse2.getSaveStatus() === SaveStatus.SUCCESS
+        } else {
+          cancelled = true
+        }
+      } else {
+        saved = saveResponse.getSaveStatus() === SaveStatus.SUCCESS
+      }
+
+      if (saved) {
+        vscode.window.showInformationMessage(`Saved: ${this.fileToEdit}`)
+      } else if (cancelled) {
+        vscode.window.showInformationMessage(`Cancelled save: ${fileToSave}`)
+      } else {
+        vscode.window.showErrorMessage(`Failed to save: ${fileToSave}`)
+      }
     }
   }
 

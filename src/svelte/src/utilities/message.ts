@@ -27,6 +27,7 @@ export enum MessageCommand {
   requestEditedData,
   save,
   saveAs,
+  saveSegment,
   scrollViewport,
   search,
   replace,
