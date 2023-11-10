@@ -125,9 +125,10 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
 
   Object.entries(defaultValues).map(
     ([key, defaultValue]) =>
-      (launchConfigArgs[key] = launchConfigArgs[key]
-        ? launchConfigArgs[key]
-        : defaultValue)
+      (launchConfigArgs[key] =
+        launchConfigArgs[key] !== undefined
+          ? launchConfigArgs[key]
+          : defaultValue)
   )
 
   return JSON.parse(JSON.stringify(launchConfigArgs))
