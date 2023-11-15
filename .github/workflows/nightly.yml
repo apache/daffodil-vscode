@@ -45,7 +45,7 @@ jobs:
           java-version: 8
       - uses: actions/checkout@v4.1.1
       - name: Install Node.js
-        uses: actions/setup-node@v3.8.1
+        uses: actions/setup-node@v4.0.0
         with:
           node-version: ${{ matrix.node }}
       - run: $SBT compile # used to initialize sbt, if not done sbt universal:packageBin ran by yarn package times out -- windows only
