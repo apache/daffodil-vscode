@@ -39,22 +39,25 @@ async function openInfosetFilePrompt() {
       ? config.infosetOutput.path.replace('${workspaceFolder}', rootPath)
       : config.infosetOutput.path
 
-    const action = await vscode.window.showInformationMessage(
-      `Wrote infoset file to ${path}`,
-      'Open',
-      'Dismiss'
-    )
-
     let uri = vscode.Uri.parse(path)
 
-    switch (action) {
-      case 'Open':
-        let infoset = await vscode.workspace.openTextDocument(uri)
-        await vscode.window.showTextDocument(infoset, {
-          preview: false,
-          viewColumn: vscode.ViewColumn.One,
-        })
-        break
+    // Only prompt to open infoset file if it has content
+    if (fs.readFileSync(uri.fsPath).toString() !== '') {
+      const action = await vscode.window.showInformationMessage(
+        `Wrote infoset file to ${path}`,
+        'Open',
+        'Dismiss'
+      )
+
+      switch (action) {
+        case 'Open':
+          let infoset = await vscode.workspace.openTextDocument(uri)
+          await vscode.window.showTextDocument(infoset, {
+            preview: false,
+            viewColumn: vscode.ViewColumn.One,
+          })
+          break
+      }
     }
   }
 }
