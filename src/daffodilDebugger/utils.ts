@@ -43,7 +43,10 @@ export const shellArgs = (port: number, isAtLeastJdk17: boolean) => {
   // Workaround: certain reflection (used by JAXB) isn't allowed by default in JDK 17:
   //   https://docs.oracle.com/en/java/javase/17/migrate/migrating-jdk-8-later-jdk-releases.html#GUID-7BB28E4D-99B3-4078-BDC4-FC24180CE82B
   const extraArgs = isAtLeastJdk17
-    ? ['-J--add-opens', '-Jjava.base/java.lang=ALL-UNNAMED']
+    ? osCheck(
+        ['-J"--add-opens java.base/java.lang=ALL-UNNAMED"'],
+        ['-J--add-opens', '-Jjava.base/java.lang=ALL-UNNAMED']
+      )
     : []
   return ['--listenPort', `${port}`].concat(extraArgs)
 }

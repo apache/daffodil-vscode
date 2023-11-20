@@ -101,6 +101,7 @@ module.exports = /** @type WebpackConfig */ {
         { from: 'images', to: `${pkg_dir}/images` },
         { from: 'language', to: `${pkg_dir}/language` },
         { from: 'package.json', to: `${pkg_dir}` },
+        { from: 'yarn.lock', to: `${pkg_dir}` },
         {
           from: 'node_modules/@omega-edit/server/bin',
           to: `${pkg_dir}/node_modules/@omega-edit/server/bin`,
