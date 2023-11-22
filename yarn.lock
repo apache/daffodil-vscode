@@ -21,10 +21,10 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@grpc/grpc-js@1.9.5":
-  version "1.9.5"
-  resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.9.5.tgz#22e283754b7b10d1ad26c3fb21849028dcaabc53"
-  integrity sha512-iouYNlPxRAwZ2XboDT+OfRKHuaKHiqjB5VFYZ0NFrHkbEF+AV3muIUY9olQsp8uxU4VvRCMiRk9ftzFDGb61aw==
+"@grpc/grpc-js@1.9.11":
+  version "1.9.11"
+  resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.9.11.tgz#7b21195c910a49c0bb5d0df21d28a30c4e174851"
+  integrity sha512-QDhMfbTROOXUhLHMroow8f3EHiCKUOh6UwxMP5S3EuXMnWMNSVIhatGZRwkpg9OUTYdZPsDUVH3cOAkWhGFUJw==
   dependencies:
     "@grpc/proto-loader" "^0.7.8"
     "@types/node" ">=12.12.47"
@@ -127,22 +127,22 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@omega-edit/client@0.9.75":
-  version "0.9.75"
-  resolved "https://registry.yarnpkg.com/@omega-edit/client/-/client-0.9.75.tgz#187613f855f6d1a0eafd264c9a744fa3cc8e8ef0"
-  integrity sha512-ayKaiWJRllfklQ0qKOA52izmZZocmdmROap62LtzcWbPaNbUDU3JxYwbBSslKUI5fA4AzrbPofzDph0BF0Ltqw==
+"@omega-edit/client@0.9.76":
+  version "0.9.76"
+  resolved "https://registry.yarnpkg.com/@omega-edit/client/-/client-0.9.76.tgz#84853a01f1fcd5eaa7a5d847cd78eae4bc0e5dc5"
+  integrity sha512-Y4F/5wdFYDUnnM6GMgcsOD9Aj5DIAOXstI8KSYLBcS85a/CjBuKtRNQoEcguO5OiyezBk+bDPb+PdqR3GOfTaQ==
   dependencies:
-    "@grpc/grpc-js" "1.9.5"
-    "@omega-edit/server" "0.9.75"
-    "@types/google-protobuf" "3.15.7"
+    "@grpc/grpc-js" "1.9.11"
+    "@omega-edit/server" "0.9.76"
+    "@types/google-protobuf" "3.15.10"
     google-protobuf "3.21.2"
-    pino "8.16.0"
+    pino "8.16.2"
     wait-port "1.1.0"
 
-"@omega-edit/server@0.9.75":
-  version "0.9.75"
-  resolved "https://registry.yarnpkg.com/@omega-edit/server/-/server-0.9.75.tgz#cb724bfdde21abc3551b55521e21cf0592b9152a"
-  integrity sha512-790QS7xtJ6gA1KoB3e62ZrMc+jlERla1V/FFTjBv6R3Z/wiP0PGh2vDGyvSIYRN71f+Qnpy+lh59UcmgKYrbZQ==
+"@omega-edit/server@0.9.76":
+  version "0.9.76"
+  resolved "https://registry.yarnpkg.com/@omega-edit/server/-/server-0.9.76.tgz#5a6c70abd5062b4432d881ee398e5684503f5118"
+  integrity sha512-ZXCqO9o3teuYwLB3VdxxLdjDAnk6yKoyTyTFXqkoEq93K5cc/+S3R4M4bCTDAFxe67kpMT8up58KPnM46QsGNg==
 
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
@@ -278,10 +278,10 @@
     "@types/minimatch" "^5.1.2"
     "@types/node" "*"
 
-"@types/google-protobuf@3.15.7":
-  version "3.15.7"
-  resolved "https://registry.yarnpkg.com/@types/google-protobuf/-/google-protobuf-3.15.7.tgz#882e7351bc8ccf30bb21c507cc4597cf76f8888b"
-  integrity sha512-pIEMnb04J60c5eExVLUY/R4eWT5QEQ5cC792JOSfDI3kLjaKC4TjdgMp3xIrN1vxbi2Zk8LcscTm0VaNrIdniA==
+"@types/google-protobuf@3.15.10":
+  version "3.15.10"
+  resolved "https://registry.yarnpkg.com/@types/google-protobuf/-/google-protobuf-3.15.10.tgz#e4dc3e37af6a106a7a76bb86de0078cf3a3b5598"
+  integrity sha512-uiyKJCa8hbmPE4yxwjbkMOALaBAiOVcatW/yEGbjTqwAh4kzNgQPWRlJMNPXpB5CPUM66xsYufiSX9WKHZCE9g==
 
 "@types/http-cache-semantics@^4.0.1":
   version "4.0.1"
@@ -2685,10 +2685,10 @@ pino-std-serializers@^6.0.0:
   resolved "https://registry.yarnpkg.com/pino-std-serializers/-/pino-std-serializers-6.2.2.tgz#d9a9b5f2b9a402486a5fc4db0a737570a860aab3"
   integrity sha512-cHjPPsE+vhj/tnhCy/wiMh3M3z3h/j15zHQX+S9GkTBgqJuTuJzYJ4gUyACLhDaJ7kk9ba9iRDmbH2tJU03OiA==
 
-pino@8.16.0:
-  version "8.16.0"
-  resolved "https://registry.yarnpkg.com/pino/-/pino-8.16.0.tgz#2465012a1d11fa2e7a0545032f636e203990ae26"
-  integrity sha512-UUmvQ/7KTZt/vHjhRrnyS7h+J7qPBQnpG80V56xmIC+o9IqYmQOw/UIny9S9zYDfRBR0ClouCr464EkBMIT7Fw==
+pino@8.16.2:
+  version "8.16.2"
+  resolved "https://registry.yarnpkg.com/pino/-/pino-8.16.2.tgz#7a906f2d9a8c5b4c57412c9ca95d6820bd2090cd"
+  integrity sha512-2advCDGVEvkKu9TTVSa/kWW7Z3htI/sBKEZpqiHk6ive0i/7f5b1rsU8jn0aimxqfnSz5bj/nOYkwhBUn5xxvg==
   dependencies:
     atomic-sleep "^1.0.0"
     fast-redact "^3.1.1"
