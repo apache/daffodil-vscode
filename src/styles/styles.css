@@ -124,6 +124,20 @@
   margin-top: -10px;
 }
 
+.copy-config-button {
+  background-color: lightgray;
+  border: none;
+  border-radius: 12px;
+  color: black;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  cursor: pointer;
+  width: 80px;
+  height: 30px;
+}
+
 .browse-button {
   background-color: lightgray;
   border: none;
