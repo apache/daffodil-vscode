@@ -23,6 +23,8 @@ import { VSCodeLaunchConfigArgs } from '../classes/vscode-launch'
 import { DataEditorConfig } from '../classes/dataEditor'
 import { parse as jsoncParse } from 'jsonc-parser'
 
+let launchWizard: LaunchWizard | undefined
+
 const defaultConf = getConfig({
   name: 'Wizard Config',
   request: 'launch',
@@ -33,7 +35,7 @@ const defaultConf = getConfig({
 export async function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.commands.registerCommand('launch.config', async () => {
-      await createWizard(ctx)
+      launchWizard = await createWizard(ctx)
     })
   )
 }
@@ -138,6 +140,71 @@ async function createUpdateConfigFile(data, updateOrCreate) {
   vscode.window.showTextDocument(vscode.Uri.parse(launchPath))
 }
 
+// Function to create a copy of the passed config
+async function copyConfig(data) {
+  let rootPath = vscode.workspace.workspaceFolders
+    ? vscode.workspace.workspaceFolders[0].uri.fsPath
+    : vscode.Uri.parse('').fsPath
+
+  if (!fs.existsSync(`${rootPath}/.vscode`)) {
+    fs.mkdirSync(`${rootPath}/.vscode`)
+  }
+
+  // Create launch.json if it doesn't exist already
+  if (!fs.existsSync(`${rootPath}/.vscode/launch.json`)) {
+    fs.writeFileSync(`${rootPath}/.vscode/launch.json`, data)
+    return
+  }
+
+  let newConf = JSON.parse(data).configurations[0]
+  let fileData = jsoncParse(
+    fs.readFileSync(`${rootPath}/.vscode/launch.json`).toString()
+  )
+
+  fileData.configurations.forEach((element) => {
+    if (element.name === newConf.name) {
+      if (newConf.name.endsWith('Copy')) {
+        // Second copy
+        newConf.name = `${newConf.name} 1`
+      } else if (new RegExp('Copy.*$').test(newConf.name)) {
+        // Any copy after the first one to add a number
+        let items = newConf.name.split(' ')
+        let count = parseInt(items[items.length - 1])
+        newConf.name = `${items.slice(0, -1).join(' ')} ${count + 1}`
+      } else {
+        // First copy
+        newConf.name = `${newConf.name} Copy`
+      }
+    }
+  })
+
+  // Add new config to launch.json
+  fileData.configurations.push(newConf)
+  fs.writeFileSync(
+    `${rootPath}/.vscode/launch.json`,
+    JSON.stringify(fileData, null, 4)
+  )
+
+  vscode.window.showInformationMessage('Launch Configuration Copied!')
+
+  await reloadLaunchWizardUI(fileData, newConf)
+}
+
+// Function to reload the launch wizard UI when a config is copied
+async function reloadLaunchWizardUI(fileData, newConf) {
+  if (launchWizard !== undefined) {
+    let panel = launchWizard.getPanel()
+    let index: number | undefined = undefined
+    fileData.configurations.forEach((conf, i) => {
+      if (conf.name == newConf.name) {
+        index = i
+      }
+    })
+
+    panel.webview.html = launchWizard.getWebViewContent(index)
+  }
+}
+
 // Function to update the config values in the webview panel
 async function updateWebViewConfigValues(configIndex) {
   let rootPath = vscode.workspace.workspaceFolders
@@ -186,9 +253,9 @@ async function openFilePicker(
 
 // Function that will create webview
 async function createWizard(ctx: vscode.ExtensionContext) {
-  let launchWizard = new LaunchWizard(ctx)
-  let panel = launchWizard.getPanel()
-  panel.webview.html = launchWizard.getWebViewContent()
+  let launchWiz = new LaunchWizard(ctx)
+  let panel = launchWiz.getPanel()
+  panel.webview.html = launchWiz.getWebViewContent()
 
   panel.webview.onDidReceiveMessage(
     async (message) => {
@@ -196,6 +263,9 @@ async function createWizard(ctx: vscode.ExtensionContext) {
         case 'saveConfig':
           await createUpdateConfigFile(message.data, message.updateOrCreate)
           panel.dispose()
+          return
+        case 'copyConfig':
+          await copyConfig(message.data)
           return
         case 'updateConfigValue':
           var configValues = await updateWebViewConfigValues(
@@ -244,6 +314,8 @@ async function createWizard(ctx: vscode.ExtensionContext) {
     undefined,
     ctx.subscriptions
   )
+
+  return launchWiz
 }
 
 // Class for creating launch wizard webview
@@ -293,7 +365,7 @@ class LaunchWizard {
   }
 
   // Method to set html for the hex view
-  getWebViewContent() {
+  getWebViewContent(selectedConfigNumber: number | undefined = undefined) {
     const scriptUri = vscode.Uri.parse(
       this.ctx.asAbsolutePath('./src/launchWizard/launchWizard.js')
     )
@@ -311,7 +383,11 @@ class LaunchWizard {
 
     let configSelect = ''
     let newConfig = !fs.existsSync(`${rootPath}/.vscode/launch.json`)
-    let configIndex = fs.existsSync(`${rootPath}/.vscode/launch.json`) ? 0 : -1
+    let configIndex = selectedConfigNumber
+      ? selectedConfigNumber
+      : fs.existsSync(`${rootPath}/.vscode/launch.json`)
+      ? 0
+      : -1
     let fileData = JSON.parse('{}')
 
     if (fs.existsSync(`${rootPath}/.vscode/launch.json`)) {
@@ -319,18 +395,25 @@ class LaunchWizard {
         fs.readFileSync(`${rootPath}/.vscode/launch.json`).toString()
       )
 
-      fileData.configurations.forEach((element) => {
-        configSelect += `<option value="${element.name}">${element.name}</option>`
+      fileData.configurations.forEach((element, i) => {
+        const selectedText = i == configIndex ? 'selected="selected"' : ''
+        configSelect += `<option ${selectedText} value="${element.name}">${element.name}</option>`
       })
     }
+
+    let selectedText = !fs.existsSync(`${rootPath}/.vscode/launch.json`)
+      ? 'selected="selected"'
+      : ''
+    configSelect += `<option ${selectedText} value="New Config">New Config</option>`
 
     let defaultValues = getConfigValues(fileData, configIndex)
 
     let nameVisOrHiddenStyle = newConfig
       ? 'margin-top: 10px; visibility: visible;'
       : 'visibility: hidden;'
-
-    configSelect += `<option value="New Config">New Config</option>`
+    let copyConfigVisOrHiddenStyle = newConfig
+      ? 'visibility: hidden;'
+      : 'visibility: visible;'
 
     let openHexView = defaultValues.openHexView ? 'checked' : ''
     let openInfosetDiffView = defaultValues.openInfosetDiffView ? 'checked' : ''
@@ -453,9 +536,19 @@ class LaunchWizard {
       <div id="configSelectionDropDown" class="setting-div">
         <p>Launch Config:</p>
         <p class="setting-description">Launch config to be updated in the launch.json. 'New Config' will allow for a new one to be made.</p>
-        <select onChange="updateSelectedConfig()" class="file-input" style="width: 200px;" id="configSelected">
-          ${configSelect}
-        </select>
+        <p style="margin-top: 5px;" class="setting-description">
+          <select onChange="updateSelectedConfig()" class="file-input" style="width: 200px;" id="configSelected">
+            ${configSelect}
+          </select>
+          <button
+            id="copyLaunchConfigButton"
+            style="${copyConfigVisOrHiddenStyle}"
+            class="copy-config-button"
+            type="button"
+            onclick="copyConfig()"
+          >Copy Config</button>
+        </p>
+
 
         <p style="${nameVisOrHiddenStyle}" id="nameLabel" class="setting-description">
           New Config Name: <input class="file-input" value="${defaultValues.name}" id="name"/>

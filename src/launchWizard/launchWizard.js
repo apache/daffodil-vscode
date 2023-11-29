@@ -27,13 +27,86 @@ function getConfigIndex() {
   if (configSelectedValue === 'New Config') {
     document.getElementById('nameLabel').style =
       'margin-top: 10px; visibility: visible;'
+    document.getElementById('copyLaunchConfigButton').style =
+      'visibility: hidden;'
   } else {
     document.getElementById('nameLabel').style = 'visibility: hidden;'
+    document.getElementById('copyLaunchConfigButton').style =
+      'visibility: visible;'
   }
 
   return configSelectedValue === 'New Config'
     ? -1
     : configSelectionBox.selectedIndex
+}
+
+function getConfigValues() {
+  var configSelectionBox = document.getElementById('configSelected')
+  var configSelectedValue =
+    configSelectionBox.options[configSelectionBox.selectedIndex].value
+  const name =
+    configSelectedValue === 'New Config'
+      ? document.getElementById('name').value
+      : configSelectedValue
+  const data = document.getElementById('data').value
+  const debugServer = parseInt(document.getElementById('debugServer').value)
+  const infosetFormat = document.getElementById('infosetFormat').value
+  const infosetOutputFilePath = document.getElementById(
+    'infosetOutputFilePath'
+  ).value
+  const infosetOutputType = document.getElementById('infosetOutputType').value
+  const tdmlAction = document.getElementById('tdmlAction').value
+  const tdmlName = document.getElementById('tdmlName').value
+  const tdmlDescription = document.getElementById('tdmlDescription').value
+  const tdmlPath = document.getElementById('tdmlPath').value
+  const openHexView = document.getElementById('openHexView').checked
+  const openInfosetDiffView = document.getElementById(
+    'openInfosetDiffView'
+  ).checked
+  const openInfosetView = document.getElementById('openInfosetView').checked
+  const program = document.getElementById('program').value
+  const stopOnEntry = document.getElementById('stopOnEntry').checked
+  const trace = document.getElementById('trace').checked
+  const useExistingServer = document.getElementById('useExistingServer').checked
+  const dataEditorPort = parseInt(
+    document.getElementById('dataEditorPort').value
+  )
+  const dataEditorLogFile = document.getElementById('dataEditorLogFile').value
+  const dataEditorLogLevel = document.getElementById('dataEditorLogLevel').value
+  const dfdlDebuggerLogFile = document.getElementById(
+    'dfdlDebuggerLogFile'
+  ).value
+  const dfdlDebuggerLogLevel = document.getElementById(
+    'dfdlDebuggerLogLevel'
+  ).value
+
+  const daffodilDebugClasspath = getDaffodilDebugClasspathString()
+
+  return {
+    name,
+    data,
+    debugServer,
+    infosetFormat,
+    infosetOutputFilePath,
+    infosetOutputType,
+    tdmlAction,
+    tdmlName,
+    tdmlDescription,
+    tdmlPath,
+    openHexView,
+    openInfosetDiffView,
+    openInfosetView,
+    program,
+    stopOnEntry,
+    trace,
+    useExistingServer,
+    dataEditorPort,
+    dataEditorLogFile,
+    dataEditorLogLevel,
+    dfdlDebuggerLogFile,
+    dfdlDebuggerLogLevel,
+    daffodilDebugClasspath,
+  }
 }
 
 // Function get daffodil debug classpath string
@@ -188,43 +261,8 @@ function save() {
     configSelectionBox.options[configSelectionBox.selectedIndex].value
   var updateOrCreate =
     configSelectedValue === 'New Config' ? 'create' : 'update'
-  const name =
-    configSelectedValue === 'New Config'
-      ? document.getElementById('name').value
-      : configSelectedValue
-  const data = document.getElementById('data').value
-  const debugServer = parseInt(document.getElementById('debugServer').value)
-  const infosetFormat = document.getElementById('infosetFormat').value
-  const infosetOutputFilePath = document.getElementById(
-    'infosetOutputFilePath'
-  ).value
-  const infosetOutputType = document.getElementById('infosetOutputType').value
-  const tdmlAction = document.getElementById('tdmlAction').value
-  const tdmlName = document.getElementById('tdmlName').value
-  const tdmlDescription = document.getElementById('tdmlDescription').value
-  const tdmlPath = document.getElementById('tdmlPath').value
-  const openHexView = document.getElementById('openHexView').checked
-  const openInfosetDiffView = document.getElementById(
-    'openInfosetDiffView'
-  ).checked
-  const openInfosetView = document.getElementById('openInfosetView').checked
-  const program = document.getElementById('program').value
-  const stopOnEntry = document.getElementById('stopOnEntry').checked
-  const trace = document.getElementById('trace').checked
-  const useExistingServer = document.getElementById('useExistingServer').checked
-  const dataEditorPort = parseInt(
-    document.getElementById('dataEditorPort').value
-  )
-  const dataEditorLogFile = document.getElementById('dataEditorLogFile').value
-  const dataEditorLogLevel = document.getElementById('dataEditorLogLevel').value
-  const dfdlDebuggerLogFile = document.getElementById(
-    'dfdlDebuggerLogFile'
-  ).value
-  const dfdlDebuggerLogLevel = document.getElementById(
-    'dfdlDebuggerLogLevel'
-  ).value
 
-  const daffodilDebugClasspath = getDaffodilDebugClasspathString()
+  const configValues = getConfigValues()
 
   var obj = {
     version: '0.2.0',
@@ -232,39 +270,39 @@ function save() {
       {
         request: 'launch',
         type: 'dfdl',
-        name: name,
-        program: program,
-        data: data,
-        debugServer: debugServer,
-        infosetFormat: infosetFormat,
+        name: configValues.name,
+        program: configValues.program,
+        data: configValues.data,
+        debugServer: configValues.debugServer,
+        infosetFormat: configValues.infosetFormat,
         infosetOutput: {
-          type: infosetOutputType,
-          path: infosetOutputFilePath,
+          type: configValues.infosetOutputType,
+          path: configValues.infosetOutputFilePath,
         },
         tdmlConfig: {
-          action: tdmlAction,
-          name: tdmlName,
-          description: tdmlDescription,
-          path: tdmlPath,
+          action: configValues.tdmlAction,
+          name: configValues.tdmlName,
+          description: configValues.tdmlDescription,
+          path: configValues.tdmlPath,
         },
-        trace: trace,
-        stopOnEntry: stopOnEntry,
-        useExistingServer: useExistingServer,
-        openHexView: openHexView,
-        openInfosetView: openInfosetView,
-        openInfosetDiffView: openInfosetDiffView,
-        daffodilDebugClasspath: daffodilDebugClasspath,
+        trace: configValues.trace,
+        stopOnEntry: configValues.stopOnEntry,
+        useExistingServer: configValues.useExistingServer,
+        openHexView: configValues.openHexView,
+        openInfosetView: configValues.openInfosetView,
+        openInfosetDiffView: configValues.openInfosetDiffView,
+        daffodilDebugClasspath: configValues.daffodilDebugClasspath,
         dataEditor: {
-          port: dataEditorPort,
+          port: configValues.dataEditorPort,
           logging: {
-            file: dataEditorLogFile,
-            level: dataEditorLogLevel,
+            file: configValues.dataEditorLogFile,
+            level: configValues.dataEditorLogLevel,
           },
         },
         dfdlDebugger: {
           logging: {
-            file: dfdlDebuggerLogFile,
-            level: dfdlDebuggerLogLevel,
+            file: configValues.dfdlDebuggerLogFile,
+            level: configValues.dfdlDebuggerLogLevel,
           },
         },
       },
@@ -275,6 +313,61 @@ function save() {
     command: 'saveConfig',
     data: JSON.stringify(obj, null, 4),
     updateOrCreate: updateOrCreate,
+  })
+}
+
+// Function to copy selected config
+function copyConfig() {
+  const configValues = getConfigValues()
+
+  var obj = {
+    version: '0.2.0',
+    configurations: [
+      {
+        request: 'launch',
+        type: 'dfdl',
+        name: `${configValues.name}`,
+        program: configValues.program,
+        data: configValues.data,
+        debugServer: configValues.debugServer,
+        infosetFormat: configValues.infosetFormat,
+        infosetOutput: {
+          type: configValues.infosetOutputType,
+          path: configValues.infosetOutputFilePath,
+        },
+        tdmlConfig: {
+          action: configValues.tdmlAction,
+          name: configValues.tdmlName,
+          description: configValues.tdmlDescription,
+          path: configValues.tdmlPath,
+        },
+        trace: configValues.trace,
+        stopOnEntry: configValues.stopOnEntry,
+        useExistingServer: configValues.useExistingServer,
+        openHexView: configValues.openHexView,
+        openInfosetView: configValues.openInfosetView,
+        openInfosetDiffView: configValues.openInfosetDiffView,
+        daffodilDebugClasspath: configValues.daffodilDebugClasspath,
+        dataEditor: {
+          port: configValues.dataEditorPort,
+          logging: {
+            file: configValues.dataEditorLogFile,
+            level: configValues.dataEditorLogLevel,
+          },
+        },
+        dfdlDebugger: {
+          logging: {
+            file: configValues.dfdlDebuggerLogFile,
+            level: configValues.dfdlDebuggerLogLevel,
+          },
+        },
+      },
+    ],
+  }
+
+  vscode.postMessage({
+    command: 'copyConfig',
+    data: JSON.stringify(obj, null, 4),
   })
 }
 
