@@ -126,7 +126,7 @@ lazy val extraJvmOptions: Seq[String] =
 lazy val xjcSettings =
   Seq(
     libraryDependencies ++= Seq(
-      "com.sun.xml.bind" % "jaxb-impl" % "2.3.9",
+      "com.sun.xml.bind" % "jaxb-impl" % "4.0.4",
       "javax.activation" % "activation" % "1.1.1",
       "org.apache.daffodil" %% "daffodil-lib" % daffodilVer % Test,
       "org.glassfish.jaxb" % "jaxb-xjc" % "2.3.9"
@@ -139,8 +139,8 @@ lazy val xjcSettings =
     xjcBindings += "debugger/src/main/resources/bindings.xjb",
     xjcJvmOpts ++= extraJvmOptions,
     xjcLibs := Seq(
-      "com.sun.xml.bind" % "jaxb-impl" % "2.3.9",
       "org.glassfish.jaxb" % "jaxb-xjc" % "2.3.9",
+      "com.sun.xml.bind" % "jaxb-impl" % "4.0.4",
       "javax.activation" % "activation" % "1.1.1"
     ),
     Compile / xjc / sources := Seq(
