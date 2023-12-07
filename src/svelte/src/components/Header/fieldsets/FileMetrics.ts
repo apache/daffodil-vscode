@@ -15,7 +15,7 @@
 
 import { SimpleWritable } from '../../../stores/localStore'
 
-class FileMetricsData {
+export class FileMetricsData {
   name: string = ''
   type: string = ''
   diskSize: number = 0

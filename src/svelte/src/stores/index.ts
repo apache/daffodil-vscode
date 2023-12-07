@@ -43,7 +43,6 @@ import {
   type RadixValues,
   type BytesPerRow,
   EditActionRestrictions,
-  VIEWPORT_CAPACITY_MAX,
 } from './configuration'
 import type { AvailableHelpSections } from '../components/layouts/Help'
 
