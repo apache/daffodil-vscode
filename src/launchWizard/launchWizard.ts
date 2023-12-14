@@ -555,20 +555,15 @@ class LaunchWizard {
         </p>
       </div>
 
-      <div id="daffodilDebugClasspathDiv" class="setting-div">
-        <p>Daffodil Debugger Classpath:</p>
-        <p class="setting-description">Additional classpaths to be added to the debugger:</p>
-
-        ${daffodilDebugClasspathList}
-
-        <p style="margin-left: 5px">
-          <button id="daffodilDebugClasspathAddFolders" class="browse-button" type="button" onclick="filePicker('daffodilDebugClasspath', 'Select folder(s) with desired jars')">Add Folder(s)</button>
-          <button id="daffodilDebugClasspathAddFiles" class="browse-button" type="button" onclick="filePicker('daffodilDebugClasspath', 'Select jar file(s)')">Add JAR File(s)</button>
-        </p>
+      <div id="programDiv" class="setting-div">
+        <p>Main Schema File:</p>
+        <p class="setting-description">Absolute path to the DFDL schema file.</p>
+        <input class="file-input" value="${defaultValues.program}" id="program"/>
+        <button id="programBrowse" class="browse-button" type="button" onclick="filePicker('program', 'Select DFDL schema to debug')">Browse</button>
       </div>
 
       <div id="dataDiv" class="setting-div">
-        <p>Data:</p>
+        <p>Input Data File:</p>
         <p class="setting-description">Absolute path to the input data file.</p>
         <input class="file-input" value="${defaultValues.data}" id="data"/>
         <button id="dataBrowse" class="browse-button" type="button" onclick="filePicker('data', 'Select input data file to debug')">Browse</button>
@@ -585,6 +580,42 @@ class LaunchWizard {
         
         <p id="dfdlDebuggerLogLevelLabel" style="margin-top: 10px;" class="setting-description">Log Level:</p>
         <input class="file-input" value="${dfdlDebugger.logging.level}" id="dfdlDebuggerLogLevel">
+      </div>
+
+      <div id="useExistingServerDiv" class="setting-div" onclick="check('useExistingServer')">
+        <p>Use Existing Server:</p>
+        <label class="container">Enable connection to running DAP Server.
+          <input type="checkbox" id="useExistingServer" ${useExistingServer}>
+          <span class="checkmark"></span>
+        </label>
+      </div>
+
+      <div id="stopOnEntryDiv" class="setting-div" onclick="check('stopOnEntry')">
+        <p>Stop On Entry:</p>
+        <label class="container">Automatically stop after launch.
+          <input type="checkbox" id="stopOnEntry" ${stopOnEntry}>
+          <span class="checkmark"></span>
+        </label>
+      </div>
+
+      <div id="traceDiv" class="setting-div" onclick="check('trace')">
+        <p>Trace:</p>
+        <label class="container">Enable logging of the Debug Adapter Protocol.
+          <input type="checkbox" id="trace" ${trace}>
+          <span class="checkmark"></span>
+        </label>
+      </div>
+
+      <div id="daffodilDebugClasspathDiv" class="setting-div">
+        <p>Daffodil Debugger Classpath:</p>
+        <p class="setting-description">Additional classpaths to be added to the debugger:</p>
+
+        ${daffodilDebugClasspathList}
+
+        <p style="margin-left: 5px">
+          <button id="daffodilDebugClasspathAddFolders" class="browse-button" type="button" onclick="filePicker('daffodilDebugClasspath', 'Select folder(s) with desired jars')">Add Folder(s)</button>
+          <button id="daffodilDebugClasspathAddFiles" class="browse-button" type="button" onclick="filePicker('daffodilDebugClasspath', 'Select jar file(s)')">Add JAR File(s)</button>
+        </p>
       </div>
 
       <div id="infosetFormatDiv" class="setting-div">
@@ -648,29 +679,6 @@ class LaunchWizard {
         <input style="${tdmlPathVisOrHiddenStyle}" class="file-input" value="${tdmlPath}" id="tdmlPath">
       </div>
 
-      <div id="programDiv" class="setting-div">
-        <p>Program:</p>
-        <p class="setting-description">Absolute path to the DFDL schema file.</p>
-        <input class="file-input" value="${defaultValues.program}" id="program"/>
-        <button id="programBrowse" class="browse-button" type="button" onclick="filePicker('program', 'Select DFDL schema to debug')">Browse</button>
-      </div>
-
-      <div id="stopOnEntryDiv" class="setting-div" onclick="check('stopOnEntry')">
-        <p>Stop On Entry:</p>
-        <label class="container">Automatically stop after launch.
-          <input type="checkbox" id="stopOnEntry" ${stopOnEntry}>
-          <span class="checkmark"></span>
-        </label>
-      </div>
-
-      <div id="traceDiv" class="setting-div" onclick="check('trace')">
-        <p>Trace:</p>
-        <label class="container">Enable logging of the Debug Adapter Protocol.
-          <input type="checkbox" id="trace" ${trace}>
-          <span class="checkmark"></span>
-        </label>
-      </div>
-
       <div id="dataEditorDiv" class="setting-div">
         <p>Data Editor Settings:</p>
         
@@ -684,14 +692,7 @@ class LaunchWizard {
         <input class="file-input" value="${dataEditor.logging.level}" id="dataEditorLogLevel">
       </div>
 
-      <div id="useExistingServerDiv" class="setting-div" onclick="check('useExistingServer')">
-        <p>Use Existing Server:</p>
-        <label class="container">Enable connection to running DAP Server.
-          <input type="checkbox" id="useExistingServer" ${useExistingServer}>
-          <span class="checkmark"></span>
-        </label>
-      </div>
-
+      <br/>
       <button class="save-button" type="button" onclick="save()">Save</button>
     </body>
   </html>`
