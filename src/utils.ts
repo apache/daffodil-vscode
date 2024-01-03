@@ -21,6 +21,7 @@ import * as os from 'os'
 import * as child_process from 'child_process'
 import path from 'path'
 import { VSCodeLaunchConfigArgs } from './classes/vscode-launch'
+import { InfosetOutput } from './daffodilDebugger'
 
 let currentConfig: vscode.DebugConfiguration
 
@@ -84,6 +85,34 @@ export async function onDebugStartDisplay(viewsToCheck: string[]) {
   })
 }
 
+function checkInfosetFileExtension(
+  infosetOutput: InfosetOutput,
+  infosetFormat: string
+) {
+  // If the infoset file path doesn't end with the infoset output format, update to end with infoset output format.
+  if (!infosetOutput.path.endsWith(`.${infosetFormat}`)) {
+    vscode.window.showWarningMessage(
+      `The output path for the file extension doesn't end with the infoset output format type. The file extension will be updated to end with .${infosetFormat}`
+    )
+
+    let fileExtensionSearchResult = new RegExp('(\\.).*$')
+      .exec(infosetOutput!.path)
+      ?.filter((fileExt) => fileExt !== '.')[0]
+
+    /**
+     * If search result is not undefined replace the file extension with the correct extension.
+     * Else append proper file extension to the end of the output path.
+     */
+    infosetOutput.path =
+      fileExtensionSearchResult !== undefined
+        ? infosetOutput.path.replace(
+            fileExtensionSearchResult,
+            `.${infosetFormat}`
+          )
+        : (infosetOutput.path = `${infosetOutput!.path}.${infosetFormat}`)
+  }
+}
+
 export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
   const launchConfigArgs: VSCodeLaunchConfigArgs = JSON.parse(
     JSON.stringify(jsonArgs)
@@ -135,6 +164,13 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
           ? launchConfigArgs[key]
           : defaultValue)
   )
+
+  if (launchConfigArgs.infosetOutput?.type == 'file') {
+    checkInfosetFileExtension(
+      launchConfigArgs.infosetOutput!,
+      launchConfigArgs.infosetFormat!
+    )
+  }
 
   return JSON.parse(JSON.stringify(launchConfigArgs))
 }
