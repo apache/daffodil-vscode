@@ -34,7 +34,7 @@ export interface VSCodeLaunchConfigArgs {
   stopOnEntry: boolean
   useExistingServer: boolean
   trace: boolean
-  openHexView: boolean
+  openDataEditor: boolean
   openInfosetView: boolean
   openInfosetDiffView: boolean
   daffodilDebugClasspath: string

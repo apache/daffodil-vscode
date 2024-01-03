@@ -15,14 +15,24 @@
  * limitations under the License.
  */
 
-import { CategoryOne, type ByteCategory, CategoryTwo } from './IByteCategory'
+import {
+  CategoryOne,
+  type ByteCategory,
+  CategoryTwo,
+  DebuggerCategory,
+} from './IByteCategory'
 
 class ByteIndicationCategories {
   private _categories: {
     [key: string]: ByteCategory
   } = {}
   private _bitsUtilized: number = 0
+  public categoryList(): ByteCategory[] {
+    let ret: ByteCategory[] = []
+    for (let key in this._categories) ret.push(this._categories[key])
 
+    return ret
+  }
   public addIndicationCategory(category: ByteCategory) {
     if (this._bitsUtilized + category.bitLength() > 8)
       throw new Error('Category addition would exceed bit limit')
@@ -109,6 +119,6 @@ class ByteIndicationCategories {
 }
 
 export const ViewportByteCategories = new ByteIndicationCategories()
-ViewportByteCategories.addIndicationCategory(CategoryOne).addIndicationCategory(
-  CategoryTwo
-)
+ViewportByteCategories.addIndicationCategory(CategoryOne)
+  .addIndicationCategory(CategoryTwo)
+  .addIndicationCategory(DebuggerCategory)

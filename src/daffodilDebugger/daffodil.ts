@@ -17,6 +17,7 @@
 
 import * as fs from 'fs'
 import { parse as jsoncParse } from 'jsonc-parser'
+import { DebugSession, DebugSessionCustomEvent, debug } from 'vscode'
 
 export const dataEvent = 'daffodil.data'
 export interface DaffodilData {
@@ -58,4 +59,55 @@ export interface BuildInfo {
 
 export function getDaffodilVersion(filePath: fs.PathLike) {
   return jsoncParse(fs.readFileSync(filePath).toString())['daffodilVersion']
+}
+
+export interface IDaffodilEvent {
+  readonly type: DaffodilEventType
+  readonly body: DaffodilDataType
+}
+
+export type DaffodilEventType =
+  | 'daffodil.data'
+  | 'daffodil.infoset'
+  | 'daffodil.config'
+export type DaffodilDataType = DaffodilData | InfosetEvent | ConfigEvent
+export type DaffodilDataTypeMap = {
+  'daffodil.data': DaffodilData
+  'daffodil.infoset': InfosetEvent
+  'daffodil.config': ConfigEvent
+}
+export class DaffodilDebugEvent<
+  E extends DaffodilEventType,
+  B extends DaffodilDataTypeMap[E],
+> implements DebugSessionCustomEvent
+{
+  readonly session: DebugSession
+  constructor(
+    readonly event: E,
+    readonly body: B
+  ) {
+    this.session = debug.activeDebugSession!
+  }
+  asEditorMessage(): { command: string; data: any } {
+    return {
+      command: this.event,
+      data: this.body,
+    }
+  }
+}
+
+export function extractDaffodilEvent<
+  E extends DaffodilEventType,
+  B extends DaffodilDataTypeMap[E],
+>(e: DebugSessionCustomEvent): DaffodilDebugEvent<E, B> | undefined {
+  if (e.session.type !== 'dfdl') return undefined
+  const eventType = e.event as E
+  const body = e.body as B
+  return new DaffodilDebugEvent(eventType, body)
+}
+
+export function extractDaffodilData<
+  E extends DaffodilEventType,
+>(editorMessage: { command: string; data: any }): DaffodilDataTypeMap[E] {
+  return editorMessage.data as DaffodilDataTypeMap[E]
 }

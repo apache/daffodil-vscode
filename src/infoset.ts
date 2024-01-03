@@ -69,7 +69,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.debug.onDidStartDebugSession((s) => {
       sid = s.id
-      onDebugStartDisplay(['infoset-view', 'infoset-diff-view'])
+      onDebugStartDisplay(['infoset-view', 'infoset-diff-view', 'data-editor'])
     })
   )
   ctx.subscriptions.push(

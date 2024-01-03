@@ -194,7 +194,6 @@ suite('Daffodfil', () => {
   suite('debug specifc commands', () => {
     const debugSpecificCmds = [
       'extension.dfdl-debug.toggleFormatting',
-      'hexview.display',
       'infoset.display',
       'infoset.diff',
       'infoset.save',

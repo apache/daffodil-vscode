@@ -146,11 +146,6 @@
           "group": "navigation@1"
         },
         {
-          "command": "hexview.display",
-          "when": "resourceLangId == dfdl",
-          "group": "navigation@4"
-        },
-        {
           "command": "infoset.display",
           "when": "resourceLangId == dfdl",
           "group": "navigation@2"
@@ -268,13 +263,6 @@
         "title": "Toggle between decimal and hex formatting",
         "category": "Daffodil Debug",
         "enablement": "inDebugMode"
-      },
-      {
-        "command": "hexview.display",
-        "title": "Display the hex view",
-        "category": "Daffodil Debug",
-        "enablement": "inDebugMode",
-        "icon": "$(file-binary)"
       },
       {
         "command": "infoset.display",
@@ -399,9 +387,9 @@
                 "description": "Enable connection to running DAP Server",
                 "default": false
               },
-              "openHexView": {
+              "openDataEditor": {
                 "type": "boolean",
-                "description": "Open hexview on debug start",
+                "description": "Open data editor on debug start",
                 "default": false
               },
               "openInfosetView": {
@@ -477,7 +465,7 @@
               "path": "${command:AskForTDMLPath}"
             },
             "debugServer": 4711,
-            "openHexView": false,
+            "openDataEditor": false,
             "openInfosetView": false,
             "openInfosetDiffView": false,
             "daffodilDebugClasspath": "",
@@ -521,7 +509,7 @@
                 "path": "${command:AskForTDMLPath}"
               },
               "debugServer": 4711,
-              "openHexView": false,
+              "openDataEditor": false,
               "openInfosetView": false,
               "openInfosetDiffView": false,
               "daffodilDebugClasspath": "",
@@ -609,9 +597,9 @@
             "description": "Port debug server running on",
             "default": 4711
           },
-          "openHexView": {
+          "openDataEditor": {
             "type": "boolean",
-            "description": "Open hexview on debug start",
+            "description": "Open data editor on debug start",
             "default": false
           },
           "openInfosetView": {

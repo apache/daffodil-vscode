@@ -44,7 +44,6 @@ import {
   getSessionCount,
   getViewportData,
   IOFlags,
-  IServerHeartbeat,
   IServerInfo,
   modifyViewport,
   numAscii,
@@ -79,6 +78,12 @@ import {
 import net from 'net'
 import * as vscode from 'vscode'
 import os from 'os'
+import {
+  HeartbeatInfo,
+  IHeartbeatInfo,
+} from './include/server/heartbeat/HeartBeatInfo'
+import { ServerInfo } from './include/server/ServerInfo'
+import { extractDaffodilEvent } from '../daffodilDebugger/daffodil'
 
 // *****************************************************************************
 // global constants
@@ -98,39 +103,6 @@ const HEARTBEAT_INTERVAL_MS: number = 1000 // 1 second (1000 ms)
 const MAX_LOG_FILES: number = 5 // Maximum number of log files to keep TODO: make this configurable
 const OMEGA_EDIT_MAX_PORT: number = 65535
 const OMEGA_EDIT_MIN_PORT: number = 1024
-
-// *****************************************************************************
-// file-scoped types
-// *****************************************************************************
-
-class ServerInfo implements IServerInfo {
-  serverHostname: string = 'unknown' // hostname
-  serverProcessId: number = 0 // process id
-  serverVersion: string = 'unknown' // server version
-  jvmVersion: string = 'unknown' // jvm version
-  jvmVendor: string = 'unknown' // jvm vendor
-  jvmPath: string = 'unknown' // jvm path
-  availableProcessors: number = 0 // available processors
-}
-
-interface IHeartbeatInfo extends IServerHeartbeat {
-  omegaEditPort: number // Ωedit server port
-  serverInfo: IServerInfo // server info that remains constant
-}
-
-class HeartbeatInfo implements IHeartbeatInfo {
-  omegaEditPort: number = 0 // Ωedit server port
-  latency: number = 0 // latency in ms
-  serverCommittedMemory: number = 0 // committed memory in bytes
-  serverCpuCount: number = 0 // cpu count
-  serverCpuLoadAverage: number = 0 // cpu load average
-  serverMaxMemory: number = 0 // max memory in bytes
-  serverTimestamp: number = 0 // timestamp in ms
-  serverUptime: number = 0 // uptime in ms
-  serverUsedMemory: number = 0 // used memory in bytes
-  sessionCount: number = 0 // session count
-  serverInfo: IServerInfo = new ServerInfo()
-}
 
 // *****************************************************************************
 // file-scoped variables
@@ -172,7 +144,6 @@ export class DataEditorClient implements vscode.Disposable {
   private omegaSessionId = ''
   private sendHeartbeatIntervalId: NodeJS.Timeout | number | undefined =
     undefined
-
   constructor(
     protected context: vscode.ExtensionContext,
     private view: string,
@@ -180,14 +151,24 @@ export class DataEditorClient implements vscode.Disposable {
     fileToEdit: string = ''
   ) {
     const column =
-      vscode.window.activeTextEditor &&
-      vscode.window.activeTextEditor.viewColumn
-        ? vscode.window.activeTextEditor?.viewColumn
-        : vscode.ViewColumn.Active
+      fileToEdit !== '' ? vscode.ViewColumn.Two : vscode.ViewColumn.Active
     this.panel = vscode.window.createWebviewPanel(this.view, title, column, {
       enableScripts: true,
       retainContextWhenHidden: true,
     })
+
+    this.context.subscriptions.push(
+      vscode.debug.onDidReceiveDebugSessionCustomEvent(async (e) => {
+        const debugEvent = e
+        const eventAsEditorMessage = extractDaffodilEvent(debugEvent)
+        if (eventAsEditorMessage === undefined) return
+
+        const forwardAs = eventAsEditorMessage.asEditorMessage()
+
+        await this.panel.webview.postMessage(forwardAs)
+      })
+    )
+
     this.panel.webview.onDidReceiveMessage(this.messageReceiver, this)
     this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
@@ -821,7 +802,15 @@ export class DataEditorClient implements vscode.Disposable {
 // *****************************************************************************
 // file-scoped functions
 // *****************************************************************************
-
+function cleanFileToEditStr(fileToEdit: string): string {
+  let rootPath = vscode.workspace.workspaceFolders
+    ? vscode.workspace.workspaceFolders[0].uri.fsPath
+    : vscode.Uri.parse('').fsPath
+  fileToEdit = fileToEdit.includes('${workspaceFolder}')
+    ? fileToEdit.replace('${workspaceFolder}', rootPath)
+    : fileToEdit
+  return fileToEdit
+}
 async function createDataEditorWebviewPanel(
   ctx: vscode.ExtensionContext,
   fileToEdit: string
@@ -851,7 +840,7 @@ async function createDataEditorWebviewPanel(
       'heartbeat did not receive a server version'
     )
   }
-
+  fileToEdit = cleanFileToEditStr(fileToEdit)
   const dataEditorView = new DataEditorClient(
     ctx,
     'dataEditor',

@@ -59,7 +59,7 @@ function getConfigValues() {
   const tdmlName = document.getElementById('tdmlName').value
   const tdmlDescription = document.getElementById('tdmlDescription').value
   const tdmlPath = document.getElementById('tdmlPath').value
-  const openHexView = document.getElementById('openHexView').checked
+  const openDataEditor = document.getElementById('openDataEditor').checked
   const openInfosetDiffView = document.getElementById(
     'openInfosetDiffView'
   ).checked
@@ -93,7 +93,7 @@ function getConfigValues() {
     tdmlName,
     tdmlDescription,
     tdmlPath,
-    openHexView,
+    openDataEditor,
     openInfosetDiffView,
     openInfosetView,
     schema,
@@ -288,7 +288,7 @@ function save() {
         trace: configValues.trace,
         stopOnEntry: configValues.stopOnEntry,
         useExistingServer: configValues.useExistingServer,
-        openHexView: configValues.openHexView,
+        openDataEditor: configValues.openDataEditor,
         openInfosetView: configValues.openInfosetView,
         openInfosetDiffView: configValues.openInfosetDiffView,
         daffodilDebugClasspath: configValues.daffodilDebugClasspath,
@@ -344,7 +344,7 @@ function copyConfig() {
         trace: configValues.trace,
         stopOnEntry: configValues.stopOnEntry,
         useExistingServer: configValues.useExistingServer,
-        openHexView: configValues.openHexView,
+        openDataEditor: configValues.openDataEditor,
         openInfosetView: configValues.openInfosetView,
         openInfosetDiffView: configValues.openInfosetDiffView,
         daffodilDebugClasspath: configValues.daffodilDebugClasspath,
@@ -405,7 +405,7 @@ async function updateConfigValues(config) {
     config['tdmlConfig'] && config.tdmlConfig['path']
       ? config.tdmlConfig['path']
       : config.tdmlPath
-  document.getElementById('openHexView').checked = config.openHexView
+  document.getElementById('openDataEditor').checked = config.openDataEditor
   document.getElementById('openInfosetDiffView').checked =
     config.openInfosetDiffView
   document.getElementById('openInfosetView').checked = config.openInfosetView

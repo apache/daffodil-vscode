@@ -111,9 +111,11 @@ export class ViewportDataStore_t extends SimpleWritable<ViewportData_t> {
 
   public upperFetchBoundary(bytesPerRow: BytesPerRow): number {
     const store = this.storeData()
+    const displayByteCount = get(dataDislayLineAmount) * bytesPerRow
     const boundary =
-      store.fileOffset + store.length - get(dataDislayLineAmount) * bytesPerRow
-
+      store.length >= displayByteCount
+        ? store.fileOffset + store.length - displayByteCount
+        : store.length
     return boundary
   }
 

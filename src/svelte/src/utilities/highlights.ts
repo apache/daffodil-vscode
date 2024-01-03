@@ -83,6 +83,7 @@ class ViewportByteIndications extends SimpleWritable<Uint8Array> {
       })
     }
   }
+
   public updateSelectionIndications(selectionData: SelectionData_t) {
     const category1 = ViewportByteCategories.category('one')
     const start = selectionData.startOffset
@@ -120,6 +121,15 @@ class ViewportByteIndications extends SimpleWritable<Uint8Array> {
       })
     }
   }
+
+  public updateDebuggerPosIndication(bytePos: number) {
+    this.store.update((indications) => {
+      ViewportByteCategories.clearAndSetIf(indications, 'bytePos1b', (_, i) => {
+        return i === bytePos
+      })
+      return indications
+    })
+  }
 }
 
 export const viewportByteIndicators = new ViewportByteIndications()
@@ -143,16 +153,13 @@ function generateSelectionCategoryParition(
 
 export function categoryCSSSelectors(byteIndicationValue: number): string {
   let ret = ''
-  const CategoryOneSelector = ViewportByteCategories.categoryCSSSelector(
-    ViewportByteCategories.category('one'),
-    byteIndicationValue
-  )
-  const CategoryTwoSelector = ViewportByteCategories.categoryCSSSelector(
-    ViewportByteCategories.category('two'),
-    byteIndicationValue
-  )
-
-  ret += CategoryOneSelector + ' ' + CategoryTwoSelector
+  ViewportByteCategories.categoryList().forEach((category) => {
+    const categorysCSSSelector = ViewportByteCategories.categoryCSSSelector(
+      category,
+      byteIndicationValue
+    )
+    if (categorysCSSSelector != 'none') ret += categorysCSSSelector + ' '
+  })
 
   return ret
 }
