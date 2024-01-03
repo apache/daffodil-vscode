@@ -82,6 +82,15 @@ limitations under the License.
   div.byte.replacement {
     border-color: var(--color-replace-result);
   }
+  @keyframes byteBlink {
+    0% {background-color: initial;}
+    100% {background-color: indianred;}
+  }
+  div.byte.bytepos1b {
+    animation-name: byteBlink;
+    animation-duration: 0.5s;
+    animation-iteration-count: infinite;
+  }
   div.byte:hover {
     border-color: var(--color-secondary-mid);
     cursor: pointer;

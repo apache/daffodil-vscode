@@ -45,7 +45,7 @@ suite('Utils Test Suite', () => {
     stopOnEntry: true,
     useExistingServer: false,
     trace: true,
-    openHexView: false,
+    openDataEditor: false,
     openInfosetView: false,
     openInfosetDiffView: false,
     daffodilDebugClasspath: '',

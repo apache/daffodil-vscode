@@ -364,7 +364,7 @@ class LaunchWizard {
     }
   }
 
-  // Method to set html for the hex view
+  // Method to set html for the data editor
   getWebViewContent(selectedConfigNumber: number | undefined = undefined) {
     const scriptUri = vscode.Uri.parse(
       this.ctx.asAbsolutePath('./src/launchWizard/launchWizard.js')
@@ -415,7 +415,7 @@ class LaunchWizard {
       ? 'visibility: hidden;'
       : 'visibility: visible;'
 
-    let openHexView = defaultValues.openHexView ? 'checked' : ''
+    let openDataEditor = defaultValues.openDataEditor ? 'checked' : ''
     let openInfosetDiffView = defaultValues.openInfosetDiffView ? 'checked' : ''
     let openInfosetView = defaultValues.openInfosetView ? 'checked' : ''
     let stopOnEntry = defaultValues.stopOnEntry ? 'checked' : ''
@@ -638,10 +638,10 @@ class LaunchWizard {
         </p>
       </div>
 
-      <div id="openHexViewDiv" class="setting-div" onclick="check('openHexView')">
-        <p>Open Hex View:</p>
-        <label class="container">Open hexview on debug start.
-          <input type="checkbox" id="openHexView" ${openHexView}>
+      <div id="openDataEditorDiv" class="setting-div" onclick="check('openDataEditor')">
+        <p>Open Data Editor:</p>
+        <label class="container">Open data editor on debug start.
+          <input type="checkbox" id="openDataEditor" ${openDataEditor}>
           <span class="checkmark"></span>
         </label>
       </div>

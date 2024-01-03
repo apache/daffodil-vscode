@@ -43,7 +43,7 @@
 - [ ] verify source highlighting
 - [ ] verify code completion
 - [ ] verify breakpoints
-- [ ] verify hex view
+- [ ] verify data editor
 - [ ] verify InfoSet view
 - [ ] verify InfoSet diff
 - [ ] verify InfoSet output in supported formats

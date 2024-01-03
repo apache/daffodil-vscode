@@ -15,31 +15,14 @@
  * limitations under the License.
  */
 
-export interface IByteIndication {
-  selector(): string
-  equals(categoryArg: IByteIndication): boolean
-}
+import { IServerInfo } from '@omega-edit/client'
 
-class NullIndication implements IByteIndication {
-  equals(categoryArg: IByteIndication): boolean {
-    return this.selector() === categoryArg.selector()
-  }
-  selector(): string {
-    return 'none'
-  }
+export class ServerInfo implements IServerInfo {
+  serverHostname: string = 'unknown'
+  serverProcessId: number = 0
+  serverVersion: string = 'unknown'
+  jvmVersion: string = 'unknown'
+  jvmVendor: string = 'unknown'
+  jvmPath: string = 'unknown'
+  availableProcessors: number = 0
 }
-
-export class ByteIndication implements IByteIndication {
-  private _selector: string
-  constructor(selector: string) {
-    this._selector = selector.toLowerCase()
-  }
-  equals(categoryArg: IByteIndication): boolean {
-    return this.selector() === categoryArg.selector()
-  }
-  selector(): string {
-    return this._selector
-  }
-}
-
-export const NoIndication: NullIndication = new NullIndication()

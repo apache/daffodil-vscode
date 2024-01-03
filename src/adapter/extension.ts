@@ -6,7 +6,6 @@
 'use strict'
 
 import * as vscode from 'vscode'
-import * as hexView from '../hexView'
 import * as position from '../position'
 import { ProviderResult } from 'vscode'
 import { DaffodilDebugSession } from './daffodilDebug'
@@ -38,11 +37,9 @@ export class InlineDebugAdapterFactory
   implements vscode.DebugAdapterDescriptorFactory
 {
   context: vscode.ExtensionContext
-  hexViewer: hexView.DebuggerHexView
 
   constructor(context: vscode.ExtensionContext) {
     this.context = context
-    this.hexViewer = new hexView.DebuggerHexView(context)
   }
 
   createDebugAdapterDescriptor(

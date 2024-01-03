@@ -60,7 +60,7 @@ export class ByteCategory implements IByteCategory {
       : this._indicators[index]
   }
   indexOf(selectorName: string) {
-    const target = selectorName
+    const target = selectorName.toLowerCase()
     let ret = -1
 
     this._indicators.forEach((categoryObj, i) => {
@@ -72,13 +72,17 @@ export class ByteCategory implements IByteCategory {
   }
   contains(selectorName: string): boolean {
     for (let i = 0; i < this._indicators.length; i++)
-      if (this._indicators[i].selector() == selectorName) return true
+      if (this._indicators[i].selector() == selectorName.toLowerCase())
+        return true
     return false
   }
 }
 
-export const CategoryOne = new ByteCategory('one', 4)
+export const CategoryOne = new ByteCategory('one', 2)
 CategoryOne.addIndication('selected')
 
-export const CategoryTwo = new ByteCategory('two', 4)
+export const CategoryTwo = new ByteCategory('two', 2)
 CategoryTwo.addIndication('searchresult').addIndication('replacement')
+
+export const DebuggerCategory = new ByteCategory('debugger', 2)
+DebuggerCategory.addIndication('bytePos1b')

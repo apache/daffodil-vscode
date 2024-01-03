@@ -66,7 +66,7 @@ limitations under the License.
   import {
     viewportByteIndicators,
     categoryCSSSelectors,
-  } from '../../../utilities/highlights'
+      } from '../../../utilities/highlights'
   import { bytesPerRow } from '../../../stores'
   export let awaitViewportSeek: boolean
   export let dataRadix: RadixValues = 16
@@ -533,6 +533,10 @@ limitations under the License.
               $selectedByte.offset.toString()
             ) as HTMLDivElement
         }
+        break
+      case 'daffodil.data':
+        const { bytePos1b } = msg.data.data
+        viewportByteIndicators.updateDebuggerPosIndication( bytePos1b - 1 )
         break
     }
   })

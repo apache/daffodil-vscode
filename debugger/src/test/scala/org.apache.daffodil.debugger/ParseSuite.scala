@@ -37,7 +37,7 @@ class ParseSuite extends FunSuite {
   val stopOnEntry = true
   val useExistingServer = false
   val trace = true
-  val openHexView = false
+  val openDataEditor = false
   val openInfosetView = false
   val openInfosetDiffView = false
   val daffodilDebugClasspath = ""
@@ -185,7 +185,7 @@ class ParseSuite extends FunSuite {
     testJsonObject.addProperty("stopOnEntry", stopOnEntry)
     testJsonObject.addProperty("useExistingServer", useExistingServer)
     testJsonObject.addProperty("trace", trace)
-    testJsonObject.addProperty("openHexView", openHexView)
+    testJsonObject.addProperty("openDataEditor", openDataEditor)
     testJsonObject.addProperty("openInfosetView", openInfosetView)
     testJsonObject.addProperty("openInfosetDiffView", openInfosetDiffView)
     testJsonObject.addProperty("daffodilDebugClasspath", daffodilDebugClasspath)

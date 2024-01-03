@@ -47,22 +47,27 @@ export function setCurrentConfig(
 }
 
 // Function to run vscode command and catch the error to not cause other issues
-export function runCommand(command: string) {
-  vscode.commands.executeCommand(command).then(undefined, (err) => {
+export function runCommand(command: string, params?: any) {
+  const vscodeError = (err) => {
     vscode.window.showInformationMessage(err)
-  })
+  }
+
+  if (!params)
+    vscode.commands.executeCommand(command).then(undefined, vscodeError)
+  else
+    vscode.commands.executeCommand(command, params).then(undefined, vscodeError)
 }
 
 // Function for checking if config specifies if either the
-// infoset, infoset diff or hex view needs to be opened
+// infoset, infoset diff or data editor needs to be opened
 export async function onDebugStartDisplay(viewsToCheck: string[]) {
   let config = getCurrentConfig()
 
   viewsToCheck.forEach(async (viewToCheck) => {
     switch (viewToCheck) {
-      case 'hex-view':
-        if (config.openHexView) {
-          runCommand('hexview.display')
+      case 'data-editor':
+        if (config.openDataEditor) {
+          runCommand('extension.data.edit', config.data)
         }
         break
       case 'infoset-view':
@@ -104,7 +109,7 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
     stopOnEntry: defaultConf.get('stopOnEntry', true),
     useExistingServer: defaultConf.get('useExistingServer', false),
     trace: defaultConf.get('trace', true),
-    openHexView: defaultConf.get('openHexView', false),
+    openDataEditor: defaultConf.get('openDataEditor', false),
     openInfosetView: defaultConf.get('openInfosetView', false),
     openInfosetDiffView: defaultConf.get('openInfosetDiffView', false),
     daffodilDebugClasspath: defaultConf.get('daffodilDebugClasspath', ''),
