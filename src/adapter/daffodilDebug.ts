@@ -43,8 +43,8 @@ function timeout(ms: number) {
  * The interface should always match this schema.
  */
 interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
-  /** An absolute path to the "program" to debug. */
-  program: string
+  /** An absolute path to the "schema" to debug. */
+  schema: string
   /** Automatically stop target after launch. If not specified, target does not stop. */
   stopOnEntry?: boolean
   /** enable logging the Debug Adapter Protocol */
@@ -246,8 +246,8 @@ export class DaffodilDebugSession extends LoggingDebugSession {
     // wait until configuration has finished (and configurationDoneRequest has been called)
     await this._configurationDone.wait(1000)
 
-    // start the program in the runtime
-    await this._runtime.start(args.program, !!args.stopOnEntry, !!args.noDebug)
+    // start the schema in the runtime
+    await this._runtime.start(args.schema, !!args.stopOnEntry, !!args.noDebug)
 
     this.sendResponse(response)
   }

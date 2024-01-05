@@ -555,11 +555,11 @@ class LaunchWizard {
         </p>
       </div>
 
-      <div id="programDiv" class="setting-div">
+      <div id="schemaDiv" class="setting-div">
         <p>Main Schema File:</p>
         <p class="setting-description">Absolute path to the DFDL schema file.</p>
-        <input class="file-input" value="${defaultValues.program}" id="program"/>
-        <button id="programBrowse" class="browse-button" type="button" onclick="filePicker('program', 'Select DFDL schema to debug')">Browse</button>
+        <input class="file-input" value="${defaultValues.schema}" id="schema"/>
+        <button id="schemaBrowse" class="browse-button" type="button" onclick="filePicker('schema', 'Select DFDL schema to debug')">Browse</button>
       </div>
 
       <div id="dataDiv" class="setting-div">

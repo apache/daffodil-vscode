@@ -223,22 +223,22 @@ suite('Daffodfil', () => {
   })
 
   suite('getCommands', () => {
-    test('getProgramName file exists', async () => {
+    test('getSchemaName file exists', async () => {
       assert.strictEqual(
         await vscode.commands.executeCommand(
-          'extension.dfdl-debug.getProgramName',
+          'extension.dfdl-debug.getSchemaName',
           TEST_SCHEMA
         ),
         TEST_SCHEMA
       )
     })
 
-    test('getProgramName file does not exists', async () => {
+    test('getSchemaName file does not exists', async () => {
       let file = path.join(__dirname, '../data/test.dfdl.xsd')
 
       assert.notStrictEqual(
         await vscode.commands.executeCommand(
-          'extension.dfdl-debug.getProgramName',
+          'extension.dfdl-debug.getSchemaName',
           file
         ),
         file

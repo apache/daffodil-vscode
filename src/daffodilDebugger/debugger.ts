@@ -50,7 +50,7 @@ async function getTDMLConfig(
   //   so we don't need to prompt for them now.
   if (config?.tdmlConfig?.action === 'execute') {
     // Erase the value of `data` so that we aren't prompted for it later
-    // Might need to add `program` here if we move the `Execute TDML` command
+    // Might need to add `schema` here if we move the `Execute TDML` command
     //   away from the detected dfdl language in VSCode.
     config.data = ''
   }
@@ -155,10 +155,10 @@ export async function getDebugger(
   if (vscode.workspace.workspaceFolders !== undefined) {
     await stopDebugger()
 
-    // Get program file before debugger starts to avoid timeout
-    if (config.program.includes('${command:AskForProgramName}')) {
-      config.program = await vscode.commands.executeCommand(
-        'extension.dfdl-debug.getProgramName'
+    // Get schema file before debugger starts to avoid timeout
+    if (config.schema.includes('${command:AskForSchemaName}')) {
+      config.schema = await vscode.commands.executeCommand(
+        'extension.dfdl-debug.getSchemaName'
       )
     }
 

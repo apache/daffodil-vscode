@@ -111,10 +111,9 @@ suite('Data Editor Test Suite', () => {
 
     after(async () => {
       assert.strictEqual(fs.existsSync(pidFile), true)
-      assert.strictEqual(
-        await stopServerUsingPID(parseInt(fs.readFileSync(pidFile).toString())),
-        true
-      )
+      const pid = parseInt(fs.readFileSync(pidFile).toString())
+      console.log(pid)
+      assert.strictEqual(await stopServerUsingPID(pid), true)
     })
 
     test('is running', async () => {

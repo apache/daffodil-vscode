@@ -101,7 +101,7 @@
     "onLanguage:dfdl",
     "onDebugResolve:dfdl",
     "onDebugDynamicConfigurations:dfdl",
-    "onCommand:extension.dfdl-debug.getProgramName",
+    "onCommand:extension.dfdl-debug.getSchemaName",
     "onCommand:extension.dfdl-debug.getDataName",
     "onCommand:extension.dfdl-debug.runEditorContents",
     "onCommand:extension.dfdl-debug.debugEditorContents",
@@ -338,14 +338,14 @@
         "configurationAttributes": {
           "launch": {
             "required": [
-              "program",
+              "schema",
               "data"
             ],
             "properties": {
-              "program": {
+              "schema": {
                 "type": "string",
                 "description": "Absolute path to the DFDL schema file.",
-                "default": "${command:AskForProgramName}"
+                "default": "${command:AskForSchemaName}"
               },
               "data": {
                 "type": "string",
@@ -462,7 +462,7 @@
             "type": "dfdl",
             "request": "launch",
             "name": "Ask for file name",
-            "program": "${command:AskForProgramName}",
+            "schema": "${command:AskForSchemaName}",
             "stopOnEntry": true,
             "data": "${command:AskForDataName}",
             "infosetFormat": "xml",
@@ -506,7 +506,7 @@
               "type": "dfdl",
               "request": "launch",
               "name": "Ask for file name",
-              "program": "^\"\\${command:AskForProgramName}\"",
+              "schema": "^\"\\${command:AskForSchemaName}\"",
               "stopOnEntry": true,
               "data": "^\"\\${command:AskForDataName}\"",
               "infosetFormat": "xml",
@@ -544,7 +544,7 @@
           }
         ],
         "variables": {
-          "AskForProgramName": "extension.dfdl-debug.getProgramName",
+          "AskForSchemaName": "extension.dfdl-debug.getSchemaName",
           "AskForDataName": "extension.dfdl-debug.getDataName",
           "AskForTDMLName": "extension.dfdl-debug.getTDMLName",
           "AskForTDMLDescription": "extension.dfdl-debug.getTDMLDescription",
@@ -561,10 +561,10 @@
             "type": "string",
             "default": "dfdl"
           },
-          "program": {
+          "schema": {
             "type": "string",
             "description": "Absolute path to the DFDL schema file.",
-            "default": "${command:AskForProgramName}"
+            "default": "${command:AskForSchemaName}"
           },
           "data": {
             "type": "string",
