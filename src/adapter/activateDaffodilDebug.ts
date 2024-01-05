@@ -26,10 +26,10 @@ import { handleDebugEvent } from './daffodilEvent'
 import { InlineDebugAdapterFactory } from './extension'
 import * as dfdlExt from '../language/semantics/dfdlExt'
 
-/** Method to file path for program and data
+/** Method to file path for schema and data
  * Details:
  *   Required so that the vscode api commands:
- *     - extension.dfdl-debug.getProgramName
+ *     - extension.dfdl-debug.getSchemaName
  *     - extension.dfdl-debug.getDataName
  *   can be sent a file instead of always opening up a prompt.
  *   Always makes it so the vscode api commands above are able
@@ -113,7 +113,7 @@ function createDebugRunFileConfigs(
           name: 'Run File',
           request: 'launch',
           type: 'dfdl',
-          program: targetResource.fsPath,
+          schema: targetResource.fsPath,
           data: false,
           debugServer: false,
           infosetFormat: 'xml',
@@ -194,7 +194,7 @@ export function activateDaffodilDebug(
       }
     ),
     vscode.commands.registerCommand(
-      'extension.dfdl-debug.getProgramName',
+      'extension.dfdl-debug.getSchemaName',
       async (fileRequested = null) => {
         // Open native file explorer to allow user to select data file from anywhere on their machine
         return await getFile(
@@ -297,7 +297,7 @@ export function activateDaffodilDebug(
                 name: 'Daffodil Launch',
                 request: 'launch',
                 type: 'dfdl',
-                program: '${file}',
+                schema: '${file}',
                 data: false,
                 debugServer: false,
                 infosetFormat: 'xml',
@@ -321,7 +321,7 @@ export function activateDaffodilDebug(
               name: 'Daffodil Launch',
               request: 'launch',
               type: 'dfdl',
-              program: '${file}',
+              schema: '${file}',
               data: false,
               debugServer: false,
               infosetFormat: 'xml',
@@ -438,9 +438,9 @@ class DaffodilConfigurationProvider
       config.debugServer = 4711
     }
 
-    if (!config.program) {
+    if (!config.schema) {
       return vscode.window
-        .showInformationMessage('Cannot find a program to debug')
+        .showInformationMessage('Cannot find a schema to debug')
         .then((_) => {
           return undefined // abort launch
         })
@@ -457,7 +457,7 @@ class DaffodilConfigurationProvider
     }
 
     if (
-      !dataFolder.includes('${command:AskForProgramName}') &&
+      !dataFolder.includes('${command:AskForSchemaName}') &&
       !dataFolder.includes('${command:AskForDataName}') &&
       !dataFolder.includes('${workspaceFolder}') &&
       vscode.workspace.workspaceFolders &&

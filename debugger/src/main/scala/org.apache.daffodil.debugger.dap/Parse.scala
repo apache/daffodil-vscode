@@ -273,7 +273,7 @@ object Parse {
       // Parse a launch config that has been found to not have a tdmlConfig object
       def parseManual(arguments: JsonObject): EitherNel[String, LaunchArgs] =
         (
-          parseProgram(arguments),
+          parseSchema(arguments),
           parseData(arguments),
           parseStopOnEntry(arguments),
           parseInfosetFormat(arguments),
@@ -302,7 +302,7 @@ object Parse {
       Option(tdmlConfig.getAsJsonPrimitive("action")) match {
         case None =>
           (
-            parseProgram(arguments),
+            parseSchema(arguments),
             parseData(arguments),
             parseStopOnEntry(arguments),
             parseInfosetFormat(arguments),
@@ -314,7 +314,7 @@ object Parse {
           action.getAsString() match {
             case "generate" =>
               (
-                parseProgram(arguments),
+                parseSchema(arguments),
                 parseData(arguments),
                 parseStopOnEntry(arguments),
                 parseInfosetFormat(arguments),
@@ -327,7 +327,7 @@ object Parse {
               ).parMapN(LaunchArgs.TDMLConfig.Generate.apply)
             case "append" =>
               (
-                parseProgram(arguments),
+                parseSchema(arguments),
                 parseData(arguments),
                 parseStopOnEntry(arguments),
                 parseInfosetFormat(arguments),
@@ -356,20 +356,20 @@ object Parse {
           }
       }
 
-    // Parse the program field from the launch config
-    // Returns an error if the program field is missing or is an invalid path
+    // Parse the schema field from the launch config
+    // Returns an error if the schema field is missing or is an invalid path
     // A case where the user expects a new directory to be created is not a valid path
     //   eg. /path/to/<existing>/<non-existing>/file.tdml
     //
     // arguments: Launch config
-    def parseProgram(arguments: JsonObject) =
-      Option(arguments.getAsJsonPrimitive("program"))
-        .toRight("missing 'program' field from launch request")
+    def parseSchema(arguments: JsonObject) =
+      Option(arguments.getAsJsonPrimitive("schema"))
+        .toRight("missing 'schema' field from launch request")
         .flatMap(path =>
           Either
             .catchNonFatal(Paths.get(path.getAsString))
-            .leftMap(t => s"'program' field from launch request is not a valid path: $t")
-            .ensureOr(path => s"program file at $path doesn't exist")(_.toFile().exists())
+            .leftMap(t => s"'schema' field from launch request is not a valid path: $t")
+            .ensureOr(path => s"schema file at $path doesn't exist")(_.toFile().exists())
         )
         .toEitherNel
 

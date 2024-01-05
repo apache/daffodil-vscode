@@ -64,7 +64,7 @@ function getConfigValues() {
     'openInfosetDiffView'
   ).checked
   const openInfosetView = document.getElementById('openInfosetView').checked
-  const program = document.getElementById('program').value
+  const schema = document.getElementById('schema').value
   const stopOnEntry = document.getElementById('stopOnEntry').checked
   const trace = document.getElementById('trace').checked
   const useExistingServer = document.getElementById('useExistingServer').checked
@@ -96,7 +96,7 @@ function getConfigValues() {
     openHexView,
     openInfosetDiffView,
     openInfosetView,
-    program,
+    schema,
     stopOnEntry,
     trace,
     useExistingServer,
@@ -271,7 +271,7 @@ function save() {
         request: 'launch',
         type: 'dfdl',
         name: configValues.name,
-        program: configValues.program,
+        schema: configValues.schema,
         data: configValues.data,
         debugServer: configValues.debugServer,
         infosetFormat: configValues.infosetFormat,
@@ -327,7 +327,7 @@ function copyConfig() {
         request: 'launch',
         type: 'dfdl',
         name: `${configValues.name}`,
-        program: configValues.program,
+        schema: configValues.schema,
         data: configValues.data,
         debugServer: configValues.debugServer,
         infosetFormat: configValues.infosetFormat,
@@ -409,7 +409,7 @@ async function updateConfigValues(config) {
   document.getElementById('openInfosetDiffView').checked =
     config.openInfosetDiffView
   document.getElementById('openInfosetView').checked = config.openInfosetView
-  document.getElementById('program').value = config.program
+  document.getElementById('schema').value = config.schema
   document.getElementById('stopOnEntry').checked = config.stopOnEntry
   document.getElementById('trace').checked = config.trace
   document.getElementById('useExistingServer').checked =
@@ -462,8 +462,8 @@ async function updateDaffodilDebugClasspath(message) {
       case 'dataUpdate':
         document.getElementById('data').value = message.value
         break
-      case 'programUpdate':
-        document.getElementById('program').value = message.value
+      case 'schemaUpdate':
+        document.getElementById('schema').value = message.value
         break
       case 'daffodilDebugClasspathUpdate':
         await updateDaffodilDebugClasspath(message)

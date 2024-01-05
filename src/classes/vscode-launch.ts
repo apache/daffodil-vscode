@@ -24,7 +24,7 @@ export interface VSCodeLaunchConfigArgs {
   name: string
   request: string
   type: string
-  program: string | boolean
+  schema: string | boolean
   data: string | boolean
   debugServer: number | boolean
   infosetFormat: string | null

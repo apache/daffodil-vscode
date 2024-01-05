@@ -24,7 +24,7 @@ class ParseSuite extends FunSuite {
   val name = "Default Config"
   val request = "launch"
   val launchType = "dfdl"
-  var program = Paths.get("./src/test/data/emptySchema.dfdl.xsd").toAbsolutePath().toString()
+  var schema = Paths.get("./src/test/data/emptySchema.dfdl.xsd").toAbsolutePath().toString()
   var data = Paths.get("./src/test/data/emptyData.xml").toAbsolutePath().toString()
   val debugServer = 4711
   val infosetFormat = "xml"
@@ -46,7 +46,7 @@ class ParseSuite extends FunSuite {
   var testTDMLObject = new JsonObject()
 
   override def beforeEach(context: BeforeEach): Unit = {
-    program = Paths.get("./src/test/data/emptySchema.dfdl.xsd").toAbsolutePath().toString()
+    schema = Paths.get("./src/test/data/emptySchema.dfdl.xsd").toAbsolutePath().toString()
     data = Paths.get("./src/test/data/emptyData.xml").toAbsolutePath().toString()
     infosetOutputType = "none"
     infosetOutputPath = "testPath/infoset.xml"
@@ -61,12 +61,12 @@ class ParseSuite extends FunSuite {
     assertEquals(Parse.Debugee.LaunchArgs.parse(testJsonObject).isRight, true)
   }
 
-  test("Parse failed - No Program") {
+  test("Parse failed - No Schema") {
     buildJson()
-    testJsonObject.remove("program")
+    testJsonObject.remove("schema")
     val parseResult = Parse.Debugee.LaunchArgs.parse(testJsonObject)
     assertEquals(parseResult.isLeft, true)
-    assertEquals(parseResult.left.get.head, "missing 'program' field from launch request")
+    assertEquals(parseResult.left.get.head, "missing 'schema' field from launch request")
   }
 
   test("Parse failed - No data") {
@@ -141,12 +141,12 @@ class ParseSuite extends FunSuite {
     )
   }
 
-  test("Parse failed - Invalid Program Path") {
-    program = "badPath.dfdl.xsd"
+  test("Parse failed - Invalid Schema Path") {
+    schema = "badPath.dfdl.xsd"
     buildJson()
     val parseResult = Parse.Debugee.LaunchArgs.parse(testJsonObject)
     assertEquals(parseResult.isLeft, true)
-    assertEquals(parseResult.left.get.head, s"program file at $program doesn't exist")
+    assertEquals(parseResult.left.get.head, s"schema file at $schema doesn't exist")
   }
 
   test("Parse failed - infosetOutputType not file") {
@@ -171,7 +171,7 @@ class ParseSuite extends FunSuite {
     testJsonObject.addProperty("name", name)
     testJsonObject.addProperty("request", request)
     testJsonObject.addProperty("type", launchType)
-    testJsonObject.addProperty("program", program)
+    testJsonObject.addProperty("schema", schema)
     testJsonObject.addProperty("data", data)
     testJsonObject.addProperty("debugServer", debugServer)
     testJsonObject.addProperty("infosetFormat", infosetFormat)
