@@ -28,7 +28,11 @@ suite('Utils Test Suite', () => {
     name: 'Default Config',
     request: 'launch',
     type: 'dfdl',
-    schema: '${command:AskForSchemaName}',
+    schema: {
+      path: '${command:AskForSchemaName}',
+      rootName: '',
+      rootNamespace: '',
+    },
     data: '${command:AskForDataName}',
     debugServer: 4711,
     infosetFormat: 'xml',

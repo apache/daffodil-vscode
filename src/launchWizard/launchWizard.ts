@@ -569,6 +569,18 @@ class LaunchWizard {
         <button id="dataBrowse" class="browse-button" type="button" onclick="filePicker('data', 'Select input data file to debug')">Browse</button>
       </div>
 
+      <div id="rootNameDiv" class="setting-div">
+        <p>Root Element Name:</p>
+        <p class="setting-description">Name of the root element.</p>
+        <input class="file-input" value="${defaultValues.schema.rootName}" id="rootName"/>
+      </div>
+
+      <div id="rootNamespaceDiv" class="setting-div">
+        <p>Root Element Namespace:</p>
+        <p class="setting-description">Namespace of the root element.</p>
+        <input class="file-input" value="${defaultValues.schema.rootNamespace}" id="rootNamespace"/>
+      </div>
+
       <div id="dfdlDebuggerDiv" class="setting-div">
         <p>Daffodil Debugger Settings:</p>
 

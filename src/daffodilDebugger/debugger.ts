@@ -18,7 +18,7 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
-import { regexp, getConfig } from '../utils'
+import { regexp, getConfig, osCheck } from '../utils'
 import { runDebugger, stopDebugger, stopDebugging } from './utils'
 
 // Function to get data file given a folder
@@ -107,16 +107,20 @@ async function getDaffodilDebugClasspath(
 
   //check if each classpath still exists
   if (config.daffodilDebugClasspath) {
-    config.daffodilDebugClasspath.split(':').forEach((entry: string) => {
-      let fullpathEntry = entry.replaceAll(
-        '${workspaceFolder}',
-        workspaceFolder
-      )
+    config.daffodilDebugClasspath
+      .split(osCheck(';', ':'))
+      .forEach((entry: string) => {
+        if (entry !== '') {
+          let fullpathEntry = entry.replaceAll(
+            '${workspaceFolder}',
+            workspaceFolder
+          )
 
-      if (!fs.existsSync(fullpathEntry)) {
-        throw new Error(`File or directory: ${fullpathEntry} doesn't exist`)
-      }
-    })
+          if (!fs.existsSync(fullpathEntry)) {
+            throw new Error(`File or directory: ${fullpathEntry} doesn't exist`)
+          }
+        }
+      })
 
     daffodilDebugClasspath = config.daffodilDebugClasspath.includes(
       '${workspaceFolder}'
@@ -156,7 +160,7 @@ export async function getDebugger(
     await stopDebugger()
 
     // Get schema file before debugger starts to avoid timeout
-    if (config.schema.includes('${command:AskForSchemaName}')) {
+    if (config.schema.path.includes('${command:AskForSchemaName}')) {
       config.schema = await vscode.commands.executeCommand(
         'extension.dfdl-debug.getSchemaName'
       )

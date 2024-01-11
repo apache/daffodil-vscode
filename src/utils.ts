@@ -121,7 +121,11 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
   const defaultConf = vscode.workspace.getConfiguration()
 
   const defaultValues = {
-    schema: defaultConf.get('schema', '${command:AskForSchemaName}'),
+    schema: defaultConf.get('schema', {
+      path: '${command:AskForSchemaName}',
+      rootName: '',
+      rootNamespace: '',
+    }),
     data: defaultConf.get('data', '${command:AskForDataName}'),
     debugServer: defaultConf.get('debugServer', 4711),
     infosetFormat: 'xml',
@@ -226,6 +230,8 @@ export const getTerminal = (
   const terminal = vscode.window.createTerminal({
     name: terminalName,
     hideFromUser: hideTerminal,
+    // Need to specify 'cmd' for windows as by default it will use powershell which causes issues with the envionment varaibles
+    shellPath: osCheck('cmd', undefined),
   })
 
   // Looping to manual set all env variables. Setting "env: env" inside of createTerminal won't override variables already set
@@ -234,7 +240,15 @@ export const getTerminal = (
       let workspaceFolder = vscode.workspace.workspaceFolders
         ? vscode.workspace.workspaceFolders[0].uri.fsPath
         : ''
-      let exportVar = `${osCheck('set', 'export')} ${key}=${env[key]}`
+
+      /*
+       * NOTE: For windows to function properly the set format needs to be:
+       *         set "VARIABLE_NAME=VARIABLE_VALUE"
+       * In bash doing:
+       *         export "VARIABLE_NAME=VARIABLE_VALUE"
+       * didn't cause any issues so this was easiest work around.
+       */
+      let exportVar = `${osCheck('set', 'export')} "${key}=${env[key]}"`
 
       if (exportVar.includes('${workspaceFolder}')) {
         exportVar = exportVar.replaceAll('${workspaceFolder}', workspaceFolder)
