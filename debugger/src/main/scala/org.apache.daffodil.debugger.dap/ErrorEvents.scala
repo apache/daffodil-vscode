@@ -26,5 +26,4 @@ object ErrorEvents {
   case object LaunchArgsParseError extends DebugEvent("daffodil.error.launchargparse")
   case object RequestError extends DebugEvent("daffodil.error.request")
   case object SourceError extends DebugEvent("daffodil.error.source")
-  case object ScopeNotFoundError extends DebugEvent("daffodil.error.scopenotfound")
 }

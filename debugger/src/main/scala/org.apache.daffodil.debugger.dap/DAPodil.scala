@@ -368,9 +368,12 @@ class DAPodil(
           _ <- data.stack
             .findFrame(DAPodil.Frame.Id(args.frameId))
             .fold(
-              session.abort(
-                ErrorEvents.ScopeNotFoundError,
-                s"couldn't find scopes for frame ${args.frameId}: ${data.stack.frames.map(f => f.id -> f.stackFrame.name)}"
+              session.sendResponse(
+                request.respondFailure(
+                  Some(
+                    s"couldn't find scopes for frame ${args.frameId}: ${data.stack.frames.map(f => f.id -> f.stackFrame.name)}; this is likely due to the front end advancing via 'continue' or 'next' before this request was eventually made"
+                  )
+                )
               )
             ) { frame =>
               session.sendResponse(
@@ -390,9 +393,12 @@ class DAPodil(
           _ <- data.stack
             .variables(DAPodil.VariablesReference(args.variablesReference))
             .fold(
-              session.abort(
-                ErrorEvents.UnexpectedError,
-                show"couldn't find variablesReference ${args.variablesReference} in stack ${data}"
+              session.sendResponse(
+                request.respondFailure(
+                  Some(
+                    show"couldn't find variablesReference ${args.variablesReference} in stack ${data}; this is likely due to the front end advancing via 'continue' or 'next' before this request was eventually made"
+                  )
+                )
               )
             )(variables =>
               session.sendResponse(request.respondSuccess(new Responses.VariablesResponseBody(variables.asJava)))
@@ -633,8 +639,8 @@ object DAPodil extends IOApp {
             new Events.StoppedEvent("pause", 1L)
           case Debugee.State.Stopped(Debugee.State.Stopped.Reason.Step) =>
             new Events.StoppedEvent("step", 1L)
-          case Debugee.State.Stopped(Debugee.State.Stopped.Reason.BreakpointHit(_)) =>
-            new Events.StoppedEvent("breakpoint", 1L)
+          case Debugee.State.Stopped(Debugee.State.Stopped.Reason.BreakpointHit(location)) =>
+            new Events.StoppedEvent("breakpoint", 1L, false, show"Breakpoint hit at $location", null)
         }
         .onFinalizeCase(ec => Logger[IO].debug(s"deliverStoppedEvents: $ec"))
 

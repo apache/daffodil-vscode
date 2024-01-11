@@ -31,14 +31,14 @@ object logging {
     case response if response.command == "source" =>
       s"#${response.request_seq} ${response.command} ${if (response.success) "success"
         else "failure"} <response body elided>"
-    case response =>
-      s"#${response.request_seq} ${response.command} ${if (response.success) "success"
-        else "failure"} ${JsonUtils
-          .toJson(response.body)}"
+    case response if response.success =>
+      s"#${response.request_seq} ${response.command} success ${JsonUtils.toJson(response.body)}"
+    case failed =>
+      s"#${failed.request_seq} ${failed.command} failure ${failed.message}"
   }
 
   implicit val eventShow: Show[DebugEvent] = {
-    case event: Events.StoppedEvent => s"${event.`type`} ${event.reason}"
+    case event: Events.StoppedEvent => s"${event.`type`} ${event.reason} ${event.description}"
     case event: Events.ThreadEvent  => s"${event.`type`} ${event.reason}"
     case event: DAPodil.LoadedSourceEvent =>
       s"${event.`type`} ${event.reason} ${JsonUtils.toJson(event.source)}"
