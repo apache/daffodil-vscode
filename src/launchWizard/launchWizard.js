@@ -79,6 +79,8 @@ function getConfigValues() {
   const dfdlDebuggerLogLevel = document.getElementById(
     'dfdlDebuggerLogLevel'
   ).value
+  const rootName = document.getElementById('rootName').value
+  const rootNamespace = document.getElementById('rootNamespace').value
 
   const daffodilDebugClasspath = getDaffodilDebugClasspathString()
 
@@ -106,6 +108,8 @@ function getConfigValues() {
     dfdlDebuggerLogFile,
     dfdlDebuggerLogLevel,
     daffodilDebugClasspath,
+    rootName,
+    rootNamespace,
   }
 }
 
@@ -271,7 +275,11 @@ function save() {
         request: 'launch',
         type: 'dfdl',
         name: configValues.name,
-        schema: configValues.schema,
+        schema: {
+          path: configValues.schema,
+          rootName: configValues.rootName,
+          rootNamespace: configValues.rootNamespace,
+        },
         data: configValues.data,
         debugServer: configValues.debugServer,
         infosetFormat: configValues.infosetFormat,
@@ -327,7 +335,11 @@ function copyConfig() {
         request: 'launch',
         type: 'dfdl',
         name: `${configValues.name}`,
-        schema: configValues.schema,
+        schema: {
+          path: configValues.schema,
+          rootName: configValues.rootName,
+          rootNamespace: configValues.rootNamespace,
+        },
         data: configValues.data,
         debugServer: configValues.debugServer,
         infosetFormat: configValues.infosetFormat,
@@ -375,6 +387,8 @@ function copyConfig() {
 async function updateConfigValues(config) {
   document.getElementById('name').value = config.name
   document.getElementById('data').value = config.data
+  document.getElementById('rootName').value = config.rootName
+  document.getElementById('rootNamespace').value = config.rootNamespace
   document.getElementById('debugServer').value = parseInt(config.debugServer)
   document.getElementById('infosetFormat').value = config.infosetFormat
     ? config.infosetFormat

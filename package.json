@@ -331,9 +331,13 @@
             ],
             "properties": {
               "schema": {
-                "type": "string",
-                "description": "Absolute path to the DFDL schema file.",
-                "default": "${command:AskForSchemaName}"
+                "type": "object",
+                "description": "Contains the absolute path to the DFDL schema file, root element name and namespace.",
+                "default": {
+                  "path": "${command:AskForSchemaName}",
+                  "rootName": "",
+                  "rootNamespace": ""
+                }
               },
               "data": {
                 "type": "string",
@@ -450,9 +454,13 @@
             "type": "dfdl",
             "request": "launch",
             "name": "Ask for file name",
-            "schema": "${command:AskForSchemaName}",
-            "stopOnEntry": true,
+            "schema": {
+              "path": "${command:AskForSchemaName}",
+              "rootName": "",
+              "rootNamespace": ""
+            },
             "data": "${command:AskForDataName}",
+            "stopOnEntry": true,
             "infosetFormat": "xml",
             "infosetOutput": {
               "type": "file",
@@ -494,9 +502,13 @@
               "type": "dfdl",
               "request": "launch",
               "name": "Ask for file name",
-              "schema": "^\"\\${command:AskForSchemaName}\"",
-              "stopOnEntry": true,
+              "schema": {
+                "path": "^\"\\${command:AskForSchemaName}\"",
+                "rootName": "",
+                "rootNamespace": ""
+              },
               "data": "^\"\\${command:AskForDataName}\"",
+              "stopOnEntry": true,
               "infosetFormat": "xml",
               "infosetOutput": {
                 "type": "file",
@@ -550,9 +562,13 @@
             "default": "dfdl"
           },
           "schema": {
-            "type": "string",
-            "description": "Absolute path to the DFDL schema file.",
-            "default": "${command:AskForSchemaName}"
+            "type": "object",
+            "description": "Contains the absolute path to the DFDL schema file, root element name and namespace.",
+            "default": {
+              "path": "${command:AskForSchemaName}",
+              "rootName": "",
+              "rootNamespace": ""
+            }
           },
           "data": {
             "type": "string",

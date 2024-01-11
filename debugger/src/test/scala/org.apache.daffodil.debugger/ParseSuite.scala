@@ -24,7 +24,8 @@ class ParseSuite extends FunSuite {
   val name = "Default Config"
   val request = "launch"
   val launchType = "dfdl"
-  var schema = Paths.get("./src/test/data/emptySchema.dfdl.xsd").toAbsolutePath().toString()
+  val schema = new JsonObject()
+  var schemaPath = Paths.get("./src/test/data/emptySchema.dfdl.xsd").toAbsolutePath().toString()
   var data = Paths.get("./src/test/data/emptyData.xml").toAbsolutePath().toString()
   val debugServer = 4711
   val infosetFormat = "xml"
@@ -46,7 +47,7 @@ class ParseSuite extends FunSuite {
   var testTDMLObject = new JsonObject()
 
   override def beforeEach(context: BeforeEach): Unit = {
-    schema = Paths.get("./src/test/data/emptySchema.dfdl.xsd").toAbsolutePath().toString()
+    schemaPath = Paths.get("./src/test/data/emptySchema.dfdl.xsd").toAbsolutePath().toString()
     data = Paths.get("./src/test/data/emptyData.xml").toAbsolutePath().toString()
     infosetOutputType = "none"
     infosetOutputPath = "testPath/infoset.xml"
@@ -63,10 +64,10 @@ class ParseSuite extends FunSuite {
 
   test("Parse failed - No Schema") {
     buildJson()
-    testJsonObject.remove("schema")
+    schema.remove("path")
     val parseResult = Parse.Debugee.LaunchArgs.parse(testJsonObject)
     assertEquals(parseResult.isLeft, true)
-    assertEquals(parseResult.left.get.head, "missing 'schema' field from launch request")
+    assertEquals(parseResult.left.get.head, "missing 'schema.path' field from launch request")
   }
 
   test("Parse failed - No data") {
@@ -142,11 +143,11 @@ class ParseSuite extends FunSuite {
   }
 
   test("Parse failed - Invalid Schema Path") {
-    schema = "badPath.dfdl.xsd"
+    schemaPath = "badPath.dfdl.xsd"
     buildJson()
     val parseResult = Parse.Debugee.LaunchArgs.parse(testJsonObject)
     assertEquals(parseResult.isLeft, true)
-    assertEquals(parseResult.left.get.head, s"schema file at $schema doesn't exist")
+    assertEquals(parseResult.left.get.head, s"schema file at $schemaPath doesn't exist")
   }
 
   test("Parse failed - infosetOutputType not file") {
@@ -158,6 +159,7 @@ class ParseSuite extends FunSuite {
   }
 
   def buildJson(): Unit = {
+    schema.addProperty("path", schemaPath)
 
     val infoset = new JsonObject()
     infoset.addProperty("type", infosetOutputType)
@@ -171,7 +173,7 @@ class ParseSuite extends FunSuite {
     testJsonObject.addProperty("name", name)
     testJsonObject.addProperty("request", request)
     testJsonObject.addProperty("type", launchType)
-    testJsonObject.addProperty("schema", schema)
+    testJsonObject.add("schema", schema)
     testJsonObject.addProperty("data", data)
     testJsonObject.addProperty("debugServer", debugServer)
     testJsonObject.addProperty("infosetFormat", infosetFormat)

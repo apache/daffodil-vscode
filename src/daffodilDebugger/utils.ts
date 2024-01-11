@@ -44,7 +44,7 @@ export const shellArgs = (port: number, isAtLeastJdk17: boolean) => {
   //   https://docs.oracle.com/en/java/javase/17/migrate/migrating-jdk-8-later-jdk-releases.html#GUID-7BB28E4D-99B3-4078-BDC4-FC24180CE82B
   const extraArgs = isAtLeastJdk17
     ? osCheck(
-        ['-J"--add-opens java.base/java.lang=ALL-UNNAMED"'],
+        ['-J"--add-opens=java.base/java.lang=ALL-UNNAMED"'],
         ['-J--add-opens', '-Jjava.base/java.lang=ALL-UNNAMED']
       )
     : []

@@ -98,18 +98,24 @@ suite('Daffodfil', () => {
       }
 
       let launchArgs: daffodil.LaunchArgs = {
-        schemaPath: '/path/to/schema.xsd.xml',
+        schema: {
+          path: '/path/to/schema.xsd.xml',
+          rootName: '',
+          rootNamespace: '',
+        },
         dataPath: '/path/to/data.jpg',
         stopOnEntry: true,
         infosetFormat: 'json',
         infosetOutput: infosetOutput,
       }
 
-      assert.strictEqual('/path/to/schema.xsd.xml', launchArgs.schemaPath)
+      assert.strictEqual('/path/to/schema.xsd.xml', launchArgs.schema.path)
       assert.strictEqual('/path/to/data.jpg', launchArgs.dataPath)
       assert.strictEqual(true, launchArgs.stopOnEntry)
       assert.strictEqual('json', launchArgs.infosetFormat)
       assert.strictEqual(infosetOutput, launchArgs.infosetOutput)
+      assert.strictEqual('', launchArgs.schema.rootName)
+      assert.strictEqual('', launchArgs.schema.rootNamespace)
     })
 
     test('ConfigEvent functions properly', () => {
@@ -124,7 +130,11 @@ suite('Daffodfil', () => {
         scalaVersion: allVersions,
       }
       let launchArgs: daffodil.LaunchArgs = {
-        schemaPath: '/path/to/schema.xsd.xml',
+        schema: {
+          path: '/path/to/schema.xsd.xml',
+          rootName: '',
+          rootNamespace: '',
+        },
         dataPath: '/path/to/data.jpg',
         stopOnEntry: true,
         infosetFormat: 'xml',

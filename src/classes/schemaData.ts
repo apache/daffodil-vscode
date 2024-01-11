@@ -15,29 +15,8 @@
  * limitations under the License.
  */
 
-import { TDMLConfig } from './tdmlConfig'
-import { DataEditorConfig } from './dataEditor'
-import { InfosetOutput } from '../daffodilDebugger'
-import { DFDLDebugger } from './dfdlDebugger'
-import { SchemaData } from './schemaData'
-
-export interface VSCodeLaunchConfigArgs {
-  name: string
-  request: string
-  type: string
-  schema: SchemaData
-  data: string | boolean
-  debugServer: number | boolean
-  infosetFormat: string | null
-  infosetOutput: InfosetOutput | null
-  tdmlConfig: TDMLConfig | null
-  dataEditor: DataEditorConfig | null
-  stopOnEntry: boolean
-  useExistingServer: boolean
-  trace: boolean
-  openDataEditor: boolean
-  openInfosetView: boolean
-  openInfosetDiffView: boolean
-  daffodilDebugClasspath: string
-  dfdlDebugger: DFDLDebugger
+export interface SchemaData {
+  path: string
+  rootName: string
+  rootNamespace: string
 }

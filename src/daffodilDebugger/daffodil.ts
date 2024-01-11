@@ -18,6 +18,7 @@
 import * as fs from 'fs'
 import { parse as jsoncParse } from 'jsonc-parser'
 import { DebugSession, DebugSessionCustomEvent, debug } from 'vscode'
+import { SchemaData } from '../classes/schemaData'
 
 export const dataEvent = 'daffodil.data'
 export interface DaffodilData {
@@ -39,7 +40,7 @@ export interface ConfigEvent {
 }
 
 export interface LaunchArgs {
-  schemaPath: string
+  schema: SchemaData
   dataPath: string
   stopOnEntry: boolean
   infosetFormat: string
