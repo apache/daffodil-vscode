@@ -47,7 +47,7 @@
     "svelte:check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
-    "@omega-edit/client": "0.9.76",
+    "@omega-edit/client": "0.9.77",
     "@viperproject/locate-java-home": "1.1.13",
     "@vscode/debugadapter": "1.63.0",
     "await-notify": "1.0.1",
