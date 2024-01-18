@@ -100,9 +100,9 @@ suite('Daffodil Debugger', () => {
 
   after(async () => {
     await stopDebugging()
-    debuggers.forEach((d) => {
-      d.processId?.then(async (id) => await killProcess(id))
-    })
+    for (const d of debuggers) {
+      await d.processId?.then(killProcess)
+    }
     fs.rmSync(EXTRACTED_FOLDER, { recursive: true })
     if (fs.existsSync(XML_INFOSET_PATH)) fs.rmSync(XML_INFOSET_PATH)
     if (fs.existsSync(JSON_INFOSET_PATH)) fs.rmSync(JSON_INFOSET_PATH)
