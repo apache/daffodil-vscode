@@ -82,8 +82,9 @@ import {
   HeartbeatInfo,
   IHeartbeatInfo,
 } from './include/server/heartbeat/HeartBeatInfo'
-import { ServerInfo } from './include/server/ServerInfo'
+import { configureOmegaEditPort, ServerInfo } from './include/server/ServerInfo'
 import { extractDaffodilEvent } from '../daffodilDebugger/daffodil'
+import * as editor_config from './config'
 
 // *****************************************************************************
 // global constants
@@ -98,11 +99,8 @@ export const APP_DATA_PATH: string = XDGAppPaths({ name: 'omega_edit' }).data()
 // file-scoped constants
 // *****************************************************************************
 
-const DEFAULT_OMEGA_EDIT_PORT: number = 9000
 const HEARTBEAT_INTERVAL_MS: number = 1000 // 1 second (1000 ms)
 const MAX_LOG_FILES: number = 5 // Maximum number of log files to keep TODO: make this configurable
-const OMEGA_EDIT_MAX_PORT: number = 65535
-const OMEGA_EDIT_MIN_PORT: number = 1024
 
 // *****************************************************************************
 // file-scoped variables
@@ -125,7 +123,8 @@ export function activate(ctx: vscode.ExtensionContext): void {
     vscode.commands.registerCommand(
       DATA_EDITOR_COMMAND,
       async (fileToEdit: string = '') => {
-        return await createDataEditorWebviewPanel(ctx, fileToEdit)
+        let configVars = editor_config.extractConfigurationVariables()
+        return await createDataEditorWebviewPanel(ctx, configVars, fileToEdit)
       }
     )
   )
@@ -144,10 +143,12 @@ export class DataEditorClient implements vscode.Disposable {
   private omegaSessionId = ''
   private sendHeartbeatIntervalId: NodeJS.Timeout | number | undefined =
     undefined
+
   constructor(
     protected context: vscode.ExtensionContext,
     private view: string,
     title: string,
+    private configVars: editor_config.IConfig,
     fileToEdit: string = ''
   ) {
     const column =
@@ -193,6 +194,8 @@ export class DataEditorClient implements vscode.Disposable {
   }
 
   public async initialize() {
+    checkpointPath = this.configVars.checkpointPath
+
     if (this.fileToEdit !== '') {
       await this.setupDataEditor()
     } else {
@@ -323,13 +326,13 @@ export class DataEditorClient implements vscode.Disposable {
       command: MessageCommand.heartbeat,
       data: {
         latency: heartbeatInfo.latency,
-        omegaEditPort: heartbeatInfo.omegaEditPort,
+        omegaEditPort: this.configVars.port,
         serverCpuLoadAverage: heartbeatInfo.serverCpuLoadAverage,
         serverUptime: heartbeatInfo.serverUptime,
         serverUsedMemory: heartbeatInfo.serverUsedMemory,
         sessionCount: heartbeatInfo.sessionCount,
         serverInfo: {
-          omegaEditPort: heartbeatInfo.omegaEditPort,
+          omegaEditPort: this.configVars.port,
           serverVersion: heartbeatInfo.serverInfo.serverVersion,
           serverHostname: heartbeatInfo.serverInfo.serverHostname,
           serverProcessId: heartbeatInfo.serverInfo.serverProcessId,
@@ -802,17 +805,10 @@ export class DataEditorClient implements vscode.Disposable {
 // *****************************************************************************
 // file-scoped functions
 // *****************************************************************************
-function cleanFileToEditStr(fileToEdit: string): string {
-  let rootPath = vscode.workspace.workspaceFolders
-    ? vscode.workspace.workspaceFolders[0].uri.fsPath
-    : vscode.Uri.parse('').fsPath
-  fileToEdit = fileToEdit.includes('${workspaceFolder}')
-    ? fileToEdit.replace('${workspaceFolder}', rootPath)
-    : fileToEdit
-  return fileToEdit
-}
+
 async function createDataEditorWebviewPanel(
   ctx: vscode.ExtensionContext,
+  launchConfigVars: editor_config.IConfig,
   fileToEdit: string
 ): Promise<DataEditorClient> {
   // make sure the app data path exists
@@ -820,12 +816,12 @@ async function createDataEditorWebviewPanel(
   assert(fs.existsSync(APP_DATA_PATH), 'app data path does not exist')
 
   // make sure the omega edit port is configured
-  configureOmegaEditPort()
-  assert(omegaEditPort > 0, 'omega edit port not configured')
+  configureOmegaEditPort(launchConfigVars)
+  omegaEditPort = launchConfigVars.port
 
   // only start up the server if one is not already running
   if (!(await checkServerListening(omegaEditPort, OMEGA_EDIT_HOST))) {
-    await setupLogging()
+    await setupLogging(launchConfigVars)
     setAutoFixViewportDataLength(true)
     await serverStart()
     client = await getClient(omegaEditPort, OMEGA_EDIT_HOST)
@@ -840,11 +836,16 @@ async function createDataEditorWebviewPanel(
       'heartbeat did not receive a server version'
     )
   }
-  fileToEdit = cleanFileToEditStr(fileToEdit)
+  fileToEdit = fileToEdit.replace(
+    editor_config.WorkspaceKeyword,
+    editor_config.rootPath
+  )
+
   const dataEditorView = new DataEditorClient(
     ctx,
     'dataEditor',
     'Data Editor',
+    launchConfigVars,
     fileToEdit
   )
 
@@ -911,62 +912,12 @@ function getPidFile(serverPort: number): string {
   return path.join(APP_DATA_PATH, `serv-${serverPort}.pid`)
 }
 
-function configureOmegaEditPort(): void {
-  if (omegaEditPort === 0) {
-    /**
-     * Loop through all available configurations inside of launch.json
-     * If dataEditor.omegaEditPort is set then we update the port
-     *   NOTE: Whichever configuration sets the last will be the value used
-     */
-    vscode.workspace
-      .getConfiguration(
-        'launch',
-        vscode.workspace.workspaceFolders
-          ? vscode.workspace.workspaceFolders[0].uri
-          : vscode.Uri.parse('')
-      )
-      .get<Array<Object>>('configurations')
-      ?.forEach((config) => {
-        omegaEditPort =
-          'dataEditor' in config && 'port' in (config['dataEditor'] as object)
-            ? ((config['dataEditor'] as object)['port'] as number)
-            : omegaEditPort
-      })
-
-    omegaEditPort =
-      omegaEditPort !== 0 ? omegaEditPort : DEFAULT_OMEGA_EDIT_PORT
-
-    if (
-      omegaEditPort <= OMEGA_EDIT_MIN_PORT ||
-      omegaEditPort > OMEGA_EDIT_MAX_PORT
-    ) {
-      const message = `Invalid port ${omegaEditPort} for Ωedit. Use a port between ${OMEGA_EDIT_MIN_PORT} and ${OMEGA_EDIT_MAX_PORT}`
-      omegaEditPort = 0
-      throw new Error(message)
-    }
-    // Set the checkpoint path to be used by Ωedit sessions
-    checkpointPath = path.join(APP_DATA_PATH, `.checkpoint-${omegaEditPort}`)
-    if (!fs.existsSync(checkpointPath)) {
-      fs.mkdirSync(checkpointPath, { recursive: true })
-    }
-    assert(fs.existsSync(checkpointPath), 'checkpoint path does not exist')
-    assert(omegaEditPort !== 0, 'omegaEditPort is not set')
-  }
-}
-
-async function setupLogging(): Promise<void> {
-  const config = vscode.workspace.getConfiguration('dataEditor')
-  const logFile = config
-    .get<string>(
-      'logFile',
-      '${workspaceFolder}/dataEditor-${omegaEditPort}.log'
-    )
-    ?.replace('${workspaceFolder}', APP_DATA_PATH)
-    .replace('${omegaEditPort}', omegaEditPort.toString())
+async function setupLogging(configVars: editor_config.Config): Promise<void> {
+  const logFile = configVars.logFile
   const logLevel =
     process.env.OMEGA_EDIT_CLIENT_LOG_LEVEL ||
     process.env.OMEGA_EDIT_LOG_LEVEL ||
-    config.get<string>('logLevel', 'info')
+    configVars.logLevel
   rotateLogFiles(logFile)
   setLogger(createSimpleFileLogger(logFile, logLevel))
   vscode.window.showInformationMessage(`Logging (${logLevel}) to '${logFile}'`)
