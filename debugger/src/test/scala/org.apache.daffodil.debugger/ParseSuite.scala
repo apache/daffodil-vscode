@@ -138,7 +138,7 @@ class ParseSuite extends FunSuite {
     assertEquals(parseResult.isLeft, true)
     assertEquals(
       parseResult.left.get.head,
-      "invalid 'tdmlConfig.action': 'InvalidAction', must be 'generate', 'append', or 'execute'"
+      "invalid 'tdmlConfig.action': 'InvalidAction', must be 'generate', 'append', 'none', or 'execute'"
     )
   }
 
