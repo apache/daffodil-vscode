@@ -124,9 +124,12 @@ function latestJdk(jdkHomes: IJavaHomeInfo[]): IJavaHomeInfo | undefined {
 
 // Function for stopping debugging
 export async function stopDebugging() {
-  vscode.debug.stopDebugging()
-  deactivate()
-  vscode.window.activeTerminal?.processId.then(async (id) => {
-    await stopDebugger(id)
+  vscode.debug.stopDebugging().then(async () => {
+    deactivate()
+    for (const t of vscode.window.terminals) {
+      await t.processId?.then(async (id) => {
+        await stopDebugger(id)
+      })
+    }
   })
 }

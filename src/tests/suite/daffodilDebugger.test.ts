@@ -21,23 +21,13 @@ import * as path from 'path'
 import * as fs from 'fs'
 import { PROJECT_ROOT, PACKAGE_PATH, TEST_SCHEMA } from './common'
 import { getConfig, killProcess } from '../../utils'
-import {
-  daffodilArtifact,
-  daffodilVersion,
-  runDebugger,
-  stopDebugging,
-} from '../../daffodilDebugger'
+import { runDebugger, stopDebugging } from '../../daffodilDebugger'
 import { before, after } from 'mocha'
 import { DFDLDebugger } from '../../classes/dfdlDebugger'
 import { DataEditorConfig } from '../../classes/dataEditor'
 
 // Not using the debug adapter like adapter.test.ts as it will not fully connect the debugger
 suite('Daffodil Debugger', () => {
-  const dfdlVersion = daffodilVersion(PACKAGE_PATH)
-  const artifact = daffodilArtifact(dfdlVersion)
-
-  const EXTRACTED_FOLDER = path.join(PROJECT_ROOT, artifact.name)
-
   // debugger options
   const DATA = path.join(PROJECT_ROOT, 'src/tests/data/test.txt')
   const XML_INFOSET_PATH = path.join(PROJECT_ROOT, 'testinfoset.xml')
@@ -101,9 +91,10 @@ suite('Daffodil Debugger', () => {
   after(async () => {
     await stopDebugging()
     for (const d of debuggers) {
-      await d.processId?.then(killProcess)
+      const pid = await d.processId
+      await killProcess(pid)
     }
-    fs.rmSync(EXTRACTED_FOLDER, { recursive: true })
+    // No need to deleted the debugging server because upon re-run, webpack cleans and re-extracts it.
     if (fs.existsSync(XML_INFOSET_PATH)) fs.rmSync(XML_INFOSET_PATH)
     if (fs.existsSync(JSON_INFOSET_PATH)) fs.rmSync(JSON_INFOSET_PATH)
     dfdlDebuggers.forEach((dfdlDebugger) => {
