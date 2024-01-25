@@ -41,7 +41,6 @@ import {
   getLogger,
   getServerHeartbeat,
   getServerInfo,
-  getSessionCount,
   getViewportData,
   IOFlags,
   IServerInfo,
@@ -82,9 +81,15 @@ import {
   HeartbeatInfo,
   IHeartbeatInfo,
 } from './include/server/heartbeat/HeartBeatInfo'
-import { configureOmegaEditPort, ServerInfo } from './include/server/ServerInfo'
 import { extractDaffodilEvent } from '../daffodilDebugger/daffodil'
 import * as editor_config from './config'
+import {
+  configureOmegaEditPort,
+  NoSessionsExist,
+  ServerInfo,
+  ServerStopPredicate,
+} from './include/server/ServerInfo'
+import { isDFDLDebugSessionActive } from './include/utils'
 
 // *****************************************************************************
 // global constants
@@ -186,6 +191,7 @@ export class DataEditorClient implements vscode.Disposable {
 
     // destroy the session and remove it from the list of active sessions
     removeActiveSession(await destroySession(this.omegaSessionId))
+    await serverStop()
     this.panel.dispose()
   }
 
@@ -216,6 +222,10 @@ export class DataEditorClient implements vscode.Disposable {
     this.sendHeartbeatIntervalId = setInterval(() => {
       this.sendHeartbeat()
     }, HEARTBEAT_INTERVAL_MS)
+  }
+
+  sessionId(): string {
+    return this.omegaSessionId
   }
 
   private async setupDataEditor() {
@@ -853,19 +863,17 @@ async function createDataEditorWebviewPanel(
 
   dataEditorView.panel.onDidDispose(
     async () => {
-      await dataEditorView.dispose()
-      // stop the server if the session count is zero
-      const sessionCount = await getSessionCount()
-      if (sessionCount === 0) {
-        assert(activeSessions.length === 0)
-
-        // stop the server
-        await serverStop()
-      }
+      removeActiveSession(await destroySession(dataEditorView.sessionId()))
+      await serverStopIf(NoSessionsExist)
     },
-    undefined,
+    dataEditorView,
     ctx.subscriptions
   )
+  if (isDFDLDebugSessionActive())
+    vscode.debug.onDidTerminateDebugSession(async () => {
+      removeActiveSession(await destroySession(dataEditorView.sessionId()))
+      await serverStopIf(NoSessionsExist)
+    })
 
   dataEditorView.show()
   return dataEditorView
@@ -1125,7 +1133,9 @@ function removeDirectory(dirPath: string): void {
     fs.rmdirSync(dirPath)
   }
 }
-
+async function serverStopIf(predicate: ServerStopPredicate) {
+  if (await predicate()) await serverStop()
+}
 async function serverStop() {
   const serverPidFile = getPidFile(omegaEditPort)
   if (fs.existsSync(serverPidFile)) {
