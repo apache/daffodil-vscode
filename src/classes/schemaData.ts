@@ -17,6 +17,6 @@
 
 export interface SchemaData {
   path: string
-  rootName: string
-  rootNamespace: string
+  rootName: string | null
+  rootNamespace: string | null
 }

@@ -115,8 +115,8 @@ function createDebugRunFileConfigs(
           type: 'dfdl',
           schema: {
             path: targetResource.fsPath,
-            rootName: '',
-            rootNamespace: '',
+            rootName: null,
+            rootNamespace: null,
           },
           data: false,
           debugServer: false,
@@ -303,8 +303,8 @@ export function activateDaffodilDebug(
                 type: 'dfdl',
                 schema: {
                   path: '${file}',
-                  rootName: '',
-                  rootNamespace: '',
+                  rootName: null,
+                  rootNamespace: null,
                 },
                 data: false,
                 debugServer: false,
@@ -331,8 +331,8 @@ export function activateDaffodilDebug(
               type: 'dfdl',
               schema: {
                 path: '${file}',
-                rootName: '',
-                rootNamespace: '',
+                rootName: null,
+                rootNamespace: null,
               },
               data: false,
               debugServer: false,

@@ -18,7 +18,7 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
-import { regexp, getConfig, osCheck } from '../utils'
+import { getConfig } from '../utils'
 import { runDebugger, stopDebugger, stopDebugging } from './utils'
 
 // Function to get data file given a folder
@@ -102,34 +102,25 @@ async function getTDMLConfig(
 async function getDaffodilDebugClasspath(
   config: vscode.DebugConfiguration,
   workspaceFolder: string
-): Promise<string> {
-  let daffodilDebugClasspath = ''
+): Promise<Array<string>> {
+  let daffodilDebugClasspath: Array<string> = []
 
   //check if each classpath still exists
   if (config.daffodilDebugClasspath) {
-    config.daffodilDebugClasspath
-      .split(osCheck(';', ':'))
-      .forEach((entry: string) => {
-        if (entry !== '') {
-          let fullpathEntry = entry.replaceAll(
-            '${workspaceFolder}',
-            workspaceFolder
-          )
-
-          if (!fs.existsSync(fullpathEntry)) {
-            throw new Error(`File or directory: ${fullpathEntry} doesn't exist`)
-          }
-        }
-      })
-
-    daffodilDebugClasspath = config.daffodilDebugClasspath.includes(
-      '${workspaceFolder}'
-    )
-      ? config.daffodilDebugClasspath.replace(
-          regexp['workspace'],
+    config.daffodilDebugClasspath.forEach((entry: string) => {
+      if (entry !== '') {
+        let fullpathEntry = entry.replaceAll(
+          '${workspaceFolder}',
           workspaceFolder
         )
-      : config.daffodilDebugClasspath
+
+        if (!fs.existsSync(fullpathEntry)) {
+          throw new Error(`File or directory: ${fullpathEntry} doesn't exist`)
+        } else {
+          daffodilDebugClasspath.push(fullpathEntry)
+        }
+      }
+    })
   }
 
   // make sure infoset output directory is present

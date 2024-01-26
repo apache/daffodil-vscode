@@ -333,10 +333,28 @@
               "schema": {
                 "type": "object",
                 "description": "Contains the absolute path to the DFDL schema file, root element name and namespace.",
+                "required": ["path"],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": "Absolute path to the DFDL schema file",
+                    "default": "${command:AskForSchemaName}"
+                  },
+                  "rootName": {
+                    "type": ["string", "null"],
+                    "description": "Name of the root element",
+                    "default": null
+                  },
+                  "rootNamespace": {
+                    "type": ["string", "null"],
+                    "description": "Name of the root element namespace",
+                    "default": null
+                  }
+                },
                 "default": {
                   "path": "${command:AskForSchemaName}",
-                  "rootName": "",
-                  "rootNamespace": ""
+                  "rootName": null,
+                  "rootNamespace": null
                 }
               },
               "data": {
@@ -407,9 +425,9 @@
                 "default": false
               },
               "daffodilDebugClasspath": {
-                "type": "string",
+                "type": "array",
                 "description": "Additional classpaths to be exported to the debugger",
-                "default": ""
+                "default": []
               },
               "variables": {
                 "type": "object",
@@ -456,8 +474,8 @@
             "name": "Ask for file name",
             "schema": {
               "path": "${command:AskForSchemaName}",
-              "rootName": "",
-              "rootNamespace": ""
+              "rootName": null,
+              "rootNamespace": null
             },
             "data": "${command:AskForDataName}",
             "stopOnEntry": true,
@@ -476,7 +494,7 @@
             "openDataEditor": false,
             "openInfosetView": false,
             "openInfosetDiffView": false,
-            "daffodilDebugClasspath": "",
+            "daffodilDebugClasspath": [],
             "variables": {},
             "tunables": {},
             "dataEditor": {
@@ -504,8 +522,8 @@
               "name": "Ask for file name",
               "schema": {
                 "path": "^\"\\${command:AskForSchemaName}\"",
-                "rootName": "",
-                "rootNamespace": ""
+                "rootName": null,
+                "rootNamespace": null
               },
               "data": "^\"\\${command:AskForDataName}\"",
               "stopOnEntry": true,
@@ -524,7 +542,7 @@
               "openDataEditor": false,
               "openInfosetView": false,
               "openInfosetDiffView": false,
-              "daffodilDebugClasspath": "",
+              "daffodilDebugClasspath": [],
               "variables": {},
               "tunables": {},
               "dataEditor": {
@@ -566,8 +584,8 @@
             "description": "Contains the absolute path to the DFDL schema file, root element name and namespace.",
             "default": {
               "path": "${command:AskForSchemaName}",
-              "rootName": "",
-              "rootNamespace": ""
+              "rootName": null,
+              "rootNamespace": null
             }
           },
           "data": {
@@ -629,9 +647,9 @@
             "default": false
           },
           "daffodilDebugClasspath": {
-            "type": "string",
+            "type": "array",
             "description": "Additional classpaths to be exported to the debugger",
-            "default": ""
+            "default": []
           },
           "variables": {
             "type": "object",

@@ -30,8 +30,8 @@ suite('Utils Test Suite', () => {
     type: 'dfdl',
     schema: {
       path: '${command:AskForSchemaName}',
-      rootName: '',
-      rootNamespace: '',
+      rootName: null,
+      rootNamespace: null,
     },
     data: '${command:AskForDataName}',
     debugServer: 4711,
@@ -52,7 +52,7 @@ suite('Utils Test Suite', () => {
     openDataEditor: false,
     openInfosetView: false,
     openInfosetDiffView: false,
-    daffodilDebugClasspath: '',
+    daffodilDebugClasspath: [],
     dataEditor: {
       port: 9000,
       logging: {

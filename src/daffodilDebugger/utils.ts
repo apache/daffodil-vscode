@@ -53,7 +53,7 @@ export const shellArgs = (port: number, isAtLeastJdk17: boolean) => {
 
 export async function runDebugger(
   rootPath: string,
-  daffodilDebugClasspath: string,
+  daffodilDebugClasspath: Array<string>,
   filePath: string,
   serverPort: number,
   dfdlDebugger: DFDLDebugger,
@@ -89,13 +89,17 @@ export async function runDebugger(
   // The backend's launch script honors $JAVA_HOME, but if not set it assumes java is available on the path.
   const env = javaHome
     ? {
-        DAFFODIL_DEBUG_CLASSPATH: daffodilDebugClasspath,
+        DAFFODIL_DEBUG_CLASSPATH: daffodilDebugClasspath.join(
+          osCheck(';', ':')
+        ),
         DAFFODIL_DEBUG_LOG_LEVEL: dfdlDebugger.logging.level,
         DAFFODIL_DEBUG_LOG_FILE: dfdlDebugger.logging.file,
         JAVA_HOME: javaHome?.path,
       }
     : {
-        DAFFODIL_DEBUG_CLASSPATH: daffodilDebugClasspath,
+        DAFFODIL_DEBUG_CLASSPATH: daffodilDebugClasspath.join(
+          osCheck(';', ':')
+        ),
         DAFFODIL_DEBUG_LOG_LEVEL: dfdlDebugger.logging.level,
         DAFFODIL_DEBUG_LOG_FILE: dfdlDebugger.logging.file,
       }

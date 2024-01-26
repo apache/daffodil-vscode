@@ -38,6 +38,6 @@ export interface VSCodeLaunchConfigArgs {
   openDataEditor: boolean
   openInfosetView: boolean
   openInfosetDiffView: boolean
-  daffodilDebugClasspath: string
+  daffodilDebugClasspath: Array<string>
   dfdlDebugger: DFDLDebugger
 }
