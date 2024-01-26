@@ -51,6 +51,15 @@ function getConfigValues(data, configIndex) {
       if (!currentConfig.hasOwnProperty(key)) {
         currentConfig[key] = defaultConf[key]
       }
+
+      // If key is an object itself, make sure nested keys are in current config
+      if (defaultConf[key] instanceof Object) {
+        for (var nestedKey of Object.keys(defaultConf[key])) {
+          if (!currentConfig[key].hasOwnProperty(nestedKey)) {
+            currentConfig[key][nestedKey] = defaultConf[key][nestedKey]
+          }
+        }
+      }
     }
 
     return currentConfig
@@ -289,9 +298,9 @@ async function createWizard(ctx: vscode.ExtensionContext) {
             let duplicateCount = 0
 
             if (message.id === 'daffodilDebugClasspath') {
-              duplicateCount = message.extraData['daffodilDebugClasspath']
-                .split(':')
-                .some((cp) => cp === result)
+              duplicateCount = message.extraData['daffodilDebugClasspath'].some(
+                (cp) => cp === result
+              )
             }
 
             var command =
@@ -425,7 +434,7 @@ class LaunchWizard {
     let daffodilDebugClasspathList =
       '<ul id="daffodilDebugClasspathTable" style="list-style: none; padding-left: 20px;">'
     if (defaultValues.daffodilDebugClasspath) {
-      let itemArray = defaultValues.daffodilDebugClasspath.split(':')
+      let itemArray = defaultValues.daffodilDebugClasspath
       for (let i = 0; i < itemArray.length; i++) {
         daffodilDebugClasspathList += `
           <li style="margin-left: -5px;" onclick="removeDebugClasspathItem(this)">
@@ -558,7 +567,7 @@ class LaunchWizard {
       <div id="schemaDiv" class="setting-div">
         <p>Main Schema File:</p>
         <p class="setting-description">Absolute path to the DFDL schema file.</p>
-        <input class="file-input" value="${defaultValues.schema}" id="schema"/>
+        <input class="file-input" value="${defaultValues.schema.path}" id="schema"/>
         <button id="schemaBrowse" class="browse-button" type="button" onclick="filePicker('schema', 'Select DFDL schema to debug')">Browse</button>
       </div>
 

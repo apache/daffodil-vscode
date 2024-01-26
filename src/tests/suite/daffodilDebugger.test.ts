@@ -69,7 +69,7 @@ suite('Daffodil Debugger', () => {
     debuggers.push(
       await runDebugger(
         PROJECT_ROOT,
-        '',
+        [],
         PACKAGE_PATH,
         4711,
         dfdlDebuggers[0],
@@ -79,7 +79,7 @@ suite('Daffodil Debugger', () => {
     debuggers.push(
       await runDebugger(
         PROJECT_ROOT,
-        '',
+        [],
         PACKAGE_PATH,
         4712,
         dfdlDebuggers[1],

@@ -123,8 +123,8 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
   const defaultValues = {
     schema: defaultConf.get('schema', {
       path: '${command:AskForSchemaName}',
-      rootName: '',
-      rootNamespace: '',
+      rootName: null,
+      rootNamespace: null,
     }),
     data: defaultConf.get('data', '${command:AskForDataName}'),
     debugServer: defaultConf.get('debugServer', 4711),
@@ -145,7 +145,7 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
     openDataEditor: defaultConf.get('openDataEditor', false),
     openInfosetView: defaultConf.get('openInfosetView', false),
     openInfosetDiffView: defaultConf.get('openInfosetDiffView', false),
-    daffodilDebugClasspath: defaultConf.get('daffodilDebugClasspath', ''),
+    daffodilDebugClasspath: defaultConf.get('daffodilDebugClasspath', []),
     dataEditor: defaultConf.get('dataEditor', {
       port: 9000,
       logging: {

@@ -79,10 +79,16 @@ function getConfigValues() {
   const dfdlDebuggerLogLevel = document.getElementById(
     'dfdlDebuggerLogLevel'
   ).value
-  const rootName = document.getElementById('rootName').value
-  const rootNamespace = document.getElementById('rootNamespace').value
+  const rootName =
+    document.getElementById('rootName').value == 'null'
+      ? null
+      : document.getElementById('rootName').value
+  const rootNamespace =
+    document.getElementById('rootNamespace').value == 'null'
+      ? null
+      : document.getElementById('rootNamespace').value
 
-  const daffodilDebugClasspath = getDaffodilDebugClasspathString()
+  const daffodilDebugClasspath = getDaffodilDebugClasspathArray()
 
   return {
     name,
@@ -113,8 +119,8 @@ function getConfigValues() {
   }
 }
 
-// Function get daffodil debug classpath string
-function getDaffodilDebugClasspathString() {
+// Function get daffodil debug classpath
+function getDaffodilDebugClasspathArray() {
   let childNodes = document.getElementById(
     'daffodilDebugClasspathTable'
   ).childNodes
@@ -127,14 +133,13 @@ function getDaffodilDebugClasspathString() {
           .replace('-', '') // remove initial - in front of every item
     )
     .filter((cp) => cp != '')
-    .join(':')
 }
 
 // Function to call extension to open file picker
 function filePicker(id, description) {
   let extraData = {}
   if (id === 'daffodilDebugClasspath') {
-    extraData['daffodilDebugClasspath'] = getDaffodilDebugClasspathString()
+    extraData['daffodilDebugClasspath'] = getDaffodilDebugClasspathArray()
   }
 
   vscode.postMessage({
@@ -156,7 +161,7 @@ async function removeDebugClasspathItem(child) {
 // Function to update classpath list
 async function updateDaffodilDebugClasspathList(data, delimeter) {
   let list = document.getElementById('daffodilDebugClasspathTable')
-  let itemArray = data.split(delimeter)
+  let itemArray = delimeter !== undefined ? data.split(delimeter) : data
 
   for (var i = 0; i < itemArray.length; i++) {
     let item = itemArray[i]
@@ -452,7 +457,7 @@ async function updateConfigValues(config) {
    */
   await clearDaffodilDebugClasspathList()
   if (config.daffodilDebugClasspath !== '') {
-    await updateDaffodilDebugClasspathList(config.daffodilDebugClasspath, ':')
+    await updateDaffodilDebugClasspathList(config.daffodilDebugClasspath)
   }
 
   updateInfosetOutputType()

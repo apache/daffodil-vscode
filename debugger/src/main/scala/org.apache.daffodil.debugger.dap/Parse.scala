@@ -399,8 +399,10 @@ object Parse {
     // arguments: Launch config
     def parseRootName(arguments: JsonObject) =
       Right(
-        Option(arguments.getAsJsonObject("schema").getAsJsonPrimitive("rootName"))
-          .map(_.getAsString())
+        arguments.getAsJsonObject("schema").get("rootName") match {
+          case null => None
+          case rn   => if (rn.isJsonNull()) None else Some(rn.getAsString())
+        }
       ).toEitherNel
 
     // Parse the root namespae field from the launch config
@@ -409,8 +411,10 @@ object Parse {
     // arguments: Launch config
     def parseRootNamespace(arguments: JsonObject) =
       Right(
-        Option(arguments.getAsJsonObject("schema").getAsJsonPrimitive("rootNamespace"))
-          .map(_.getAsString())
+        arguments.getAsJsonObject("schema").get("rootNamespace") match {
+          case null => None
+          case rn   => if (rn.isJsonNull()) None else Some(rn.getAsString())
+        }
       ).toEitherNel
 
     // Parse the data field from the launch config
