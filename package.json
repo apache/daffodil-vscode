@@ -374,6 +374,20 @@
               "infosetOutput": {
                 "type": "object",
                 "description": "Destination for final Infoset ('file' | 'console' | 'none')",
+                "required": ["type"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["file", "console", "none"],
+                    "description": "Type of infoset output",
+                    "default": "file"
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Path to save infoset file to",
+                    "default": "${workspaceFolder}/target/infoset.xml"
+                  }
+                },
                 "default": {
                   "type": "file",
                   "path": "${workspaceFolder}/target/infoset.xml"
@@ -382,6 +396,30 @@
               "tdmlConfig": {
                 "type": "object",
                 "description": "Configuration for TDML Actions",
+                "required": ["action"],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": ["none", "generate", "append", "execute"],
+                    "default": "generate",
+                    "description": "TDML Case Action (none | generate | append | exectute)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "default": "${command:AskForTDMLName}",
+                    "description": "TDML Case Name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "default": "${command:AskForTDMLDescription}",
+                    "description": "TDML Case Description"
+                  },
+                  "path": {
+                    "type": "string",
+                    "default": "${command:AskForTDMLPath}",
+                    "description": "TDML Case Path"
+                  }
+                },
                 "default": {
                   "action": "generate",
                   "name": "${command:AskForTDMLName}",
@@ -445,7 +483,35 @@
               },
               "dataEditor": {
                 "type": "object",
-                "description": "Configuration for Data Editor. Settings are port, logFile and logLevel",
+                "description": "Configuration for Data Editor. Settings are port and logging details",
+                "properties": {
+                  "port": {
+                    "type": "number",
+                    "default": 9000,
+                    "description": "Port number to run the data editor on"
+                  },
+                  "logging": {
+                    "type": "object",
+                    "description": "Data Editor Logging Configuration",
+                    "properties": {
+                      "file": {
+                        "type": "string",
+                        "description": "Path to file to save logs at",
+                        "default": "${workspaceFolder}/dataEditor-${omegaEditPort}.log"
+                      },
+                      "level": {
+                        "type": "string",
+                        "enum": ["debug", "info", "warning", "error", "critical"],
+                        "description": "Data Editor Logging Level",
+                        "default": "info"
+                      }
+                    },
+                    "default": {
+                      "file": "${workspaceFolder}/dataEditor-${omegaEditPort}.log",
+                      "level": "info"
+                    }
+                  }
+                },
                 "default": {
                   "port": 9000,
                   "logging": {
@@ -457,10 +523,33 @@
               "dfdlDebugger": {
                 "type": "object",
                 "description": "Configuration for debugger. Settings are logging (level and file)",
+                "properties": {
+                  "logging": {
+                    "type": "object",
+                    "description": "DFDL Debugger Logging Configuration",
+                    "properties": {
+                      "file": {
+                        "type": "string",
+                        "description": "Path to file to save logs at",
+                        "default": "${workspaceFolder}/daffodil-debugger.log"
+                      },
+                      "level": {
+                        "type": "string",
+                        "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+                        "description": "DFL Debugger Logging Level",
+                        "default": "INFO"
+                      }
+                    },
+                    "default": {
+                      "level": "INFO",
+                      "file": "${workspaceFolder}/daffodil-debugger.log"
+                    }
+                  }
+                },
                 "default": {
                   "logging": {
                     "level": "INFO",
-                    "file": "/tmp/daffodil-debugger.log"
+                    "file": "${workspaceFolder}/daffodil-debugger.log"
                   }
                 }
               }
@@ -507,7 +596,7 @@
             "dfdlDebugger": {
               "logging": {
                 "level": "INFO",
-                "file": "/tmp/daffodil-debugger.log"
+                "file": "${workspaceFolder}/daffodil-debugger.log"
               }
             }
           }
@@ -555,7 +644,7 @@
               "dfdlDebugger": {
                 "logging": {
                   "level": "INFO",
-                  "file": "/tmp/daffodil-debugger.log"
+                  "file": "${workspaceFolder}/daffodil-debugger.log"
                 }
               }
             }
@@ -682,7 +771,7 @@
             "default": {
               "logging": {
                 "level": "INFO",
-                "file": "/tmp/daffodil-debugger.log"
+                "file": "${workspaceFolder}/daffodil-debugger.log"
               }
             }
           }

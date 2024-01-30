@@ -156,7 +156,7 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
     dfdlDebugger: defaultConf.get('dfdlDebugger', {
       logging: {
         level: 'INFO',
-        file: '/tmp/daffodil-debugger.log',
+        file: '${workspaceFolder}/daffodil-debugger.log',
       },
     }),
   }

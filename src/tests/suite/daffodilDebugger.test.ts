@@ -122,6 +122,7 @@ suite('Daffodil Debugger', () => {
         },
         tdmlConfig: tdmlConf,
         dataEditor: dataEditor,
+        dfdlDebugger: dfdlDebuggers[0],
       }),
       {
         noDebug: true,
@@ -150,6 +151,7 @@ suite('Daffodil Debugger', () => {
         },
         tdmlConfig: tdmlConf,
         dataEditor: dataEditor,
+        dfdlDebugger: dfdlDebuggers[1],
       }),
       {
         noDebug: true,
