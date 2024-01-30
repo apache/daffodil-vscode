@@ -63,7 +63,7 @@ suite('Utils Test Suite', () => {
     dfdlDebugger: {
       logging: {
         level: 'INFO',
-        file: '/tmp/daffodil-debugger.log',
+        file: '${workspaceFolder}/daffodil-debugger.log',
       },
     },
   }
