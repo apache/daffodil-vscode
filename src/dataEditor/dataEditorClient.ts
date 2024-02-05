@@ -148,7 +148,7 @@ export class DataEditorClient implements vscode.Disposable {
   private omegaSessionId = ''
   private sendHeartbeatIntervalId: NodeJS.Timeout | number | undefined =
     undefined
-
+  private disposables: vscode.Disposable[] = []
   constructor(
     protected context: vscode.ExtensionContext,
     private view: string,
@@ -162,8 +162,12 @@ export class DataEditorClient implements vscode.Disposable {
       enableScripts: true,
       retainContextWhenHidden: true,
     })
-
-    this.context.subscriptions.push(
+    this.panel.webview.onDidReceiveMessage(this.messageReceiver, this)
+    this.panel.onDidDispose(async () => {
+      await this.dispose()
+    })
+    this.disposables.push(
+      this.panel,
       vscode.debug.onDidReceiveDebugSessionCustomEvent(async (e) => {
         const debugEvent = e
         const eventAsEditorMessage = extractDaffodilEvent(debugEvent)
@@ -175,14 +179,15 @@ export class DataEditorClient implements vscode.Disposable {
       })
     )
 
-    this.panel.webview.onDidReceiveMessage(this.messageReceiver, this)
     this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
     this.currentViewportId = ''
     this.fileToEdit = fileToEdit
     this.displayState = new DisplayState(this.panel)
   }
-
+  addDisposable(dispoable: vscode.Disposable) {
+    this.disposables.push(dispoable)
+  }
   async dispose(): Promise<void> {
     if (this.sendHeartbeatIntervalId) {
       clearInterval(this.sendHeartbeatIntervalId)
@@ -191,8 +196,9 @@ export class DataEditorClient implements vscode.Disposable {
 
     // destroy the session and remove it from the list of active sessions
     removeActiveSession(await destroySession(this.omegaSessionId))
-    await serverStop()
-    this.panel.dispose()
+    await serverStopIf(NoSessionsExist)
+    for (let i = 0; i < this.disposables.length; i++)
+      this.disposables[i].dispose()
   }
 
   show(): void {
@@ -850,7 +856,6 @@ async function createDataEditorWebviewPanel(
     editor_config.WorkspaceKeyword,
     editor_config.rootPath
   )
-
   const dataEditorView = new DataEditorClient(
     ctx,
     'dataEditor',
@@ -858,22 +863,13 @@ async function createDataEditorWebviewPanel(
     launchConfigVars,
     fileToEdit
   )
-
   await dataEditorView.initialize()
-
-  dataEditorView.panel.onDidDispose(
-    async () => {
-      removeActiveSession(await destroySession(dataEditorView.sessionId()))
-      await serverStopIf(NoSessionsExist)
-    },
-    dataEditorView,
-    ctx.subscriptions
-  )
   if (isDFDLDebugSessionActive())
-    vscode.debug.onDidTerminateDebugSession(async () => {
-      removeActiveSession(await destroySession(dataEditorView.sessionId()))
-      await serverStopIf(NoSessionsExist)
-    })
+    dataEditorView.addDisposable(
+      vscode.debug.onDidTerminateDebugSession(async () => {
+        if (dataEditorView) await dataEditorView.dispose()
+      })
+    )
 
   dataEditorView.show()
   return dataEditorView
