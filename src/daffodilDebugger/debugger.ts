@@ -152,7 +152,7 @@ export async function getDebugger(
 
     // Get schema file before debugger starts to avoid timeout
     if (config.schema.path.includes('${command:AskForSchemaName}')) {
-      config.schema = await vscode.commands.executeCommand(
+      config.schema.path = await vscode.commands.executeCommand(
         'extension.dfdl-debug.getSchemaName'
       )
     }
