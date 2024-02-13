@@ -62,7 +62,6 @@ limitations under the License.
   } from './DataDisplays/CustomByteDisplay/BinaryData'
   import { byte_count_divisible_offset } from '../utilities/display'
   import Help from './layouts/Help.svelte'
-  import { viewportByteIndicators } from '../utilities/highlights'
 
   $: $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
 
@@ -315,7 +314,7 @@ limitations under the License.
     on:handleEditorEvent={handleEditorEvent}
     on:traverse-file={traversalEventHandler}
     on:seek={seekEventHandler}
-  />
+      />
 
   <Help />
   <hr />

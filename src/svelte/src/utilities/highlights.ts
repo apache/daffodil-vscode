@@ -122,10 +122,10 @@ class ViewportByteIndications extends SimpleWritable<Uint8Array> {
     }
   }
 
-  public updateDebuggerPosIndication(bytePos: number) {
+  public updateDebuggerPosIndication(bytePos: number, fileOffset: number) {
     this.store.update((indications) => {
       ViewportByteCategories.clearAndSetIf(indications, 'bytePos1b', (_, i) => {
-        return i === bytePos
+        return i + fileOffset === bytePos
       })
       return indications
     })
