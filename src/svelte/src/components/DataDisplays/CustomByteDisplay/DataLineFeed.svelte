@@ -33,6 +33,7 @@ limitations under the License.
     dataDislayLineAmount,
     replaceQuery,
     searchResultsUpdated,
+    dfdlBytePos,
   } from '../../../stores'
   import {
     EditByteModes,
@@ -246,6 +247,7 @@ limitations under the License.
   $: viewportByteIndicators.updateSelectionIndications($selectionDataStore)
   $: viewportByteIndicators.updateSearchIndications($searchQuery, viewportData.fileOffset)
   $: viewportByteIndicators.updateReplaceIndications($replaceQuery, viewportData.fileOffset)
+  $: viewportByteIndicators.updateDebuggerPosIndication($dfdlBytePos, viewportData.fileOffset)
   
 
   function generate_line_data(
@@ -518,6 +520,14 @@ limitations under the License.
     }
   }
 
+  function offsetDisplayRange() {
+    return { first: viewportLines[0].bytes[0].offset, last: viewportLines[$dataDislayLineAmount - 1].bytes[$bytesPerRow - 1].offset }
+  }
+  function bytePosIsDisplayable(bytepos: number): boolean {
+    const {first, last} = offsetDisplayRange()
+    return bytepos >= first + viewportData.fileOffset && bytepos < last + viewportData.fileOffset
+  }
+  
   window.addEventListener('keydown', navigation_keydown_event)
   window.addEventListener('message', (msg) => {
     switch (msg.data.command) {
@@ -536,11 +546,15 @@ limitations under the License.
         break
       case 'daffodil.data':
         const { bytePos1b } = msg.data.data
-        viewportByteIndicators.updateDebuggerPosIndication( bytePos1b - 1 )
+        if(!bytePosIsDisplayable(bytePos1b -1))
+        {
+          $seekOffsetInput = bytePos1b.toString(addressRadix)
+          eventDispatcher('seek')
+        }
+        $dfdlBytePos = bytePos1b -1 
         break
     }
   })
-
 </script>
 
 
