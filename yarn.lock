@@ -21,10 +21,10 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@grpc/grpc-js@1.9.13":
-  version "1.9.13"
-  resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.9.13.tgz#ad9b7dbb6089c462469653c809996f13e46aa1cd"
-  integrity sha512-OEZZu9v9AA+7/tghMDE8o5DAMD5THVnwSqDWuh7PPYO5287rTyqy0xEHT6/e4pbqSrhyLPdQFsam4TwFQVVIIw==
+"@grpc/grpc-js@1.9.14":
+  version "1.9.14"
+  resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.9.14.tgz#236378822876cbf7903f9d61a0330410e8dcc5a1"
+  integrity sha512-nOpuzZ2G3IuMFN+UPPpKrC6NsLmWsTqSsm66IRfnBt1D4pwTqE27lmbpcPM+l2Ua4gE7PfjRHI6uedAy7hoXUw==
   dependencies:
     "@grpc/proto-loader" "^0.7.8"
     "@types/node" ">=12.12.47"
@@ -127,22 +127,22 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@omega-edit/client@0.9.77":
-  version "0.9.77"
-  resolved "https://registry.yarnpkg.com/@omega-edit/client/-/client-0.9.77.tgz#d3dae831b46b99c12a4af222aa38b432c0b9ec4f"
-  integrity sha512-WpaIGOToquGR+F+fh1YKCUBgFWh2LUgTSiPfzJccDr7JwlV146ubKxwsX9sTs0r0JNF8BS2dGNrnSlJ9M+L+aQ==
+"@omega-edit/client@0.9.78":
+  version "0.9.78"
+  resolved "https://registry.yarnpkg.com/@omega-edit/client/-/client-0.9.78.tgz#0cb44ddeb55d75fdc6aa5166bb971101074c8702"
+  integrity sha512-bErQQCZtRNxKKSz2+G48cotw3ek9+3Xra0RsXwDWClBnxlcvjJyCaI6/8At6DqjkdDvukc4a0UFvXdVxkcRwBw==
   dependencies:
-    "@grpc/grpc-js" "1.9.13"
-    "@omega-edit/server" "0.9.77"
+    "@grpc/grpc-js" "1.9.14"
+    "@omega-edit/server" "0.9.78"
     "@types/google-protobuf" "3.15.12"
     google-protobuf "3.21.2"
     pino "8.16.2"
     wait-port "1.1.0"
 
-"@omega-edit/server@0.9.77":
-  version "0.9.77"
-  resolved "https://registry.yarnpkg.com/@omega-edit/server/-/server-0.9.77.tgz#c60ec987808323788bd7349235378ad7fbabf267"
-  integrity sha512-YHEoQlqUyha8u58g3MvGklZ2YdV6xfVMxqLr3i0U91AACGDSTSRREBbTKX+C6psEXHlYWtCi4K5Te4HyRPi17A==
+"@omega-edit/server@0.9.78":
+  version "0.9.78"
+  resolved "https://registry.yarnpkg.com/@omega-edit/server/-/server-0.9.78.tgz#16725792f08134fb6c28a463874f4891fb63f08f"
+  integrity sha512-idSZQHjv28zF47kiKcMKGrVAqhQHtsxBvSNlP3Ergtn9cEXgsymh4fV6WzBi6VtRG8OrUMAhzd9JrN6j0eHR4g==
 
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
