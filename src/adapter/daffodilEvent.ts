@@ -20,6 +20,7 @@ import * as fs from 'fs'
 
 import * as daf from '../daffodilDebugger'
 import { ensureFile, tmpFile } from '../utils'
+import { outputChannel } from './activateDaffodilDebug'
 
 export function handleDebugEvent(e: vscode.DebugSessionCustomEvent) {
   switch (e.event) {
@@ -31,7 +32,10 @@ export function handleDebugEvent(e: vscode.DebugSessionCustomEvent) {
       break
     // this allows for any error event to be caught in this case
     case e.event.startsWith('daffodil.error') ? e.event : '':
-      vscode.window.showErrorMessage(`debugger ${e.event}`)
+      vscode.window.showErrorMessage(
+        `An error was received from the Daffodil debugger. ([show logs](command:extension.dfdl-debug.showLogs "show logs"))`
+      )
+      outputChannel.appendLine(e.body.message)
       break
   }
 }
