@@ -49,9 +49,9 @@ trait DAPSession[Req, Res, Ev] {
 
   def sendResponse(response: Res): IO[Unit]
   def sendEvent(event: Ev): IO[Unit]
-  def abort(event: DebugEvent): IO[Unit]
-  def abort(event: DebugEvent, logMessage: String): IO[Unit]
-  def abort(event: DebugEvent, logMessage: String, t: Throwable): IO[Unit]
+  def abort(event: Ev): IO[Unit]
+  def abort(event: Ev, logMessage: String): IO[Unit]
+  def abort(event: Ev, logMessage: String, t: Throwable): IO[Unit]
 }
 
 object DAPSession {
@@ -73,10 +73,10 @@ object DAPSession {
 
       /** Log error then send DebugEvent back to extension and exit session, ending debug */
       def abort(event: DebugEvent, logMessage: String): IO[Unit] =
-        Logger[IO].error(logMessage) *> sendEvent(event) *> sendEvent(new Events.TerminatedEvent())
+        Logger[IO].error(logMessage) *> abort(event)
 
       def abort(event: DebugEvent, logMessage: String, t: Throwable): IO[Unit] =
-        Logger[IO].error(t)(logMessage) *> sendEvent(event) *> sendEvent(new Events.TerminatedEvent())
+        Logger[IO].error(t)(logMessage) *> abort(event)
     }
 
   def resource(socket: Socket): Resource[IO, DAPSession[Request, Response, DebugEvent]] =
@@ -193,7 +193,8 @@ class DAPodil(
         disconnect(request, args)
       case extract(Command.EVALUATE, args: EvaluateArguments) =>
         eval(request, args)
-      case _ => session.abort(ErrorEvents.UnhandledRequest, show"unhandled request $request")
+      case _ =>
+        session.abort(ErrorEvent.UnhandledRequest(show"unhandled request $request"), show"unhandled request $request")
     }
 
   /** State.Uninitialized -> State.Initialized */
@@ -218,7 +219,7 @@ class DAPodil(
           case Left(errors) =>
             state.set(DAPodil.State.FailedToLaunch(request, errors, None)) *>
               session.abort(
-                ErrorEvents.LaunchArgsParseError,
+                ErrorEvent.LaunchArgsParseError(show"error parsing launch args: ${errors.mkString_("\n")}"),
                 show"error parsing launch args: ${errors.mkString_("\n")}"
               )
           case Right(dbgee) =>
@@ -233,7 +234,7 @@ class DAPodil(
                     DAPodil.State
                       .FailedToLaunch(request, NonEmptyList.of("couldn't launch from created debuggee"), Some(t))
                   ) *>
-                    session.abort(ErrorEvents.RequestError, show"couldn't launch, request $request", t)
+                    session.abort(ErrorEvent.RequestError(t.getMessage), show"couldn't launch, request $request", t)
                 case Right(launchedState) =>
                   state.set(launchedState) *>
                     session.sendResponse(request.respondSuccess())
@@ -253,7 +254,7 @@ class DAPodil(
             )
           )
         }
-      case _ => session.abort(ErrorEvents.SourceError)
+      case s => DAPodil.InvalidState.raise(request, "Launched", s)
     }
 
   def source(request: Request, args: SourceArguments): IO[Unit] =
@@ -263,11 +264,11 @@ class DAPodil(
           .sourceContent(DAPodil.Source.Ref(args.sourceReference))
           .flatMap {
             case None =>
-              session.abort(ErrorEvents.SourceError)
+              session.abort(ErrorEvent.SourceError(show"no source with reference ${args.sourceReference} found"))
             case Some(content) =>
               session.sendResponse(request.respondSuccess(new SourceResponseBody(content.value, "text/xml")))
           }
-      case _ => session.abort(ErrorEvents.SourceError)
+      case s => DAPodil.InvalidState.raise(request, "Launched", s)
     }
 
   def setBreakpoints(request: Request, args: SetBreakpointArguments): IO[Unit] =
@@ -413,7 +414,8 @@ class DAPodil(
         for {
           variable <- launched.debugee.eval(args)
           _ <- variable match {
-            case None => session.abort(ErrorEvents.UnexpectedError)
+            case None =>
+              session.abort(ErrorEvent.UnexpectedError(show"expression couldn't be evaluated: ${args.expression}"))
             case Some(v) =>
               session.sendResponse(request.respondSuccess(new Responses.EvaluateResponseBody(v.value, 0, null, 0)))
           }

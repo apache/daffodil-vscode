@@ -19,11 +19,15 @@ package org.apache.daffodil.debugger.dap
 
 import com.microsoft.java.debug.core.protocol.Events.DebugEvent
 
+sealed abstract class ErrorEvent(event: String) extends DebugEvent(event) {
+  def message: String
+}
+
 /** Case classes for errors that we want to relay back to the extension */
-object ErrorEvents {
-  case object UnexpectedError extends DebugEvent("daffodil.error.unexpected")
-  case object UnhandledRequest extends DebugEvent("daffodil.error.requestunhandled")
-  case object LaunchArgsParseError extends DebugEvent("daffodil.error.launchargparse")
-  case object RequestError extends DebugEvent("daffodil.error.request")
-  case object SourceError extends DebugEvent("daffodil.error.source")
+object ErrorEvent {
+  case class UnexpectedError(message: String) extends ErrorEvent("daffodil.error.unexpected")
+  case class UnhandledRequest(message: String) extends ErrorEvent("daffodil.error.requestunhandled")
+  case class LaunchArgsParseError(message: String) extends ErrorEvent("daffodil.error.launchargsparse")
+  case class RequestError(message: String) extends ErrorEvent("daffodil.error.request")
+  case class SourceError(message: String) extends ErrorEvent("daffodil.error.source")
 }

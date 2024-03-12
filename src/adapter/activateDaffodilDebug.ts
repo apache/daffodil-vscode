@@ -33,6 +33,9 @@ import {
 } from '../tdmlEditor/utilities/tdmlXmlUtils'
 import xmlFormat from 'xml-formatter'
 
+export const outputChannel: vscode.OutputChannel =
+  vscode.window.createOutputChannel('Daffodil')
+
 /** Method to file path for schema and data
  * Details:
  *   Required so that the vscode api commands:
@@ -249,7 +252,10 @@ export function activateDaffodilDebug(
           'Select input data file to debug'
         )
       }
-    )
+    ),
+    vscode.commands.registerCommand('extension.dfdl-debug.showLogs', () => {
+      outputChannel.show(true)
+    })
   )
 
   context.subscriptions.push(
