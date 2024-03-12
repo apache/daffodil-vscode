@@ -748,11 +748,8 @@ object DAPodil extends IOApp {
       copy(value = value + (uri.normalize -> lines))
 
     def contains(location: Location): Boolean =
-      value.exists {
-        // format: off
-        case (uri, lines) =>
-          uri == location.uri && lines.exists(_ == location.line)
-        // format: on
+      value.exists { case (uri, lines) =>
+        Portability.fixWindowsDriveLetter(uri.getPath) == location.uri.getPath && lines.exists(_ == location.line)
       }
   }
 
