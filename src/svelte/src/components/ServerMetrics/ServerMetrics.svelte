@@ -107,32 +107,49 @@ limitations under the License.
         on:mouseenter={() => showHeartbeatInfo(true)}
         on:mouseleave={() => showHeartbeatInfo(false)}
       >
-        {#if heartbeat.latency < 20}
+        {#if 0 < heartbeat.latency && heartbeat.latency < 20}
           <circle cx="50%" cy="50%" r="4pt" fill="green" />
-        {:else if heartbeat.latency < 40}
+        {:else if 0 < heartbeat.latency && heartbeat.latency < 40}
           <circle cx="50%" cy="50%" r="4pt" fill="yellow" />
-        {:else if heartbeat.latency > 60}
+        {:else if 0 < heartbeat.latency && heartbeat.latency > 60}
           <circle cx="50%" cy="50%" r="4pt" fill="red" />
         {:else}
           <circle cx="50%" cy="50%" r="4pt" fill="grey" />
         {/if}
       </svg>
       <div class="heartbeat-info">
-        <b>Latency:</b>
-        {heartbeat.latency}ms,
-        <b>CPU Load Avg:</b>
-        {(heartbeat.serverCpuLoadAverage
-          ? heartbeat.serverCpuLoadAverage
-          : 0
-        ).toFixed(2)},
-        <b>Memory Usage:</b>
-        {heartbeat.serverUsedMemory},
-        <b>Session Count:</b>
-        {heartbeat.sessionCount},
-        <b>Uptime:</b>
-        {prettyPrintUptime(heartbeat.serverUptime)}
-        <b>JVM Version:</b>
-        {heartbeat.jvmVersion}
+        {#if heartbeat.latency > 0}
+          <b>Latency:</b>
+          {heartbeat.latency}ms,
+        {/if}
+        {#if heartbeat.serverUptime > 0}
+          <b>Uptime:</b>
+          {prettyPrintUptime(heartbeat.serverUptime)}
+        {/if}
+        {#if heartbeat.sessionCount > 0}
+          <b>Session Count:</b>
+          {heartbeat.sessionCount},
+        {/if}
+        {#if heartbeat.serverCpuLoadAverage > 0}
+          <b>CPU Load Avg:</b>
+          {heartbeat.serverCpuLoadAverage.toFixed(2)},
+        {/if}
+        {#if heartbeat.serverUsedMemory > 0}
+          <b>Memory Usage:</b>
+          {heartbeat.serverUsedMemory},
+        {/if}
+        {#if heartbeat.serverProcessId > 0}
+          <b>Process ID:</b>
+          {heartbeat.serverProcessId},
+        {/if}
+        {#if heartbeat.jvmVersion.length > 0}
+          <b>JVM Version:</b>
+          {heartbeat.jvmVersion}
+        {/if}
+        {#if heartbeat.jvmVendor.length > 0}
+          <b>JVM Vendor:</b>
+          {heartbeat.jvmVendor}
+        {/if}
       </div>
     </FlexContainer>
   {:else}
