@@ -147,8 +147,8 @@ export async function activate(ctx: vscode.ExtensionContext) {
         let prev = ensureFile(`${path}.prev`)
         vscode.commands.executeCommand(
           'vscode.diff',
-          Uri.parse(prev),
-          Uri.parse(path),
+          Uri.file(prev),
+          Uri.file(path),
           'Previous ↔ Current',
           { preview: false, viewColumn: vscode.ViewColumn.Two }
         )
