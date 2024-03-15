@@ -669,7 +669,7 @@ class LaunchWizard {
 
       <div id="openInfosetDiffViewDiv" class="setting-div" onclick="check('openInfosetDiffView')">
         <p>Open Infoset Diff View:</p>
-        <label class="container">Open infoset view on debug start.
+        <label class="container">Open infoset diff on debug start.
           <input type="checkbox" id="openInfosetDiffView" ${openInfosetDiffView}>
           <span class="checkmark"></span>
         </label>
@@ -677,7 +677,7 @@ class LaunchWizard {
 
       <div id="openInfosetViewDiv" class="setting-div" onclick="check('openInfosetView')">
         <p>Open Infoset View:</p>
-        <label class="container">Open infoset diff on debug start.
+        <label class="container">Open infoset view on debug start.
           <input type="checkbox" id="openInfosetView" ${openInfosetView}>
           <span class="checkmark"></span>
         </label>
