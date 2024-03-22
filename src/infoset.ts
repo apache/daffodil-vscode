@@ -25,6 +25,7 @@ import {
   ensureFile,
   tmpFile,
 } from './utils'
+import * as path from 'path'
 
 // Function to display an infomation message that the infoset file has been created
 // If the user wishes to open the file then they may click the 'Open' button
@@ -35,16 +36,16 @@ async function openInfosetFilePrompt() {
     let rootPath = vscode.workspace.workspaceFolders
       ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : vscode.Uri.parse('').fsPath
-    let path = config.infosetOutput.path.includes('${workspaceFolder}')
+    let infosetPath = config.infosetOutput.path.includes('${workspaceFolder}')
       ? config.infosetOutput.path.replace('${workspaceFolder}', rootPath)
       : config.infosetOutput.path
 
-    let uri = vscode.Uri.parse(path)
+    let uri = vscode.Uri.file(infosetPath)
 
     // Only prompt to open infoset file if it has content
     if (fs.readFileSync(uri.fsPath).toString() !== '') {
       const action = await vscode.window.showInformationMessage(
-        `Wrote infoset file to ${path}`,
+        `Wrote infoset file to ${infosetPath}`,
         'Open',
         'Dismiss'
       )
@@ -75,9 +76,9 @@ export async function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.debug.onDidTerminateDebugSession(async (s) => {
       if (sid !== undefined) {
-        let path = tmpFile(sid)
-        fs.rmSync(`${path}`, { force: true })
-        fs.rmSync(`${path}.prev`, { force: true })
+        let filepath = tmpFile(sid)
+        fs.rmSync(`${filepath}`, { force: true })
+        fs.rmSync(`${filepath}.prev`, { force: true })
       }
       sid = undefined
       await openInfosetFilePrompt()
@@ -94,8 +95,8 @@ export async function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.commands.registerCommand('infoset.display', async () => {
       if (sid !== undefined) {
-        let path = ensureFile(tmpFile(sid))
-        doc = await vscode.workspace.openTextDocument(path)
+        let filepath = ensureFile(tmpFile(sid))
+        doc = await vscode.workspace.openTextDocument(filepath)
         await vscode.window.showTextDocument(doc, {
           viewColumn: vscode.ViewColumn.Two,
           preserveFocus: true,
@@ -114,13 +115,19 @@ export async function activate(ctx: vscode.ExtensionContext) {
             placeHolder: 'Save infoset as:',
           })
           if (dest) {
+            let rootPath = vscode.workspace.workspaceFolders
+              ? vscode.workspace.workspaceFolders[0].uri.fsPath
+              : vscode.Uri.parse('').fsPath
+
+            dest = path.join(rootPath, dest)
+
             fs.copyFile(tmpFile(sid), dest, async () => {
               const choice = await vscode.window.showInformationMessage(
                 `Wrote infoset to ${dest}`,
                 'View',
                 'Delete'
               )
-              let uri = Uri.parse(dest!)
+              let uri = Uri.file(dest!)
               switch (choice) {
                 case 'View':
                   let xml = await vscode.workspace.openTextDocument(uri)
@@ -143,12 +150,12 @@ export async function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.commands.registerCommand('infoset.diff', async () => {
       if (sid !== undefined) {
-        let path = ensureFile(tmpFile(sid))
-        let prev = ensureFile(`${path}.prev`)
+        let filepath = ensureFile(tmpFile(sid))
+        let prev = ensureFile(`${filepath}.prev`)
         vscode.commands.executeCommand(
           'vscode.diff',
           Uri.file(prev),
-          Uri.file(path),
+          Uri.file(filepath),
           'Previous ↔ Current',
           { preview: false, viewColumn: vscode.ViewColumn.Two }
         )
