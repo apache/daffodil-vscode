@@ -43,7 +43,9 @@ limitations under the License.
   )
 
   let displayTextEditorArea: boolean
-  $: displayTextEditorArea = $editMode === EditByteModes.Multiple && ($selectionDataStore.active || !$regularSizedFile)
+  $: displayTextEditorArea =
+    $editMode === EditByteModes.Multiple &&
+    ($selectionDataStore.active || !$regularSizedFile)
 
   function clearDataDisplays() {
     eventDispatcher('clearDataDisplays')
@@ -81,14 +83,16 @@ limitations under the License.
   }
 </script>
 
-<div 
-  class="editView" 
+<div
+  class="editView"
   id="edit_view"
   style:justify-content={displayTextEditorArea ? 'flex-end' : 'flex-start'}
 >
-  <div class="hdr editor-header" >
-    <div class={$UIThemeCSSClass + ' hd'}>Editor <HelpIcon helpSectionId={'edit-instructions'}/></div>
-    <div class={$UIThemeCSSClass + " measure selection-content"}>
+  <div class="hdr editor-header">
+    <div class={$UIThemeCSSClass + ' hd'}>
+      Editor <HelpIcon helpSectionId={'edit-instructions'} />
+    </div>
+    <div class={$UIThemeCSSClass + ' measure selection-content'}>
       {#if $selectionDataStore.active && $editMode !== EditByteModes.Single}
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
@@ -105,26 +109,25 @@ limitations under the License.
       {/if}
     </div>
   </div>
-    {#if displayTextEditorArea}
-      <textarea
-        class={$UIThemeCSSClass}
-        id="selectedContent"
-        contenteditable="true"
-        on:keyup|nonpassive={handleEditorEvent}
-        on:click={handleEditorEvent}
-        on:input={handleEditorEvent}
-        bind:value={$editorSelection}
-      />
-  
-      <FlexContainer>
-        <ContentControls on:applyChanges />
-      </FlexContainer>
-    {:else}
-      <FlexContainer>
-        <DataView on:applyChanges />
-      </FlexContainer>
-    {/if}
+  {#if displayTextEditorArea}
+    <textarea
+      class={$UIThemeCSSClass}
+      id="selectedContent"
+      contenteditable="true"
+      on:keyup|nonpassive={handleEditorEvent}
+      on:click={handleEditorEvent}
+      on:input={handleEditorEvent}
+      bind:value={$editorSelection}
+    />
 
+    <FlexContainer>
+      <ContentControls on:applyChanges />
+    </FlexContainer>
+  {:else}
+    <FlexContainer>
+      <DataView on:applyChanges />
+    </FlexContainer>
+  {/if}
 </div>
 
 <style lang="scss">

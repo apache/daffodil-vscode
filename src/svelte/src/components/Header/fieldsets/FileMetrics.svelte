@@ -186,18 +186,19 @@ limitations under the License.
     </FlexContainer>
     <FlexContainer --dir="column">
       <label for="content_type">Content Type</label>
-      <Tooltip
-        description="{$fileMetrics.type}"
-        alwaysEnabled={true}>
-      <span id="content_type" class="nowrap">{$fileMetrics.type.split('/').pop()}</span>
-        </Tooltip>
+      <Tooltip description={$fileMetrics.type} alwaysEnabled={true}>
+        <span id="content_type" class="nowrap"
+          >{$fileMetrics.type.split('/').pop()}</span
+        >
+      </Tooltip>
     </FlexContainer>
     <FlexContainer --dir="column">
       <label for="language">Language</label>
       <Tooltip
-        description="{ISO6391.getName($fileMetrics.language)}"
-        alwaysEnabled={true}>
-      <span id="language" class="nowrap">{$fileMetrics.language}</span>
+        description={ISO6391.getName($fileMetrics.language)}
+        alwaysEnabled={true}
+      >
+        <span id="language" class="nowrap">{$fileMetrics.language}</span>
       </Tooltip>
     </FlexContainer>
   </FlexContainer>

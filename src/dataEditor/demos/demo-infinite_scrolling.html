@@ -213,16 +213,14 @@ limitations under the License.
           (currentLine / (totalLines - linesPerPage)) * 100
         )
 
-        document.querySelector(
-          '.indicator'
-        ).innerText = `Showing bytes ${startByte}-${endByte} of ${
-          totalLines * bytesPerLine
-        } (${percentage}%)`
+        document.querySelector('.indicator').innerText =
+          `Showing bytes ${startByte}-${endByte} of ${
+            totalLines * bytesPerLine
+          } (${percentage}%)`
 
         // Update the width of the scrollbar thumb
-        document.querySelector(
-          '.scrollbar-thumb'
-        ).style.width = `${percentage}%`
+        document.querySelector('.scrollbar-thumb').style.width =
+          `${percentage}%`
       }
 
       function handleNavigation(linesToMove) {
