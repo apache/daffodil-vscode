@@ -129,8 +129,8 @@ export async function getTestCaseDisplayData(
 ): Promise<TDMLTestSuiteDisplay> {
   var xmlObj: Element | ElementCompact = xml2js(xmlBuffer)
 
-  const rootNode = (xmlObj as Element).elements?.filter(
-    (node) => node.name?.endsWith(testSuiteElement)
+  const rootNode = (xmlObj as Element).elements?.filter((node) =>
+    node.name?.endsWith(testSuiteElement)
   )
 
   if (rootNode === undefined) {
@@ -152,8 +152,8 @@ export async function getTestCaseDisplayData(
   const retVal: TDMLTestCaseDisplay[] = []
 
   // Each TDML file contains at least one test case
-  const testCases = rootNode[0].elements?.filter(
-    (node) => node.name?.endsWith(testCaseElement)
+  const testCases = rootNode[0].elements?.filter((node) =>
+    node.name?.endsWith(testCaseElement)
   )
 
   // Each test case may contain any number of documents
@@ -162,21 +162,18 @@ export async function getTestCaseDisplayData(
     const documentsGrouped: string[] = []
     testCaseNode.elements
       ?.filter((childNode) => childNode.name?.endsWith(documentElement))
-      .forEach(
-        (documentNode) =>
-          documentNode.elements
-            ?.filter(
-              (childNode) => childNode.name?.endsWith(documentPartElement)
+      .forEach((documentNode) =>
+        documentNode.elements
+          ?.filter((childNode) => childNode.name?.endsWith(documentPartElement))
+          .forEach((documentPartNode) => {
+            if (
+              documentPartNode.elements !== undefined &&
+              documentPartNode.elements[0].text !== undefined
             )
-            .forEach((documentPartNode) => {
-              if (
-                documentPartNode.elements !== undefined &&
-                documentPartNode.elements[0].text !== undefined
+              documentsGrouped.push(
+                documentPartNode.elements[0].text.toString()
               )
-                documentsGrouped.push(
-                  documentPartNode.elements[0].text.toString()
-                )
-            })
+          })
       )
     documentParts.push(documentsGrouped)
   })
@@ -187,23 +184,18 @@ export async function getTestCaseDisplayData(
     const infosetsGrouped: string[] = []
     testCaseNode.elements
       ?.filter((childNode) => childNode.name?.endsWith(infosetElement))
-      .forEach(
-        (infosetNode) =>
-          infosetNode.elements
-            ?.filter(
-              (childNode) => childNode.name?.endsWith(dfdlInfosetElement)
+      .forEach((infosetNode) =>
+        infosetNode.elements
+          ?.filter((childNode) => childNode.name?.endsWith(dfdlInfosetElement))
+          .forEach((dfdlInfosetNode) => {
+            if (
+              dfdlInfosetNode.elements !== undefined &&
+              dfdlInfosetNode.elements[0].text !== undefined
             )
-            .forEach((dfdlInfosetNode) => {
-              if (
-                dfdlInfosetNode.elements !== undefined &&
-                dfdlInfosetNode.elements[0].text !== undefined
-              )
-                infosetsGrouped.push(
-                  dfdlInfosetNode.elements[0].text.toString()
-                )
-              else if (dfdlInfosetNode.elements !== undefined)
-                infosetsGrouped.push('xml defined infoset')
-            })
+              infosetsGrouped.push(dfdlInfosetNode.elements[0].text.toString())
+            else if (dfdlInfosetNode.elements !== undefined)
+              infosetsGrouped.push('xml defined infoset')
+          })
       )
     infosetParts.push(infosetsGrouped)
   })
@@ -266,8 +258,8 @@ export async function appendTestCase(
   var xmlObj: Element | ElementCompact = xml2js(xmlBuffer)
   var destinationObj: Element | ElementCompact = xml2js(destinationBuffer)
 
-  const sourceTestSuite = (xmlObj as Element).elements?.filter(
-    (node) => node.name?.endsWith(testSuiteElement)
+  const sourceTestSuite = (xmlObj as Element).elements?.filter((node) =>
+    node.name?.endsWith(testSuiteElement)
   )
 
   if (sourceTestSuite === undefined) {
@@ -278,8 +270,8 @@ export async function appendTestCase(
     throw `More than one test suite found in source XML buffer`
   }
 
-  const sourceTestCase = sourceTestSuite[0].elements?.filter(
-    (childNode) => childNode.name?.endsWith(testCaseElement)
+  const sourceTestCase = sourceTestSuite[0].elements?.filter((childNode) =>
+    childNode.name?.endsWith(testCaseElement)
   )
 
   if (sourceTestCase === undefined) {

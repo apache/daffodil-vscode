@@ -94,8 +94,12 @@ limitations under the License.
     const nearestBPRdivisibleViewportFileOffset = byte_count_divisible_offset(
       viewportStartOffset,
       bytesPerRow
-    ) 
-    return (nearestBPRdivisibleTargetFileOffset - nearestBPRdivisibleViewportFileOffset) / bytesPerRow
+    )
+    return (
+      (nearestBPRdivisibleTargetFileOffset -
+        nearestBPRdivisibleViewportFileOffset) /
+      bytesPerRow
+    )
   }
 
   function fetchable_content(offset: number): boolean {
@@ -130,7 +134,13 @@ limitations under the License.
 
     $dataFeedAwaitRefresh = true
 
-    const fetchOffset = Math.max(0, byte_count_divisible_offset(offsetArg - (VIEWPORT_SCROLL_INCREMENT-$bytesPerRow), $bytesPerRow))
+    const fetchOffset = Math.max(
+      0,
+      byte_count_divisible_offset(
+        offsetArg - (VIEWPORT_SCROLL_INCREMENT - $bytesPerRow),
+        $bytesPerRow
+      )
+    )
 
     $dataFeedLineTop = offset_to_viewport_line_number(
       offsetArg,
@@ -252,7 +262,8 @@ limitations under the License.
   function handleKeyBind(event: Event) {
     const kbdEvent = event as KeyboardEvent
     if (key_is_mappable(kbdEvent.key)) {
-      if(document.activeElement) // document.activeElement is possibly undefined / null
+      if (document.activeElement)
+        // document.activeElement is possibly undefined / null
         elementKeypressEventMap.run(document.activeElement.id, kbdEvent)
       return
     }
@@ -314,7 +325,7 @@ limitations under the License.
     on:handleEditorEvent={handleEditorEvent}
     on:traverse-file={traversalEventHandler}
     on:seek={seekEventHandler}
-      />
+  />
 
   <Help />
   <hr />
@@ -323,7 +334,6 @@ limitations under the License.
 
 <!-- svelte-ignore css-unused-selector -->
 <style lang="scss">
-
   div.test {
     display: flex;
     flex-wrap: wrap;

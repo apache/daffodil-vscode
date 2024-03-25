@@ -83,8 +83,12 @@ limitations under the License.
     border-color: var(--color-replace-result);
   }
   @keyframes byteBlink {
-    0% {background-color: initial;}
-    100% {background-color: indianred;}
+    0% {
+      background-color: initial;
+    }
+    100% {
+      background-color: indianred;
+    }
   }
   div.byte.bytepos1b {
     animation-name: byteBlink;

@@ -83,7 +83,7 @@
     "glob": "8.1.0",
     "mini-css-extract-plugin": "^2.7.6",
     "mocha": "10.2.0",
-    "prettier": "3.0.3",
+    "prettier": "3.2.5",
     "prettier-plugin-svelte": "3.0.3",
     "run-func": "^3.0.0",
     "sass": "^1.69.4",

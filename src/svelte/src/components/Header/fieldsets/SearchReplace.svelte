@@ -251,8 +251,9 @@ limitations under the License.
           // subtract 1 from the next offset because search next will add 1
           matchOffset = msg.data.data.nextOffset - 1
           replaceQuery.addResult({
-            byteLength: msg.data.data.replaceDataBytesLength, 
-            offset: msg.data.data.nextOffset - msg.data.data.replaceDataBytesLength
+            byteLength: msg.data.data.replaceDataBytesLength,
+            offset:
+              msg.data.data.nextOffset - msg.data.data.replaceDataBytesLength,
           })
           preReplaceHasPrev = hasPrev
           justReplaced = true
@@ -263,11 +264,10 @@ limitations under the License.
         }
         $replaceQuery.processing = false
         break
-  
+
       case MessageCommand.clearChanges:
         cancel()
         break
-
     }
   })
 </script>

@@ -22,7 +22,7 @@ limitations under the License.
 
 <main class="dataEditor">
   <div class="data-viewports">
-    <DisplayHeader on:clearDataDisplays/>
+    <DisplayHeader on:clearDataDisplays />
     <DataViewports
       on:clearDataDisplays
       on:scrolledToTop
@@ -32,10 +32,10 @@ limitations under the License.
       on:scrollBoundary
       on:traverse-file
       on:seek
-    />    
+    />
   </div>
   <div class="data-editor">
-    <DataEditor on:applyChanges on:handleEditorEvent on:clearDataDisplays/>
+    <DataEditor on:applyChanges on:handleEditorEvent on:clearDataDisplays />
   </div>
 </main>
 

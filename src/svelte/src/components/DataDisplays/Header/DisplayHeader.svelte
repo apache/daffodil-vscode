@@ -22,7 +22,7 @@ limitations under the License.
     seekOffsetInput,
     seekOffsetSearchType,
     bytesPerRow,
-    visableViewports
+    visableViewports,
   } from '../../../stores'
   import {
     ADDRESS_RADIX_OPTIONS,
@@ -95,7 +95,7 @@ limitations under the License.
 </script>
 
 <div class="headers">
-  <div class="hdr address-header" style:min-width=110px>
+  <div class="hdr address-header" style:min-width="110px">
     <div class={$UIThemeCSSClass + ' hd'}>Address</div>
     <select
       class={$UIThemeCSSClass + ' address_type'}
@@ -108,40 +108,51 @@ limitations under the License.
     </select>
   </div>
   {#if $visableViewports === 'physical' || $visableViewports === 'all'}
-  <div class="hdr physical-header" >
-    <div class={$UIThemeCSSClass + ' hd'}>Physical</div>
-    <div class={$UIThemeCSSClass + ' measure physical-viewport-header'}>
-      {#if $displayRadix === RADIX_OPTIONS.Binary}
-        {#each offsetLine as offset}
-          <div class="physical-addr-seg binary" style:min-width={byteDivWidthFromRadix($displayRadix)}>
-            <div><b>{offset}</b></div>
-            <div><b>{bitIndexStr}</b></div>
-          </div>
-        {/each}
-      {:else}
-        {#each offsetLine as offset}
-          <div class="physical-addr-seg" style:min-width={byteDivWidthFromRadix($displayRadix)}>
-            <b>{offset}</b>
-          </div>
-        {/each}
-      {/if}
+    <div class="hdr physical-header">
+      <div class={$UIThemeCSSClass + ' hd'}>Physical</div>
+      <div class={$UIThemeCSSClass + ' measure physical-viewport-header'}>
+        {#if $displayRadix === RADIX_OPTIONS.Binary}
+          {#each offsetLine as offset}
+            <div
+              class="physical-addr-seg binary"
+              style:min-width={byteDivWidthFromRadix($displayRadix)}
+            >
+              <div><b>{offset}</b></div>
+              <div><b>{bitIndexStr}</b></div>
+            </div>
+          {/each}
+        {:else}
+          {#each offsetLine as offset}
+            <div
+              class="physical-addr-seg"
+              style:min-width={byteDivWidthFromRadix($displayRadix)}
+            >
+              <b>{offset}</b>
+            </div>
+          {/each}
+        {/if}
+      </div>
     </div>
-  </div>
   {/if}
   {#if $visableViewports === 'logical' || $visableViewports === 'all'}
-  <div class="hdr logical-header" >
-    <div class={$UIThemeCSSClass + ' hd'}>Logical</div>
-    <div 
-      class={$UIThemeCSSClass + ' measure logical logical-viewport-header'}
-      style:align-items={$displayRadix === RADIX_OPTIONS.Binary ? 'flex-end' : 'normal'} 
-    >
-      {#each offsetLine as offset}
-        <div 
-          class="logical-addr-seg"
-          style:min-width={byteDivWidthFromRadix(RADIX_OPTIONS.Hexadecimal)}>{offset}</div>
-      {/each}
+    <div class="hdr logical-header">
+      <div class={$UIThemeCSSClass + ' hd'}>Logical</div>
+      <div
+        class={$UIThemeCSSClass + ' measure logical logical-viewport-header'}
+        style:align-items={$displayRadix === RADIX_OPTIONS.Binary
+          ? 'flex-end'
+          : 'normal'}
+      >
+        {#each offsetLine as offset}
+          <div
+            class="logical-addr-seg"
+            style:min-width={byteDivWidthFromRadix(RADIX_OPTIONS.Hexadecimal)}
+          >
+            {offset}
+          </div>
+        {/each}
+      </div>
     </div>
-  </div>
   {/if}
 </div>
 
@@ -177,7 +188,7 @@ limitations under the License.
   div.physical-viewport-header {
     padding-left: 2px;
   }
-  div.physical-viewport-header ,
+  div.physical-viewport-header,
   div.logical-viewport-header {
     display: flex;
   }

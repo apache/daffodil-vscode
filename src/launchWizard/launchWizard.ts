@@ -395,8 +395,8 @@ class LaunchWizard {
     let configIndex = selectedConfigNumber
       ? selectedConfigNumber
       : fs.existsSync(`${rootPath}/.vscode/launch.json`)
-      ? 0
-      : -1
+        ? 0
+        : -1
     let fileData = JSON.parse('{}')
 
     if (fs.existsSync(`${rootPath}/.vscode/launch.json`)) {

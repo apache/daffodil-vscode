@@ -419,7 +419,11 @@ limitations under the License.
     border-style: solid;
     border-width: 2px;
     border-color: var(--color-primary-dark);
-    transition: border-color 0.25s, top 0.15s, left 0.15s, right 0.15s;
+    transition:
+      border-color 0.25s,
+      top 0.15s,
+      left 0.15s,
+      right 0.15s;
     outline: none;
   }
   input {

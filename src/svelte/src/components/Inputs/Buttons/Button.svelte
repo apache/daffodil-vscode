@@ -70,7 +70,7 @@ limitations under the License.
       class={$UIThemeCSSClass}
       disabled={disabledBy}
       on:click={!disabledBy ? fn : () => {}}
-      style:width = { fixedWidth.length > 0 ? fixedWidth : width }
+      style:width={fixedWidth.length > 0 ? fixedWidth : width}
     >
       <FlexContainer
         --dir="row"
