@@ -52,10 +52,9 @@ import {
   saveSession,
   SaveStatus,
   searchSession,
-  setAutoFixViewportDataLength,
   setLogger,
   startServer,
-  stopServerUsingPID,
+  stopProcessUsingPID,
   undo,
   ViewportDataResponse,
   ViewportEvent,
@@ -838,7 +837,6 @@ async function createDataEditorWebviewPanel(
   // only start up the server if one is not already running
   if (!(await checkServerListening(omegaEditPort, OMEGA_EDIT_HOST))) {
     await setupLogging(launchConfigVars)
-    setAutoFixViewportDataLength(true)
     await serverStart()
     client = await getClient(omegaEditPort, OMEGA_EDIT_HOST)
     assert(
@@ -1136,7 +1134,7 @@ async function serverStop() {
   const serverPidFile = getPidFile(omegaEditPort)
   if (fs.existsSync(serverPidFile)) {
     const pid = parseInt(fs.readFileSync(serverPidFile).toString())
-    if (await stopServerUsingPID(pid)) {
+    if (await stopProcessUsingPID(pid)) {
       vscode.window.setStatusBarMessage(
         `Ωedit server stopped on port ${omegaEditPort} with PID ${pid}`,
         new Promise((resolve) => {
