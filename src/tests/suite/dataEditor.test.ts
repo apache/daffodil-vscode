@@ -27,7 +27,7 @@ import {
   getServerInfo,
   setLogger,
   startServer,
-  stopServerUsingPID,
+  stopProcessUsingPID,
 } from '@omega-edit/client'
 import {
   APP_DATA_PATH,
@@ -113,7 +113,7 @@ suite('Data Editor Test Suite', () => {
       assert.strictEqual(fs.existsSync(pidFile), true)
       const pid = parseInt(fs.readFileSync(pidFile).toString())
       console.log(pid)
-      assert.strictEqual(await stopServerUsingPID(pid), true)
+      assert.strictEqual(await stopProcessUsingPID(pid), true)
     })
 
     test('is running', async () => {
