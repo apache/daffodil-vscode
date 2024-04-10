@@ -84,7 +84,6 @@ import { extractDaffodilEvent } from '../daffodilDebugger/daffodil'
 import * as editor_config from './config'
 import {
   configureOmegaEditPort,
-  NoSessionsExist,
   ServerInfo,
   ServerStopPredicate,
 } from './include/server/ServerInfo'
@@ -177,6 +176,7 @@ export class DataEditorClient implements vscode.Disposable {
         await this.panel.webview.postMessage(forwardAs)
       })
     )
+    context.subscriptions.push(this)
 
     this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
@@ -187,15 +187,20 @@ export class DataEditorClient implements vscode.Disposable {
   addDisposable(dispoable: vscode.Disposable) {
     this.disposables.push(dispoable)
   }
-  async dispose(): Promise<void> {
+  dispose(): void {
     if (this.sendHeartbeatIntervalId) {
       clearInterval(this.sendHeartbeatIntervalId)
       this.sendHeartbeatIntervalId = undefined
     }
 
     // destroy the session and remove it from the list of active sessions
-    removeActiveSession(await destroySession(this.omegaSessionId))
-    await serverStopIf(NoSessionsExist)
+    destroySession(this.omegaSessionId).then((id) => {
+      removeActiveSession(id)
+      serverStopIf(() => {
+        return activeSessions.length == 0
+      })
+    })
+
     for (let i = 0; i < this.disposables.length; i++)
       this.disposables[i].dispose()
   }
@@ -1128,7 +1133,7 @@ function removeDirectory(dirPath: string): void {
   }
 }
 async function serverStopIf(predicate: ServerStopPredicate) {
-  if (await predicate()) await serverStop()
+  if (predicate()) await serverStop()
 }
 async function serverStop() {
   const serverPidFile = getPidFile(omegaEditPort)
