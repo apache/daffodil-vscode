@@ -18,7 +18,7 @@
 import * as editor_config from '../../config'
 import * as fs from 'fs'
 import assert from 'assert'
-import { IServerInfo, getSessionCount } from '@omega-edit/client'
+import { IServerInfo } from '@omega-edit/client'
 
 export class ServerInfo implements IServerInfo {
   serverHostname: string = 'unknown'
@@ -53,10 +53,4 @@ export function configureOmegaEditPort(configVars: editor_config.Config): void {
     assert(omegaEditPort !== 0, 'omegaEditPort is not set')
   }
 }
-export type ServerStopPredicate = (context?: any) => Promise<boolean>
-export const NoSessionsExist: ServerStopPredicate = (): Promise<boolean> => {
-  return new Promise(async (resolve) => {
-    const count = await getSessionCount()
-    resolve(count === 0)
-  })
-}
+export type ServerStopPredicate = (context?: any) => boolean
