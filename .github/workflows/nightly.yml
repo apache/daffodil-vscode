@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         os: [ macos-12, ubuntu-20.04, windows-2019, macos-latest, ubuntu-latest, windows-latest ]
-        node: [ '16', '18' ]
+        node: [ '16', '18.20.1' ] # version 18.20.2 (current latest of 18) is broken on windows
         vscode: [ 'stable', 'insiders' ]
         java_distribution: [ temurin ]
         java_version: [ 8, 11, 17 ]
