@@ -34,7 +34,8 @@ import java.nio.file._
 import org.apache.commons.io.FileUtils
 import org.apache.daffodil.debugger.dap.{BuildInfo => DAPBuildInfo}
 import org.apache.daffodil.runtime1.debugger.Debugger
-import org.apache.daffodil.runtime1.infoset.{DIDocument, DIElement, InfosetElement, InfosetWalker}
+import org.apache.daffodil.runtime1.api.InfosetElement
+import org.apache.daffodil.runtime1.infoset.{DIDocument, DIElement, InfosetWalker}
 import org.apache.daffodil.runtime1.processors._
 import org.apache.daffodil.runtime1.processors.dfa.DFADelimiter
 import org.apache.daffodil.runtime1.processors.parsers._
