@@ -30,7 +30,7 @@ import com.microsoft.java.debug.core.protocol.Responses._
 import com.monovore.decline.Opts
 import com.monovore.decline.effect.CommandIOApp
 import fs2._
-import fs2.concurrent.Signal
+import fs2.concurrent._
 import java.io._
 import java.net._
 import java.nio.file.Path
@@ -82,9 +82,9 @@ object DAPSession {
   def resource(socket: Socket): Resource[IO, DAPSession[Request, Response, DebugEvent]] =
     for {
       dispatcher <- Dispatcher.parallel[IO]
-      requests <- Resource.eval(Queue.bounded[IO, Option[Request]](10))
+      requests <- Channel.bounded[IO, Request](10).toResource
       server <- Server.resource(socket.getInputStream, socket.getOutputStream, dispatcher, requests)
-      session = DAPSession(server, Stream.fromQueueNoneTerminated(requests))
+      session = DAPSession(server, requests.stream)
     } yield session
 
   /** Wraps an AbstractProtocolServer into an IO-based interface. */
@@ -92,13 +92,13 @@ object DAPSession {
       in: InputStream,
       out: OutputStream,
       dispatcher: Dispatcher[IO],
-      requests: QueueSink[IO, Option[Request]]
+      requests: Channel[IO, Request]
   ) extends AbstractProtocolServer(in, out) {
     def dispatchRequest(request: Request): Unit =
       dispatcher.unsafeRunSync {
         for {
           _ <- Logger[IO].info(show"R> $request")
-          _ <- requests.offer(Some(request)).recoverWith {
+          _ <- requests.send(request).recoverWith {
             // format: off
             case t => Logger[IO].error(t)(show"error during handling of request $request")
             // format: on
@@ -114,10 +114,10 @@ object DAPSession {
         in: InputStream,
         out: OutputStream,
         dispatcher: Dispatcher[IO],
-        requests: QueueSink[IO, Option[Request]]
+        requests: Channel[IO, Request]
     ): Resource[IO, AbstractProtocolServer] =
       Resource
-        .make(IO(new Server(in, out, dispatcher, requests)))(server => IO(server.stop()) *> requests.offer(None).void)
+        .make(IO(new Server(in, out, dispatcher, requests)))(server => IO(server.stop()) *> requests.close.void)
         .flatTap(server => IO.blocking(server.run).background)
   }
 
@@ -514,11 +514,11 @@ object DAPodil extends IOApp {
       debugee: Request => EitherNel[String, Resource[IO, Debugee]]
   ): Resource[IO, IO[Done]] =
     for {
-      state <- Resource.eval(Ref[IO].of[State](State.Uninitialized))
+      state <- Ref[IO].of[State](State.Uninitialized).toResource
       hotswap <- Hotswap
         .create[IO, State]
         .onFinalizeCase(ec => Logger[IO].debug(s"hotswap: $ec"))
-      whenDone <- Resource.eval(Deferred[IO, Done])
+      whenDone <- Deferred[IO, Done].toResource
       dapodil = new DAPodil(
         session,
         state,
@@ -543,7 +543,6 @@ object DAPodil extends IOApp {
   trait Debugee {
     // TODO: extract "control" interface from "state" interface
     def data(): Signal[IO, Data]
-    def state(): Stream[IO, Debugee.State]
     def events(): Stream[IO, Events.DebugEvent]
 
     def sources(): IO[List[Source]]
@@ -571,6 +570,11 @@ object DAPodil extends IOApp {
       case class Stopped(reason: Stopped.Reason) extends State
 
       object Stopped {
+        def entry: Stopped = Stopped(Reason.Entry)
+        def pause: Stopped = Stopped(Reason.Pause)
+        def step: Stopped = Stopped(Reason.Step)
+        def breakpointHit(location: DAPodil.Location): Stopped = Stopped(Reason.BreakpointHit(location))
+
         sealed trait Reason
 
         object Reason {
@@ -628,24 +632,11 @@ object DAPodil extends IOApp {
             .lastOrError
             .onFinalizeCase(ec => Logger[IO].debug(s"launched: $ec"))
 
-          _ <- Resource.eval(session.sendEvent(new Events.ThreadEvent("started", 1L)))
+          _ <- session.sendEvent(new Events.ThreadEvent("started", 1L)).toResource
         } yield launched
     }
 
     def deliverEvents(debugee: Debugee, session: DAPSession[Request, Response, DebugEvent]): Stream[IO, Unit] = {
-      val stoppedEventsDelivery = debugee.state
-        .collect {
-          case Debugee.State.Stopped(Debugee.State.Stopped.Reason.Entry) =>
-            new Events.StoppedEvent("entry", 1L)
-          case Debugee.State.Stopped(Debugee.State.Stopped.Reason.Pause) =>
-            new Events.StoppedEvent("pause", 1L)
-          case Debugee.State.Stopped(Debugee.State.Stopped.Reason.Step) =>
-            new Events.StoppedEvent("step", 1L)
-          case Debugee.State.Stopped(Debugee.State.Stopped.Reason.BreakpointHit(location)) =>
-            new Events.StoppedEvent("breakpoint", 1L, false, show"Breakpoint hit at $location", null)
-        }
-        .onFinalizeCase(ec => Logger[IO].debug(s"deliverStoppedEvents: $ec"))
-
       val dapEvents = debugee.events
         .onFinalizeCase(ec => Logger[IO].debug(s"dapEvents: $ec"))
 
@@ -653,7 +644,7 @@ object DAPodil extends IOApp {
         .map(source => DAPodil.LoadedSourceEvent("changed", source.toDAP))
         .onFinalizeCase(ec => Logger[IO].debug(s"sourceEventsDelivery: $ec"))
 
-      Stream(stoppedEventsDelivery, dapEvents, sourceEventsDelivery).parJoinUnbounded
+      Stream(dapEvents, sourceEventsDelivery).parJoinUnbounded
         .evalMap(session.sendEvent)
         .onFinalize(
           session.sendEvent(new Events.ThreadEvent("exited", 1L)) *>
