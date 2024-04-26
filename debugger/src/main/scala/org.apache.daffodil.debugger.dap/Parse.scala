@@ -34,7 +34,6 @@ import java.nio.file._
 import org.apache.commons.io.FileUtils
 import org.apache.daffodil.debugger.dap.{BuildInfo => DAPBuildInfo}
 import org.apache.daffodil.runtime1.debugger.Debugger
-import org.apache.daffodil.runtime1.api.InfosetElement
 import org.apache.daffodil.runtime1.infoset.{DIDocument, DIElement, InfosetWalker}
 import org.apache.daffodil.runtime1.processors._
 import org.apache.daffodil.runtime1.processors.dfa.DFADelimiter
@@ -50,6 +49,7 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import scala.collection.JavaConverters._
 import scala.util.Try
 
+/** A Daffodil parse of a schema against data. */
 trait Parse {
 
   /** Run the parse, returning the bytes of the final infoset. */
@@ -70,6 +70,7 @@ object Parse {
           .mkString("\n")
       )
 
+  /** Create a parse using the given schema, data, etc. */
   def apply(
       schema: Path,
       data: InputStream,
@@ -132,17 +133,13 @@ object Parse {
       schema: DAPodil.Source,
       data: DAPodil.Source,
       outputData: Signal[IO, DAPodil.Data],
-      outputState: Stream[IO, DAPodil.Debugee.State],
-      stateSink: QueueSink[IO, Option[DAPodil.Debugee.State]],
       events: Stream[IO, Events.DebugEvent],
       breakpoints: Breakpoints,
-      control: Control
+      control: Control,
+      parseEvents: Channel[IO, Parse.Event]
   ) extends DAPodil.Debugee {
     def data(): Signal[IO, DAPodil.Data] =
       outputData
-
-    def state(): Stream[IO, DAPodil.Debugee.State] =
-      outputState
 
     def events(): Stream[IO, Events.DebugEvent] =
       events
@@ -160,23 +157,26 @@ object Parse {
       Stream.empty
 
     def step(): IO[Unit] =
-      control.step() *> stateSink.offer(
-        Some(
-          DAPodil.Debugee.State
-            .Stopped(DAPodil.Debugee.State.Stopped.Reason.Step)
+      control.step() *> parseEvents
+        .send(
+          Parse.Event
+            .Control(DAPodil.Debugee.State.Stopped.step)
         )
-      )
+        .void
 
     def continue(): IO[Unit] =
-      control.continue() *> stateSink.offer(Some(DAPodil.Debugee.State.Running))
+      control.continue() *>
+        parseEvents.send(Parse.Event.Control(DAPodil.Debugee.State.Running)).void
 
     def pause(): IO[Unit] =
-      control.pause() *> stateSink.offer(
-        Some(
-          DAPodil.Debugee.State
-            .Stopped(DAPodil.Debugee.State.Stopped.Reason.Pause)
+      control.pause() *> parseEvents
+        .send(
+          Parse.Event
+            .Control(
+              DAPodil.Debugee.State.Stopped.pause
+            )
         )
-      )
+        .void
 
     def setBreakpoints(uri: URI, lines: List[DAPodil.Line]): IO[Unit] =
       breakpoints.setBreakpoints(uri, lines)
@@ -201,6 +201,7 @@ object Parse {
     sealed trait LaunchArgs
 
     object LaunchArgs {
+      // TODO: data type for infosetFormat
       case class Manual(
           schemaPath: Path,
           dataPath: Path,
@@ -740,57 +741,31 @@ object Parse {
 
   def debugee(args: Debugee.LaunchArgs.Manual): Resource[IO, DAPodil.Debugee] =
     for {
-      data <- Resource.eval(Queue.bounded[IO, Option[DAPodil.Data]](10))
-      state <- Resource.eval(Queue.bounded[IO, Option[DAPodil.Debugee.State]](10))
-      dapEvents <- Resource.eval(Queue.bounded[IO, Option[Events.DebugEvent]](10))
-      breakpoints <- Resource.eval(Breakpoints())
-      infoset <- Resource.eval(
-        Queue.bounded[IO, Option[String]](10)
-      ) // TODO: it's a bit incongruous to have a separate channel for infoset changes, vs. streaming Parse.Event values
-      control <- Resource.eval(Control.stopped())
-
-      latestData <- Stream
-        .fromQueueNoneTerminated(data)
-        .holdResource(DAPodil.Data.empty)
-
-      latestInfoset <- Resource.eval(SignallingRef[IO, String](""))
-      infosetChanges = Stream
-        .fromQueueNoneTerminated(infoset)
-        .evalTap(latestInfoset.set)
-        .evalTap(content =>
-          dapEvents.offer(
-            Some(
-              InfosetEvent(
-                content,
-                args.infosetFormat match {
-                  case "xml"  => "text/xml"
-                  case "json" => "application/json"
-                }
-              )
+      data <- Channel.bounded[IO, DAPodil.Data](10).toResource
+      dapEvents <- Channel.bounded[IO, Events.DebugEvent](10).toResource
+      breakpoints <- Breakpoints().toResource
+      control <- Control.stopped().toResource
+      events <- Channel.bounded[IO, Event](10).toResource
+      debugger <- DaffodilDebugger
+        .resource(events, breakpoints, control, args.infosetFormat)
+      parse <-
+        args.data
+          .flatMap(in =>
+            Parse(
+              args.schemaPath,
+              in,
+              debugger,
+              args.infosetFormat,
+              args.rootName,
+              args.rootNamespace,
+              args.variables,
+              args.tunables
             )
           )
-        )
-        .onFinalizeCase(ec => Logger[IO].debug(s"infosetChanges (orig): $ec"))
+          .toResource
 
-      events <- Resource.eval(Queue.bounded[IO, Option[Event]](10))
-      debugger <- DaffodilDebugger
-        .resource(state, events, breakpoints, control, infoset, args.infosetFormat)
-      parse <- Resource.eval(
-        args.data.flatMap(in =>
-          Parse(
-            args.schemaPath,
-            in,
-            debugger,
-            args.infosetFormat,
-            args.rootName,
-            args.rootNamespace,
-            args.variables,
-            args.tunables
-          )
-        )
-      )
-
-      parsing = args.infosetOutput match {
+      // run the parse, handling the final output (the infoset) in various ways
+      parsing = (args.infosetOutput match {
         case Debugee.LaunchArgs.InfosetOutput.None =>
           parse.run().drain
         case Debugee.LaunchArgs.InfosetOutput.Console =>
@@ -800,74 +775,57 @@ object Parse {
             .foldMonoid
             .evalTap(xml =>
               Logger[IO].debug("done collecting infoset XML output") *>
-                dapEvents.offer(Some(Events.OutputEvent.createConsoleOutput(xml)))
+                dapEvents.send(Events.OutputEvent.createConsoleOutput(xml))
             )
         case Debugee.LaunchArgs.InfosetOutput.File(path) =>
           parse
             .run()
             .through(fs2.io.file.Files[IO].writeAll(fs2.io.file.Path.fromNioPath(path)))
-      }
+      }).onFinalizeCase {
+        // ensure dapEvents is terminated when the parse is terminated
+        case Resource.ExitCase.Errored(e: Parse.Exception) =>
+          // TODO: when Parse.Exception has source coordinates, include it into a more structured OutputEvent
+          dapEvents.send(Events.OutputEvent.createConsoleOutput(e.getMessage())) *>
+            dapEvents.close.void
+        case _ => dapEvents.close.void
+      }.onFinalizeCase(ec => Logger[IO].debug(s"parsing: $ec"))
 
-      nextFrameId <- Resource.eval(
-        Next.int.map(_.map(DAPodil.Frame.Id.apply)).flatTap(_.next())
-      ) // `.flatTap(_.next())`: ids start at 1
-      nextRef <- Resource.eval(
-        Next.int.map(_.map(DAPodil.VariablesReference.apply)).flatTap(_.next())
-      ) // `.flatTap(_.next())`: ids start at 1
-
-      // convert Parse.Event values to DAPodil.Data values
-      deliverParseData = Stream
-        .fromQueueNoneTerminated(events)
-        .evalTap {
-          case start: Event.StartElement if start.isStepping =>
-            dapEvents.offer(Some(DataEvent(start.state.currentLocation.bytePos1b)))
-          case _ => IO.unit
-        }
-        .through(fromParse(nextFrameId, nextRef))
-        .enqueueNoneTerminated(data)
-
+      latestData <- data.stream.holdResource(DAPodil.Data.empty)
       debugee = new Debugee(
         DAPodil.Source(args.schemaPath, None),
         DAPodil.Source(args.dataPath, None),
         latestData,
-        Stream.fromQueueNoneTerminated(state),
-        state,
-        Stream.fromQueueNoneTerminated(dapEvents),
+        dapEvents.stream,
         breakpoints,
-        control
+        control,
+        events
       )
 
-      startup = dapEvents.offer(Some(ConfigEvent(args))) *>
+      startup = dapEvents.send(ConfigEvent(args)) *>
         (if (args.stopOnEntry)
-           control.step() *> state.offer(
-             Some(
-               DAPodil.Debugee.State
-                 .Stopped(DAPodil.Debugee.State.Stopped.Reason.Entry)
-             )
-           ) // don't use debugee.step as we need to send Stopped.Reason.Entry, not Stopped.Reason.Step
+           control.step() *>
+             events.send(Parse.Event.Control(DAPodil.Debugee.State.Stopped.entry))
+         // don't use debugee.step as we need to send Stopped.entry, not Stopped.step
          else debugee.continue())
+
+      delivery <- Delivery.to(data, dapEvents).toResource
+      deliverParseData =
+        events.stream
+          .through(delivery.deliver)
+          .onFinalize(data.close.void)
+          .onFinalizeCase {
+            case ec @ Resource.ExitCase.Errored(e) =>
+              Logger[IO].warn(e)(s"deliverParseData: $ec")
+            case ec => Logger[IO].debug(s"deliverParseData: $ec")
+          }
 
       _ <- Stream
         .emit(debugee)
         .concurrently(
           Stream(
             Stream.eval(startup),
-            // ensure dapEvents is terminated when the parse is terminated
-            parsing
-              .onFinalizeCase {
-                case Resource.ExitCase.Errored(e: Parse.Exception) =>
-                  // TODO: when Parse.Exception has source coordinates, include it into a more structured OutputEvent
-                  dapEvents.offer(Some(Events.OutputEvent.createConsoleOutput(e.getMessage()))) *>
-                    dapEvents.offer(None)
-                case _ => dapEvents.offer(None)
-              }
-              .onFinalizeCase(ec => Logger[IO].debug(s"parsing: $ec")),
-            deliverParseData.onFinalizeCase {
-              case ec @ Resource.ExitCase.Errored(e) =>
-                Logger[IO].warn(e)(s"deliverParseData: $ec")
-              case ec => Logger[IO].debug(s"deliverParseData: $ec")
-            },
-            infosetChanges
+            parsing,
+            deliverParseData
           ).parJoinUnbounded
         )
         .compile
@@ -877,213 +835,265 @@ object Parse {
       _ <- Resource.onFinalize(Logger[IO].debug("signalling a stop") *> parse.close())
     } yield debugee
 
-  /** Translate parse events to updated Daffodil state. */
-  def fromParse(
+  /** Delivers data and events to a Debugee via channels. */
+  private class Delivery(
       frameIds: Next[DAPodil.Frame.Id],
-      variableRefs: Next[DAPodil.VariablesReference]
-  ): Stream[IO, Parse.Event] => Stream[IO, DAPodil.Data] =
-    events =>
-      events.evalScan(DAPodil.Data.empty) {
-        case (_, Parse.Event.Init(_)) => IO.pure(DAPodil.Data.empty)
-        case (prev, startElement: Parse.Event.StartElement) =>
-          createFrame(startElement, frameIds, variableRefs).map(prev.push)
-        case (prev, Parse.Event.EndElement(_)) => IO.pure(prev.pop)
-        case (prev, _: Parse.Event.Fini.type)  => IO.pure(prev)
-      }
+      variableRefs: Next[DAPodil.VariablesReference],
+      data: Channel[IO, DAPodil.Data],
+      dapEvents: Channel[IO, Events.DebugEvent]
+  ) {
 
-  /** Transform Daffodil state to a DAP stack frame.
-    *
-    * @see
-    *   https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
-    */
-  def createFrame(
-      startElement: Parse.Event.StartElement,
-      frameIds: Next[DAPodil.Frame.Id],
-      variableRefs: Next[DAPodil.VariablesReference]
-  ): IO[DAPodil.Frame] =
-    for {
-      ids <- (frameIds.next, variableRefs.next, variableRefs.next, variableRefs.next).tupled
-      (frameId, parseScopeId, schemaScopeId, dataScopeId) = ids
-
-      stackFrame = new Types.StackFrame(
-        /* It must be unique across all threads.
-         * This id can be used to retrieve the scopes of the frame with the
-         * 'scopesRequest' or to restart the execution of a stackframe.
-         */
-        frameId.value,
-        startElement.name.map(_.value).getOrElse("???"),
-        /* If sourceReference > 0 the contents of the source must be retrieved through
-         * the SourceRequest (even if a path is specified). */
-        Try(
-          Paths
-            .get(URI.create(startElement.schemaLocation.uriString))
-            .toString()
-        )
-          .fold(
-            _ =>
-              new Types.Source(
-                startElement.schemaLocation.uriString,
-                null,
-                0
-              ), // there is no valid path if the location is a schema contained in a jar file; see #76.
-            path => new Types.Source(path, 0)
-          ),
-        startElement.schemaLocation.lineNumber
-          .map(_.toInt)
-          .getOrElse(1), // line numbers start at 1 according to InitializeRequest
-        0 // column numbers start at 1 according to InitializeRequest, but set to 0 to ignore it; column calculation by Daffodil uses 1 tab = 2 spaces(?), but breakpoints use 1 character per tab
-      )
-
-      schemaScope <- schemaScope(schemaScopeId, startElement.state, variableRefs)
-      parseScope <- parseScope(parseScopeId, startElement, variableRefs)
-    } yield DAPodil.Frame(
-      frameId,
-      stackFrame,
-      List(
-        parseScope,
-        schemaScope,
-        dataScope(dataScopeId, startElement.state)
-      )
-    )
-
-  def parseScope(
-      ref: DAPodil.VariablesReference,
-      event: Event.StartElement,
-      refs: Next[DAPodil.VariablesReference]
-  ): IO[DAPodil.Frame.Scope] =
-    (refs.next, refs.next, refs.next, refs.next, refs.next).mapN {
-      (pouRef, delimiterStackRef, diagnosticsRef, diagnosticsValidationsRef, diagnosticsErrorsRef) =>
-        val hidden = event.state.withinHiddenNest
-        val childIndex = if (event.state.childPos != -1) Some(event.state.childPos) else None
-        val groupIndex = if (event.state.groupPos != -1) Some(event.state.groupPos) else None
-        val occursIndex = if (event.state.arrayIterationPos != -1) Some(event.state.arrayIterationPos) else None
-        val foundDelimiter = for {
-          dpr <- event.state.delimitedParseResult.toScalaOption
-          dv <- dpr.matchedDelimiterValue.toScalaOption
-        } yield Misc.remapStringToVisibleGlyphs(dv)
-        val foundField = for {
-          dpr <- event.state.delimitedParseResult.toScalaOption
-          f <- dpr.field.toScalaOption
-        } yield Misc.remapStringToVisibleGlyphs(f)
-
-        val pouRootVariable =
-          new Types.Variable("Points of uncertainty", "", null, pouRef.value, null)
-        val pouVariables =
-          event.pointsOfUncertainty.map(pou => new Types.Variable(s"${pou.name.value}", s"${pou.context}"))
-
-        val delimiterStackRootVariable =
-          new Types.Variable("Delimiters", "", null, delimiterStackRef.value, null)
-        val delimiterStackVariables =
-          event.delimiterStack.map(delimiter =>
-            new Types.Variable(s"${delimiter.kind}:${delimiter.value.delimType}", s"${delimiter.value.lookingFor}")
-          )
-
-        val diagnosticsRootVariable =
-          new Types.Variable("Diagnostics", "", null, diagnosticsRef.value, null)
-        val diagnosticsValidationsVariable =
-          new Types.Variable("Validations", "", null, diagnosticsValidationsRef.value, null)
-        val diagnosticsErrorsVariable =
-          new Types.Variable("Errors", "", null, diagnosticsErrorsRef.value, null)
-        // TODO: Get better values than toString() when https://issues.apache.org/jira/browse/DAFFODIL-1200 is completed.
-        val diagnosticsValidations: List[Types.Variable] =
-          event.diagnostics.filter(_.isValidation).zipWithIndex.map { case (diag, i) =>
-            new Types.Variable(i.toString, diag.toString().replace("Validation Error: ", ""))
-          }
-        val diagnosticsErrors: List[Types.Variable] =
-          event.diagnostics.filterNot(_.isValidation).zipWithIndex.map { case (diag, i) =>
-            new Types.Variable(i.toString, diag.toString())
-          }
-
-        val parseVariables: List[Types.Variable] =
-          (List(
-            new Types.Variable("hidden", hidden.toString, "bool", 0, null),
-            pouRootVariable,
-            delimiterStackRootVariable,
-            diagnosticsRootVariable
-          ) ++ childIndex.map(ci => new Types.Variable("childIndex", ci.toString)).toList
-            ++ groupIndex
-              .map(gi => new Types.Variable("groupIndex", gi.toString))
-              .toList
-            ++ occursIndex
-              .map(oi => new Types.Variable("occursIndex", oi.toString))
-              .toList
-            ++ foundDelimiter.map(fd => new Types.Variable("foundDelimiter", fd)).toList
-            ++ foundField.map(ff => new Types.Variable("foundField", ff)).toList)
-            .sortBy(_.name)
-
-        DAPodil.Frame.Scope(
-          "Parse",
-          ref,
-          Map(
-            ref -> parseVariables,
-            pouRef -> pouVariables,
-            delimiterStackRef -> delimiterStackVariables,
-            diagnosticsRef -> List(diagnosticsValidationsVariable, diagnosticsErrorsVariable),
-            diagnosticsValidationsRef -> diagnosticsValidations,
-            diagnosticsErrorsRef -> diagnosticsErrors
-          )
-        )
-    }
-
-  // a.k.a. Daffodil variables
-  def schemaScope(
-      scopeRef: DAPodil.VariablesReference,
-      state: StateForDebugger,
-      refs: Next[DAPodil.VariablesReference]
-  ): IO[DAPodil.Frame.Scope] =
-    state.variableMapForDebugger.qnames.toList
-      .groupBy(_.namespace) // TODO: handle NoNamespace or UnspecifiedNamespace as top-level?
-      .toList
-      .flatTraverse { case (ns, vs) =>
-        // every namespace is a DAP variable in the current scope, and links to its set of Daffodil-as-DAP variables
-        refs.next.map { ref =>
-          List(scopeRef -> List(new Types.Variable(ns.toString(), "", null, ref.value, null))) ++
-            List(
-              ref -> vs
-                .sortBy(_.toPrettyString)
-                .fproduct(state.variableMapForDebugger.find)
-                .map { case (name, value) =>
-                  new Types.Variable(
-                    name.toQNameString,
-                    value
-                      .flatMap(v => Option(v.value.value).map(_.toString) orElse Some("null"))
-                      .getOrElse("???"),
-                    value
-                      .map(_.state match {
-                        case VariableDefined      => "default"
-                        case VariableRead         => "read"
-                        case VariableSet          => "set"
-                        case VariableUndefined    => "undefined"
-                        case VariableBeingDefined => "being defined"
-                        case VariableInProcess    => "in process"
-                      })
-                      .getOrElse("???"),
-                    0,
-                    null
-                  )
-                }
-            )
+    /** Maintains state related to upstream events that need to be delivered.
+      *   - DAPodil.Data updates are delivered when a new element is started.
+      *   - We update the data position and infoset when we know it, but only emit the corresponding DAPevents when a
+      *     stop occurs.
+      */
+    def deliver(events: Stream[IO, Event]): Stream[IO, Nothing] =
+      events
+        .evalScan(Delivery.State.empty) {
+          case (state, Parse.Event.Init(_)) => IO.pure(state.copy(data = DAPodil.Data.empty))
+          case (state, e: Event.StartElement) =>
+            for {
+              frame <- createFrame(e)
+              newState =
+                state.copy(
+                  data = state.data.push(frame),
+                  bytePos1b = e.state.currentLocation.bytePos1b,
+                  infoset = e.infoset
+                )
+              _ <- data.send(newState.data)
+            } yield newState
+          case (state, Parse.Event.EndElement(_)) => IO.pure(state.copy(data = state.data.pop))
+          case (state, _: Parse.Event.Fini.type)  => IO.pure(state)
+          case (state, Event.Control(DAPodil.Debugee.State.Stopped(reason))) =>
+            val events =
+              List(
+                reason match {
+                  case DAPodil.Debugee.State.Stopped.Reason.Entry =>
+                    new Events.StoppedEvent("entry", 1L)
+                  case DAPodil.Debugee.State.Stopped.Reason.Pause =>
+                    new Events.StoppedEvent("pause", 1L)
+                  case DAPodil.Debugee.State.Stopped.Reason.Step =>
+                    new Events.StoppedEvent("step", 1L)
+                  case DAPodil.Debugee.State.Stopped.Reason.BreakpointHit(location) =>
+                    new Events.StoppedEvent("breakpoint", 1L, false, show"Breakpoint hit at $location", null)
+                },
+                DataEvent(state.bytePos1b)
+              ) ++ state.infoset.toList
+            events.traverse(dapEvents.send).as(state)
+          case (state, Event.Control(DAPodil.Debugee.State.Running)) => IO.pure(state)
         }
-      }
-      .map { refVars =>
-        val sv = refVars.foldMap(Map(_)) // combine values of map to accumulate namespaces
-        DAPodil.Frame.Scope(
-          "Schema",
-          scopeRef,
-          sv
+        .drain
+
+    /** Transform Daffodil state to a DAP stack frame.
+      *
+      * @see
+      *   https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
+      */
+    def createFrame(startElement: Parse.Event.StartElement): IO[DAPodil.Frame] =
+      for {
+        ids <- (frameIds.next, variableRefs.next, variableRefs.next, variableRefs.next).tupled
+        (frameId, parseScopeId, schemaScopeId, dataScopeId) = ids
+
+        stackFrame = new Types.StackFrame(
+          /* It must be unique across all threads.
+           * This id can be used to retrieve the scopes of the frame with the
+           * 'scopesRequest' or to restart the execution of a stackframe.
+           */
+          frameId.value,
+          startElement.name.map(_.value).getOrElse("???"),
+          /* If sourceReference > 0 the contents of the source must be retrieved through
+           * the SourceRequest (even if a path is specified). */
+          Try(
+            Paths
+              .get(URI.create(startElement.schemaLocation.uriString))
+              .toString()
+          )
+            .fold(
+              _ =>
+                new Types.Source(
+                  startElement.schemaLocation.uriString,
+                  null,
+                  0
+                ), // there is no valid path if the location is a schema contained in a jar file; see #76.
+              path => new Types.Source(path, 0)
+            ),
+          startElement.schemaLocation.lineNumber
+            .map(_.toInt)
+            .getOrElse(1), // line numbers start at 1 according to InitializeRequest
+          0 // column numbers start at 1 according to InitializeRequest, but set to 0 to ignore it; column calculation by Daffodil uses 1 tab = 2 spaces(?), but breakpoints use 1 character per tab
         )
+
+        schemaScope <- schemaScope(schemaScopeId, startElement.state)
+        parseScope <- parseScope(parseScopeId, startElement)
+      } yield DAPodil.Frame(
+        frameId,
+        stackFrame,
+        List(
+          parseScope,
+          schemaScope,
+          dataScope(dataScopeId, startElement.state)
+        )
+      )
+
+    def parseScope(
+        ref: DAPodil.VariablesReference,
+        event: Event.StartElement
+    ): IO[DAPodil.Frame.Scope] =
+      (variableRefs.next, variableRefs.next, variableRefs.next, variableRefs.next, variableRefs.next).mapN {
+        (pouRef, delimiterStackRef, diagnosticsRef, diagnosticsValidationsRef, diagnosticsErrorsRef) =>
+          val hidden = event.state.withinHiddenNest
+          val childIndex = if (event.state.childPos != -1) Some(event.state.childPos) else None
+          val groupIndex = if (event.state.groupPos != -1) Some(event.state.groupPos) else None
+          val occursIndex = if (event.state.arrayIterationPos != -1) Some(event.state.arrayIterationPos) else None
+          val foundDelimiter = for {
+            dpr <- event.state.delimitedParseResult.toScalaOption
+            dv <- dpr.matchedDelimiterValue.toScalaOption
+          } yield Misc.remapStringToVisibleGlyphs(dv)
+          val foundField = for {
+            dpr <- event.state.delimitedParseResult.toScalaOption
+            f <- dpr.field.toScalaOption
+          } yield Misc.remapStringToVisibleGlyphs(f)
+
+          val pouRootVariable =
+            new Types.Variable("Points of uncertainty", "", null, pouRef.value, null)
+          val pouVariables =
+            event.pointsOfUncertainty.map(pou => new Types.Variable(s"${pou.name.value}", s"${pou.context}"))
+
+          val delimiterStackRootVariable =
+            new Types.Variable("Delimiters", "", null, delimiterStackRef.value, null)
+          val delimiterStackVariables =
+            event.delimiterStack.map(delimiter =>
+              new Types.Variable(s"${delimiter.kind}:${delimiter.value.delimType}", s"${delimiter.value.lookingFor}")
+            )
+
+          val diagnosticsRootVariable =
+            new Types.Variable("Diagnostics", "", null, diagnosticsRef.value, null)
+          val diagnosticsValidationsVariable =
+            new Types.Variable("Validations", "", null, diagnosticsValidationsRef.value, null)
+          val diagnosticsErrorsVariable =
+            new Types.Variable("Errors", "", null, diagnosticsErrorsRef.value, null)
+          // TODO: Get better values than toString() when https://issues.apache.org/jira/browse/DAFFODIL-1200 is completed.
+          val diagnosticsValidations: List[Types.Variable] =
+            event.diagnostics.filter(_.isValidation).zipWithIndex.map { case (diag, i) =>
+              new Types.Variable(i.toString, diag.toString().replace("Validation Error: ", ""))
+            }
+          val diagnosticsErrors: List[Types.Variable] =
+            event.diagnostics.filterNot(_.isValidation).zipWithIndex.map { case (diag, i) =>
+              new Types.Variable(i.toString, diag.toString())
+            }
+
+          val parseVariables: List[Types.Variable] =
+            (List(
+              new Types.Variable("hidden", hidden.toString, "bool", 0, null),
+              pouRootVariable,
+              delimiterStackRootVariable,
+              diagnosticsRootVariable
+            ) ++ childIndex.map(ci => new Types.Variable("childIndex", ci.toString)).toList
+              ++ groupIndex
+                .map(gi => new Types.Variable("groupIndex", gi.toString))
+                .toList
+              ++ occursIndex
+                .map(oi => new Types.Variable("occursIndex", oi.toString))
+                .toList
+              ++ foundDelimiter.map(fd => new Types.Variable("foundDelimiter", fd)).toList
+              ++ foundField.map(ff => new Types.Variable("foundField", ff)).toList)
+              .sortBy(_.name)
+
+          DAPodil.Frame.Scope(
+            "Parse",
+            ref,
+            Map(
+              ref -> parseVariables,
+              pouRef -> pouVariables,
+              delimiterStackRef -> delimiterStackVariables,
+              diagnosticsRef -> List(diagnosticsValidationsVariable, diagnosticsErrorsVariable),
+              diagnosticsValidationsRef -> diagnosticsValidations,
+              diagnosticsErrorsRef -> diagnosticsErrors
+            )
+          )
       }
 
-  def dataScope(ref: DAPodil.VariablesReference, state: StateForDebugger): DAPodil.Frame.Scope = {
-    val bytePos1b = state.currentLocation.bytePos1b
-    val dataVariables: List[Types.Variable] =
-      List(new Types.Variable("bytePos1b", bytePos1b.toString, "number", 0, null))
+    // a.k.a. Daffodil variables
+    def schemaScope(
+        scopeRef: DAPodil.VariablesReference,
+        state: StateForDebugger
+    ): IO[DAPodil.Frame.Scope] =
+      state.variableMapForDebugger.qnames.toList
+        .groupBy(_.namespace) // TODO: handle NoNamespace or UnspecifiedNamespace as top-level?
+        .toList
+        .flatTraverse { case (ns, vs) =>
+          // every namespace is a DAP variable in the current scope, and links to its set of Daffodil-as-DAP variables
+          variableRefs.next.map { ref =>
+            List(scopeRef -> List(new Types.Variable(ns.toString(), "", null, ref.value, null))) ++
+              List(
+                ref -> vs
+                  .sortBy(_.toPrettyString)
+                  .fproduct(state.variableMapForDebugger.find)
+                  .map { case (name, value) =>
+                    new Types.Variable(
+                      name.toQNameString,
+                      value
+                        .flatMap(v => Option(v.value.value).map(_.toString) orElse Some("null"))
+                        .getOrElse("???"),
+                      value
+                        .map(_.state match {
+                          case VariableDefined      => "default"
+                          case VariableRead         => "read"
+                          case VariableSet          => "set"
+                          case VariableUndefined    => "undefined"
+                          case VariableBeingDefined => "being defined"
+                          case VariableInProcess    => "in process"
+                        })
+                        .getOrElse("???"),
+                      0,
+                      null
+                    )
+                  }
+              )
+          }
+        }
+        .map { refVars =>
+          val sv = refVars.foldMap(Map(_)) // combine values of map to accumulate namespaces
+          DAPodil.Frame.Scope(
+            "Schema",
+            scopeRef,
+            sv
+          )
+        }
 
-    DAPodil.Frame.Scope(
-      "Data",
-      ref,
-      Map(ref -> dataVariables)
-    )
+    def dataScope(ref: DAPodil.VariablesReference, state: StateForDebugger): DAPodil.Frame.Scope = {
+      val bytePos1b = state.currentLocation.bytePos1b
+      val dataVariables: List[Types.Variable] =
+        List(new Types.Variable("bytePos1b", bytePos1b.toString, "number", 0, null))
+
+      DAPodil.Frame.Scope(
+        "Data",
+        ref,
+        Map(ref -> dataVariables)
+      )
+    }
+  }
+
+  private object Delivery {
+
+    def to(
+        data: Channel[IO, DAPodil.Data],
+        dapEvents: Channel[IO, Events.DebugEvent]
+    ): IO[Delivery] =
+      for {
+        frameIds <-
+          Next.int.map(_.map(DAPodil.Frame.Id.apply)).flatTap(_.next()) // `.flatTap(_.next())`: ids start at 1
+        variableRefs <-
+          Next.int.map(_.map(DAPodil.VariablesReference.apply)).flatTap(_.next())
+      } yield new Delivery(frameIds, variableRefs, data, dapEvents)
+
+    /** All state to deliver to via the Debugee interface. */
+    case class State(data: DAPodil.Data, bytePos1b: Long, infoset: Option[InfosetEvent])
+
+    object State {
+      val empty: State = State(DAPodil.Data.empty, 0, None)
+    }
   }
 
   /** An algebraic data type that reifies the Daffodil `Debugger` callbacks. */
@@ -1093,18 +1103,17 @@ object Parse {
     case class Init(state: StateForDebugger) extends Event
     case class StartElement(
         state: StateForDebugger,
-        isStepping: Boolean,
         name: Option[ElementName],
         schemaLocation: SchemaFileLocation,
         pointsOfUncertainty: List[PointOfUncertainty],
         delimiterStack: List[Delimiter],
-        diagnostics: List[org.apache.daffodil.lib.api.Diagnostic]
+        diagnostics: List[org.apache.daffodil.lib.api.Diagnostic],
+        infoset: Option[InfosetEvent]
     ) extends Event {
       // PState is mutable, so we copy all the information we might need downstream.
-      def this(pstate: PState, isStepping: Boolean) =
+      def this(pstate: PState, infoset: Option[InfosetEvent]) =
         this(
           pstate.copyStateForDebugger,
-          isStepping,
           pstate.currentNode.toScalaOption.map(element => ElementName(element.name)),
           pstate.schemaFileLocation,
           pstate.pointsOfUncertainty.iterator.toList.map(mark =>
@@ -1118,11 +1127,13 @@ object Parse {
           pstate.mpstate.delimiters.toList.zipWithIndex.map { case (delimiter, i) =>
             Delimiter(if (i < pstate.mpstate.delimitersLocalIndexStack.top) "remote" else "local", delimiter)
           },
-          pstate.diagnostics
+          pstate.diagnostics,
+          infoset
         )
     }
     case class EndElement(state: StateForDebugger) extends Event
     case object Fini extends Event
+    case class Control(state: DAPodil.Debugee.State) extends Event
 
     implicit val show: Show[Event] = Show.fromToString
   }
@@ -1251,6 +1262,35 @@ object Parse {
   }
   case class DataEvent(bytePos1b: Long) extends Events.DebugEvent("daffodil.data")
   case class InfosetEvent(content: String, mimeType: String) extends Events.DebugEvent("daffodil.infoset")
+  object InfosetEvent {
+    def apply(format: String, node: DIElement): InfosetEvent =
+      InfosetEvent(
+        infosetToString(format, node),
+        format match {
+          case "xml"  => "text/xml"
+          case "json" => "application/json"
+        }
+      )
+
+    private def infosetToString(format: String, ie: DIElement): String = {
+      val bos = new java.io.ByteArrayOutputStream()
+      val infosetOutputter = format match {
+        case "xml"  => new XMLTextInfosetOutputter(bos, true)
+        case "json" => new JsonInfosetOutputter(bos, true)
+      }
+
+      val iw = InfosetWalker(
+        ie.asInstanceOf[DIElement],
+        infosetOutputter,
+        walkHidden = false,
+        ignoreBlocks = true,
+        releaseUnneededInfoset = false
+      )
+      iw.walk(lastWalk = true)
+      bos.toString("UTF-8")
+    }
+
+  }
 
   /** Behavior of a stepping debugger that can be running or stopped. */
   sealed trait Control {
@@ -1341,97 +1381,71 @@ object Parse {
       }
   }
 
-  /** The Daffodil `Debugger` interface is asynchronously invoked from a running parse, and always returns `Unit`. In
-    * order to invoke effects like `IO` but return `Unit`, we use a `Dispatcher` to execute the effects at this
-    * "outermost" layer (with respect to the effects).
+  /** The Daffodil `Debugger` interface is asynchronously invoked from a running parse, and its methods always returns
+    * `Unit`. In order to invoke effects like `IO` but return `Unit`, we use a `Dispatcher` to execute the effects at
+    * this "outermost" layer (with respect to the effects).
+    *
+    * The parse callbacks are converted into [[Parse.Event]] values and sent into the `events` [[Channel]].
     */
   class DaffodilDebugger(
       dispatcher: Dispatcher[IO],
-      state: QueueSink[IO, Option[DAPodil.Debugee.State]],
       breakpoints: Breakpoints,
       control: Control,
-      events: QueueSink[IO, Option[Event]],
-      infoset: QueueSink[IO, Option[String]],
+      events: Channel[IO, Event],
       infosetFormat: String
   ) extends Debugger {
     implicit val logger: Logger[IO] = Slf4jLogger.getLogger
 
     override def init(pstate: PState, processor: Parser): Unit =
       dispatcher.unsafeRunSync {
-        events.offer(Some(Event.Init(pstate.copyStateForDebugger)))
+        events.send(Event.Init(pstate.copyStateForDebugger)).void
       }
 
     override def fini(processor: Parser): Unit =
       dispatcher.unsafeRunSync {
-        events.offer(Some(Event.Fini)) *>
-          events.offer(None) *> // no more events after this
-          state.offer(None) *> // no more states == the parse is terminated
-          infoset.offer(None) *>
+        events.send(Event.Fini) *>
+          events.close *> // no more events after this
           Logger[IO].debug("Debugger fini event: completed parse")
       }
 
     override def startElement(pstate: PState, processor: Parser): Unit =
       dispatcher.unsafeRunSync {
         // Generating the infoset requires a PState, not a StateForDebugger, so we can't generate it later from the Event.StartElement (which contains the StateForDebugger).
-        lazy val setInfoset = {
+        lazy val infoset = {
           var node = pstate.infoset
           while (node.diParent != null) node = node.diParent
           node match {
-            case d: DIDocument if d.contents.size == 0 => IO.unit
-            case _                                     => infoset.offer(Some(infosetToString(node)))
+            case d: DIDocument if d.contents.size == 0 => None
+            case _                                     => Some(InfosetEvent(infosetFormat, node))
           }
         }
 
-        logger.debug("pre-control await") *>
-          // may block until external control says to unblock, for stepping behavior
-          control.await
-            .ifM(
-              events.offer(Some(new Event.StartElement(pstate, isStepping = true))) *> setInfoset,
-              events.offer(Some(new Event.StartElement(pstate, isStepping = false)))
-            ) *>
-          logger.debug("post-control await") *>
-          logger.debug("pre-checkBreakpoints") *>
-          // TODO: there's a race between the readers of `events` and `state`, so somebody could react to a hit breakpoint before the event data was committed
-          checkBreakpoints(createLocation(pstate.schemaFileLocation))
+        for {
+          _ <- logger.debug("pre-control await")
+          isStepping <- control.await // may block until external control says to unblock, for stepping behavior
+          _ <- logger.debug("post-control await")
+          location = createLocation(pstate.schemaFileLocation)
+          shouldBreak <- breakpoints.shouldBreak(location)
+          startElement =
+            if (isStepping || shouldBreak) new Event.StartElement(pstate, infoset)
+            else new Event.StartElement(pstate, None)
+          _ <- events.send(startElement)
+          _ <- onBreakpointHit(location).whenA(shouldBreak)
+        } yield ()
       }
-
-    def infosetToString(ie: InfosetElement): String = {
-      val bos = new java.io.ByteArrayOutputStream()
-      val infosetOutputter = infosetFormat match {
-        case "xml"  => new XMLTextInfosetOutputter(bos, true)
-        case "json" => new JsonInfosetOutputter(bos, true)
-      }
-
-      val iw = InfosetWalker(
-        ie.asInstanceOf[DIElement],
-        infosetOutputter,
-        walkHidden = false,
-        ignoreBlocks = true,
-        releaseUnneededInfoset = false
-      )
-      iw.walk(lastWalk = true)
-      bos.toString("UTF-8")
-    }
 
     /** If the current location is a breakpoint, pause the control and update the state to notify the breakpoint was
       * hit.
       */
-    def checkBreakpoints(location: DAPodil.Location): IO[Unit] =
-      breakpoints
-        .shouldBreak(location)
-        .ifM(
-          control.pause() *>
-            state
-              .offer(
-                Some(
-                  DAPodil.Debugee.State.Stopped(
-                    DAPodil.Debugee.State.Stopped.Reason
-                      .BreakpointHit(location)
-                  )
-                )
-              ),
-          IO.unit
-        )
+    def onBreakpointHit(location: DAPodil.Location): IO[Unit] =
+      control.pause() *>
+        events
+          .send(
+            Event.Control(
+              DAPodil.Debugee.State.Stopped.breakpointHit(location)
+            )
+          )
+          .void
 
     def createLocation(loc: SchemaFileLocation): DAPodil.Location =
       DAPodil.Location(
@@ -1442,28 +1456,26 @@ object Parse {
     override def endElement(pstate: PState, processor: Parser): Unit =
       dispatcher.unsafeRunSync {
         control.await *> // ensure no events while debugger is paused
-          events.offer(Some(Event.EndElement(pstate.copyStateForDebugger)))
+          events.send(Event.EndElement(pstate.copyStateForDebugger)).void
       }
   }
 
   object DaffodilDebugger {
+
+    /** Create a Daffodil [[Debugger]] that writes events to a channel. */
     def resource(
-        state: QueueSink[IO, Option[DAPodil.Debugee.State]],
-        events: QueueSink[IO, Option[Event]],
+        events: Channel[IO, Event],
         breakpoints: Breakpoints,
         control: Control,
-        infoset: QueueSink[IO, Option[String]],
         infosetFormat: String
-    ): Resource[IO, DaffodilDebugger] =
+    ): Resource[IO, Debugger] =
       for {
         dispatcher <- Dispatcher.parallel[IO]
       } yield new DaffodilDebugger(
         dispatcher,
-        state,
         breakpoints,
         control,
         events,
-        infoset,
         infosetFormat
       )
   }

@@ -42,6 +42,8 @@ object logging {
     case event: Events.ThreadEvent  => s"${event.`type`} ${event.reason}"
     case event: DAPodil.LoadedSourceEvent =>
       s"${event.`type`} ${event.reason} ${JsonUtils.toJson(event.source)}"
+    case event: Parse.DataEvent =>
+      s"${event.`type`} ${event.bytePos1b}"
     case event => s"${event.`type`}"
   }
 }
