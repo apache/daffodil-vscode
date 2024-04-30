@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import fs from 'fs'
 import {
   ALL_EVENTS,
   beginSessionTransaction,
@@ -60,34 +59,35 @@ import {
   ViewportEvent,
   ViewportEventKind,
 } from '@omega-edit/client'
-import path from 'path'
-import XDGAppPaths from 'xdg-app-paths'
 import assert from 'assert'
-import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
+import fs from 'fs'
+import net from 'net'
+import os from 'os'
+import path from 'path'
+import * as vscode from 'vscode'
+import XDGAppPaths from 'xdg-app-paths'
+import { extractDaffodilEvent } from '../daffodilDebugger/daffodil'
+import {
+  EditByteModes,
+  VIEWPORT_CAPACITY_MAX,
+} from '../svelte/src/stores/configuration'
 import {
   EditorMessage,
   MessageCommand,
   MessageLevel,
 } from '../svelte/src/utilities/message'
-import {
-  EditByteModes,
-  VIEWPORT_CAPACITY_MAX,
-} from '../svelte/src/stores/configuration'
-import net from 'net'
-import * as vscode from 'vscode'
-import os from 'os'
+import * as editor_config from './config'
 import {
   HeartbeatInfo,
   IHeartbeatInfo,
 } from './include/server/heartbeat/HeartBeatInfo'
-import { extractDaffodilEvent } from '../daffodilDebugger/daffodil'
-import * as editor_config from './config'
 import {
   configureOmegaEditPort,
   ServerInfo,
   ServerStopPredicate,
 } from './include/server/ServerInfo'
 import { isDFDLDebugSessionActive } from './include/utils'
+import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
 
 // *****************************************************************************
 // global constants
@@ -734,7 +734,7 @@ export class DataEditorClient implements vscode.Disposable {
       }
 
       if (saved) {
-        vscode.window.showInformationMessage(`Saved: ${this.fileToEdit}`)
+        vscode.window.showInformationMessage(`Saved: ${fileToSave}`)
       } else if (cancelled) {
         vscode.window.showInformationMessage(`Cancelled save: ${fileToSave}`)
       } else {
