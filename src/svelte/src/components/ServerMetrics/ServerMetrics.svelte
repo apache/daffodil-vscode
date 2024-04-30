@@ -15,8 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import FlexContainer from '../layouts/FlexContainer.svelte'
   import { MessageCommand } from '../../utilities/message'
+  import FlexContainer from '../layouts/FlexContainer.svelte'
 
   let heartbeat = {
     latency: 0,
@@ -99,7 +99,7 @@ limitations under the License.
 <FlexContainer --height="25pt" --align-items="center">
   {#if heartbeat.serverTimestamp !== 0}
     <div class="info">
-      &#9889; Powered by Ωedit™ v{heartbeat.serverVersion} on port {heartbeat.omegaEditPort}
+      &#9889; Powered by Ωedit™ v{heartbeat.serverVersion} on port {heartbeat.omegaEditPort} &nbsp;
     </div>
     <FlexContainer>
       <svg
