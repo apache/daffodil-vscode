@@ -106,7 +106,7 @@ class ViewportByteIndications extends SimpleWritable<Uint8Array> {
         }),
         generateSelectionCategoryParition(
           Math.max(originalEnd, editedEnd),
-          VIEWPORT_CAPACITY_MAX - start,
+          VIEWPORT_CAPACITY_MAX,
           (byte) => {
             byte[0] &= ~category1.indexOf('selected')
           }
