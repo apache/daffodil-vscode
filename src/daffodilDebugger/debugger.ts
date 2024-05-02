@@ -23,6 +23,7 @@ import { runDebugger, stopDebugger, stopDebugging } from './utils'
 import {
   getDefaultTDMLTestCaseDescription,
   getDefaultTDMLTestCaseName,
+  getTmpTDMLFilePath,
 } from '../tdmlEditor/utilities/tdmlXmlUtils'
 
 // Function to get data file given a folder
@@ -57,22 +58,42 @@ async function getTDMLConfig(
     // Might need to add `schema` here if we move the `Execute TDML` command
     //   away from the detected dfdl language in VSCode.
     config.data = ''
+    config.schema.path = ''
 
     if (config?.tdmlConfig?.path === undefined)
       config.tdmlConfig.path = await vscode.commands.executeCommand(
         'extension.dfdl-debug.getValidatedTDMLPath'
       )
-  }
 
-  if (
-    config?.tdmlConfig?.action === 'generate' ||
-    config?.tdmlConfig?.action === 'execute'
-  ) {
     if (config?.tdmlConfig?.name === undefined)
-      config.tdmlConfig.name = getDefaultTDMLTestCaseName()
+      config.tdmlConfig.name = await vscode.commands.executeCommand(
+        'extension.dfdl-debug.getTDMLName'
+      )
 
     if (config?.tdmlConfig?.description === undefined)
+      config.tdmlConfig.description = await vscode.commands.executeCommand(
+        'extension.dfdl-debug.getTDMLDescription'
+      )
+  }
+
+  if (config?.tdmlConfig?.action === 'generate') {
+    if (
+      config?.tdmlConfig?.name === undefined ||
+      config?.tdmlConfig?.name === 'undefined'
+    )
+      config.tdmlConfig.name = getDefaultTDMLTestCaseName()
+
+    if (
+      config?.tdmlConfig?.description === undefined ||
+      config?.tdmlConfig?.description === 'undefined'
+    )
       config.tdmlConfig.description = getDefaultTDMLTestCaseDescription()
+
+    if (
+      config?.tdmlConfig?.path === undefined ||
+      config?.tdmlConfig?.path === 'undefined'
+    )
+      config.tdmlConfig.path = getTmpTDMLFilePath()
   }
 
   if (config?.tdmlConfig?.action !== 'execute' && config.data === '') {
@@ -133,6 +154,10 @@ export async function getDebugger(
   if (vscode.workspace.workspaceFolders !== undefined) {
     await stopDebugger()
 
+    if (!(await getTDMLConfig(config))) {
+      return await stopDebugging().then((_) => undefined)
+    }
+
     // Get schema file before debugger starts to avoid timeout
     if (config.schema.path.includes('${command:AskForSchemaName}')) {
       config.schema.path = await vscode.commands.executeCommand(
@@ -145,10 +170,6 @@ export async function getDebugger(
       config.data = await vscode.commands.executeCommand(
         'extension.dfdl-debug.getDataName'
       )
-    }
-
-    if (!(await getTDMLConfig(config))) {
-      return await stopDebugging().then((_) => undefined)
     }
 
     let workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath

@@ -126,10 +126,18 @@ class TDMLSuite extends munit.FunSuite {
   }
 
   test("Test Execute") {
-    TDML.generate(infosetPath, schemaPath, dataPath, tdmlName, tdmlDescription, tdmlPath.toString())
-    val executePaths = TDML.execute(tdmlName, tdmlDescription, tdmlPath.toString())
 
-    assertEquals(executePaths, Option[(Path, Path)]((schemaPath.normalize(), dataPath.normalize())))
+    var schemaPathExecute = Paths.get("/debugger/src/test/data/emptySchema.xml")
+    var dataPathExecute = Paths.get("/debugger/src/test/data/emptyData.xml")
+
+    if (System.getProperty("os.name").toLowerCase.startsWith("win") == true) {
+      schemaPathExecute = schemaPath
+      dataPathExecute = dataPath
+    }
+    TDML.generate(infosetPath, schemaPath, dataPath, tdmlName, tdmlDescription, tdmlPath.toString())
+    val executePaths = TDML.execute(tdmlName, tdmlDescription, tdmlPath.toAbsolutePath().toString())
+
+    assertEquals(executePaths, Option[(Path, Path)]((schemaPathExecute.normalize(), dataPathExecute.normalize())))
   }
 
   test("Test convertToRelativePath") {

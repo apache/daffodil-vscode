@@ -118,6 +118,7 @@
     "onCommand:extension.dfdl-debug.getTDMLDescription",
     "onCommand:extension.dfdl-debug.getTDMLPath",
     "onCommand:extension.dfdl-debug.getValidatedTDMLPath",
+    "onCommand:extension.dfdl-debug.getValidatedTDMLCopyPath",
     "onCommand:launch.config",
     "onCommand:extension.data.edit",
     "onCommand:extension.dfdl-debug.debugLastEditorContents"
@@ -749,7 +750,11 @@
         "variables": {
           "AskForSchemaName": "extension.dfdl-debug.getSchemaName",
           "AskForDataName": "extension.dfdl-debug.getDataName",
-          "AskForValidatedTDMLPath": "extension.dfdl-debug.getValidatedTDMLPath"
+          "AskForTDMLName": "extension.dfdl-debug.getTDMLName",
+          "AskForTDMLDescription": "extension.dfdl-debug.getTDMLDescription",
+          "AskForTDMLPath": "extension.dfdl-debug.getTDMLPath",
+          "AskForValidatedTDMLPath": "extension.dfdl-debug.getValidatedTDMLPath",
+          "AskForValidatedTDMLCopyPath": "extension.dfdl-debug.getValidatedTDMLCopyPath"
         }
       }
     ],

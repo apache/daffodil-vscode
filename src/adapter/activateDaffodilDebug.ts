@@ -29,7 +29,7 @@ import * as dfdlExt from '../language/semantics/dfdlExt'
 import {
   appendTestCase,
   getTmpTDMLFilePath,
-  readTDMLFileContents,
+  copyTestCase,
 } from '../tdmlEditor/utilities/tdmlXmlUtils'
 import xmlFormat from 'xml-formatter'
 
@@ -85,6 +85,46 @@ async function getFile(fileRequested, label, title) {
   return file
 }
 
+/** Method to show dialog to save TDML file
+ * Details:
+ *   Required so that the vscode api commands:
+ *     - extension.dfdl-debug.getValidatedTDMLCopyPath
+ *   can be sent a file instead of always opening up a prompt.
+ */
+async function showTDMLSaveDialog(fileRequested, label, title) {
+  let file = ''
+
+  file = await vscode.window
+    .showSaveDialog({
+      saveLabel: label,
+      title: title,
+      filters: {
+        TDML: ['tdml'],
+      },
+    })
+    .then((fileUri) => {
+      if (fileUri) {
+        let path = fileUri.fsPath
+
+        if (
+          process.platform === 'win32' &&
+          path.length > 2 &&
+          path.charCodeAt(0) > 97 &&
+          path.charCodeAt(0) <= 122 &&
+          path.charAt(1) === ':'
+        ) {
+          path = path.charAt(0).toUpperCase() + path.slice(1)
+        }
+
+        return path
+      }
+
+      return ''
+    })
+
+  return file
+}
+
 // Function for setting up the commands for Run and Debug file
 function createDebugRunFileConfigs(
   resource: vscode.Uri,
@@ -115,6 +155,12 @@ function createDebugRunFileConfigs(
 
       if (tdmlAction) {
         tdmlConfig.action = tdmlAction
+
+        if (tdmlAction === 'execute') {
+          tdmlConfig.name = '${command:AskForTDMLName}'
+          tdmlConfig.description = '${command:AskForTDMLDescription}'
+          tdmlConfig.path = targetResource.fsPath
+        }
       }
 
       vscode.debug.startDebugging(
@@ -124,11 +170,12 @@ function createDebugRunFileConfigs(
           request: 'launch',
           type: 'dfdl',
           schema: {
-            path: targetResource.fsPath,
+            path: tdmlConfig.action === 'execute' ? '' : targetResource.fsPath,
             rootName: null,
             rootNamespace: null,
           },
-          data: '${command:AskForDataName}',
+          data:
+            tdmlConfig.action === 'execute' ? '' : '${command:AskForDataName}',
           debugServer: false,
           infosetFormat: 'xml',
           infosetOutput: {
@@ -189,10 +236,7 @@ export function activateDaffodilDebug(
           targetResource = vscode.window.activeTextEditor.document.uri
         }
         if (targetResource) {
-          appendTestCase(
-            await readTDMLFileContents(getTmpTDMLFilePath()),
-            await readTDMLFileContents(targetResource.fsPath)
-          )
+          appendTestCase(getTmpTDMLFilePath(), targetResource.fsPath)
             .then((appendedBuffer) => {
               fs.writeFileSync(targetResource.fsPath, xmlFormat(appendedBuffer))
             })
@@ -209,19 +253,43 @@ export function activateDaffodilDebug(
         createDebugRunFileConfigs(resource, 'run', 'execute')
       }
     ),
-    vscode.commands.registerCommand('extension.dfdl-debug.copyTDML', (_) => {
-      // Ask for destination path
-      // Copy file in /tmp to destination path
-      // TDMLConfig.path should not be used here because that only matters when sending to the server
-      // We could make it so that if someone wants to specify the path and set the action to 'copy', but
-      //   that doesn't make a whole lot of sense.
-      let targetResource = vscode.commands.executeCommand(
-        'extension.dfdl-debug.getTDMLPath'
-      )
+    vscode.commands.registerCommand(
+      'extension.dfdl-debug.copyTDML',
+      async (_) => {
+        // Ask for destination path
+        // Copy file in /tmp to destination path
+        // TDMLConfig.path should not be used here because that only matters when sending to the server
+        // We could make it so that if someone wants to specify the path and set the action to 'copy', but
+        //   that doesn't make a whole lot of sense.
+        let targetResource = await vscode.commands.executeCommand(
+          'extension.dfdl-debug.getValidatedTDMLCopyPath'
+        )
 
-      // Is there a better way of error checking this?
-      fs.copyFileSync(getTmpTDMLFilePath(), targetResource as unknown as string)
-    }),
+        // Is there a better way of error checking this?
+        if (targetResource) {
+          copyTestCase(
+            getTmpTDMLFilePath(),
+            targetResource as unknown as string
+          )
+            .then((copiedBuffer) => {
+              fs.writeFileSync(
+                targetResource as unknown as string,
+                xmlFormat(copiedBuffer)
+              )
+            })
+            .catch((reason) => {
+              // Not sure if we need to do something different/more here
+              console.log(reason)
+            })
+        }
+
+        // fs.copyFile(
+        //   getTmpTDMLFilePath(),
+        //   targetResource as unknown as string,
+        //   (_) => {}
+        // )
+      }
+    ),
     vscode.commands.registerCommand(
       'extension.dfdl-debug.toggleFormatting',
       (_) => {
@@ -268,6 +336,74 @@ export function activateDaffodilDebug(
           'Select TDML File',
           'Select TDML File'
         )
+      }
+    )
+  )
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'extension.dfdl-debug.getValidatedTDMLCopyPath',
+      async (fileRequested = null) => {
+        // Open native file explorer to allow user to select data file from anywhere on their machine
+        if (fileRequested && fs.existsSync(fileRequested)) {
+          return fileRequested
+        } else if (fileRequested && !fs.existsSync(fileRequested)) {
+          return ''
+        } else {
+          return await showTDMLSaveDialog(
+            fileRequested,
+            'Save TDML File',
+            'Save TDML File'
+          )
+        }
+      }
+    )
+  )
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'extension.dfdl-debug.getTDMLName',
+      async (_) => {
+        return await vscode.window
+          .showInputBox({
+            prompt: 'Test Case Name: ',
+            value: 'Default Test Case',
+          })
+          .then((value) => {
+            return value
+          })
+      }
+    )
+  )
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'extension.dfdl-debug.getTDMLDescription',
+      async (_) => {
+        return await vscode.window
+          .showInputBox({
+            prompt: 'Test Case Description: ',
+            value: 'Generated by DFDL VSCode Extension',
+          })
+          .then((value) => {
+            return value
+          })
+      }
+    )
+  )
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'extension.dfdl-debug.getTDMLPath',
+      async (_) => {
+        return await vscode.window
+          .showInputBox({
+            prompt: 'TDML File: ',
+            value: '${workspaceFolder}/infoset.tdml',
+          })
+          .then((value) => {
+            return value
+          })
       }
     )
   )
@@ -462,6 +598,7 @@ class DaffodilConfigurationProvider
       !dataFolder.includes('${command:AskForSchemaName}') &&
       !dataFolder.includes('${command:AskForDataName}') &&
       !dataFolder.includes('${workspaceFolder}') &&
+      config.tdmlConfig.action !== 'execute' &&
       vscode.workspace.workspaceFolders &&
       dataFolder !== vscode.workspace.workspaceFolders[0].uri.fsPath &&
       dataFolder.split('.').length === 1 &&
