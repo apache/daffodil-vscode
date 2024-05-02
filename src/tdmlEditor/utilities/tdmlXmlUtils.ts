@@ -17,7 +17,7 @@
 
 import { readFileSync, writeFileSync } from 'fs'
 import os from 'os'
-import { join } from 'path'
+import { join, resolve, sep, relative, dirname } from 'path'
 import { Element, ElementCompact, js2xml, xml2js } from 'xml-js'
 
 /*
@@ -240,9 +240,9 @@ export async function getTestCaseDisplayData(
 /*
  * Append the test case in one XML file into another file's test suite
  *
- * xmlBuffer: String containing the XML file contents of a TDML file with
+ * xmlFilePath: String containing the XML file path of a TDML file with
  *   exactly one test case
- * destinationBuffer: String containing XML file contents. The test case in
+ * destinationFilePath: String containing XML file path. The test case in
  *   xmlBuffer will be added to this buffer's test suite.
  * Returns string containing modified XML
  *
@@ -252,9 +252,36 @@ export async function getTestCaseDisplayData(
  * See the 'Invalid Append TDML - duplicate' and 'Append TDML Test Case' tests for examples
  */
 export async function appendTestCase(
-  xmlBuffer: string,
-  destinationBuffer: string
+  xmlFilePath: string,
+  destinationFilePath: string
 ) {
+  return copyTestCase(xmlFilePath, destinationFilePath, true)
+}
+
+/*
+ * Copy and optionally append test case in one XML file into another file's test suite
+ *
+ * xmlFilePath: String containing the XML file path of a TDML file with
+ *   exactly one test case
+ * destinationFilePath: String containing XML file path. The test case in
+ *   xmlBuffer will be added to this buffer's test suite.
+ * append: boolean variable to enable append functionality. By default it is false
+ *
+ * Returns string containing modified XML
+ *
+ * Throws when an error is found. To catch errors, call with something similar to:
+ *   appendTestCase(buf, destBuf).then((result) => writeResult()).catch((reason) => console.log(reason))
+ * Then is only called on success and catch is only called on failure (when we throw)
+ * See the 'Invalid Append TDML - duplicate' and 'Append TDML Test Case' tests for examples
+ */
+export async function copyTestCase(
+  xmlFilePath: string,
+  destinationFilePath: string,
+  append = false
+) {
+  var xmlBuffer = await readTDMLFileContents(xmlFilePath)
+  var destinationBuffer = await readTDMLFileContents(destinationFilePath)
+
   var xmlObj: Element | ElementCompact = xml2js(xmlBuffer)
   var destinationObj: Element | ElementCompact = xml2js(destinationBuffer)
 
@@ -282,35 +309,133 @@ export async function appendTestCase(
     throw `More than one test case found in source XML buffer`
   }
 
-  const destinationTestSuite = (destinationObj as Element).elements?.filter(
-    (node) => node.name?.endsWith(testSuiteElement)
+  const rootNode = (xmlObj as Element).elements?.filter((node) =>
+    node.name?.endsWith(testSuiteElement)
   )
 
-  if (destinationTestSuite === undefined) {
-    throw `No test suites found in destination XML buffer`
+  if (
+    sourceTestCase[0].attributes !== undefined &&
+    sourceTestCase[0].attributes[testCaseModelAttribute] !== undefined &&
+    rootNode !== undefined
+  ) {
+    // Each TDML file contains at least one test case
+    const testCases = rootNode[0].elements?.filter((node) =>
+      node.name?.endsWith(testCaseElement)
+    )
+
+    sourceTestCase[0].attributes[testCaseModelAttribute] = relative(
+      destinationFilePath,
+      sourceTestCase[0].attributes[testCaseModelAttribute].toString()
+    )
+
+    // Each test case may contain any number of documents
+    testCases?.forEach((testCaseNode) => {
+      testCaseNode.elements
+        ?.filter((childNode) => childNode.name?.endsWith(documentElement))
+        .forEach((documentNode) =>
+          documentNode.elements
+            ?.filter((childNode) =>
+              childNode.name?.endsWith(documentPartElement)
+            )
+            .forEach((documentPartNode) => {
+              if (
+                documentPartNode.elements !== undefined &&
+                documentPartNode.elements[0].text !== undefined
+              )
+                documentPartNode.elements[0].text = relative(
+                  destinationFilePath,
+                  documentPartNode.elements[0].text.toString()
+                )
+            })
+        )
+    })
+
+    // Each test case may contain any number of infoset
+    testCases?.forEach((testCaseNode) => {
+      testCaseNode.elements
+        ?.filter((childNode) => childNode.name?.endsWith(infosetElement))
+        .forEach((infosetNode) =>
+          infosetNode.elements
+            ?.filter((childNode) =>
+              childNode.name?.endsWith(dfdlInfosetElement)
+            )
+            .forEach((dfdlInfosetNode) => {
+              if (
+                dfdlInfosetNode.elements !== undefined &&
+                dfdlInfosetNode.elements[0].text !== undefined
+              )
+                dfdlInfosetNode.elements[0].text = relative(
+                  destinationFilePath,
+                  dfdlInfosetNode.elements[0].text.toString()
+                )
+            })
+        )
+    })
   }
 
-  if (destinationTestSuite.length !== 1) {
-    throw `More than one test suite found in destination XML buffer`
-  }
+  if (append) {
+    const destinationTestSuite = (destinationObj as Element).elements?.filter(
+      (node) => node.name?.endsWith(testSuiteElement)
+    )
 
-  const destinationTestCases = destinationTestSuite[0].elements?.filter(
-    (childNode) => childNode.name?.endsWith(testCaseElement)
-  )
-  destinationTestCases?.forEach((testCase) => {
-    // Check to see if we are trying to append a duplicate
-    // Per the TDML spec, a duplicate is a name-only check
-    if (
-      testCase.attributes !== undefined &&
-      sourceTestCase[0].attributes !== undefined &&
-      testCase.attributes[testCaseNameAttribute] ===
-        sourceTestCase[0].attributes[testCaseNameAttribute]
-    ) {
-      throw `Duplicate Test Case Name Found`
+    if (destinationTestSuite === undefined) {
+      throw `No test suites found in destination XML buffer`
     }
-  })
 
-  destinationTestSuite[0].elements?.push(sourceTestCase[0])
+    if (destinationTestSuite.length !== 1) {
+      throw `More than one test suite found in destination XML buffer`
+    }
 
-  return js2xml(destinationObj)
+    const destinationTestCases = destinationTestSuite[0].elements?.filter(
+      (childNode) => childNode.name?.endsWith(testCaseElement)
+    )
+    destinationTestCases?.forEach((testCase) => {
+      // Check to see if we are trying to append a duplicate
+      // Per the TDML spec, a duplicate is a name-only check
+      if (
+        testCase.attributes !== undefined &&
+        sourceTestCase[0].attributes !== undefined &&
+        testCase.attributes[testCaseNameAttribute] ===
+          sourceTestCase[0].attributes[testCaseNameAttribute]
+      ) {
+        throw `Duplicate Test Case Name Found`
+      }
+    })
+    destinationTestSuite[0].elements?.push(sourceTestCase[0])
+
+    return js2xml(destinationObj)
+  } else {
+    return js2xml(xmlObj)
+  }
+}
+
+// Convert an absolute path into a path relative to the current working directory
+//
+// path: Absolute path to convert into a relative path
+// tdmlPath: Absolute path to the TDML file to make
+//
+// Returns the relative path. Note that this path is given as a string.
+//THIS FUNCTION CURRENTLY NOT USED BECAUSE PATHS COULD NOT BE PROPERLY NORMALIZED FROM CALLING FUNCTON
+
+export async function convertToRelativePath(
+  path: string,
+  tdmlPath: string
+): Promise<string> {
+  // Get the absolute path of the workspace directory
+  // The path is the path to a file. To get the proper relative path, we need
+  //   to start at the parent of the file.
+  var workingDir = dirname(resolve(tdmlPath))
+  var prefix = ''
+
+  // This is used to back up the path tree in order to find the first common ancestor of both paths
+  // If a user wants to use a file not in or under the current working directory, this will be required to
+  //   produce the expected output.
+  // A possible use case of this is where a user has a data folder and a schema folder that are siblings.
+  while (!path.startsWith(workingDir) && dirname(workingDir) != null) {
+    workingDir = dirname(workingDir)
+    // Need to add the dots to represent that we've gone back a step up the path
+    prefix += '..' + sep
+  }
+
+  return prefix + relative(workingDir, path)
 }

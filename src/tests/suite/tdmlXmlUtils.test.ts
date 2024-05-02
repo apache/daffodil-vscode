@@ -152,14 +152,10 @@ suite('TDML Utils Test Suite', () => {
   })
 
   test('Append TDML Test Case', async () => {
-    var xmlBuffer = await readTDMLFileContents(
-      join(data_directory, 'test-second.tdml')
-    )
-    var destinationBuffer = await readTDMLFileContents(
+    var appendedBuffer = await appendTestCase(
+      join(data_directory, 'test-second.tdml'),
       join(data_directory, 'test.tdml')
     )
-
-    var appendedBuffer = await appendTestCase(xmlBuffer, destinationBuffer)
 
     return readTDMLFileContents(join(data_directory, 'test-appended.tdml'))
       .then((buf) => {
@@ -171,17 +167,16 @@ suite('TDML Utils Test Suite', () => {
   })
 
   test('Invalid Append TDML - duplicate', async () => {
-    return readTDMLFileContents(join(data_directory, 'test.tdml')).then(
-      (buf) => {
-        return appendTestCase(buf, buf)
-          .then((_) => {
-            // This is not checked because we threw
-          })
-          .catch((reason) => {
-            // This is checked because we threw
-            strictEqual(reason, 'Duplicate Test Case Name Found')
-          })
-      }
+    return appendTestCase(
+      join(data_directory, 'test.tdml'),
+      join(data_directory, 'test.tdml')
     )
+      .then((_) => {
+        // This is not checked because we threw
+      })
+      .catch((reason) => {
+        // This is checked because we threw
+        strictEqual(reason, 'Duplicate Test Case Name Found')
+      })
   })
 })

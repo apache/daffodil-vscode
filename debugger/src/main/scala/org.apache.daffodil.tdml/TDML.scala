@@ -123,6 +123,7 @@ object TDML {
       .relativize(new File(path.toString()).toURI())
       .getPath()
       .toString()
+      .trim()
   }
 
   // Generate a new TDML file.
@@ -253,7 +254,13 @@ object TDML {
   // Returns a tuple containing the following (Path to DFDL Schema, Path to Data File)
   // All paths returned could be either relative or absolute - it depends on what exists in the TDML file
   def execute(tdmlName: String, tdmlDescription: String, tdmlPath: String): Option[(Path, Path)] = {
-    val basePath = Paths.get(tdmlPath).toAbsolutePath().getParent()
+
+    // Correct basepath for Windows OS
+    var basePath = ""
+    if (System.getProperty("os.name").toLowerCase.startsWith("win") == true)
+      (
+        basePath = Paths.get(tdmlPath).toAbsolutePath().getParent().toString()
+      )
 
     val testCaseList = JAXBContext
       .newInstance(classOf[TestSuite])
@@ -278,6 +285,7 @@ object TDML {
                 .asInstanceOf[JAXBElement[DocumentPartType]]
                 .getValue()
                 .getValue()
+                .trim()
             )
             .normalize()
           (schemaPath, dataPath)
