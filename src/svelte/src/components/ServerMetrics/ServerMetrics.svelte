@@ -99,7 +99,8 @@ limitations under the License.
 <FlexContainer --height="25pt" --align-items="center">
   {#if heartbeat.serverTimestamp !== 0}
     <div class="info">
-      &#9889; Powered by Ωedit™ v{heartbeat.serverVersion} on port {heartbeat.omegaEditPort} &nbsp;
+      &#9889; Powered by Ωedit™ v{heartbeat.serverVersion} on port {heartbeat.omegaEditPort}
+      &nbsp;
     </div>
     <FlexContainer>
       <svg
