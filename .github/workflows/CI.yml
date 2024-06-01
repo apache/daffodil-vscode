@@ -60,7 +60,7 @@ jobs:
       ############################################################
       
       - name: Check out Repository
-        uses: actions/checkout@v4.1.5
+        uses: actions/checkout@v4.1.6
 
       - name: Setup Java
         uses: actions/setup-java@v4.2.1
@@ -108,7 +108,7 @@ jobs:
       ############################################################
 
       - name: Check out Repository
-        uses: actions/checkout@v4.1.5
+        uses: actions/checkout@v4.1.6
         with:
           fetch-depth: 0
 
@@ -147,7 +147,7 @@ jobs:
       ############################################################
 
       - name: Check out Repository
-        uses: actions/checkout@v4.1.5
+        uses: actions/checkout@v4.1.6
 
       - name: Setup Java
         uses: actions/setup-java@v4.2.1
