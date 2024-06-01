@@ -100,7 +100,7 @@ lazy val debugger = project
       // scala-steward:on
       "co.fs2" %% "fs2-io" % "3.9.4",
       "com.monovore" %% "decline-effect" % "2.4.1",
-      "org.typelevel" %% "log4cats-slf4j" % "2.6.0",
+      "org.typelevel" %% "log4cats-slf4j" % "2.7.0",
       "org.scalameta" %% "munit" % "1.0.2" % Test
     ),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer),
