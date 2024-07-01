@@ -84,7 +84,7 @@
     "mini-css-extract-plugin": "^2.7.6",
     "mocha": "10.2.0",
     "prettier": "3.2.5",
-    "prettier-plugin-svelte": "3.0.3",
+    "prettier-plugin-svelte": "3.2.5",
     "run-func": "^3.0.0",
     "sass": "^1.69.4",
     "svelte": "^3.55.0",
