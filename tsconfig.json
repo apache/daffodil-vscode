@@ -18,6 +18,7 @@
 {
 	"compilerOptions": {
 		"module": "commonjs",
+		"moduleResolution": "Node10",
 		"target": "es6",
 		"outDir": "out",
 		"lib": [
@@ -26,7 +27,8 @@
 			"DOM"
 		],
 		"sourceMap": true,
-		"rootDir": "src",
+		"rootDir": "./src",
+		"baseUrl": "./src",
 		"strict": true,   /* enable all strict type-checking options */
 		/* Additional Checks */
 		// "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
@@ -41,8 +43,16 @@
 		"preserveConstEnums": true,
 		"strictNullChecks": true,
 		"noUnusedParameters": false,
-		"esModuleInterop": true
+		"esModuleInterop": true,
+		"paths": {
+			"tdmlEditor": ["tdmlEditor"],
+			"dataEditor": ["dataEditor"],
+			"language":["language"],
+			"launchWizard": ["launchWizard/launchWizard"],
+			"infoset":["infoset"]
+		}
 	},
+	"include": ["src/**/*"],
 	"exclude": [
 		"node_modules",
 		"node_modules/svelte",

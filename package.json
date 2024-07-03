@@ -34,7 +34,7 @@
     "prewatch": "yarn gen-version-ts && yarn sbt",
     "watch": "run-func build/yarn-scripts.ts watch",
     "watch:svelte": "yarn webpack --env development=true -w -c ./src/svelte/webpack.config.js",
-    "watch:svelte-tests" : "mocha -r ts-node/register -w ./src/svelte/tests/**/*.test.ts",
+    "watch:svelte-tests": "mocha -r ts-node/register -w ./src/svelte/tests/**/*.test.ts",
     "watch:tdmlEditorJS": "esbuild src/tdmlEditor/webview/webview.js --outfile=dist/views/tdmlEditor/webview/webview.js --bundle --platform=node --format=cjs --watch",
     "webpack": "webpack --mode production --config ./webpack/ext-dev.webpack.config.js",
     "webpack:pkg": "webpack --mode production --config ./webpack/ext-package.webpack.config.js",
@@ -59,10 +59,10 @@
     "jsonc-parser": "3.2.1",
     "semver": "7.5.4",
     "unzip-stream": "0.3.1",
-    "xml-formatter": "^3.6.0",
-    "xml-js": "^1.6.11",
     "wait-port": "1.1.0",
-    "xdg-app-paths": "8.3.0"
+    "xdg-app-paths": "8.3.0",
+    "xml-formatter": "^3.6.0",
+    "xml-js": "^1.6.11"
   },
   "devDependencies": {
     "@tsconfig/svelte": "^5.0.2",
@@ -93,6 +93,7 @@
     "svelte-preprocess": "^5.0.4",
     "ts-loader": "9.4.4",
     "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "5.2.2",
     "vscode-extension-tester": "5.9.1",
     "webpack": "5.88.2",
@@ -439,7 +440,9 @@
               "schema": {
                 "type": "object",
                 "description": "Contains the absolute path to the DFDL schema file, root element name and namespace.",
-                "required": ["path"],
+                "required": [
+                  "path"
+                ],
                 "properties": {
                   "path": {
                     "type": "string",
@@ -447,12 +450,18 @@
                     "default": "${command:AskForSchemaName}"
                   },
                   "rootName": {
-                    "type": ["string", "null"],
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "description": "Name of the root element",
                     "default": null
                   },
                   "rootNamespace": {
-                    "type": ["string", "null"],
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "description": "Name of the root element namespace",
                     "default": null
                   }
@@ -480,11 +489,17 @@
               "infosetOutput": {
                 "type": "object",
                 "description": "Destination for final Infoset ('file' | 'console' | 'none')",
-                "required": ["type"],
+                "required": [
+                  "type"
+                ],
                 "properties": {
                   "type": {
                     "type": "string",
-                    "enum": ["file", "console", "none"],
+                    "enum": [
+                      "file",
+                      "console",
+                      "none"
+                    ],
                     "description": "Type of infoset output",
                     "default": "file"
                   },
@@ -502,11 +517,18 @@
               "tdmlConfig": {
                 "type": "object",
                 "description": "Configuration for TDML Actions",
-                "required": ["action"],
+                "required": [
+                  "action"
+                ],
                 "properties": {
                   "action": {
                     "type": "string",
-                    "enum": ["none", "generate", "append", "execute"],
+                    "enum": [
+                      "none",
+                      "generate",
+                      "append",
+                      "execute"
+                    ],
                     "default": "generate",
                     "description": "TDML Case Action (none | generate | append | exectute)"
                   },
@@ -604,7 +626,13 @@
                       },
                       "level": {
                         "type": "string",
-                        "enum": ["debug", "info", "warning", "error", "critical"],
+                        "enum": [
+                          "debug",
+                          "info",
+                          "warning",
+                          "error",
+                          "critical"
+                        ],
                         "description": "Data Editor Logging Level",
                         "default": "info"
                       }
@@ -638,7 +666,13 @@
                       },
                       "level": {
                         "type": "string",
-                        "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+                        "enum": [
+                          "DEBUG",
+                          "INFO",
+                          "WARNING",
+                          "ERROR",
+                          "CRITICAL"
+                        ],
                         "description": "DFL Debugger Logging Level",
                         "default": "INFO"
                       }

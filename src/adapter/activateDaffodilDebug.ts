@@ -8,6 +8,12 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as vscode from 'vscode'
+import * as infoset from 'infoset'
+import * as launchWizard from 'launchWizard'
+import * as dfdlLang from 'language/dfdl'
+import * as dfdlExt from 'language/semantics/dfdlExt'
+import * as dataEditClient from 'dataEditor'
+import * as tdmlEditor from 'tdmlEditor'
 import {
   CancellationToken,
   DebugConfiguration,
@@ -15,22 +21,16 @@ import {
   WorkspaceFolder,
 } from 'vscode'
 import { getDataFileFromFolder, getDebugger } from '../daffodilDebugger'
-import * as infoset from '../infoset'
-import * as dfdlLang from '../language/dfdl'
-import * as launchWizard from '../launchWizard/launchWizard'
-import * as dataEditClient from '../dataEditor/dataEditorClient'
-import * as tdmlEditor from '../tdmlEditor/extension'
 import { getConfig, getCurrentConfig, setCurrentConfig } from '../utils'
 import { FileAccessor } from './daffodilRuntime'
 import { TDMLConfig } from '../classes/tdmlConfig'
 import { handleDebugEvent } from './daffodilEvent'
 import { InlineDebugAdapterFactory } from './extension'
-import * as dfdlExt from '../language/semantics/dfdlExt'
 import {
   appendTestCase,
   getTmpTDMLFilePath,
   copyTestCase,
-} from '../tdmlEditor/utilities/tdmlXmlUtils'
+} from 'tdmlEditor/utilities/tdmlXmlUtils'
 import xmlFormat from 'xml-formatter'
 
 export const outputChannel: vscode.OutputChannel =

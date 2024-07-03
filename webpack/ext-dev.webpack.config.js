@@ -14,6 +14,17 @@ const unzip = require('unzip-stream')
 const fs = require('fs')
 const jsoncParse = require('jsonc-parser').parse
 
+const localModulePath = (module) => {
+  return path.resolve(__dirname, '../', 'src', module)
+}
+const localModuleAliases = {
+  dataEditor: localModulePath('dataEditor'),
+  tdmlEditor: localModulePath('tdmlEditor'),
+  language: localModulePath('language'),
+  launchWizard: localModulePath('launchWizard/launchWizard'),
+  infoset: localModulePath('infoset'),
+}
+
 const packageData = jsoncParse(
   fs.readFileSync(path.resolve('package.json')).toString()
 )
@@ -34,6 +45,7 @@ module.exports = /** @type WebpackConfig */ {
   resolve: {
     // support reading TypeScript and JavaScript files
     extensions: ['.ts', '.js'],
+    alias: { ...localModuleAliases },
   },
   node: {
     __dirname: false, // leave the __dirname-behaviour intact
