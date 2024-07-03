@@ -376,7 +376,7 @@ class LaunchWizard {
   // Method to set html for the data editor
   getWebViewContent(selectedConfigNumber: number | undefined = undefined) {
     const scriptUri = vscode.Uri.parse(
-      this.ctx.asAbsolutePath('./src/launchWizard/launchWizard.js')
+      this.ctx.asAbsolutePath('./src/launchWizard/script.js')
     )
     const styleUri = vscode.Uri.parse(
       this.ctx.asAbsolutePath('./src/styles/styles.css')

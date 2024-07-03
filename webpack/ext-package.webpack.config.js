@@ -29,6 +29,16 @@ const CopyPlugin = require('copy-webpack-plugin')
 const jsoncParse = require('jsonc-parser').parse
 
 const pkg_dir = path.resolve('dist/package')
+const localModulePath = (module) => {
+  return path.resolve(__dirname, '../', 'src', module)
+}
+const localModuleAliases = {
+  dataEditor: localModulePath('dataEditor'),
+  tdmlEditor: localModulePath('tdmlEditor'),
+  language: localModulePath('language'),
+  launchWizard: localModulePath('launchWizard/launchWizard'),
+  infoset: localModulePath('infoset'),
+}
 
 const packageData = jsoncParse(
   fs.readFileSync(path.resolve('package.json')).toString()
@@ -50,6 +60,7 @@ module.exports = /** @type WebpackConfig */ {
   resolve: {
     // support reading TypeScript and JavaScript files
     extensions: ['.ts', '.js'],
+    alias: { ...localModuleAliases },
   },
   node: {
     __dirname: false, // leave the __dirname-behaviour intact
@@ -119,8 +130,8 @@ module.exports = /** @type WebpackConfig */ {
           to: `${pkg_dir}/src/language/providers/intellisense/DFDLGeneralFormat.dfdl.xsd`,
         },
         {
-          from: 'src/launchWizard/launchWizard.js',
-          to: `${pkg_dir}/src/launchWizard/launchWizard.js`,
+          from: 'src/launchWizard/script.js',
+          to: `${pkg_dir}/src/launchWizard/script.js`,
         },
         {
           from: 'src/styles/styles.css',

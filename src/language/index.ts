@@ -14,28 +14,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-{
-  "extends": "@tsconfig/svelte/tsconfig.json",
-  "compilerOptions": {
-    "module": "esnext",
-    "moduleResolution": "Node10",
-    "baseUrl": "../",
-    "target": "es6",
-    "outDir": "out",
-    "lib": ["es6", "es2021", "DOM"],
-    "ignoreDeprecations": "5.0"
-  },
-  "include": ["../../src/**/*"],
-  "exclude": ["node_modules/*"],
-  "strict": true /* enable all strict type-checking options */,
-  "noImplicitAny": false,
-  "removeComments": false,
-  "noUnusedLocals": true,
-  "noImplicitThis": true,
-  "inlineSourceMap": false,
-  "preserveConstEnums": true,
-  "strictNullChecks": true,
-  "noUnusedParameters": false,
-  "esModuleInterop": true
-}
+export * as dfdl from './dfdl'
+export * as tdml from './tdml'

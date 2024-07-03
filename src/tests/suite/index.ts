@@ -19,6 +19,10 @@ import * as path from 'path'
 const Mocha = require('mocha')
 const glob = require('glob')
 
+// needed for aliases to resolve in tests
+require('ts-node/register')
+require('tsconfig-paths/register')
+
 export function run(): Promise<void> {
   // Create the mocha test
   const mocha = new Mocha({
