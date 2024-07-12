@@ -62,6 +62,9 @@ export const noChoiceAttributes = [
   'test',
   'testPattern',
   'message',
+  'source',
+  'schemaLocation',
+  'targetNamespace',
 ]
 
 export function attributeValues(
