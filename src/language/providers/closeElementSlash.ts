@@ -47,6 +47,9 @@ export function getCloseElementSlashProvider() {
           position,
           nsPrefix
         )
+        if (nearestTagNotClosed === 'none') {
+          return undefined
+        }
         const itemsOnLine = getItemsOnLineCount(triggerText)
 
         if (
