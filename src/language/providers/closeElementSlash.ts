@@ -47,9 +47,6 @@ export function getCloseElementSlashProvider() {
           position,
           nsPrefix
         )
-        if (nearestTagNotClosed === 'none') {
-          return undefined
-        }
         const itemsOnLine = getItemsOnLineCount(triggerText)
 
         if (
@@ -155,7 +152,10 @@ function checkItemsOnLine(
 ) {
   nsPrefix = getItemPrefix(nearestTagNotClosed, nsPrefix)
 
-  if (itemsOnLine == 1 || itemsOnLine == 0) {
+  if (
+    !(nearestTagNotClosed == 'none') &&
+    (itemsOnLine == 1 || itemsOnLine == 0)
+  ) {
     insertSnippet('/>$0', backpos)
 
     if (

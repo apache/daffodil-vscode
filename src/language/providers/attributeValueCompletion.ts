@@ -39,38 +39,32 @@ export function getAttributeValueCompletionProvider() {
           return undefined
         }
         const nsPrefix = getXsdNsPrefix(document, position)
-        let additionalItems = getDefinedTypes(document, nsPrefix)
-        let [attributeName, startPos, endPos] = getAttributeDetails(
+        var additionalItems = getDefinedTypes(document, nsPrefix)
+        var [attributeName, startPos, endPos] = getAttributeDetails(
           document,
           position
         )
 
         if (attributeName !== 'none') {
-          let replaceValue = ''
+          var replaceValue = ''
           if (startPos === endPos) {
             replaceValue = ' '
           }
 
-          if (
-            attributeName.includes(':') &&
-            !attributeName.includes('xmlns:')
-          ) {
+          if (attributeName.includes(':')) {
             attributeName = attributeName.substring(
               attributeName.indexOf(':') + 1
             )
           }
 
-          if (
-            noChoiceAttributes.includes(attributeName) ||
-            attributeName.includes('xmlns:')
-          ) {
+          if (noChoiceAttributes.includes(attributeName)) {
             return undefined
           }
 
-          let startPosition = position.with(position.line, startPos)
-          let endPosition = position.with(position.line, endPos + 1)
+          var startPosition = position.with(position.line, startPos)
+          var endPosition = position.with(position.line, endPos + 1)
 
-          let range = new vscode.Range(startPosition, endPosition)
+          var range = new vscode.Range(startPosition, endPosition)
 
           await vscode.window.activeTextEditor?.edit((editBuilder) => {
             editBuilder.replace(range, replaceValue)
@@ -81,7 +75,7 @@ export function getAttributeValueCompletionProvider() {
         return undefined
       },
     },
-    ' ' // triggered whenever a space is typed
+    ' ' // triggered whenever a newline is typed
   )
 }
 
@@ -100,8 +94,8 @@ export function getTDMLAttributeValueCompletionProvider() {
           return undefined
         }
         const nsPrefix = getXsdNsPrefix(document, position)
-        let additionalItems = getDefinedTypes(document, nsPrefix)
-        let [attributeName, startPos, endPos] = getAttributeDetails(
+        var additionalItems = getDefinedTypes(document, nsPrefix)
+        var [attributeName, startPos, endPos] = getAttributeDetails(
           document,
           position
         )
@@ -122,10 +116,10 @@ export function getTDMLAttributeValueCompletionProvider() {
             return undefined
           }
 
-          let startPosition = position.with(position.line, startPos)
-          let endPosition = position.with(position.line, endPos + 1)
+          var startPosition = position.with(position.line, startPos)
+          var endPosition = position.with(position.line, endPos + 1)
 
-          let range = new vscode.Range(startPosition, endPosition)
+          var range = new vscode.Range(startPosition, endPosition)
 
           await vscode.window.activeTextEditor?.edit((editBuilder) => {
             editBuilder.replace(range, replaceValue)
@@ -136,7 +130,7 @@ export function getTDMLAttributeValueCompletionProvider() {
         return undefined
       },
     },
-    ' ' // triggered whenever a space is typed
+    ' ' // triggered whenever a newline is typed
   )
 }
 
@@ -147,13 +141,13 @@ function getAttributeDetails(
   const quoteChar: string[] = ["'", '"']
   const triggerLine = position.line
   const triggerPos = position.character
-  let currentLine = triggerLine
-  let currentPos = triggerPos
-  let endPos = -1
-  let currentText = document.lineAt(currentLine).text
-  let textBeforeTrigger = currentText.substring(0, triggerPos)
-  let attributeName = 'none'
-  let attributeStartPos = 0
+  var currentLine = triggerLine
+  var currentPos = triggerPos
+  var endPos = -1
+  var currentText = document.lineAt(currentLine).text
+  var textBeforeTrigger = currentText.substring(0, triggerPos)
+  var attributeName = 'none'
+  var attributeStartPos = 0
 
   while (
     !currentText.includes("'") &&
@@ -183,7 +177,6 @@ function getAttributeDetails(
     if (currentText.includes(quoteChar[i])) {
       if (currentLine === triggerLine) {
         currentPos = textBeforeTrigger.lastIndexOf(quoteChar[i])
-
         if (
           currentPos < triggerPos &&
           textBeforeTrigger.lastIndexOf('=') === currentPos - 1

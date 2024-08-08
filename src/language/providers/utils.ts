@@ -198,35 +198,37 @@ export function checkTagOpen(
 ) {
   nsPrefix = getItemPrefix(tag, nsPrefix)
 
-  let triggerLine = position.line
-  let triggerText = document.lineAt(triggerLine).text
-  let itemsOnLine = getItemsOnLineCount(triggerText)
-  let isMultiLineTag = false
-  let origTriggerText = triggerText
-  let origTriggerLine = triggerLine
+  var triggerLine = position.line
+  var triggerText = document.lineAt(triggerLine).text
+  var itemsOnLine = getItemsOnLineCount(triggerText)
+  var isMultiLineTag = false
+  //  var origTriggerText = triggerText
+  var origTriggerLine = triggerLine
+  var compareText = triggerText
+  var compareLine = triggerLine
   const triggerPos = position.character
   const textBeforeTrigger = triggerText.substring(0, triggerPos)
 
   while (
     itemsOnLine < 2 &&
-    !triggerText.trim().startsWith('<') &&
-    !triggerText.includes('/>') &&
-    !triggerText.includes('<')
+    !triggerText.trim().startsWith('<') //&&
+    // !triggerText.includes('/>') &&
+    // !triggerText.includes('<')
   ) {
     triggerText = document.lineAt(--triggerLine).text
   }
 
-  if (triggerText.includes('/>') || triggerText.includes('</')) {
-    return false
-  }
+  // if (triggerText.includes('/>') || triggerText.includes('</')) {
+  //   return false
+  // }
 
   if (!(triggerText.endsWith('>') && triggerText.includes('<'))) {
     isMultiLineTag = true
   }
 
-  let tagPos = textBeforeTrigger.lastIndexOf('<' + nsPrefix + tag)
+  var tagPos = textBeforeTrigger.lastIndexOf('<' + nsPrefix + tag)
   const nextTagPos = triggerText.indexOf('<', tagPos + 1)
-  let tagEndPos = triggerText.indexOf('>', tagPos)
+  var tagEndPos = triggerText.indexOf('>', tagPos)
 
   if (tagPos > -1 && itemsOnLine > 1) {
     if (
@@ -239,21 +241,21 @@ export function checkTagOpen(
     }
   }
 
-  while (origTriggerText.trim() === '') {
-    origTriggerText = document.lineAt(--origTriggerLine).text
+  while (compareText.trim() === '') {
+    compareText = document.lineAt(--compareLine).text
   }
   tagPos = triggerText.indexOf('<' + nsPrefix + tag)
 
   if (itemsOnLine < 2 && tagPos > -1) {
-    if (triggerText !== origTriggerText) {
-      tagEndPos = origTriggerText.indexOf('>')
+    if (triggerText !== compareText) {
+      tagEndPos = compareText.indexOf('>')
     }
 
     if (
       (triggerPos > tagPos &&
         triggerPos <= tagEndPos &&
         triggerLine === position.line) ||
-      (origTriggerLine == position.line &&
+      (compareLine == position.line &&
         triggerPos <= tagEndPos &&
         triggerPos > tagPos) ||
       position.line < origTriggerLine
@@ -315,21 +317,27 @@ export function checkMultiLineTag(
     return false
   }
   let currentLine = position.line
+  let openTagLine = position.line
+  let closeTagLine = position.line
   const origText = document.lineAt(currentLine).text
   let currentText = origText
 
   //the current line doesn't have the self close symbol
   if (!currentText.endsWith('/>')) {
     while (currentText.trim() === '' || !currentText.includes('<')) {
-      --currentLine
-      currentText = document.lineAt(currentLine).text
+      --openTagLine
+      currentText = document.lineAt(openTagLine).text
+      if (currentText.includes('/>')) {
+        closeTagLine = openTagLine
+      }
     }
 
     if (
       currentText.indexOf('<' + nsPrefix + tag) !== -1 &&
       currentText.indexOf('>') === -1 &&
       currentText.indexOf('<' + nsPrefix + tag) &&
-      currentLine <= position.line &&
+      openTagLine <= position.line &&
+      closeTagLine >= position.line &&
       (origText.indexOf('>') > position.character ||
         origText.indexOf('>') === -1)
     ) {

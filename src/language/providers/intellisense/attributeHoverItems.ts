@@ -225,6 +225,8 @@ export function attributeHoverValues(attributeName: string): string {
       return 'Defines text for use in an error message'
     case 'failureType':
       return 'Specifies the type of failure that occurs when the dfdl:assert is unsuccessful'
+    case 'schemaLocation':
+      return 'Specifies the location of the schema'
     default:
       return 'No definition available'
   }
