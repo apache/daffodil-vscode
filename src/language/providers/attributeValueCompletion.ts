@@ -51,19 +51,13 @@ export function getAttributeValueCompletionProvider() {
             replaceValue = ' '
           }
 
-          if (
-            attributeName.includes(':') &&
-            !attributeName.includes('xmlns:')
-          ) {
+          if (attributeName.includes(':')) {
             attributeName = attributeName.substring(
               attributeName.indexOf(':') + 1
             )
           }
 
-          if (
-            noChoiceAttributes.includes(attributeName) ||
-            attributeName.includes('xmlns:')
-          ) {
+          if (noChoiceAttributes.includes(attributeName)) {
             return undefined
           }
 
@@ -81,7 +75,7 @@ export function getAttributeValueCompletionProvider() {
         return undefined
       },
     },
-    ' ' // triggered whenever a space is typed
+    ' ' // triggered whenever a newline is typed
   )
 }
 
@@ -136,7 +130,7 @@ export function getTDMLAttributeValueCompletionProvider() {
         return undefined
       },
     },
-    ' ' // triggered whenever a space is typed
+    ' ' // triggered whenever a newline is typed
   )
 }
 
@@ -188,10 +182,6 @@ function getAttributeDetails(
           currentPos < triggerPos &&
           textBeforeTrigger.lastIndexOf('=') === currentPos - 1
         ) {
-          textBeforeTrigger = textBeforeTrigger.substring(
-            0,
-            textBeforeTrigger.lastIndexOf('=')
-          )
           endPos = currentText.indexOf(quoteChar[i], currentPos + 1)
           attributeStartPos = textBeforeTrigger.lastIndexOf(' ')
           attributeName = textBeforeTrigger.substring(
