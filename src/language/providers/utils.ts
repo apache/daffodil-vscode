@@ -207,17 +207,8 @@ export function checkTagOpen(
   const triggerPos = position.character
   const textBeforeTrigger = triggerText.substring(0, triggerPos)
 
-  while (
-    itemsOnLine < 2 &&
-    !triggerText.trim().startsWith('<') &&
-    !triggerText.includes('/>') &&
-    !triggerText.includes('<')
-  ) {
+  while (itemsOnLine < 2 && !triggerText.trim().startsWith('<')) {
     triggerText = document.lineAt(--triggerLine).text
-  }
-
-  if (triggerText.includes('/>') || triggerText.includes('</')) {
-    return false
   }
 
   if (!(triggerText.endsWith('>') && triggerText.includes('<'))) {
