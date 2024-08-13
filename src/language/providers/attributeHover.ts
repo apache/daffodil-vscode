@@ -17,6 +17,7 @@
 
 import * as vscode from 'vscode'
 import { attributeHoverValues } from './intellisense/attributeHoverItems'
+import { attributeCompletion } from './intellisense/attributeItems'
 
 export function getAttributeHoverProvider() {
   return vscode.languages.registerHoverProvider('dfdl', {
@@ -28,11 +29,17 @@ export function getAttributeHoverProvider() {
       const range = document.getWordRangeAtPosition(position)
       const word = document.getText(range)
 
+      let itemNames: string[] = []
+      attributeCompletion('', '', 'dfdl:', '', '').items.forEach((r) =>
+        itemNames.push(r.item)
+      )
       if (word.length > 0) {
-        return new vscode.Hover({
-          language: 'dfdl',
-          value: attributeHoverValues(word),
-        })
+        if (itemNames.includes(word)) {
+          return new vscode.Hover({
+            language: 'dfdl',
+            value: attributeHoverValues(word),
+          })
+        }
       }
     },
   })

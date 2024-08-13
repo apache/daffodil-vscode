@@ -39,14 +39,14 @@ export function getAttributeValueCompletionProvider() {
           return undefined
         }
         const nsPrefix = getXsdNsPrefix(document, position)
-        let additionalItems = getDefinedTypes(document, nsPrefix)
-        let [attributeName, startPos, endPos] = getAttributeDetails(
+        var additionalItems = getDefinedTypes(document, nsPrefix)
+        var [attributeName, startPos, endPos] = getAttributeDetails(
           document,
           position
         )
 
         if (attributeName !== 'none') {
-          let replaceValue = ''
+          var replaceValue = ''
           if (startPos === endPos) {
             replaceValue = ' '
           }
@@ -61,10 +61,10 @@ export function getAttributeValueCompletionProvider() {
             return undefined
           }
 
-          let startPosition = position.with(position.line, startPos)
-          let endPosition = position.with(position.line, endPos + 1)
+          var startPosition = position.with(position.line, startPos)
+          var endPosition = position.with(position.line, endPos + 1)
 
-          let range = new vscode.Range(startPosition, endPosition)
+          var range = new vscode.Range(startPosition, endPosition)
 
           await vscode.window.activeTextEditor?.edit((editBuilder) => {
             editBuilder.replace(range, replaceValue)
@@ -94,8 +94,8 @@ export function getTDMLAttributeValueCompletionProvider() {
           return undefined
         }
         const nsPrefix = getXsdNsPrefix(document, position)
-        let additionalItems = getDefinedTypes(document, nsPrefix)
-        let [attributeName, startPos, endPos] = getAttributeDetails(
+        var additionalItems = getDefinedTypes(document, nsPrefix)
+        var [attributeName, startPos, endPos] = getAttributeDetails(
           document,
           position
         )
@@ -116,10 +116,10 @@ export function getTDMLAttributeValueCompletionProvider() {
             return undefined
           }
 
-          let startPosition = position.with(position.line, startPos)
-          let endPosition = position.with(position.line, endPos + 1)
+          var startPosition = position.with(position.line, startPos)
+          var endPosition = position.with(position.line, endPos + 1)
 
-          let range = new vscode.Range(startPosition, endPosition)
+          var range = new vscode.Range(startPosition, endPosition)
 
           await vscode.window.activeTextEditor?.edit((editBuilder) => {
             editBuilder.replace(range, replaceValue)
@@ -141,13 +141,13 @@ function getAttributeDetails(
   const quoteChar: string[] = ["'", '"']
   const triggerLine = position.line
   const triggerPos = position.character
-  let currentLine = triggerLine
-  let currentPos = triggerPos
-  let endPos = -1
-  let currentText = document.lineAt(currentLine).text
-  let textBeforeTrigger = currentText.substring(0, triggerPos)
-  let attributeName = 'none'
-  let attributeStartPos = 0
+  var currentLine = triggerLine
+  var currentPos = triggerPos
+  var endPos = -1
+  var currentText = document.lineAt(currentLine).text
+  var textBeforeTrigger = currentText.substring(0, triggerPos)
+  var attributeName = 'none'
+  var attributeStartPos = 0
 
   while (
     !currentText.includes("'") &&
@@ -177,11 +177,14 @@ function getAttributeDetails(
     if (currentText.includes(quoteChar[i])) {
       if (currentLine === triggerLine) {
         currentPos = textBeforeTrigger.lastIndexOf(quoteChar[i])
-
         if (
           currentPos < triggerPos &&
           textBeforeTrigger.lastIndexOf('=') === currentPos - 1
         ) {
+          textBeforeTrigger = textBeforeTrigger.substring(
+            0,
+            textBeforeTrigger.lastIndexOf('=')
+          )
           endPos = currentText.indexOf(quoteChar[i], currentPos + 1)
           attributeStartPos = textBeforeTrigger.lastIndexOf(' ')
           attributeName = textBeforeTrigger.substring(

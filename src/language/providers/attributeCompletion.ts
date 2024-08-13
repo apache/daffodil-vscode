@@ -79,10 +79,10 @@ export function getAttributeCompletionProvider() {
           .text.substring(0, position.character)
         const charBeforeTrigger = triggerText.charAt(position.character - 1)
         const charAfterTrigger = triggerText.charAt(position.character)
-        let nearestOpenItem = nearestOpen(document, position)
-        let itemsOnLine = getItemsOnLineCount(triggerText)
+        var nearestOpenItem = nearestOpen(document, position)
+        var itemsOnLine = getItemsOnLineCount(triggerText)
         const nsPrefix = getXsdNsPrefix(document, position)
-        let additionalItems = getDefinedTypes(document, nsPrefix)
+        var additionalItems = getDefinedTypes(document, nsPrefix)
 
         if (isInXPath(document, position)) return undefined
 
@@ -95,7 +95,7 @@ export function getAttributeCompletionProvider() {
         ) {
           return undefined
         }
-        let preVal =
+        var preVal =
           !triggerText.includes('<' + nsPrefix + nearestOpenItem) &&
           lineCount(document, position, nearestOpenItem) === 1 &&
           itemsOnLine < 2
@@ -131,10 +131,10 @@ export function getTDMLAttributeCompletionProvider() {
           .text.substring(0, position.character)
         const charBeforeTrigger = triggerText.charAt(position.character - 1)
         const charAfterTrigger = triggerText.charAt(position.character)
-        let nearestOpenItem = nearestOpen(document, position)
-        let itemsOnLine = getItemsOnLineCount(triggerText)
+        var nearestOpenItem = nearestOpen(document, position)
+        var itemsOnLine = getItemsOnLineCount(triggerText)
         const nsPrefix = getXsdNsPrefix(document, position)
-        let additionalItems = getDefinedTypes(document, nsPrefix)
+        var additionalItems = getDefinedTypes(document, nsPrefix)
 
         if (isInXPath(document, position)) return undefined
 
@@ -147,7 +147,7 @@ export function getTDMLAttributeCompletionProvider() {
         ) {
           return undefined
         }
-        let preVal =
+        var preVal =
           !triggerText.includes('<' + nsPrefix + nearestOpenItem) &&
           lineCount(document, position, nearestOpenItem) === 1 &&
           itemsOnLine < 2
@@ -174,8 +174,8 @@ export function getDefinedTypes(
   document: vscode.TextDocument,
   nsPrefix: string
 ) {
-  let additionalTypes = ''
-  let lineNum = 0
+  var additionalTypes = ''
+  var lineNum = 0
   const lineCount = document.lineCount
 
   while (lineNum !== lineCount) {
@@ -187,9 +187,9 @@ export function getDefinedTypes(
       triggerText.includes(nsPrefix + 'simpleType name=') ||
       triggerText.includes(nsPrefix + 'complexType name=')
     ) {
-      let startPos = triggerText.indexOf('"', 0)
-      let endPos = triggerText.indexOf('"', startPos + 1)
-      let newType = triggerText.substring(startPos + 1, endPos)
+      var startPos = triggerText.indexOf('"', 0)
+      var endPos = triggerText.indexOf('"', startPos + 1)
+      var newType = triggerText.substring(startPos + 1, endPos)
 
       additionalTypes = String(additionalTypes + ',' + newType)
     }
@@ -323,6 +323,16 @@ function checkNearestOpenItem(
         '',
         nsPrefix,
         dfdlDefaultPrefix,
+        spacingChar,
+        afterChar
+      )
+    case 'include':
+      return getCompletionItems(
+        ['schemaLocation'],
+        '',
+        '',
+        nsPrefix,
+        '',
         spacingChar,
         afterChar
       )
@@ -489,7 +499,7 @@ function getDefineVariableCompletionItems(
   spacingChar: string,
   afterChar: string
 ): vscode.CompletionItem[] {
-  let xmlItems = [
+  var xmlItems = [
     {
       item: 'external',
       snippetString:
@@ -501,7 +511,7 @@ function getDefineVariableCompletionItems(
     },
   ]
 
-  let compItems: vscode.CompletionItem[] = []
+  var compItems: vscode.CompletionItem[] = []
   xmlItems.forEach((e) => {
     const completionItem = new vscode.CompletionItem(e.item)
     completionItem.insertText = new vscode.SnippetString(e.snippetString)

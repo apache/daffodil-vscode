@@ -386,6 +386,8 @@ function nearestOpenTagChildElements(
       return getElementCompletionItems(['dfdl:escapeScheme'], '', '', nsPrefix)
     case 'format':
       return getElementCompletionItems(['dfdl:property'], '', '', nsPrefix)
+    case 'include':
+      return getElementCompletionItems(['schemaLocation'], '', '', nsPrefix)
     case 'schema':
       return getElementCompletionItems(
         [
@@ -396,6 +398,7 @@ function nearestOpenTagChildElements(
           'complexType',
           'simpleType',
           'annotation',
+          'include',
         ],
         '',
         '',
