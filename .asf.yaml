@@ -25,6 +25,7 @@ github:
     merge:    false
     rebase:   true
   collaborators:
+    - ds-nteligen
     - hdalsania
     - lrbarber
     - michael-hoke
