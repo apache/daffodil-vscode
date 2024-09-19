@@ -545,6 +545,16 @@ export const attributeCompletion = (
         snippetString: spacingChar + 'failureType="${1|processingError,recoverableError|}"$0' + afterChar,
         markdownString: 'Specifies the type of failure that occurs when the dfdl:assert is unsuccessful',
       },
+      {
+        item: 'schemaLocation',
+        snippetString: spacingChar + 'schemaLocation="$1"$0' + afterChar,
+        markdownString: 'Specifies the location of the schema'
+      },
+      {
+        item: 'namespace',
+        snippetString: spacingChar + 'namespace="$1"$0' + afterChar,
+        markdownString: 'User defined identifier for the imported schemaLocation'
+      }
     ],
   }
 }

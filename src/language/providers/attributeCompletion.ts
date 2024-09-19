@@ -326,6 +326,26 @@ function checkNearestOpenItem(
         spacingChar,
         afterChar
       )
+    case 'include':
+      return getCompletionItems(
+        ['schemaLocation'],
+        '',
+        '',
+        nsPrefix,
+        '',
+        spacingChar,
+        afterChar
+      )
+    case 'import':
+      return getCompletionItems(
+        ['schemaLocation', 'namespace'],
+        '',
+        '',
+        nsPrefix,
+        '',
+        spacingChar,
+        afterChar
+      )
     case 'assert':
       return getCompletionItems(
         ['testKind', 'test', 'testPattern', 'message', 'failureType'],

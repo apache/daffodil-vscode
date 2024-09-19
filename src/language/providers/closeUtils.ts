@@ -336,6 +336,7 @@ export function getItemsForLineLT2(
             testLine = lineBefore
             while (!testText.includes('>')) {
               testText = document.lineAt(++testLine).text
+              if (testText.indexOf('<') > -1) [openTagArray.push(testLine)]
             }
           }
 

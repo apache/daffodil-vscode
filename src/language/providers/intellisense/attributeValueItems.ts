@@ -65,6 +65,7 @@ export const noChoiceAttributes = [
   'source',
   'schemaLocation',
   'targetNamespace',
+  'namespace',
 ]
 
 export function attributeValues(

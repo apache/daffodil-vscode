@@ -207,7 +207,7 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
         markdownString: 'Used to restrict a datatype to a finite set of values'
       },
       {
-        item: 'include',
+        item: nsPrefix + 'include',
         snippetString: '<' + nsPrefix + 'include "$1"/>$0',
         markdownString: 'Used to add all the components of an included schema'
       },
@@ -216,7 +216,7 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
         snippetString: '<' + nsPrefix + 'documentation>\n\t$1\n</documentation>$0'
       },
       {
-        item: 'import',
+        item: nsPrefix + 'import',
         snippetString: '<' + nsPrefix + 'import "$1"/>$0',
         markdownString: 'Used to add all the components of an included schema'
       },

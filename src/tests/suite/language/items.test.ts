@@ -172,6 +172,8 @@ suite('Items Test Suite', () => {
     'testPattern',
     'message',
     'failureType',
+    'schemaLocation',
+    'namespace',
   ]
 
   test('all commonItems available', async () => {

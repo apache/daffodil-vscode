@@ -45,6 +45,8 @@ const items = [
   'restriction',
   'schema',
   'xml version',
+  'include',
+  'import',
 ]
 
 export function getItems() {
@@ -202,22 +204,14 @@ export function checkTagOpen(
   let triggerText = document.lineAt(triggerLine).text
   let itemsOnLine = getItemsOnLineCount(triggerText)
   let isMultiLineTag = false
-  let origTriggerText = triggerText
   let origTriggerLine = triggerLine
+  let compareText = triggerText
+  let compareLine = triggerLine
   const triggerPos = position.character
   const textBeforeTrigger = triggerText.substring(0, triggerPos)
 
-  while (
-    itemsOnLine < 2 &&
-    !triggerText.trim().startsWith('<') &&
-    !triggerText.includes('/>') &&
-    !triggerText.includes('<')
-  ) {
+  while (itemsOnLine < 2 && !triggerText.trim().startsWith('<')) {
     triggerText = document.lineAt(--triggerLine).text
-  }
-
-  if (triggerText.includes('/>') || triggerText.includes('</')) {
-    return false
   }
 
   if (!(triggerText.endsWith('>') && triggerText.includes('<'))) {
@@ -239,21 +233,21 @@ export function checkTagOpen(
     }
   }
 
-  while (origTriggerText.trim() === '') {
-    origTriggerText = document.lineAt(--origTriggerLine).text
+  while (compareText.trim() === '') {
+    compareText = document.lineAt(--compareLine).text
   }
   tagPos = triggerText.indexOf('<' + nsPrefix + tag)
 
   if (itemsOnLine < 2 && tagPos > -1) {
-    if (triggerText !== origTriggerText) {
-      tagEndPos = origTriggerText.indexOf('>')
+    if (triggerText !== compareText) {
+      tagEndPos = compareText.indexOf('>')
     }
 
     if (
       (triggerPos > tagPos &&
         triggerPos <= tagEndPos &&
         triggerLine === position.line) ||
-      (origTriggerLine == position.line &&
+      (compareLine == position.line &&
         triggerPos <= tagEndPos &&
         triggerPos > tagPos) ||
       position.line < origTriggerLine
@@ -315,21 +309,27 @@ export function checkMultiLineTag(
     return false
   }
   let currentLine = position.line
+  let openTagLine = position.line
+  let closeTagLine = position.line
   const origText = document.lineAt(currentLine).text
   let currentText = origText
 
   //the current line doesn't have the self close symbol
   if (!currentText.endsWith('/>')) {
     while (currentText.trim() === '' || !currentText.includes('<')) {
-      --currentLine
-      currentText = document.lineAt(currentLine).text
+      --openTagLine
+      currentText = document.lineAt(openTagLine).text
+      if (currentText.includes('/>')) {
+        closeTagLine = openTagLine
+      }
     }
 
     if (
       currentText.indexOf('<' + nsPrefix + tag) !== -1 &&
       currentText.indexOf('>') === -1 &&
       currentText.indexOf('<' + nsPrefix + tag) &&
-      currentLine <= position.line &&
+      openTagLine <= position.line &&
+      closeTagLine >= position.line &&
       (origText.indexOf('>') > position.character ||
         origText.indexOf('>') === -1)
     ) {
@@ -380,7 +380,10 @@ export function getItemsOnLineCount(triggerText: String) {
   let nextPos = 0
   let result = 0
 
-  if (triggerText.includes('schema')) {
+  if (
+    triggerText.includes('schema') &&
+    !triggerText.includes('schemaLocation')
+  ) {
     itemsOnLine = 1
     return itemsOnLine
   }
@@ -417,6 +420,40 @@ export function isInXPath(
   position: vscode.Position
 ): boolean {
   return isXPath(position)
+}
+
+export function isNotTriggerChar(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  triggerChar: string
+) {
+  const triggerText = document.lineAt(position.line).text
+  const triggerPos = position.character
+  const trigChar = triggerText.substring(triggerPos - 1, triggerPos)
+  if (trigChar != triggerChar) {
+    return true
+  } else {
+    return false
+  }
+}
+
+export function isTagEndTrigger(
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
+  const triggerText = document.lineAt(position.line).text
+  const triggerPos = position.character
+  const trigChar = triggerText.substring(triggerPos - 1, triggerPos)
+  if (
+    trigChar == '/' ||
+    (trigChar == '>' &&
+      !triggerText.includes('/>') &&
+      !triggerText.includes('</'))
+  ) {
+    return true
+  } else {
+    return false
+  }
 }
 
 export function cursorAfterEquals(
@@ -457,7 +494,14 @@ export function cursorWithinQuotes(
 
     if (currentText.includes(quoteChar[i])) {
       let textBeforeTrigger = currentText.substring(0, position.character)
-      //let tagStartPos = -1
+
+      if (
+        currentText.indexOf('=' + quoteChar[i]) > position.character &&
+        textBeforeTrigger.trim() == ''
+      ) {
+        return false
+      }
+
       let quoteStartLine = startLine
       let quoteStartPos = -1
       let equalStartPos = -1

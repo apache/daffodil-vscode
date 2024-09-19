@@ -45,25 +45,19 @@ export function getAttributeValueCompletionProvider() {
           position
         )
 
-        if (attributeName !== 'none') {
+        if (attributeName !== 'none' && !attributeName.includes('xmlns:')) {
           let replaceValue = ''
           if (startPos === endPos) {
             replaceValue = ' '
           }
 
-          if (
-            attributeName.includes(':') &&
-            !attributeName.includes('xmlns:')
-          ) {
+          if (attributeName.includes(':')) {
             attributeName = attributeName.substring(
               attributeName.indexOf(':') + 1
             )
           }
 
-          if (
-            noChoiceAttributes.includes(attributeName) ||
-            attributeName.includes('xmlns:')
-          ) {
+          if (noChoiceAttributes.includes(attributeName)) {
             return undefined
           }
 
