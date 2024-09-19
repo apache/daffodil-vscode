@@ -21,6 +21,7 @@ import {
   checkBraceOpen,
   getXsdNsPrefix,
   isInXPath,
+  isTagEndTrigger,
   nearestOpen,
   createCompletionItem,
   getCommonItems,
@@ -33,68 +34,74 @@ import {
 import { elementCompletion } from './intellisense/elementItems'
 
 export function getElementCompletionProvider(dfdlFormatString: string) {
-  return vscode.languages.registerCompletionItemProvider('dfdl', {
-    provideCompletionItems(
-      document: vscode.TextDocument,
-      position: vscode.Position,
-      token: vscode.CancellationToken,
-      context: vscode.CompletionContext
-    ) {
-      if (
-        checkBraceOpen(document, position) ||
-        cursorWithinBraces(document, position) ||
-        cursorWithinQuotes(document, position) ||
-        cursorAfterEquals(document, position) ||
-        isInXPath(document, position)
+  return vscode.languages.registerCompletionItemProvider(
+    'dfdl',
+    {
+      provideCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        token: vscode.CancellationToken,
+        context: vscode.CompletionContext
       ) {
-        return undefined
-      }
-
-      let nsPrefix = getXsdNsPrefix(document, position)
-      let [triggerLine, triggerPos] = [position.line, position.character]
-      let triggerText = document.lineAt(triggerLine).text
-      let itemsOnLine = getItemsOnLineCount(triggerText)
-      let nearestOpenItem = nearestOpen(document, position)
-      let lastCloseSymbol = triggerText.lastIndexOf('>')
-      let firstOpenSymbol = triggerText.indexOf('<')
-
-      let missingCloseTag = checkMissingCloseTag(document, position, nsPrefix)
-
-      if (nearestOpenItem.includes('none')) {
-        if (missingCloseTag !== 'none') {
-          return undefined
-        }
         if (
-          missingCloseTag === 'none' &&
-          itemsOnLine > 1 &&
-          (triggerPos === lastCloseSymbol + 1 || triggerPos === firstOpenSymbol)
+          !checkBraceOpen(document, position) &&
+          !cursorWithinBraces(document, position) &&
+          !cursorWithinQuotes(document, position) &&
+          !cursorAfterEquals(document, position) &&
+          !isInXPath(document, position) &&
+          !isTagEndTrigger(document, position)
         ) {
-          return undefined
+          let nsPrefix = getXsdNsPrefix(document, position)
+          let [triggerLine, triggerPos] = [position.line, position.character]
+          let triggerText = document.lineAt(triggerLine).text
+          let itemsOnLine = getItemsOnLineCount(triggerText)
+          let nearestOpenItem = nearestOpen(document, position)
+          let lastCloseSymbol = triggerText.lastIndexOf('>')
+          let firstOpenSymbol = triggerText.indexOf('<')
+
+          let missingCloseTag = checkMissingCloseTag(
+            document,
+            position,
+            nsPrefix
+          )
+
+          if (!nearestOpenItem.includes('none') && missingCloseTag == 'none') {
+            return undefined
+          }
+          if (
+            missingCloseTag === 'none' &&
+            itemsOnLine > 1 &&
+            (triggerPos === lastCloseSymbol + 1 ||
+              triggerPos === firstOpenSymbol)
+          ) {
+            return undefined
+          }
+
+          let definedVariables = getDefinedVariables(document)
+
+          let [tagNearestTrigger, tagPosition] = getTagNearestTrigger(
+            document,
+            position,
+            triggerText,
+            triggerLine,
+            triggerPos,
+            itemsOnLine,
+            nsPrefix
+          )
+
+          return nearestOpenTagChildElements(
+            document,
+            position,
+            tagNearestTrigger,
+            tagPosition,
+            definedVariables,
+            nsPrefix
+          )
         }
-
-        let definedVariables = getDefinedVariables(document)
-
-        let [tagNearestTrigger, tagPosition] = getTagNearestTrigger(
-          document,
-          position,
-          triggerText,
-          triggerLine,
-          triggerPos,
-          itemsOnLine,
-          nsPrefix
-        )
-
-        return nearestOpenTagChildElements(
-          document,
-          position,
-          tagNearestTrigger,
-          tagPosition,
-          definedVariables,
-          nsPrefix
-        )
-      }
+      },
     },
-  })
+    '\n'
+  )
 }
 
 export function getTDMLElementCompletionProvider(tdmlFormatString: string) {
@@ -386,6 +393,10 @@ function nearestOpenTagChildElements(
       return getElementCompletionItems(['dfdl:escapeScheme'], '', '', nsPrefix)
     case 'format':
       return getElementCompletionItems(['dfdl:property'], '', '', nsPrefix)
+    case 'include':
+      return getElementCompletionItems([''], '', '', nsPrefix)
+    case 'import':
+      return getElementCompletionItems([''], '', '', nsPrefix)
     case 'schema':
       return getElementCompletionItems(
         [
@@ -396,6 +407,8 @@ function nearestOpenTagChildElements(
           'complexType',
           'simpleType',
           'annotation',
+          'include',
+          'import',
         ],
         '',
         '',

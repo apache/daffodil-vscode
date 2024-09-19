@@ -27,6 +27,7 @@ import {
   getXsdNsPrefix,
   insertSnippet,
   isInXPath,
+  isNotTriggerChar,
   getItemsOnLineCount,
   getItemPrefix,
 } from './utils'
@@ -39,12 +40,14 @@ export function getCloseElementProvider() {
         document: vscode.TextDocument,
         position: vscode.Position
       ) {
+        let triggerChar = '>'
         if (
           checkBraceOpen(document, position) ||
           cursorWithinBraces(document, position) ||
           cursorWithinQuotes(document, position) ||
           cursorAfterEquals(document, position) ||
-          isInXPath(document, position)
+          isInXPath(document, position) ||
+          isNotTriggerChar(document, position, triggerChar)
         ) {
           return undefined
         }
@@ -184,7 +187,7 @@ export function getTDMLCloseElementProvider() {
             backpos3
           )
         }
-        return undefined
+        //return undefined
       },
     },
     '>' // triggered whenever a '>' is typed
@@ -202,7 +205,11 @@ function checkItemsOnLine(
   backpos: vscode.Position,
   backpos3: vscode.Position
 ) {
-  if (itemsOnLine == 0 && !triggerText.includes('</')) {
+  if (
+    itemsOnLine == 0 &&
+    !triggerText.includes('</') &&
+    !triggerText.includes('/>')
+  ) {
     if (triggerText.trim() === '>') {
       insertSnippet('</' + nsPrefix + nearestTagNotClosed + '>', backpos)
     } else {
@@ -237,7 +244,11 @@ function checkItemsOnLine(
     }
   }
 
-  if (itemsOnLine === 1 && !triggerText.includes('</')) {
+  if (
+    itemsOnLine === 1 &&
+    !triggerText.includes('</') &&
+    !triggerText.includes('/>')
+  ) {
     checkNearestTagNotClosed(
       document,
       position,

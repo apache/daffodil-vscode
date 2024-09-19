@@ -21,6 +21,7 @@ import {
   insertSnippet,
   checkBraceOpen,
   isInXPath,
+  isNotTriggerChar,
   getXsdNsPrefix,
   getItemPrefix,
   getItemsOnLineCount,
@@ -47,28 +48,28 @@ export function getCloseElementSlashProvider() {
           position,
           nsPrefix
         )
-        if (nearestTagNotClosed === 'none') {
-          return undefined
-        }
         const itemsOnLine = getItemsOnLineCount(triggerText)
-
+        const triggerChar = '/'
         if (
           checkBraceOpen(document, position) ||
           cursorWithinBraces(document, position) ||
           cursorWithinQuotes(document, position) ||
           cursorAfterEquals(document, position) ||
-          isInXPath(document, position)
+          isInXPath(document, position) ||
+          isNotTriggerChar(document, position, triggerChar)
         ) {
           return undefined
         }
 
-        if (triggerText.endsWith('/')) {
+        if (!(nearestTagNotClosed == 'none')) {
           let range = new vscode.Range(backpos, position)
 
           await vscode.window.activeTextEditor?.edit((editBuilder) => {
             editBuilder.replace(range, '')
           })
+        }
 
+        if (triggerText.endsWith('/')) {
           checkItemsOnLine(
             document,
             position,
@@ -80,7 +81,7 @@ export function getCloseElementSlashProvider() {
           )
         }
 
-        return undefined
+        //return undefined
       },
     },
     '/'
@@ -119,12 +120,6 @@ export function getTDMLCloseElementSlashProvider() {
         }
 
         if (triggerText.endsWith('/')) {
-          let range = new vscode.Range(backpos, position)
-
-          await vscode.window.activeTextEditor?.edit((editBuilder) => {
-            editBuilder.replace(range, '')
-          })
-
           checkItemsOnLine(
             document,
             position,
@@ -155,19 +150,22 @@ function checkItemsOnLine(
 ) {
   nsPrefix = getItemPrefix(nearestTagNotClosed, nsPrefix)
 
-  if (itemsOnLine == 1 || itemsOnLine == 0) {
-    insertSnippet('/>$0', backpos)
+  if (
+    !(nearestTagNotClosed == 'none') &&
+    (itemsOnLine == 1 || itemsOnLine == 0)
+  ) {
+    // let range = new vscode.Range(backpos, position)
 
+    // await vscode.window.activeTextEditor?.edit((editBuilder) => {
+    //   editBuilder.replace(range, '')
+    // })
     if (
       nearestTagNotClosed.includes('defineVariable') ||
       nearestTagNotClosed.includes('setVariable')
     ) {
-      let range = new vscode.Range(backpos, position)
-      vscode.window.activeTextEditor?.edit((editBuilder) => {
-        editBuilder.replace(range, '')
-      })
-
       insertSnippet('/>\n', backpos)
+    } else {
+      insertSnippet('/>$0', backpos)
     }
   }
 
@@ -178,6 +176,10 @@ function checkItemsOnLine(
     ) {
       let tagPos = triggerText.lastIndexOf('<' + nsPrefix + nearestTagNotClosed)
       let tagEndPos = triggerText.indexOf('>', tagPos)
+      // let range = new vscode.Range(backpos, position)
+      // await vscode.window.activeTextEditor?.edit((editBuilder) => {
+      //   editBuilder.replace(range, '')
+      // })
 
       if (
         tagPos != -1 &&
