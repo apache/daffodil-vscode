@@ -62,7 +62,7 @@ export function getCloseElementSlashProvider() {
           return undefined
         }
 
-        if (triggerText.endsWith('/')) {
+        if (triggerText.endsWith(' ')) {
           let range = new vscode.Range(backpos, position)
 
           await vscode.window.activeTextEditor?.edit((editBuilder) => {
@@ -84,7 +84,7 @@ export function getCloseElementSlashProvider() {
       },
     },
     '/'
-    // triggered whenever a '/' is typed
+    // triggered whenever a ' ' is typed
   )
 }
 
@@ -118,7 +118,7 @@ export function getTDMLCloseElementSlashProvider() {
           return undefined
         }
 
-        if (triggerText.endsWith('/')) {
+        if (triggerText.endsWith(' ')) {
           let range = new vscode.Range(backpos, position)
 
           await vscode.window.activeTextEditor?.edit((editBuilder) => {
@@ -140,7 +140,7 @@ export function getTDMLCloseElementSlashProvider() {
       },
     },
     '/'
-    // triggered whenever a '/' is typed
+    // triggered whenever a ' ' is typed
   )
 }
 
@@ -173,7 +173,7 @@ function checkItemsOnLine(
 
   if (itemsOnLine > 1) {
     if (
-      triggerText.endsWith('/') &&
+      triggerText.endsWith(' ') &&
       triggerText.includes('<' + nsPrefix + nearestTagNotClosed)
     ) {
       let tagPos = triggerText.lastIndexOf('<' + nsPrefix + nearestTagNotClosed)
