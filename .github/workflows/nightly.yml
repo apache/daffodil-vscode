@@ -48,7 +48,7 @@ jobs:
       ############################################################
 
       - name: Check out Repository
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.0
 
       - name: Setup Java
         uses: actions/setup-java@v4.2.1
