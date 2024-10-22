@@ -19,7 +19,7 @@ on:
   push:
     branches-ignore: [ 'dependabot/**' ]
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
 
 jobs:
   single-commit:
@@ -47,7 +47,7 @@ jobs:
         java_distribution: [ temurin ]
         java_version: [ 8 ]
         os: [ ubuntu-20.04 ]
-        node: [ '16' ]
+        node: [ '18' ]
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -126,14 +126,14 @@ jobs:
         run: $SBT ratCheck || (cat target/rat.txt; exit 1)
 
   build-test-package:
-    name: 'Build, Test, and Package (OS: ${{ matrix.os }}, Node: ${{ matrix.node }}, Java: ${{ matrix.java_version }})'
+    name: 'Build, Test, and Package (OS: ${{ matrix.os }}, Node: ${{ matrix.node }}, Java: ${{ matrix.java_version }}, VS Code: ${{ matrix.vscode }})'
     strategy:
       matrix:
         java_distribution: [ temurin ]
         java_version: [ 8, 11, 17 ]
         os: [ macos-12, ubuntu-20.04, windows-2019 ]
-        node: [ '16', '18.20.1' ] # version 18.20.2 (current latest of 18) is broken on windows
-        vscode: [ '1.91.1' ]
+        node: [ '18.20.1' ]
+        vscode: [ '1.82.0', 'stable' ] # v1.82.0 is the first version of VSCode to use Node 18
       fail-fast: false  # don't immediately fail all other jobs if a single job fails
     runs-on: ${{ matrix.os }}
     defaults:
