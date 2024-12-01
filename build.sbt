@@ -45,7 +45,7 @@ lazy val commonSettings =
       "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVer
     ),
     dependencyOverrides ++= Seq(
-      "org.apache.commons" % "commons-lang3" % "3.12.0"
+      "org.apache.commons" % "commons-lang3" % "3.17.0"
     ),
     fork := true, // needed to pass javaOptions to tests, for example
     licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
