@@ -32,6 +32,7 @@ import {
   copyTestCase,
 } from 'tdmlEditor/utilities/tdmlXmlUtils'
 import xmlFormat from 'xml-formatter'
+import { CommandsProvider } from '../views/commands'
 
 export const outputChannel: vscode.OutputChannel =
   vscode.window.createOutputChannel('Daffodil')
@@ -204,10 +205,15 @@ function createDebugRunFileConfigs(
   }
 }
 
+function setupViews(context: vscode.ExtensionContext) {
+  new CommandsProvider().register(context)
+}
 export function activateDaffodilDebug(
   context: vscode.ExtensionContext,
   factory?: vscode.DebugAdapterDescriptorFactory
 ) {
+  setupViews(context)
+
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'extension.dfdl-debug.runEditorContents',

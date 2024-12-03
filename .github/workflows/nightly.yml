@@ -26,7 +26,7 @@ jobs:
     name: 'Build, Test, and Package (OS: ${{ matrix.os }}, Node: ${{ matrix.node }}, Java: ${{ matrix.java_version }}, VS Code: ${{ matrix.vscode }})'
     strategy:
       matrix:
-        os: [ macos-12, ubuntu-20.04, windows-2019, macos-latest, ubuntu-latest, windows-latest ]
+        os: [ macos-13, ubuntu-20.04, windows-2019, macos-latest, ubuntu-latest, windows-latest ]
         node: [ '18.20.1' ]
         vscode: [ '1.82.0', 'stable', 'insiders' ] # v1.82.0 is the first version of VSCode to use Node 18
         java_distribution: [ temurin ]
@@ -71,10 +71,10 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      # macos-latest doesn't seem to have sbt installed by default
+      # macos-13 & macos-latest doesn't seem to have sbt installed by default
       - name: Install sbt - macos-latest
         run: brew install sbt
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-13' || matrix.os == 'macos-latest'
 
       ############################################################
       # Build & Package

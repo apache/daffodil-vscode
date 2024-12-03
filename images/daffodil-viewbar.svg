@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<svg
+   width="1.9299999in"
+   height="1.9299999in"
+   viewBox="0 0 185.28 185.27999"
+   version="1.1"
+   id="SVGRoot"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs170" />
+  <metadata
+     id="metadata173">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="Apache License, Version 2.0" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     transform="translate(5.8571782,-5.1700184)">
+    <g
+       id="g838"
+       transform="translate(-1.7003126,20.432573)">
+      <path
+         d="M 88.483131,77.377436 39.624957,49.169156 C 28.960703,43.012146 38.629184,10.986286 45.548355,3.0122264 56.779591,0.34381645 88.483141,8.6468464 88.483141,20.960856 l -1e-5,56.41658 m 0,0 -48.858177,28.208284 C 28.960711,111.74274 6.0597349,87.356646 2.6135729,77.377436 5.9182899,66.316696 28.960703,43.012146 39.624957,49.169156 l 48.858174,28.20828 m 0,0 V 133.794 c 0,12.31402 -32.56945,19.9538 -42.93478,17.94866 -7.926535,-8.39234 -16.587658,-39.99993 -5.923411,-46.15693 L 88.483131,77.377436 m 0,0 48.858169,28.208284 c 10.66426,6.15701 0.99578,38.18287 -5.9234,46.15693 -11.23123,2.66842 -42.934769,-5.63463 -42.934769,-17.94865 V 77.377436 m 0,0 48.858179,-28.20828 c 10.66425,-6.15701 33.56522,18.22906 37.01138,28.20828 -3.30471,11.06074 -26.34714,34.365304 -37.01138,28.208284 L 88.483131,77.377436 m 0,0 v -56.41657 c 0,-12.3140196 32.569449,-19.9537996 42.934779,-17.9486496 7.92653,8.3923296 16.58765,39.9999296 5.9234,46.1569296 l -48.858179,28.20829"
+         style="display:inline;fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="path4269-9-0" />
+      <path
+         d="m 88.483131,77.377436 -51.177177,-1e-5 m 51.177177,1e-5 -25.58859,44.320744 M 88.483131,77.377436 114.0717,121.69818 M 88.483131,77.377436 H 139.6603 m -51.177169,0 25.588599,-44.32073 m -25.588599,44.32073 -25.58859,-44.32074"
+         style="display:inline;opacity:0.25;fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:5;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="path4319-6-61" />
+      <path
+         transform="matrix(0.91529468,0.91380226,-0.91380226,0.91529468,102.21848,-169.68131)"
+         d="m 145.96653,161.20567 c -0.37313,0.37313 -1.75885,4.49778 -2.19111,4.80045 -0.43225,0.30267 -4.7821,0.19411 -5.26035,0.41712 -0.47825,0.22301 -3.19111,3.62497 -3.70082,3.76154 -0.50971,0.13658 -4.5601,-1.45317 -5.08578,-1.40718 -0.52567,0.046 -4.23848,2.31493 -4.76415,2.26894 -0.52568,-0.046 -3.78808,-2.92518 -4.29779,-3.06176 -0.5097,-0.13657 -4.77462,0.72568 -5.25286,0.50267 -0.47825,-0.22301 -2.55916,-4.04437 -2.99141,-4.34704 -0.43226,-0.30267 -4.73488,-0.9511 -5.10801,-1.32423 -0.37313,-0.37313 -1.02156,-4.67575 -1.32423,-5.108 -0.30267,-0.43226 -4.12403,-2.51317 -4.34704,-2.99141 -0.22301,-0.47825 0.63924,-4.74317 0.50267,-5.25287 -0.13658,-0.50971 -3.015766,-3.77211 -3.061757,-4.29778 -0.04599,-0.52568 2.222947,-4.23848 2.268937,-4.76416 0.046,-0.52568 -1.543755,-4.57607 -1.40718,-5.08578 0.13658,-0.5097 3.53853,-3.22257 3.76154,-3.70082 0.22301,-0.47825 0.11446,-4.8281 0.41712,-5.26035 0.30267,-0.43226 4.42732,-1.81798 4.80045,-2.19111 0.37313,-0.37313 1.75886,-4.49778 2.19111,-4.80045 0.43226,-0.30267 4.78211,-0.19411 5.26036,-0.41712 0.47824,-0.22301 3.19111,-3.62497 3.70082,-3.76154 0.5097,-0.13658 4.56009,1.45317 5.08577,1.40718 0.52568,-0.046 4.23848,-2.31493 4.76416,-2.26894 0.52568,0.046 3.78808,2.92518 4.29778,3.06176 0.50971,0.13657 4.77462,-0.72568 5.25287,-0.50267 0.47825,0.22301 2.55916,4.04437 2.99141,4.34704 0.43226,0.30266 4.73487,0.9511 5.108,1.32423 0.37313,0.37313 1.02157,4.67575 1.32424,5.108 0.30266,0.43226 4.12403,2.51317 4.34703,2.99141 0.22301,0.47825 -0.63924,4.74316 -0.50266,5.25287 0.13657,0.50971 3.01576,3.7721 3.06175,4.29778 0.046,0.52568 -2.22295,4.23848 -2.26894,4.76416 -0.046,0.52568 1.54376,4.57607 1.40719,5.08578 -0.13658,0.5097 -3.53854,3.22257 -3.76155,3.70082 -0.22301,0.47824 -0.11445,4.82809 -0.41712,5.26035 -0.30267,0.43225 -4.42732,1.81798 -4.80045,2.19111 z"
+         id="path5216"
+         style="display:inline;fill:none;stroke:#000000;stroke-width:3.0927;stroke-miterlimit:4;stroke-dasharray:none" />
+      <circle
+         transform="rotate(42.709842)"
+         r="21.418236"
+         cy="-3.1600645"
+         cx="117.50127"
+         id="path5220"
+         style="display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:4;stroke-miterlimit:4;stroke-dasharray:none" />
+    </g>
+  </g>
+</svg>

@@ -2,7 +2,7 @@
   "name": "apache-daffodil-vscode",
   "displayName": "Apache Daffodil™ Extension for Visual Studio Code",
   "description": "Apache Daffodil™ Extension for Visual Studio Code providing DFDL syntax highlighting, DFDL code completion, DFDL schema debugging, and data editor",
-  "version": "1.4.0",
+  "version": "1.4.1-SNAPSHOT",
   "daffodilVersion": "3.8.0",
   "publisher": "asf",
   "author": "Apache Daffodil",
@@ -122,12 +122,30 @@
     "onCommand:extension.dfdl-debug.getValidatedTDMLCopyPath",
     "onCommand:launch.config",
     "onCommand:extension.data.edit",
-    "onCommand:extension.dfdl-debug.debugLastEditorContents"
+    "onCommand:extension.dfdl-debug.debugLastEditorContents",
+    "onView:commandsView"
   ],
   "workspaceTrust": {
     "request": "never"
   },
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "daffodil-explorer",
+          "title": "Daffodil Explorer",
+          "icon": "images/daffodil-viewbar.svg"
+        }
+      ]
+    },
+    "views": {
+      "daffodil-explorer": [
+        {
+          "id": "commandsView",
+          "name": "Commands View"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "dfdl",
@@ -178,6 +196,20 @@
       }
     ],
     "menus": {
+      "view/title": [
+        {
+          "command": "commandsView.refresh",
+          "when": "view == commandsView",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "commandsView.runCommand",
+          "when": "view == commandsView",
+          "group": "inline"
+        }
+      ],
       "editor/title": [
         {
           "command": "launch.config",
@@ -298,6 +330,16 @@
       ]
     },
     "commands": [
+      {
+        "command": "commandsView.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "commandsView.runCommand",
+        "title": "Run",
+        "icon": "$(play)"
+      },
       {
         "command": "extension.dfdl-debug.debugEditorContents",
         "title": "Debug File",
