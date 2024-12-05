@@ -101,7 +101,7 @@ module.exports = /** @type WebpackConfig */ {
   plugins: [
     new CopyPlugin({
       patterns: [
-        // { from: 'build/package/.vscodeignore', to: pkg_dir },
+        { from: 'README.md', to: `${pkg_dir}` },
         { from: 'build/package/LICENSE', to: `${pkg_dir}` },
         { from: 'build/package/NOTICE', to: `${pkg_dir}` },
         { from: 'dist/styles.css', to: `${pkg_dir}/dist/styles.css` },
