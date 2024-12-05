@@ -69,7 +69,7 @@ jobs:
           java-version: ${{ matrix.java_version }}
 
       - name: Install Node.js
-        uses: actions/setup-node@v4.0.4
+        uses: actions/setup-node@v4.1.0
         with:
           node-version: ${{ matrix.node }}
 
@@ -160,7 +160,7 @@ jobs:
         if: matrix.os == 'macos-13'
 
       - name: Install Node.js
-        uses: actions/setup-node@v4.0.4
+        uses: actions/setup-node@v4.1.0
         with:
           node-version: ${{ matrix.node }}
 
