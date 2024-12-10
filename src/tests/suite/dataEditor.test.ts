@@ -147,6 +147,18 @@ suite('Data Editor Test Suite', () => {
       assert.ok(dataEditWebView)
       assert.strictEqual(dataEditWebView.panel.active, true)
       assert.strictEqual(dataEditWebView.panel.title, 'Data Editor')
+
+      // Listen for the dispose event
+      let isDisposed = false
+      dataEditWebView.panel.onDidDispose(() => {
+        isDisposed = true
+      })
+
+      // Close the data editor panel
+      await dataEditWebView.panel.dispose()
+
+      // Verify that the panel has been disposed
+      assert.strictEqual(isDisposed, true)
     })
   })
 })
