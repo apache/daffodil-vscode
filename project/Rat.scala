@@ -56,7 +56,9 @@ object Rat {
     // svelte icons/fonts
     file("src/svelte/src/resources/icons/material-icons.woff2"),
     file("src/svelte/src/resources/fonts/SpaceGrotesk-Variable.woff2"),
-    file("src/svelte/src/resources/fonts/RedHatMono-Regular.woff2")
+    file("src/svelte/src/resources/fonts/RedHatMono-Regular.woff2"),
+    // scalafmt-core files
+    file(".git-blame-ignore-revs")
   )
 
   lazy val MIT_LICENSE_NAME = "MIT License"

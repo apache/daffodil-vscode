@@ -45,7 +45,7 @@ lazy val commonSettings =
       "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVer
     ),
     dependencyOverrides ++= Seq(
-      "org.apache.commons" % "commons-lang3" % "3.12.0"
+      "org.apache.commons" % "commons-lang3" % "3.17.0"
     ),
     fork := true, // needed to pass javaOptions to tests, for example
     licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
@@ -98,10 +98,10 @@ lazy val debugger = project
       "ch.qos.logback" % "logback-classic" % "1.2.11",
       "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.34.0",
       // scala-steward:on
-      "co.fs2" %% "fs2-io" % "3.9.3",
+      "co.fs2" %% "fs2-io" % "3.9.4",
       "com.monovore" %% "decline-effect" % "2.4.1",
       "org.typelevel" %% "log4cats-slf4j" % "2.6.0",
-      "org.scalameta" %% "munit" % "0.7.29" % Test
+      "org.scalameta" %% "munit" % "1.0.2" % Test
     ),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer),
     buildInfoPackage := "org.apache.daffodil.debugger.dap",

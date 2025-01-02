@@ -60,7 +60,7 @@ jobs:
       ############################################################
       
       - name: Check out Repository
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.2
 
       - name: Setup Java
         uses: actions/setup-java@v4.2.1
@@ -69,7 +69,7 @@ jobs:
           java-version: ${{ matrix.java_version }}
 
       - name: Install Node.js
-        uses: actions/setup-node@v4.0.4
+        uses: actions/setup-node@v4.1.0
         with:
           node-version: ${{ matrix.node }}
 
@@ -108,7 +108,7 @@ jobs:
       ############################################################
 
       - name: Check out Repository
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
 
@@ -147,7 +147,7 @@ jobs:
       ############################################################
 
       - name: Check out Repository
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.2
 
       - name: Setup Java
         uses: actions/setup-java@v4.2.1
@@ -160,7 +160,7 @@ jobs:
         if: matrix.os == 'macos-13'
 
       - name: Install Node.js
-        uses: actions/setup-node@v4.0.4
+        uses: actions/setup-node@v4.1.0
         with:
           node-version: ${{ matrix.node }}
 
