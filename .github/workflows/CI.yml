@@ -155,9 +155,9 @@ jobs:
           distribution: ${{ matrix.java_distribution }}
           java-version: ${{ matrix.java_version }}
       
-      - name: Install sbt - macos-13 only
-        run: brew install sbt
-        if: matrix.os == 'macos-13'
+      # some runner oses don't have sbt by default
+      - name: Setup sbt
+        uses: sbt/setup-sbt@v1
 
       - name: Install Node.js
         uses: actions/setup-node@v4.1.0

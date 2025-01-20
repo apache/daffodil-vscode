@@ -35,16 +35,6 @@ jobs:
           # java 8 not available on latest macos
           - os: macos-latest
             java_version: 8
-          # Currently newer versions of VSCode don't work the same on Windows, this will need looked into.
-          # TODO: Remove the below windows excludes once the extension tests are working with newer versions of VSCode
-          - os: windows-2019
-            vscode: 'stable'
-          - os: windows-2019
-            vscode: 'insiders'
-          - os: windows-latest
-            vscode: 'stable'
-          - os: windows-latest
-            vscode: 'insiders'
       fail-fast: false  # don't immediately fail all other jobs if a single job fails
     runs-on: ${{ matrix.os }}
     defaults:
@@ -71,10 +61,9 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      # macos-13 & macos-latest doesn't seem to have sbt installed by default
-      - name: Install sbt - macos-latest
-        run: brew install sbt
-        if: matrix.os == 'macos-13' || matrix.os == 'macos-latest'
+      # some runner oses don't have sbt by default
+      - name: Setup sbt
+        uses: sbt/setup-sbt@v1
 
       ############################################################
       # Build & Package
