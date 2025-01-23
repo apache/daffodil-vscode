@@ -40,6 +40,14 @@ export async function activate(ctx: vscode.ExtensionContext) {
   )
 }
 
+function getAllowedLogLevels(toLower: boolean = false): string[] {
+  let logLevels: string[] = []
+  ;['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'].forEach((logLevel) => {
+    logLevels.push(toLower ? logLevel.toLowerCase() : logLevel)
+  })
+  return logLevels
+}
+
 // Function to get config values
 function getConfigValues(data, configIndex) {
   if (data && configIndex !== -1) {
@@ -508,7 +516,30 @@ class LaunchWizard {
     })
 
     let dfdlDebugger: DFDLDebugger = defaultValues.dfdlDebugger
+    let debuggerLogLevelSelect = ''
+    let debuggerLogLevelTypes = getAllowedLogLevels()
+    let debuggerLogLevel = dfdlDebugger.logging.level
+
+    debuggerLogLevelTypes.forEach((type) => {
+      if (type === debuggerLogLevel) {
+        debuggerLogLevelSelect += `<option selected value="${type}">${type}</option>`
+      } else {
+        debuggerLogLevelSelect += `<option value="${type}">${type}</option>`
+      }
+    })
+
     let dataEditor: DataEditorConfig = defaultValues.dataEditor
+    let dataEditorLogLevelSelect = ''
+    let dataEditorLogLevelTypes = getAllowedLogLevels(true)
+    let dataEditorLogLevel = dataEditor.logging.level
+
+    dataEditorLogLevelTypes.forEach((type) => {
+      if (type === dataEditorLogLevel) {
+        dataEditorLogLevelSelect += `<option selected value="${type}">${type}</option>`
+      } else {
+        dataEditorLogLevelSelect += `<option value="${type}">${type}</option>`
+      }
+    })
 
     return `
   <!DOCTYPE html>
@@ -600,7 +631,9 @@ class LaunchWizard {
         <input class="file-input" value="${dfdlDebugger.logging.file}" id="dfdlDebuggerLogFile">
         
         <p id="dfdlDebuggerLogLevelLabel" style="margin-top: 10px;" class="setting-description">Log Level:</p>
-        <input class="file-input" value="${dfdlDebugger.logging.level}" id="dfdlDebuggerLogLevel">
+        <select class="file-input" style="width: 200px;" id="dfdlDebuggerLogLevel">
+          ${debuggerLogLevelSelect}
+        </select>
       </div>
 
       <div id="useExistingServerDiv" class="setting-div" onclick="check('useExistingServer')">
@@ -710,7 +743,9 @@ class LaunchWizard {
         <input class="file-input" value="${dataEditor.logging.file}" id="dataEditorLogFile">
         
         <p id="dataEditorLogLevelLabel" style="margin-top: 10px;" class="setting-description">Log Level:</p>
-        <input class="file-input" value="${dataEditor.logging.level}" id="dataEditorLogLevel">
+        <select class="file-input" style="width: 200px;" id="dataEditorLogLevel">
+          ${dataEditorLogLevelSelect}
+        </select>
       </div>
 
       <br/>
