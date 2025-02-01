@@ -17,9 +17,9 @@
 name: CI
 on:
   push:
-    branches-ignore: [ 'dependabot/**' ]
+    branches-ignore: ["dependabot/**"]
   pull_request:
-    types: [ opened, synchronize, reopened ]
+    types: [opened, synchronize, reopened]
 
 jobs:
   single-commit:
@@ -44,10 +44,10 @@ jobs:
     name: TypeScript/Scala/Svelte Formatting
     strategy:
       matrix:
-        java_distribution: [ temurin ]
-        java_version: [ 8 ]
-        os: [ ubuntu-20.04 ]
-        node: [ '18' ]
+        java_distribution: [temurin]
+        java_version: [8]
+        os: [ubuntu-20.04]
+        node: ["20"]
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -58,7 +58,7 @@ jobs:
       ############################################################
       # Setup
       ############################################################
-      
+
       - name: Check out Repository
         uses: actions/checkout@v4.2.2
 
@@ -85,7 +85,7 @@ jobs:
 
       - name: Install node dependencies
         run: yarn install
-      
+
       - name: TypeScript lint
         run: yarn lint
 
@@ -93,9 +93,9 @@ jobs:
     name: Rat Check
     strategy:
       matrix:
-        java_distribution: [ temurin ]
-        java_version: [ 8 ]
-        os: [ ubuntu-20.04 ]
+        java_distribution: [temurin]
+        java_version: [8]
+        os: [ubuntu-20.04]
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -126,15 +126,15 @@ jobs:
         run: $SBT ratCheck || (cat target/rat.txt; exit 1)
 
   build-test-package:
-    name: 'Build, Test, and Package (OS: ${{ matrix.os }}, Node: ${{ matrix.node }}, Java: ${{ matrix.java_version }}, VS Code: ${{ matrix.vscode }})'
+    name: "Build, Test, and Package (OS: ${{ matrix.os }}, Node: ${{ matrix.node }}, Java: ${{ matrix.java_version }}, VS Code: ${{ matrix.vscode }})"
     strategy:
       matrix:
-        java_distribution: [ temurin ]
-        java_version: [ 8, 11, 17 ]
-        os: [ macos-13, ubuntu-20.04, windows-2019 ]
-        node: [ '18.20.1' ]
-        vscode: [ '1.82.0', 'stable' ] # v1.82.0 is the first version of VSCode to use Node 18
-      fail-fast: false  # don't immediately fail all other jobs if a single job fails
+        java_distribution: [temurin]
+        java_version: [8, 11, 17]
+        os: [macos-13, ubuntu-20.04, windows-2019]
+        node: ["20.18.3", "22.14.0"]
+        vscode: ["1.90.0", "stable"] # v1.90.0 is the first version of VSCode to use Node 20
+      fail-fast: false # don't immediately fail all other jobs if a single job fails
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -154,7 +154,7 @@ jobs:
         with:
           distribution: ${{ matrix.java_distribution }}
           java-version: ${{ matrix.java_version }}
-      
+
       # some runner oses don't have sbt by default
       - name: Setup sbt
         uses: sbt/setup-sbt@v1

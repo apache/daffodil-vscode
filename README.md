@@ -33,7 +33,7 @@ This is an extension for Visual Studio Code (VS Code) which enables the interact
 
 - Java Development Kit (JDK) 8 or higher
 - SBT 0.13.8 or higher
-- Node 16 or higher
+- Node 20 or higher
 - Yarn (https://yarnpkg.com/getting-started/install)
 
 ## Download

@@ -8,7 +8,7 @@
   "author": "Apache Daffodil",
   "license": "Apache-2.0",
   "engines": {
-    "vscode": "^1.67.2"
+    "vscode": "^1.90.0"
   },
   "icon": "images/daffodil.ico",
   "categories": [
@@ -69,11 +69,11 @@
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.3",
     "@types/node": "^20.11.30",
-    "@types/vscode": "^1.67.2",
+    "@types/vscode": "^1.90.0",
     "@types/vscode-webview": "^1.57.3",
     "@vscode/debugadapter-testsupport": "1.65.0",
     "@vscode/test-electron": "2.3.8",
-    "@vscode/vsce": "2.22.0",
+    "@vscode/vsce": "3.2.2",
     "chai": "^4.3.10",
     "concurrently": "^8.2.2",
     "copy-webpack-plugin": "^12.0.2",
