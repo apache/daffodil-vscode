@@ -372,7 +372,8 @@ class DAPodil(
               session.sendResponse(
                 request.respondFailure(
                   Some(
-                    s"couldn't find scopes for frame ${args.frameId}: ${data.stack.frames.map(f => f.id -> f.stackFrame.name)}; this is likely due to the front end advancing via 'continue' or 'next' before this request was eventually made"
+                    s"couldn't find scopes for frame ${args.frameId}: ${data.stack.frames
+                        .map(f => f.id -> f.stackFrame.name)}; this is likely due to the front end advancing via 'continue' or 'next' before this request was eventually made"
                   )
                 )
               )
