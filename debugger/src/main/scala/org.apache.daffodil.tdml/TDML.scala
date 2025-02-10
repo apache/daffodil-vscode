@@ -23,8 +23,8 @@ import javax.xml.bind.JAXBContext
 import javax.xml.bind.JAXBElement
 import javax.xml.bind.Marshaller
 import javax.xml.namespace.QName
-import javax.xml.bind.annotation.XmlType
 import scala.collection.JavaConverters._
+import org.apache.daffodil.lib.xml.XMLUtils
 
 object TDML {
   // Create a ParserTestCaseType object that can be put into a TestSuite
@@ -71,12 +71,8 @@ object TDML {
     // These lines are necessary because there is no @XmlRootElement annotation on the DocumentPartType class in JAXB
     // Ideally, we would want to have JAXB add the annotation - probably with the bindings.xjb file. The only way I found
     //   that did that required an external plugin just to add the annotation (https://github.com/highsource/jaxb2-annotate-plugin).
-    // We are getting the namespace from the JAXB class so that we don't have to hard-code it here
-    // Unfortunately, it seems like hard-coding the class name isn't an easy thing to avoid. There is a name in the XmlType
-    //   annotation, but it is documentPartType instead of documentPart. We would need to remove the Type from this anyway.
-    val tdmlNamespacePrefix = classOf[DocumentPartType].getAnnotation(classOf[XmlType]).namespace()
     val docPartElement = new JAXBElement[DocumentPartType](
-      new QName(tdmlNamespacePrefix, "documentPart"),
+      new QName(XMLUtils.TDML_NAMESPACE.toString, "documentPart"),
       classOf[DocumentPartType],
       docPart
     )

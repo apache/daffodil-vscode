@@ -37,15 +37,10 @@ class TDMLSuite extends munit.FunSuite {
   val tdmlDescription = "Test TDML Description"
   val tdmlPath = Paths.get("./testTDML.tdml").toAbsolutePath()
   val expectedNSHashSet = HashSet[String](
-    "http://www.ibm.com/xmlns/dfdl/testData",
-    "urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext",
-    "http://www.ogf.org/dfdl/dfdl-1.0/",
-    "http://www.ogf.org/dfdl/dfdl-1.0/extensions",
-    "http://www.w3.org/2001/XMLSchema",
-    "urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:int"
+    "http://www.ibm.com/xmlns/dfdl/testData"
   )
   val tdmlSingleTestCase = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns1:testSuite xmlns:ns1="http://www.ibm.com/xmlns/dfdl/testData" xmlns:ns2="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext" xmlns:ns3="http://www.ogf.org/dfdl/dfdl-1.0/" xmlns:ns4="http://www.ogf.org/dfdl/dfdl-1.0/extensions" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ns6="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:int" suiteName="TestTDMLName" defaultRoundTrip="onePass">
+<ns1:testSuite xmlns:ns1="http://www.ibm.com/xmlns/dfdl/testData" suiteName="TestTDMLName" defaultRoundTrip="onePass">
     <ns1:parserTestCase name="TestTDMLName" root="file" model="debugger/src/test/data/emptySchema.xml" roundTrip="onePass" description="Test TDML Description">
         <ns1:document>
             <ns1:documentPart type="file">debugger/src/test/data/emptyData.xml</ns1:documentPart>
@@ -56,7 +51,7 @@ class TDMLSuite extends munit.FunSuite {
     </ns1:parserTestCase>
 </ns1:testSuite>"""
   val tdmlDoubleTestCase = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns1:testSuite xmlns:ns1="http://www.ibm.com/xmlns/dfdl/testData" xmlns:ns2="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext" xmlns:ns3="http://www.ogf.org/dfdl/dfdl-1.0/" xmlns:ns4="http://www.ogf.org/dfdl/dfdl-1.0/extensions" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ns6="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:int" suiteName="TestTDMLName" defaultRoundTrip="onePass">
+<ns1:testSuite xmlns:ns1="http://www.ibm.com/xmlns/dfdl/testData" suiteName="TestTDMLName" defaultRoundTrip="onePass">
     <ns1:parserTestCase name="TestTDMLName" root="file" model="debugger/src/test/data/emptySchema.xml" roundTrip="onePass" description="Test TDML Description">
         <ns1:document>
             <ns1:documentPart type="file">debugger/src/test/data/emptyData.xml</ns1:documentPart>

@@ -18,6 +18,12 @@
 import com.github.retronym.sbtxjc.SbtXjcPlugin
 import Classpaths.managedJars
 
+import java.io.ByteArrayOutputStream
+import java.io.ByteArrayInputStream
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.stream.StreamResult
+import javax.xml.transform.stream.StreamSource
+
 //Fixes build issues on java11+
 run / fork := true
 Global / lintUnusedKeysOnLoad := false
@@ -136,48 +142,88 @@ lazy val xjcSettings =
     xjcCommandLine += "-p",
     xjcCommandLine += "org.apache.daffodil.tdml",
     xjcCommandLine += "-no-header",
-    xjcBindings += "debugger/src/main/resources/bindings.xjb",
     xjcJvmOpts ++= extraJvmOptions,
     xjcLibs := Seq(
       "com.sun.xml.bind" % "jaxb-impl" % "2.3.9",
       "org.glassfish.jaxb" % "jaxb-xjc" % "2.3.9",
       "javax.activation" % "activation" % "1.1.1"
     ),
-    Compile / xjc / sources := Seq(
-      file(
-        Seq(resourceManaged.value, "xsd")
-          .mkString(java.io.File.separator)
-      )
-    ),
     Compile / doc / sources := Seq(file("")),
-    Compile / resourceGenerators += Def.task {
-      // This is going to be the directory that contains the DFDL schema files. We extract the files from the jar to this directory,
-      //   but the directory structure is maintained. The directory structure will be flattened so that the DFDL schema files are
-      //   directly contained by this directory.
-      //
-      // Note that baseDirectory is ${workspaceDir}/server/sbtXjc/
-      lazy val xsdDir = Seq(resourceManaged.value, "xsd").mkString(java.io.File.separator)
+    Compile / xjc / sources := {
+      val stream = (Compile / xjc / streams).value
 
-      // Get the daffodil-lib jar from the dependencies.
-      val jarsToExtract: Seq[File] =
-        managedJars(Test, Set[String]("jar"), update.value) map { _.data } filter { _.getName.contains("daffodil-lib") }
+      // We are going to extract XSD files from Daffodil jars needed by xjc to generate JAXB
+      // classes
+      lazy val xjcSourceDir = crossTarget.value / "xjc"
 
-      // Extract the DFDL schema files from the daffodil-lib jar. We ignore the XMLSchema.xsd file because it contains a DTD, and
-      //   the JAXB process is not happy with DTDs without a particular setting being set. Consequently, this file is not strictly
-      //   necessary for the generation of Java classes.
-      jarsToExtract foreach { jar =>
+      // Get the daffodil-lib jar from the dependencies, this is the only jar we need to extract
+      // files from
+      val daffodilLibJar = managedJars(Test, Set[String]("jar"), update.value)
+        .map(_.data)
+        .find(_.getName.contains("daffodil-lib"))
+        .get
+
+      // cache the results of jar extraction so we don't keep extracting files (which would
+      // trigger xjc again) everytime we compile.
+      val cachedFun = FileFunction.cached(stream.cacheDirectory / "xjcSources") { _ =>
+        // Extract the DFDL TDML schema file used for JAXB generation.
         IO.unzip(
-          jar,
-          new File(xsdDir),
-          NameFilter.fnToNameFilter(f =>
-            !f.endsWith("XMLSchema.xsd") && f.endsWith(".xsd") && f.startsWith(
-              Seq("org", "apache", "daffodil", "xsd").mkString("/")
-            )
-          )
+          daffodilLibJar,
+          xjcSourceDir,
+          NameFilter.fnToNameFilter(f => f == "org/apache/daffodil/xsd/tdml.xsd")
         )
+
+        // The TDML schema supports embedded DFDL schemas and configurations, and it references
+        // the schema for DFDL schema when doing so. This DFDL schema is pretty complex, which
+        // requires extra complexity like the need for an xjc bindings file and also hits edge
+        // cases where xjc generates non-deterministic java code, leading to non-reproducible
+        // builds.
+        //
+        // Fortunately, VS Code does not need embedded DFDL schemas or config converted to
+        // specific objects, so we use XSLT to replace those parts of the schema with <any>
+        // elements. This allows JAXB to read TDML files containing embedded DFDL schemas, but
+        // they are just converted to generic XML Objects and avoids those complex edge cases.
+        val tdmlFile = xjcSourceDir / "org" / "apache" / "daffodil" / "xsd" / "tdml.xsd"
+        val tdmlXslt = """
+          |<xsl:stylesheet
+          |  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+          |  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+          |  <xsl:template match="@*|node()">
+          |    <xsl:copy>
+          |      <xsl:apply-templates select="@*|node()"/>
+          |    </xsl:copy>
+          |  </xsl:template>
+          |  <xsl:template match="xs:complexType[@name='defineSchemaType']">
+          |    <xs:complexType name='defineSchemaType'>
+          |      <xs:sequence>
+          |        <xs:any />
+          |      </xs:sequence>
+          |      <xs:anyAttribute />
+          |    </xs:complexType>
+          |  </xsl:template>
+          |  <xsl:template match="xs:complexType[@name='defineConfigType']">
+          |    <xs:complexType name='defineConfigType'>
+          |      <xs:sequence>
+          |        <xs:any />
+          |      </xs:sequence>
+          |      <xs:anyAttribute />
+          |    </xs:complexType>
+          |  </xsl:template>
+          |</xsl:stylesheet>""".stripMargin
+        val xslt = new StreamSource(new ByteArrayInputStream(tdmlXslt.getBytes))
+        val input = new StreamSource(tdmlFile)
+        val output = new ByteArrayOutputStream()
+        val factory = TransformerFactory.newInstance()
+        val transformer = factory.newTransformer(xslt);
+        transformer.transform(input, new StreamResult(output))
+        IO.write(tdmlFile, output.toByteArray())
+
+        val xsdFiles = (xjcSourceDir ** "*.xsd").get
+        xsdFiles.toSet
       }
 
-      // Get File objects for each DFDL schema file that was extracted.
-      new File(Seq(xsdDir, "org", "apache", "daffodil", "xsd").mkString("/")).listFiles().toSeq
-    }.taskValue
+      // only invalidate the cache if the daffodil lib jar changed and so there could be a
+      // chance the tdml.xsd file has been updated
+      cachedFun(Set(daffodilLibJar)).toSeq
+    }
   )
