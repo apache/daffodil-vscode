@@ -14,6 +14,8 @@ import * as dfdlLang from 'language/dfdl'
 import * as dfdlExt from 'language/semantics/dfdlExt'
 import * as dataEditClient from 'dataEditor'
 import * as tdmlEditor from 'tdmlEditor'
+import * as rootCompletion from 'rootCompletion'
+
 import {
   CancellationToken,
   DebugConfiguration,
@@ -553,6 +555,7 @@ export function activateDaffodilDebug(
   dataEditClient.activate(context)
   launchWizard.activate(context)
   tdmlEditor.activate(context)
+  rootCompletion.activate(context)
 }
 
 class DaffodilConfigurationProvider
