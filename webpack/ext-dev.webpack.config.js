@@ -23,6 +23,7 @@ const localModuleAliases = {
   language: localModulePath('language'),
   launchWizard: localModulePath('launchWizard/launchWizard'),
   infoset: localModulePath('infoset'),
+  rootCompletion: localModulePath('rootCompletion'),
 }
 
 const packageData = jsoncParse(
