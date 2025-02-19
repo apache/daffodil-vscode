@@ -17,6 +17,19 @@
 
 # Daffodil-VSCode Developer's Guide
 
+## Prerequisites 
+
+### Install Git
+If your system doesn’t have Git installed, [install Git](https://git-scm.com/downloads). Select the appropriate operating system and follow the listed instructions. 
+To verify git is installed on your system, enter git -v into your system’s terminal and it should display the version of git if properly installed.
+
+### Install Visual Studio Code (VSCode)
+
+Install VSCode per [official VSCode documentation](https://code.visualstudio.com/docs/setup/setup-overview):
+* [Windows](https://code.visualstudio.com/docs/setup/windows)
+* [Linux](https://code.visualstudio.com/docs/setup/linux)
+* [MacOS](https://code.visualstudio.com/docs/setup/mac)
+
 ## Installing Build Requirements
 This section will provide describe what requirements are needed to build with a step-by-step guide to assist developers of varying skill levels. The steps provide recommended methods for installing build requirements, but don't have to be followed exactly one-to-one.   
 
@@ -61,9 +74,6 @@ Do not upgrade versions of Yarn for repository. Do not follow the [instructions 
 Type into the console `corepack enable yarn`. 
 
 
-
-
-
 ## Welcome
 If you would like the latest stable release of the extension, please reference the README.md for instructions on how to retrieve that.
 You can download a zip archive of the source code for the extension. You can extract this to any directory of your choice and open it within vscode to begin poking around.
@@ -72,13 +82,28 @@ The project currently has many components and is growing, please refer to the wi
 https://github.com/apache/daffodil-vscode/wiki/Apache-Daffodil%E2%84%A2-Extension-for-Visual-Studio-Code:-v1.3.1 
 
 ## Contributing
+
+### Forking the Project
+
 Due to this being an Apache project, if you would like to contribute, you will need to fork the daffodil-vscode main branch to your own repo of choice and create pull requests to the main branch with your code changes.
  ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/160ff687-4b37-4730-b867-128d063950b7)
- 
-Once forked, you can clone that forked repository to your own local environment. This can be done by using `git clone`, followed by copy and pasting the https or ssh urls shown under the “Code” dropdown.
- ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/e32b5ebf-a45d-4362-aa44-5aa817d4bd0b)
+
+### Cloning the Project to Local Environment
+Once forked, you can clone that forked repository to your own local environment. This can be done by using `git clone`, followed by copy and pasting the https or SSH urls shown under the “Code” dropdown. We recommend using SSH. Instructions for setting up SSH can be found in [Setting up SSH Keys](#setting-up-ssh-keys).
+
+![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/e32b5ebf-a45d-4362-aa44-5aa817d4bd0b)
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/cfed66de-6418-4456-bbec-4ef01653e171)
+
+
+### Setting up SSH Keys
+Enter ssh-keygen into your terminal to generate an RSA key. Follow the prompts for naming the public and private key files (optional) and giving the keys an optional passphrase. 
+
+The public and private keys are stored in a folder called .ssh in your users folder. The public key file is denoted with a .pub whereas the private key doesn’t have a file extension. 
+
+Navigate to [SSH and GPG keys GitHub settings](https://github.com/settings/keys). Log into your GitHub account if needed. Click on New SSH Key.
+
+![ssh_keys](https://github.com/user-attachments/assets/f716ed77-d554-4773-9d08-81c3b40c2ae6)
 
 If you have not setup your ssh keys for github, you can follow this guide here: https://docs.github.com/en/authentication/connecting-to-github-with-ssh. Or you can use https or another method of your choice.
 
@@ -88,6 +113,9 @@ Ensure that you keep your fork synced with the daffodil-vscode main by using the
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/3555a2c6-3ee6-43a0-99b6-d4885b713e9b)
 
+Give your new SSH Key a name and paste the contents of the .pub file into the key textbox
+
+![add_new_ssh_key](https://github.com/user-attachments/assets/bd3e31f2-fb15-45b9-9e39-7755cdfffb2a)
 
 If any changes were made while you were working on yours, you will need to pull these changes down to your local environment and merge them with your changes before pushing back to remote.
 
