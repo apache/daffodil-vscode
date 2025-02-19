@@ -18,6 +18,7 @@
 // All tests ran here are ones that require the vscode API
 import * as path from 'path'
 import * as cp from 'child_process'
+import * as os from 'os'
 import {
   runTests,
   resolveCliArgsFromVSCodeExecutablePath,
@@ -71,6 +72,7 @@ async function main() {
       {
         encoding: 'utf-8',
         stdio: 'inherit',
+        shell: os.platform().toLowerCase().startsWith('win'),
       }
     )
 
