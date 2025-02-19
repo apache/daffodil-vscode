@@ -31,7 +31,7 @@ This is an extension for Visual Studio Code (VS Code) which enables the interact
 
 ## Build Requirements
 
-- Java Development Kit (JDK) 17 or lower, higher or equal to 8
+- Java Development Kit (JDK) 17 or lower, but higher than or equal to 8
 - SBT 0.13.8 or higher
 - Node 16 or higher
 - [Yarn Classic](https://classic.yarnpkg.com/en/docs/install#windows-stable)
