@@ -15,7 +15,56 @@
   limitations under the License.
 -->
 
-# Welcome
+# Daffodil-VSCode Developer's Guide
+
+## Installing Build Requirements
+This section will provide describe what requirements are needed to build with a step-by-step guide to assist developers of varying skill levels. The steps provide recommended methods for installing build requirements, but don't have to be followed exactly one-to-one.   
+
+### Summary of Build Requirements
+
+- Java Development Kit (JDK) 17 or lower, but higher than or equal to 8
+- SBT 0.13.8 or higher
+- Node 16 or higher
+- [Yarn Classic](https://classic.yarnpkg.com/en/docs/install#windows-stable)
+
+### Step-by-step Guide for Installing Build Requirements
+
+#### Installing Node
+Navigate to the [Node Download page](https://nodejs.org/en/download). Select the instructions for installing the latest LTS version of Node.js for your operating system using fnm with npm.
+
+![Picture1](https://github.com/user-attachments/assets/40c9eecf-23b6-4b8b-b910-673bc942144b)
+##### Installing Node on Windows Note 
+Make sure you have `winget` installed. If it’s not installed, you can install it by typing in `Install-Module -Name Microsoft.WinGet.Client` into PowerShell. 
+After following all the steps outlined on Node’s page, you want to [create a PowerShell profile](https://lazyadmin.nl/powershell/powershell-profile/) which is a PowerShell script that gets executed every time a new instance of PowerShell is opened. Then append `fnm env --use-on-cd --shell powershell | Out-String | Invoke-Expression` per [fnm's guidance](https://github.com/Schniz/fnm?tab=readme-ov-file#powershell).
+
+#### Installing Java (JDK 17)
+You can install [Oracle's JDK 17](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html) or alternatively install the OpenJDK equivalent. 
+
+##### Build Issues with Higher JDK Versions 
+Note that higher versions of the JDK may cause extension building issues and is not advised. 
+
+##### Switching Java Versions on Linux
+You might have Java already installed. You can change the default Java provider and version by running `sudo update-alternatives --config java`.
+
+#### Installing SBT
+Install SBT for your appropriate operating system:
+* [Windows Instructions](https://www.scala-sbt.org/1.x/docs/Installing-sbt-on-Windows.html)
+  * Preferable method: install via .msi
+* [Linux Instructions](https://www.scala-sbt.org/1.x/docs/Installing-sbt-on-Linux.html)
+* [MacOS Instructions](https://www.scala-sbt.org/1.x/docs/Installing-sbt-on-Mac.html)
+
+#### Enabling Yarn from Within Node
+
+##### Do Not Use the Latest Version of Yarn
+Do not upgrade versions of Yarn for repository. Do not follow the [instructions on Yarn’s official website](https://yarnpkg.com/getting-started/install). This will break the extension packaging process. 
+##### How to Enable
+Type into the console `corepack enable yarn`. 
+
+
+
+
+
+## Welcome
 If you would like the latest stable release of the extension, please reference the README.md for instructions on how to retrieve that.
 You can download a zip archive of the source code for the extension. You can extract this to any directory of your choice and open it within vscode to begin poking around.
 
