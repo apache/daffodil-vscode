@@ -95,8 +95,9 @@ Once forked, you can clone that forked repository to your own local environment.
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/cfed66de-6418-4456-bbec-4ef01653e171)
 
+Once cloned, you can now create branches, commits, and push changes back to your remote fork. You may make changes with any IDE, but we highly encourage using VSCode for testing for maximum compatability. 
 
-### Setting up SSH Keys
+#### Setting up SSH Keys
 Enter ssh-keygen into your terminal to generate an RSA key. Follow the prompts for naming the public and private key files (optional) and giving the keys an optional passphrase. 
 
 The public and private keys are stored in a folder called .ssh in your users folder. The public key file is denoted with a .pub whereas the private key doesn’t have a file extension. 
@@ -105,17 +106,20 @@ Navigate to [SSH and GPG keys GitHub settings](https://github.com/settings/keys)
 
 ![ssh_keys](https://github.com/user-attachments/assets/f716ed77-d554-4773-9d08-81c3b40c2ae6)
 
-If you have not setup your ssh keys for github, you can follow this guide here: https://docs.github.com/en/authentication/connecting-to-github-with-ssh. Or you can use https or another method of your choice.
-
-Once cloned, you can now create branches, commits, and push changes back to your remote fork. You may make changes with any IDE, but because the extension is built for vscode, we recommend using that to maximize testing ability. 
-
-Ensure that you keep your fork synced with the daffodil-vscode main by using the sync fork button, this ensures that you are developing with up to date code, so that you can be sure your changes work with present code.
-
-![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/3555a2c6-3ee6-43a0-99b6-d4885b713e9b)
-
 Give your new SSH Key a name and paste the contents of the .pub file into the key textbox
 
 ![add_new_ssh_key](https://github.com/user-attachments/assets/bd3e31f2-fb15-45b9-9e39-7755cdfffb2a)
+
+Note that the above image has parts of the key blurred out for confidentiality. 
+
+Click on Add SSH key and follow GitHub prompts for verification. 
+
+[GitHub has their own guide on setting up SSH keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) which can be alternatively followed.
+
+### General Workflow
+Ensure that you keep your fork synced with the daffodil-vscode main by using the sync fork button, this ensures that you are developing with up to date code, so that you can be sure your changes work with present code.
+
+![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/3555a2c6-3ee6-43a0-99b6-d4885b713e9b)
 
 If any changes were made while you were working on yours, you will need to pull these changes down to your local environment and merge them with your changes before pushing back to remote.
 
@@ -123,7 +127,7 @@ Once changes are pushed, you can make pull requests with completed changes back 
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/76d83f38-d39c-49b3-a872-95cb281f0956)
 
-## Building
+### Building
 If you would like to build to confirm that your changes compile, you can run the extension through the vscode debugger as shown below. Under the run and debugger, you should see a launch.json already loaded for the extension, just hit the green play button. This will open a new debug window of vscode that will have the extension built and running. You can then test any changes made and ensure it is operating as intended.
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/db202ff3-81fb-4578-9001-a8c2c7008568)
@@ -142,7 +146,6 @@ This command will perform the following tasks:
 You can then take this .vsix file and install the extension into your vscode instance. Be sure you don’t already have the extension installed from the marketplace or the versioning could cause issues with seeing changes from your build.
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/4d0fe825-0973-494d-bc8e-211319806f0d)
-
 
 ## Testing
 For testing, there is multiple components within the project. While there is unit testing and some testing framework in the CI pipeline once you create a pull request, somethings are still manually tested.
