@@ -72,7 +72,7 @@ async function main() {
       {
         encoding: 'utf-8',
         stdio: 'inherit',
-        shell: os.platform().toLowerCase().startsWith('win'),
+        shell: os.platform().toLowerCase() != 'darwin',
       }
     )
 

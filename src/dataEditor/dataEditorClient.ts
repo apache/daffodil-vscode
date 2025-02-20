@@ -1122,14 +1122,28 @@ async function serverStop() {
         new Promise((resolve) => {
           setTimeout(() => {
             resolve(true)
-          }, 2000)
+          }, 4000)
         })
       )
       removeDirectory(checkpointPath)
     } else {
-      vscode.window.showErrorMessage(
-        `Ωedit server on port ${omegaEditPort} with PID ${pid} failed to stop`
-      )
+      // Check again if the process has stopped after a short delay
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      if (!(await stopProcessUsingPID(pid))) {
+        vscode.window.showErrorMessage(
+          `Ωedit server on port ${omegaEditPort} with PID ${pid} failed to stop`
+        )
+      } else {
+        vscode.window.setStatusBarMessage(
+          `Ωedit server stopped on port ${omegaEditPort} with PID ${pid}`,
+          new Promise((resolve) => {
+            setTimeout(() => {
+              resolve(true)
+            }, 4000)
+          })
+        )
+        removeDirectory(checkpointPath)
+      }
     }
   }
 }
