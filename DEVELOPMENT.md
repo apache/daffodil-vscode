@@ -130,7 +130,7 @@ Once changes are pushed, you can make pull requests with completed changes back 
 ### Verifying Setup Can Build
 Navigate inside your cloned folder in a terminal. Enter `yarn` to install required packages. If it prompts you to install yarn 1.22.XX, type `y`. 
 
-Then type in `Yarn Packagee`. If there’s new .vsix file in the folder, then you have successfully set up your development environment correctly. For more information about `yarn package`, read [Yarn Package](#yarn-package). 
+Then type in `yarn package`. If there’s new .vsix file in the folder, then you have successfully set up your development environment correctly. For more information about `yarn package`, read [Yarn Package](#yarn-package). 
 
 ![vsix](https://github.com/user-attachments/assets/7bcfd6ae-3ff0-4a2b-9fb8-182f64562b32)
 
