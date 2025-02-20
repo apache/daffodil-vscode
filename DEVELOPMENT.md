@@ -127,13 +127,20 @@ Once changes are pushed, you can make pull requests with completed changes back 
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/76d83f38-d39c-49b3-a872-95cb281f0956)
 
-### Verifying Setup is Done Correctly
+### Verifying Setup Can Build
 Navigate inside your cloned folder in a terminal. Enter `yarn` to install required packages. If it prompts you to install yarn 1.22.XX, type `y`. 
 
-Then type in `yarn package`. If there’s new .vsix file in the folder, then you have successfully set up your development environment correctly. 
+Then type in `Yarn Packagee`. If there’s new .vsix file in the folder, then you have successfully set up your development environment correctly. For more information about `yarn package`, read [Yarn Package](#yarn-package). 
 
+![vsix](https://github.com/user-attachments/assets/7bcfd6ae-3ff0-4a2b-9fb8-182f64562b32)
 
-### Building
+Lastly, run yarn test. All tests should pass without any errors. 
+
+![yarn_test_succ_output](https://github.com/user-attachments/assets/188cafb9-844b-4037-953f-2c70c75dc865)
+
+Alternatively, you can run all of the commands in a single line by running `yarn && yarn package && yarn test && echo "All good!"`. 
+
+### Yarn Package
 If you would like to build to confirm that your changes compile, you can run the extension through the vscode debugger as shown below. Under the run and debugger, you should see a launch.json already loaded for the extension, just hit the green play button. This will open a new debug window of vscode that will have the extension built and running. You can then test any changes made and ensure it is operating as intended.
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/db202ff3-81fb-4578-9001-a8c2c7008568)
