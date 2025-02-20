@@ -17,6 +17,14 @@
 
 # Daffodil-VSCode Developer's Guide
 
+## Welcome
+
+This guide contains developer-oriented instructions on how to setup your local development environment for contributing to this project. 
+
+If you would like the latest stable release of the extension, please reference the [README file](README.md). 
+
+The project is currently growing, please refer to the [wiki](https://github.com/apache/daffodil-vscode/wiki) for an overview of what the extension includes. There is also user documentation on the right pane with release specific use case guides. 
+
 ## Prerequisites 
 
 ### Install Git
@@ -73,14 +81,6 @@ Do not upgrade versions of Yarn for repository. Do not follow the [instructions 
 ##### How to Enable
 Type into the console `corepack enable yarn`. 
 
-
-## Welcome
-If you would like the latest stable release of the extension, please reference the README.md for instructions on how to retrieve that.
-You can download a zip archive of the source code for the extension. You can extract this to any directory of your choice and open it within vscode to begin poking around.
-
-The project currently has many components and is growing, please refer to the wiki for an overview of what the extension includes. There is also user documentation on the right side with additional release specific use case guides. Here is the one for v1.3.1:
-https://github.com/apache/daffodil-vscode/wiki/Apache-Daffodil%E2%84%A2-Extension-for-Visual-Studio-Code:-v1.3.1 
-
 ## Contributing
 
 ### Forking the Project
@@ -127,6 +127,12 @@ Once changes are pushed, you can make pull requests with completed changes back 
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/76d83f38-d39c-49b3-a872-95cb281f0956)
 
+### Verifying Setup is Done Correctly
+Navigate inside your cloned folder in a terminal. Enter `yarn` to install required packages. If it prompts you to install yarn 1.22.XX, type `y`. 
+
+Then type in `yarn package`. If there’s new .vsix file in the folder, then you have successfully set up your development environment correctly. 
+
+
 ### Building
 If you would like to build to confirm that your changes compile, you can run the extension through the vscode debugger as shown below. Under the run and debugger, you should see a launch.json already loaded for the extension, just hit the green play button. This will open a new debug window of vscode that will have the extension built and running. You can then test any changes made and ensure it is operating as intended.
 
@@ -147,7 +153,7 @@ You can then take this .vsix file and install the extension into your vscode ins
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/4d0fe825-0973-494d-bc8e-211319806f0d)
 
-## Testing
+### Testing
 For testing, there is multiple components within the project. While there is unit testing and some testing framework in the CI pipeline once you create a pull request, somethings are still manually tested.
 
 We have a testing checklist that was created and can be found here:
