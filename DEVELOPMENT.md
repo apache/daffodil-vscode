@@ -127,6 +127,26 @@ Once changes are pushed, you can make pull requests with completed changes back 
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/76d83f38-d39c-49b3-a872-95cb281f0956)
 
+### Opening the Repository in VSCode
+
+There are multiple ways of opening the repository that you have cloned in VSCode:
+
+1. In a terminal, type in `code <PATH TO THE CLONED REPOSITORY>`
+2. Clicking on open folder at the VSCode homescreen
+![open_folder_vscode](https://github.com/user-attachments/assets/aab662c0-3b45-4dfe-917a-c75e35cc62e2)
+3. At the top options bar, File -> Open Folder
+![file-open-folder](https://github.com/user-attachments/assets/34e06fc3-cafa-4d70-82a6-12bfb354bf3f)
+
+#### Recommended VSCode Extensions
+Upon opening, VSCode may prompt you to install recommended extensions. Go ahead and accept installing the recommended extensions. 
+* [Prettier - Code formatter - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+
+#### Required VSCode Extensions
+Daffodil-VSCode depends on the following extensions
+* [JAR Viewer - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=wmanth.jar-viewer)
+* [Highlight Matching Tag - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=vincaslt.highlight-matching-tag)
+
+
 ### Verifying Setup Can Build
 Navigate inside your cloned folder in a terminal. Enter `yarn` to install required packages. If it prompts you to install yarn 1.22.XX, type `y`. 
 
@@ -140,7 +160,7 @@ Lastly, run yarn test. All tests should pass without any errors.
 
 Alternatively, you can run all of the commands in a single line by running `yarn && yarn package && yarn test && echo "All good!"`. 
 
-### Yarn Package
+#### Yarn Package
 If you would like to build to confirm that your changes compile, you can run the extension through the vscode debugger as shown below. Under the run and debugger, you should see a launch.json already loaded for the extension, just hit the green play button. This will open a new debug window of vscode that will have the extension built and running. You can then test any changes made and ensure it is operating as intended.
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/db202ff3-81fb-4578-9001-a8c2c7008568)
@@ -160,12 +180,72 @@ You can then take this .vsix file and install the extension into your vscode ins
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/4d0fe825-0973-494d-bc8e-211319806f0d)
 
+#### Yarn Package Issues
+##### If Yarn Keeps Updating to The Latest Version
+As of typing this document (Feb 2025), the latest version of yarn is 4.6.0. If you type `yarn` and your console outputs the following or anything similar:
+```
+➤ YN0087: Migrated your project to the latest Yarn version ��
+➤ YN0000: · Yarn 4.6.0
+➤ YN0000: ┌ Resolution step
+➤ YN0085: │ + @omega-edit/client@npm:0.9.83, @tsconfig/svelte@npm:5.0.2, @types/glob@npm:8.1.0, @types/mocha@npm:10.0.6, @types/node@npm:20.11.30, @types/vscode-webview@npm:1.57.4, @types/vscode@npm:1.95.0, @viperproject/locate-java-home@npm:1.1.15, @vscode/debugadapter-testsupport@npm:1.65.0, @vscode/debugadapter@npm:1.67.0, @vscode/test-electron@npm:2.3.8, @vscode/vsce@npm:2.22.0, @vscode/webview-ui-toolkit@npm:1.4.0, await-notify@npm:1.0.1, chai@npm:4.4.1, and 703 more.
+➤ YN0000: └ Completed in 9s 958ms
+➤ YN0000: ┌ Post-resolution validation
+➤ YN0002: │ apache-daffodil-vscode@workspace:. doesn't provide react (pa7c88), requested by @vscode/webview-ui-toolkit.
+➤ YN0086: │ Some peer dependencies are incorrectly met by your project; run yarn explain peer-requirements <hash> for details, where <hash> is the six-letter p-prefixed code.
+➤ YN0000: └ Completed
+➤ YN0000: ┌ Fetch step
+➤ YN0013: │ 696 packages were added to the project (+ 397.25 MiB).
+➤ YN0000: └ Completed in 4m 47s
+➤ YN0000: ┌ Link step
+➤ YN0007: │ esbuild@npm:0.19.9 must be built because it never has been before or the last one failed
+➤ YN0007: │ svelte-preprocess@npm:5.1.1 [5fe27] must be built because it never has been before or the last one failed
+➤ YN0007: │ svelte-preprocess@npm:5.1.1 [ab741] must be built because it never has been before or the last one failed
+➤ YN0007: │ keytar@npm:7.9.0 must be built because it never has been before or the last one failed
+➤ YN0007: │ protobufjs@npm:7.4.0 must be built because it never has been before or the last one failed
+➤ YN0000: └ Completed in 2m 40s
+➤ YN0000: · Done with warnings in 7m 37s
+```
+this means that there is a yarn project that is initialized in a folder that’s higher up from the cloned repository folder. This will negatively affect the extension packaging process. A remedy for the issue is to remove all yarn files and the package.json file in the higher folder that the yarn project is initialized in. 
+
+To remedy this, you need to change versions of Yarn. Use `yarn set version 1.22.22` to change versions of Yarn. [Documentation for set-version](https://yarnpkg.com/cli/set/version).  
+
+#### Yarn Test Issues
+##### Data Editor Opens Test Case Failing
+###### Port 9000 is Occupied
+See the current workarounds section in ["data editor opens" test fails if Port 9000 is Occupied · Issue #1175 · apache/daffodil-vscode](https://github.com/apache/daffodil-vscode/issues/1175).
+
+#### Re-trying Verification After Errors
+Type in `git clean -fdx`. Then run `yarn && yarn package && yarn test && echo "All good!"`. 
+If issues persist, you may want to uninstall Node and reinstall it. If that doesn’t remedy the issue, you may have to create a fresh VM. 
+
+### Debugging the Extension
+Create a `sampleWorkspace` folder in the folder one level higher than where `daffodil-vscode` currently resides. For example, if you have your `daffodil-vscode` folder stored in a folder called repos, then make a folder in repos called `sampleWorkspace`. 
+
+![sampleworkspace-loc](https://github.com/user-attachments/assets/6770a3b1-0363-42a9-b79a-e3fa5641a270)
+
+It’s advised to copy sample data files and sample DFDL schemas (.dfdl.xsd) in here. You can find DFDL schemas at [DFDL Schemas for Commercial and Scientific Data Formats](https://github.com/DFDLSchemas). 
+Next start debugging the extension. Make sure the “Extension” debug configuration is currently selected. You can press the green run button or alternatively press F5. 
+
+![debug_loc](https://github.com/user-attachments/assets/3ad6d93c-5d9c-40c3-a8e4-a05fc83a8875)
+
+You may see this window pop up
+
+![webpack_not_fully_loaded](https://github.com/user-attachments/assets/9d4f45f2-cc81-40de-a456-2aecbc3df9b7)
+
+Click on debug anyway once yarn watch says webpack is fully compiled. 
+
+![webpack-fully-loaded](https://github.com/user-attachments/assets/5dd3202d-a853-4d9c-8b4a-48c381256d0f)
+
+A new VSCode window should’ve popped up with the sampleWorkspace opened. 
+
+![debug-window](https://github.com/user-attachments/assets/4d7e4cca-3172-4ab3-bd5c-52a5061bd353)
+
+
 ### Testing
 For testing, there is multiple components within the project. While there is unit testing and some testing framework in the CI pipeline once you create a pull request, somethings are still manually tested.
 
 We have a testing checklist that was created and can be found here:
 https://github.com/apache/daffodil-vscode/blob/8c70937f6badc8b0e8eec5b4d34d3657e0676a32/src/tests/README.md 
-
 
 ## Thank you for your interest in contributing to this project!
 You can ask questions on the dev@daffodil.apache.org or users@daffodil.apache.org mailing lists. You can report bugs via GitHub Issues.
