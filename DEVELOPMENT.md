@@ -133,8 +133,11 @@ There are multiple ways of opening the repository that you have cloned in VSCode
 
 1. In a terminal, type in `code <PATH TO THE CLONED REPOSITORY>`
 2. Clicking on open folder at the VSCode homescreen
+   
 ![open_folder_vscode](https://github.com/user-attachments/assets/aab662c0-3b45-4dfe-917a-c75e35cc62e2)
+
 3. At the top options bar, File -> Open Folder
+
 ![file-open-folder](https://github.com/user-attachments/assets/34e06fc3-cafa-4d70-82a6-12bfb354bf3f)
 
 #### Recommended VSCode Extensions
@@ -180,6 +183,80 @@ You can then take this .vsix file and install the extension into your vscode ins
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/4d0fe825-0973-494d-bc8e-211319806f0d)
 
+### Debugging the Extension
+Create a `sampleWorkspace` folder in the folder one level higher than where `daffodil-vscode` currently resides. For example, if you have your `daffodil-vscode` folder stored in a folder called repos, then make a folder in repos called `sampleWorkspace`. 
+
+![sampleworkspace-loc](https://github.com/user-attachments/assets/6770a3b1-0363-42a9-b79a-e3fa5641a270)
+
+It’s advised to copy sample data files and sample DFDL schemas (.dfdl.xsd) in here. You can find DFDL schemas at [DFDL Schemas for Commercial and Scientific Data Formats](https://github.com/DFDLSchemas). 
+Next start debugging the extension. Make sure the “Extension” debug configuration is currently selected. You can press the green run button or alternatively press F5. 
+
+![debug_loc](https://github.com/user-attachments/assets/3ad6d93c-5d9c-40c3-a8e4-a05fc83a8875)
+
+You may see this window pop up
+
+![webpack_not_fully_loaded](https://github.com/user-attachments/assets/9d4f45f2-cc81-40de-a456-2aecbc3df9b7)
+
+Click on debug anyway once yarn watch says webpack is fully compiled. 
+
+![webpack-fully-loaded](https://github.com/user-attachments/assets/5dd3202d-a853-4d9c-8b4a-48c381256d0f)
+
+A new VSCode window should’ve popped up with the sampleWorkspace opened. 
+
+![debug-window](https://github.com/user-attachments/assets/4d7e4cca-3172-4ab3-bd5c-52a5061bd353)
+
+Open the command palette with `Ctrl + Shift + P` and type in `Daffodil Debug`. Select the `Configure launch.json` option. 
+
+![config-launc-josn-command-pal](https://github.com/user-attachments/assets/d40f23c8-f47c-43ae-87ec-42ebb9c705c8)
+
+Your window should look like this. 
+
+![daf-debug-settings](https://github.com/user-attachments/assets/ae682d7e-c579-4ba0-b613-91e4f8667f93)
+
+Scroll down and check these following options
+
+![open_3_checkbox](https://github.com/user-attachments/assets/6ca42872-3060-4d16-a72a-a95c25e356e2)
+
+Click save
+
+![bottom-daf-debug](https://github.com/user-attachments/assets/d1c7e622-f2cb-43ca-9fa9-d128174fa54d)
+
+Click on the Run and Debug Icon. Wizard Config should show at the top. 
+
+![wiz-config](https://github.com/user-attachments/assets/aac7c1c3-1dd7-4219-b2ca-e053a10bae42)
+
+Then select a schema file and a data file. (Note, if you want to hard code where the images are, you’re able to change the DFDL and data file path in the Daffodil Configure launch.json window)
+
+![select-dfdl-schema](https://github.com/user-attachments/assets/17c6a731-2b53-45f9-9566-98efb1fb398e)
+
+![select-test-image](https://github.com/user-attachments/assets/14a8cd56-38d3-423e-9430-cf78d40a258b)
+
+Your window should look like the following. Note that you may have to move some tabs around. 
+
+![ide-debug](https://github.com/user-attachments/assets/dbc8a48e-b528-4861-8163-6c167c4d60fa)
+
+Here’s an example view of the data editor (OmegaEdit) with the schema on the left. 
+
+![ide-debug2](https://github.com/user-attachments/assets/9b982947-2f9c-45b0-8d6f-7b86eef1bacd)
+
+Here’s the infoset diff view. The infoset is the resulting output XML/JSON file. 
+
+![ide-debug4](https://github.com/user-attachments/assets/09e58522-e782-465f-b185-783eaf7ae592)
+
+#### Changing the sampleWorkspace folder name and location
+If you would like to specify a different name and/or location for the sampleWorkspace is, modify the following line in `.vscode/launch.json`:
+
+![change-sampleworkspace-name](https://github.com/user-attachments/assets/d269a25a-f229-418a-bf0b-70151a1c4ecd)
+
+### Testing
+For testing, there is multiple components within the project. While there is unit testing and some testing framework in the CI pipeline once you create a pull request, somethings are still manually tested.
+
+We have a testing checklist that was created and can be found here:
+https://github.com/apache/daffodil-vscode/blob/8c70937f6badc8b0e8eec5b4d34d3657e0676a32/src/tests/README.md 
+
+### Troubleshooting
+You may run into issues with building, running tests, or debugging the extension. The follow sections will describe some issues you may encounter and discuss remedies. 
+
 #### Yarn Package Issues
 ##### If Yarn Keeps Updating to The Latest Version
 As of typing this document (Feb 2025), the latest version of yarn is 4.6.0. If you type `yarn` and your console outputs the following or anything similar:
@@ -211,41 +288,45 @@ To remedy this, you need to change versions of Yarn. Use `yarn set version 1.22.
 
 #### Yarn Test Issues
 ##### Data Editor Opens Test Case Failing
-###### Port 9000 is Occupied
-See the current workarounds section in ["data editor opens" test fails if Port 9000 is Occupied · Issue #1175 · apache/daffodil-vscode](https://github.com/apache/daffodil-vscode/issues/1175).
+
+This means port 9000 is Occupied. See the current workarounds section in ["data editor opens" test fails if Port 9000 is Occupied · Issue #1175 · apache/daffodil-vscode](https://github.com/apache/daffodil-vscode/issues/1175).
+
+#### Debugging Issues
+##### SELinux Port Functionality
+If you’re running into frequent issues with connectivity or VSCode freezing, it may be worth it to disable SELInux enforcing mode. 
+To check to see if SELinux OS is in enforcing mode, you can type `getenforce` in a console. If it outputs Enforcing, you’ll want to set it to Permissive by using `sudo setenforce Permissive`.
+
+##### Windows Yarn Test Window Not Loading Extensions
+If you run `yarn test`, and are running into an issue where the test window is saying there’s a missing dependent extension
+
+![missing-ext](https://github.com/user-attachments/assets/b9fea25d-fdde-4879-8138-648e8340c2d9)
+
+and yarn tests under the `getCommands` section are failing,
+
+![getCommands-test-fail](https://github.com/user-attachments/assets/6e19381c-4903-4e0c-9853-712b5feb0389)
+
+Inside of src\tests\runTest.ts, replace 
+```
+      {
+        encoding: 'utf-8',
+        stdio: 'inherit',
+      }
+```
+with
+```
+      {
+        encoding: 'utf-8',
+        stdio: 'inherit',
+        shell: os.platform().toLowerCase().startsWith('win'),
+      }
+```
+and add 
+`import os from 'os'`
+near the top of the file along with the other import statements. 
 
 #### Re-trying Verification After Errors
 Type in `git clean -fdx`. Then run `yarn && yarn package && yarn test && echo "All good!"`. 
 If issues persist, you may want to uninstall Node and reinstall it. If that doesn’t remedy the issue, you may have to create a fresh VM. 
-
-### Debugging the Extension
-Create a `sampleWorkspace` folder in the folder one level higher than where `daffodil-vscode` currently resides. For example, if you have your `daffodil-vscode` folder stored in a folder called repos, then make a folder in repos called `sampleWorkspace`. 
-
-![sampleworkspace-loc](https://github.com/user-attachments/assets/6770a3b1-0363-42a9-b79a-e3fa5641a270)
-
-It’s advised to copy sample data files and sample DFDL schemas (.dfdl.xsd) in here. You can find DFDL schemas at [DFDL Schemas for Commercial and Scientific Data Formats](https://github.com/DFDLSchemas). 
-Next start debugging the extension. Make sure the “Extension” debug configuration is currently selected. You can press the green run button or alternatively press F5. 
-
-![debug_loc](https://github.com/user-attachments/assets/3ad6d93c-5d9c-40c3-a8e4-a05fc83a8875)
-
-You may see this window pop up
-
-![webpack_not_fully_loaded](https://github.com/user-attachments/assets/9d4f45f2-cc81-40de-a456-2aecbc3df9b7)
-
-Click on debug anyway once yarn watch says webpack is fully compiled. 
-
-![webpack-fully-loaded](https://github.com/user-attachments/assets/5dd3202d-a853-4d9c-8b4a-48c381256d0f)
-
-A new VSCode window should’ve popped up with the sampleWorkspace opened. 
-
-![debug-window](https://github.com/user-attachments/assets/4d7e4cca-3172-4ab3-bd5c-52a5061bd353)
-
-
-### Testing
-For testing, there is multiple components within the project. While there is unit testing and some testing framework in the CI pipeline once you create a pull request, somethings are still manually tested.
-
-We have a testing checklist that was created and can be found here:
-https://github.com/apache/daffodil-vscode/blob/8c70937f6badc8b0e8eec5b4d34d3657e0676a32/src/tests/README.md 
 
 ## Thank you for your interest in contributing to this project!
 You can ask questions on the dev@daffodil.apache.org or users@daffodil.apache.org mailing lists. You can report bugs via GitHub Issues.
