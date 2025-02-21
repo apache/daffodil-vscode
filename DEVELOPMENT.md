@@ -64,7 +64,7 @@
             * [If Yarn Keeps Updating to The Latest Version](#if-yarn-keeps-updating-to-the-latest-version)
          - [Yarn Test Issues](#yarn-test-issues)
             * [Data Editor Opens Test Case Failing](#data-editor-opens-test-case-failing)
-         - [TLS Certificate Issues](#tls-certificate-issues)
+            * [TLS Certificate Issues](#tls-certificate-issues)
          - [Debugging Issues](#debugging-issues)
             * [SELinux Port Functionality](#selinux-port-functionality)
             * [Windows Yarn Test Window Not Loading Extensions](#windows-yarn-test-window-not-loading-extensions)
@@ -388,7 +388,7 @@ To remedy this, you need to change versions of Yarn. Use `yarn set version 1.22.
 
 This means port 9000 is Occupied. See the current workarounds section in ["data editor opens" test fails if Port 9000 is Occupied · Issue #1175 · apache/daffodil-vscode](https://github.com/apache/daffodil-vscode/issues/1175).
 
-#### TLS Certificate Issues
+##### TLS Certificate Issues
 
 HTTPS TLS certificates are verified by default.  When running the test suite in certain environments (e.g., company VPN that uses endpoint protection), TLS certificate verifications may fail with a self-signed certificate error.  If this is the case, either have node trust the endpoint protection certificate, or use one of these workarounds to disable the certificate verification:
 
