@@ -15,8 +15,6 @@
   limitations under the License.
 -->
 
-![](images/asf-daffodil-logo.svg)
-
 # Daffodil-VSCode Developer's Guide
 
 ## Build Status
