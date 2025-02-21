@@ -15,7 +15,14 @@
   limitations under the License.
 -->
 
+![](images/asf-daffodil-logo.svg)
+
 # Daffodil-VSCode Developer's Guide
+
+## Build Status
+
+[![CI](https://github.com/apache/daffodil-vscode/actions/workflows/CI.yml/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/CI.yml)
+[![nightly tests](https://github.com/apache/daffodil-vscode/actions/workflows/nightly.yml/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/nightly.yml)
 
 ## Welcome
 
