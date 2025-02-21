@@ -86,7 +86,7 @@ Do not upgrade versions of Yarn for repository. Do not follow the [instructions 
 ##### How to Enable
 Type into the console `corepack enable yarn`. 
 
-## Contributing
+## Contributing and Setup
 
 ### Forking the Project
 
@@ -188,6 +188,8 @@ You can then take this .vsix file and install the extension into your vscode ins
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/4d0fe825-0973-494d-bc8e-211319806f0d)
 
+#### Automated Testing Suite (Yarn Test)
+
 ### Debugging the Extension
 Create a `sampleWorkspace` folder in the folder one level higher than where `daffodil-vscode` currently resides. For example, if you have your `daffodil-vscode` folder stored in a folder called repos, then make a folder in repos called `sampleWorkspace`. 
 
@@ -252,12 +254,6 @@ Here’s the infoset diff view. The infoset is the resulting output XML/JSON fil
 If you would like to specify a different name and/or location for the sampleWorkspace is, modify the following line in `.vscode/launch.json`:
 
 ![change-sampleworkspace-name](https://github.com/user-attachments/assets/d269a25a-f229-418a-bf0b-70151a1c4ecd)
-
-### Testing
-For testing, there is multiple components within the project. While there is unit testing and some testing framework in the CI pipeline once you create a pull request, somethings are still manually tested.
-
-We have a testing checklist that was created and can be found here:
-https://github.com/apache/daffodil-vscode/blob/8c70937f6badc8b0e8eec5b4d34d3657e0676a32/src/tests/README.md 
 
 ### Troubleshooting
 You may run into issues with building, running tests, or debugging the extension. The follow sections will describe some issues you may encounter and discuss remedies. 
@@ -332,6 +328,41 @@ near the top of the file along with the other import statements.
 #### Re-trying Verification After Errors
 Type in `git clean -fdx`. Then run `yarn && yarn package && yarn test && echo "All good!"`. 
 If issues persist, you may want to uninstall Node and reinstall it. If that doesn’t remedy the issue, you may have to create a fresh VM. 
+
+## Building the Documentation
+
+### Install Pandoc
+
+Before running commands to build the documentation, be sure to [install Pandoc](https://pandoc.org/installing.html). 
+
+### Command to build the Documentation
+
+To build `docx` (Word formatted) documentation, from the top of the cloned repository, run:
+
+```shell
+cd docs && make all
+```
+
+## Reviewing and Verifying Dependency Bot Updates
+
+For GitHub CI action updates (pull requests that start with **Bump actions/...**), make sure the affected workflows still operate as expected (they are automatically CI tested).  GitHub CI actions update workflow YAML files, and are part of the CI infrastructure and not a code dependency.  These should be relatively quick and easy to assess compared to code dependencies.
+
+If the updates are not GitHub CI action updates, then additional scrutiny is required.  When reviewing and verifying dependency bot updates that are part the software supply chain being distributed, please use the following checklist:
+
+- [ ] **Do all automated continuous integration checks pass?**
+- [ ] **Is the update a patch, minor, or major update?**
+- [ ] **Is the license still compatible with ASF License Policy?**
+- [ ] **Have any changes been made to LICENSE/NOTICE files that need to be incorporated?**
+- [ ] **Have any transitive dependencies been added or changed?**
+
+## Testing Information
+Testing for this extension comprsies of unit testing, CI/CD tests for pull requests (PRs), and manual tests. 
+
+List of manual tests can be found in the [testing README](https://github.com/apache/daffodil-vscode/blob/8c70937f6badc8b0e8eec5b4d34d3657e0676a32/src/tests/README.md). 
+
+## Monitoring Project Status
+
+Milestone-level project status can be monitored using the [Projects tab](https://github.com/apache/daffodil-vscode/projects) in the [Project's GitHub repository](https://github.com/apache/daffodil-vscode).
 
 ## Thank you for your interest in contributing to this project!
 You can ask questions on the dev@daffodil.apache.org or users@daffodil.apache.org mailing lists. You can report bugs via GitHub Issues.
