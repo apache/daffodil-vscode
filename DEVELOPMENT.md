@@ -22,6 +22,61 @@
 [![CI](https://github.com/apache/daffodil-vscode/actions/workflows/CI.yml/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/CI.yml)
 [![nightly tests](https://github.com/apache/daffodil-vscode/actions/workflows/nightly.yml/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/nightly.yml)
 
+## Table of Contents
+
+- [Daffodil-VSCode Developer's Guide](#daffodil-vscode-developers-guide)
+   * [Build Status](#build-status)
+   * [Table of Contents](#table-of-contents)
+   * [Welcome](#welcome)
+   * [Prerequisites ](#prerequisites)
+      + [Install Git](#install-git)
+      + [Install Visual Studio Code (VSCode)](#install-visual-studio-code-vscode)
+   * [Installing Build Requirements](#installing-build-requirements)
+      + [Summary of Build Requirements](#summary-of-build-requirements)
+      + [Step-by-step Guide for Installing Build Requirements](#step-by-step-guide-for-installing-build-requirements)
+         - [Installing Node](#installing-node)
+            * [Installing Node on Windows Note ](#installing-node-on-windows-note)
+         - [Installing Java (JDK 17)](#installing-java-jdk-17)
+            * [Build Issues with Higher JDK Versions ](#build-issues-with-higher-jdk-versions)
+            * [Switching Java Versions on Linux](#switching-java-versions-on-linux)
+         - [Installing SBT](#installing-sbt)
+         - [Enabling Yarn from Within Node](#enabling-yarn-from-within-node)
+            * [Do Not Use the Latest Version of Yarn](#do-not-use-the-latest-version-of-yarn)
+            * [How to Enable](#how-to-enable)
+   * [Contributing and Setup](#contributing-and-setup)
+      + [Forking the Project](#forking-the-project)
+      + [Cloning the Project to Local Environment](#cloning-the-project-to-local-environment)
+         - [Setting up SSH Keys](#setting-up-ssh-keys)
+      + [General Workflow](#general-workflow)
+      + [Opening the Repository in VSCode](#opening-the-repository-in-vscode)
+         - [Recommended VSCode Extensions](#recommended-vscode-extensions)
+         - [Required VSCode Extensions](#required-vscode-extensions)
+      + [Verifying Setup Can Build](#verifying-setup-can-build)
+         - [Yarn Package](#yarn-package)
+         - [Automated Testing Suite](#automated-testing-suite)
+            * [Testing Against a Specific Version of VS Code](#testing-against-a-specific-version-of-vs-code)
+      + [Debugging the Extension](#debugging-the-extension)
+         - [Changing the sampleWorkspace folder name and location](#changing-the-sampleworkspace-folder-name-and-location)
+         - [Test a Local Version of Apache Daffodil Debugge](#test-a-local-version-of-apache-daffodil-debugge)
+         - [Automatically Recompile Code When it Changes](#automatically-recompile-code-when-it-changes)
+      + [Troubleshooting](#troubleshooting)
+         - [Yarn Package Issues](#yarn-package-issues)
+            * [If Yarn Keeps Updating to The Latest Version](#if-yarn-keeps-updating-to-the-latest-version)
+         - [Yarn Test Issues](#yarn-test-issues)
+            * [Data Editor Opens Test Case Failing](#data-editor-opens-test-case-failing)
+         - [TLS Certificate Issues](#tls-certificate-issues)
+         - [Debugging Issues](#debugging-issues)
+            * [SELinux Port Functionality](#selinux-port-functionality)
+            * [Windows Yarn Test Window Not Loading Extensions](#windows-yarn-test-window-not-loading-extensions)
+         - [Re-trying Verification After Errors](#re-trying-verification-after-errors)
+   * [Building the Documentation](#building-the-documentation)
+      + [Install Pandoc](#install-pandoc)
+      + [Command to build the Documentation](#command-to-build-the-documentation)
+   * [Reviewing and Verifying Dependency Bot Updates](#reviewing-and-verifying-dependency-bot-updates)
+   * [Testing Information](#testing-information)
+   * [Monitoring Project Status](#monitoring-project-status)
+   * [Thank you for your interest in contributing to this project!](#thank-you-for-your-interest-in-contributing-to-this-project)
+
 ## Welcome
 
 This guide contains developer-oriented instructions on how to setup your local development environment for contributing to this project. 
@@ -162,7 +217,7 @@ Then type in `yarn package`. If there’s new .vsix file in the folder, then you
 
 ![vsix](https://github.com/user-attachments/assets/7bcfd6ae-3ff0-4a2b-9fb8-182f64562b32)
 
-Lastly, run yarn test. All tests should pass without any errors. 
+Lastly, run `yarn test`. All tests should pass without any errors. More information can be found under [Automated Testing Suite (Yarn Test)](#automated-testing-suite)
 
 ![yarn_test_succ_output](https://github.com/user-attachments/assets/188cafb9-844b-4037-953f-2c70c75dc865)
 
@@ -188,14 +243,35 @@ You can then take this .vsix file and install the extension into your vscode ins
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/4d0fe825-0973-494d-bc8e-211319806f0d)
 
-#### Automated Testing Suite (Yarn Test)
+#### Automated Testing Suite
+
+The Apache Daffodil VS Code Extension comes with an automated test suite.  Run it as follows:
+
+```shell
+yarn test
+```
+
+##### Testing Against a Specific Version of VS Code
+
+By default, the test suite will use the earliest supported release of VS Code.  To test against any _specific_ version of VS Code (in this example, VS Code version 1.74.3), execute the test suite as follows, setting `DAFFODIL_TEST_VSCODE_VERSION` to the desired version:
+
+```shell
+DAFFODIL_TEST_VSCODE_VERSION=1.74.3 yarn test
+```
+
+Set `DAFFODIL_TEST_VSCODE_VERSION` to `stable` to use the latest stable release, or to `insiders` to use the latest (nightly) insiders build. 
+
 
 ### Debugging the Extension
+
 Create a `sampleWorkspace` folder in the folder one level higher than where `daffodil-vscode` currently resides. For example, if you have your `daffodil-vscode` folder stored in a folder called repos, then make a folder in repos called `sampleWorkspace`. 
 
 ![sampleworkspace-loc](https://github.com/user-attachments/assets/6770a3b1-0363-42a9-b79a-e3fa5641a270)
 
 It’s advised to copy sample data files and sample DFDL schemas (.dfdl.xsd) in here. You can find DFDL schemas at [DFDL Schemas for Commercial and Scientific Data Formats](https://github.com/DFDLSchemas). 
+
+Optional: If you would like to recompile the code when you're editing, run `yarn watch` before following the next steps. More information is outlined in [Automatically Recompile Code When it Changes](#automatically-recompile-code-when-it-changes)
+
 Next start debugging the extension. Make sure the “Extension” debug configuration is currently selected. You can press the green run button or alternatively press F5. 
 
 ![debug_loc](https://github.com/user-attachments/assets/3ad6d93c-5d9c-40c3-a8e4-a05fc83a8875)
@@ -255,6 +331,26 @@ If you would like to specify a different name and/or location for the sampleWork
 
 ![change-sampleworkspace-name](https://github.com/user-attachments/assets/d269a25a-f229-418a-bf0b-70151a1c4ecd)
 
+#### Test a Local Version of Apache Daffodil Debugge
+The local Apache Daffodil™ Extension for Visual Studio Code downloads and caches the Apache Daffodil™ Debugger corresponding to the latest extension release. If you want to test a _local_ version of the Apache Daffodil Debugger, you need to:
+* add `"useExistingServer": true` to the configuration in your `launch.json` in the sample workspace;
+* launch the backend debugger locally, using a launch configuration like below:
+    ```json
+    {
+      "type": "scala",
+      "name": "DAPodil",
+      "request": "launch",
+      "mainClass": "org.apache.daffodil.debugger.dap.DAPodil",
+      "args": []
+    }
+    ```
+    This will start the debug adapter and await a connection from the Apache Daffodil VS Code Extension (usually on TCP port 4711); and
+* debug your schema file, as long as it has the `useExistingServer` setting above.
+
+#### Automatically Recompile Code When it Changes
+
+To automatically recompile code when it changes, run `yarn watch`. Problems will show up in the `Problems` tab as `yarn watch` is active. You'll want to run `yarn watch` before you start debugging in Visual Studio Code. 
+
 ### Troubleshooting
 You may run into issues with building, running tests, or debugging the extension. The follow sections will describe some issues you may encounter and discuss remedies. 
 
@@ -291,6 +387,22 @@ To remedy this, you need to change versions of Yarn. Use `yarn set version 1.22.
 ##### Data Editor Opens Test Case Failing
 
 This means port 9000 is Occupied. See the current workarounds section in ["data editor opens" test fails if Port 9000 is Occupied · Issue #1175 · apache/daffodil-vscode](https://github.com/apache/daffodil-vscode/issues/1175).
+
+#### TLS Certificate Issues
+
+HTTPS TLS certificates are verified by default.  When running the test suite in certain environments (e.g., company VPN that uses endpoint protection), TLS certificate verifications may fail with a self-signed certificate error.  If this is the case, either have node trust the endpoint protection certificate, or use one of these workarounds to disable the certificate verification:
+
+```shell
+NODE_TLS_REJECT_UNAUTHORIZED=0 yarn test
+```
+
+or
+
+```shell
+node ./out/tests/runTest.js --disable_cert_verification
+```
+
+**WARNING:** Do not `export NODE_TLS_REJECT_UNAUTHORIZED=0` into your environment as it will disable TLS certificate verification on _all_ node HTTPS connections done in that shell session.
 
 #### Debugging Issues
 ##### SELinux Port Functionality
