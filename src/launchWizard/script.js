@@ -392,8 +392,8 @@ function copyConfig() {
 async function updateConfigValues(config) {
   document.getElementById('name').value = config.name
   document.getElementById('data').value = config.data
-  document.getElementById('rootName').value = config.rootName
-  document.getElementById('rootNamespace').value = config.rootNamespace
+  document.getElementById('rootName').value = config.schema.rootName
+  document.getElementById('rootNamespace').value = config.schema.rootNamespace
   document.getElementById('debugServer').value = parseInt(config.debugServer)
   document.getElementById('infosetFormat').value = config.infosetFormat
     ? config.infosetFormat
@@ -428,7 +428,7 @@ async function updateConfigValues(config) {
   document.getElementById('openInfosetDiffView').checked =
     config.openInfosetDiffView
   document.getElementById('openInfosetView').checked = config.openInfosetView
-  document.getElementById('schema').value = config.schema
+  document.getElementById('schema').value = config.schema.path
   document.getElementById('stopOnEntry').checked = config.stopOnEntry
   document.getElementById('trace').checked = config.trace
   document.getElementById('useExistingServer').checked =
@@ -442,9 +442,9 @@ async function updateConfigValues(config) {
     config.dataEditor.logging.level
 
   document.getElementById('dfdlDebuggerLogFile').value =
-    config.dfdlDebugger.file
+    config.dfdlDebugger.logging.file
   document.getElementById('dfdlDebuggerLogLevel').value =
-    config.dfdlDebugger.level
+    config.dfdlDebugger.logging.level
 
   updateInfosetOutputType()
   updateTDMLAction()
