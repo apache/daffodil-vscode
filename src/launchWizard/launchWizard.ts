@@ -29,6 +29,11 @@ const defaultConf = getConfig({
   name: 'Wizard Config',
   request: 'launch',
   type: 'dfdl',
+  schema: {
+    path: '${command:AskForSchemaName}',
+    rootName: 'null',
+    rootNamespace: 'null',
+  },
 })
 
 // Function that will activate/open the launch config wizard
@@ -356,7 +361,13 @@ class LaunchWizard {
         'launchWizard',
         'Launch Config Wizard',
         vscode.ViewColumn.Active,
-        this.getWebViewOptions(this.extensionUri)
+        {
+          enableScripts: true,
+          retainContextWhenHidden: true,
+          localResourceRoots: [
+            vscode.Uri.parse(this.ctx.asAbsolutePath('./src/launchWizard')),
+          ],
+        }
       )
 
       this.panel.onDidDispose(
