@@ -50,6 +50,10 @@
   - [ ] XML
   - [ ] JSON
 
+## DFDL Intellisense
+
+Instructions for testing dfdl intellisense are in the file DfdlIntellisenseTestingChecklist.md in the same directory as this file
+
 ## TDML
 
 - [ ] open a TDML file

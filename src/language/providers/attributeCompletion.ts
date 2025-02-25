@@ -18,13 +18,14 @@
 import * as vscode from 'vscode'
 
 import {
+  XmlItem,
+  getSchemaNsPrefix,
   nearestOpen,
   checkBraceOpen,
   isInXPath,
   lineCount,
   createCompletionItem,
   getCommonItems,
-  getXsdNsPrefix,
   getItemsOnLineCount,
   cursorWithinQuotes,
   cursorWithinBraces,
@@ -79,10 +80,15 @@ export function getAttributeCompletionProvider() {
           .text.substring(0, position.character)
         const charBeforeTrigger = triggerText.charAt(position.character - 1)
         const charAfterTrigger = triggerText.charAt(position.character)
-        let nearestOpenItem = nearestOpen(document, position)
+        let xmlItem = new XmlItem()
+        xmlItem = nearestOpen(document, position)
+        let nearestOpenItem = xmlItem.itemName
         let itemsOnLine = getItemsOnLineCount(triggerText)
-        const nsPrefix = getXsdNsPrefix(document, position)
-        let additionalItems = getDefinedTypes(document, nsPrefix)
+        const nsPrefix = xmlItem.itemNS
+        let additionalItems = getDefinedTypes(
+          document,
+          getSchemaNsPrefix(document)
+        )
 
         if (isInXPath(document, position)) return undefined
 
@@ -131,9 +137,11 @@ export function getTDMLAttributeCompletionProvider() {
           .text.substring(0, position.character)
         const charBeforeTrigger = triggerText.charAt(position.character - 1)
         const charAfterTrigger = triggerText.charAt(position.character)
-        let nearestOpenItem = nearestOpen(document, position)
+        let xmlItem = new XmlItem()
+        xmlItem = nearestOpen(document, position)
+        let nearestOpenItem = xmlItem.itemName
         let itemsOnLine = getItemsOnLineCount(triggerText)
-        const nsPrefix = getXsdNsPrefix(document, position)
+        const nsPrefix = xmlItem.itemNS
         let additionalItems = getDefinedTypes(document, nsPrefix)
 
         if (isInXPath(document, position)) return undefined
@@ -221,6 +229,10 @@ function checkNearestOpenItem(
     charAfterTrigger !== '\t'
       ? ' '
       : ''
+  let dfdlPrefix = dfdlDefaultPrefix
+  if (nsPrefix === 'dfdl:') {
+    dfdlPrefix = ''
+  }
   switch (nearestOpenItem) {
     case 'element':
       return getCompletionItems(
@@ -256,7 +268,7 @@ function checkNearestOpenItem(
         preVal,
         additionalItems,
         nsPrefix,
-        dfdlDefaultPrefix,
+        dfdlPrefix,
         spacingChar,
         afterChar
       )
@@ -272,7 +284,7 @@ function checkNearestOpenItem(
         preVal,
         '',
         nsPrefix,
-        dfdlDefaultPrefix,
+        dfdlPrefix,
         spacingChar,
         afterChar
       )
@@ -288,7 +300,7 @@ function checkNearestOpenItem(
         '',
         '',
         nsPrefix,
-        dfdlDefaultPrefix,
+        dfdlPrefix,
         spacingChar,
         afterChar
       )
@@ -304,7 +316,7 @@ function checkNearestOpenItem(
         '',
         '',
         nsPrefix,
-        dfdlDefaultPrefix,
+        dfdlPrefix,
         spacingChar,
         afterChar
       )
@@ -322,7 +334,7 @@ function checkNearestOpenItem(
         '',
         '',
         nsPrefix,
-        dfdlDefaultPrefix,
+        dfdlPrefix,
         spacingChar,
         afterChar
       )
