@@ -41,6 +41,7 @@ const items = [
   'defineEscapeScheme',
   'escapeScheme',
   'dfdl:element',
+  'dfdl:sequence',
   'dfdl:simpleType',
   'restriction',
   'schema',
@@ -49,8 +50,34 @@ const items = [
   'import',
 ]
 
+export class XmlItem {
+  private _itemName: string = 'none'
+  private _itemNS: string = 'none'
+
+  public get itemName() {
+    return this._itemName
+  }
+
+  public set itemName(name: string) {
+    this._itemName = name
+  }
+
+  public get itemNS() {
+    return this._itemNS
+  }
+
+  public set itemNS(nameSpace: string) {
+    this._itemNS = nameSpace
+  }
+}
+
 export function getItems() {
   return items
+}
+
+export function getSchemaNsPrefix(document: vscode.TextDocument) {
+  const pos = new vscode.Position(0, 0)
+  return getNsPrefix(document, pos)
 }
 
 // default namespace in the event that a namespace was not found
@@ -74,11 +101,12 @@ export function lineCount(
 ) {
   let lineNum = position.line
   let lineCount = 0
-  const nsPrefix = getXsdNsPrefix(document, position)
+  let nsPrefix = getNsPrefix(document, position)
 
   while (lineNum !== 0) {
     --lineNum
     ++lineCount
+
     const triggerText = document.lineAt(lineNum).text
 
     if (
@@ -96,17 +124,30 @@ export function nearestOpen(
   document: vscode.TextDocument,
   position: vscode.Position
 ) {
+  let xmlItem = new XmlItem()
   if (document.lineCount === 1 && position.character === 0) {
-    return 'none'
+    return xmlItem
   }
-  const nsPrefix = getXsdNsPrefix(document, position)
+  const nsPrefix = getNsPrefix(document, position)
 
   for (let i = 0; i < items.length; ++i) {
-    if (checkTagOpen(document, position, nsPrefix, items[i])) {
-      return items[i]
+    let [isTagOpen, isDfdlNs] = checkTagOpen(
+      document,
+      position,
+      nsPrefix,
+      items[i]
+    )
+    if (isTagOpen) {
+      if (isDfdlNs) {
+        xmlItem.itemNS = 'dfdl:'
+      } else {
+        xmlItem.itemNS = nsPrefix
+      }
+      xmlItem.itemName = items[i]
+      return xmlItem
     }
   }
-  return 'none'
+  return xmlItem
 }
 
 export function nearestTag(
@@ -117,7 +158,6 @@ export function nearestTag(
   startPos: number
 ): [string, number, number] {
   const triggerLine = position.line
-  const origPrefix = nsPrefix
   let lineNum = startLine
   const triggerText = document.lineAt(triggerLine).text
   const itemsOnLine = getItemsOnLineCount(document.lineAt(lineNum).text)
@@ -142,8 +182,6 @@ export function nearestTag(
         !textBeforeTrigger.includes('/>')
       ) {
         for (let i = 0; i < items.length; ++i) {
-          nsPrefix = getItemPrefix(items[i], origPrefix)
-
           if (tag.includes('<' + nsPrefix + items[i])) {
             return [items[i], startLine, prevTagPos]
           }
@@ -165,23 +203,24 @@ export function nearestTag(
       if (getItemsOnLineCount(currentText) < 2) {
         if (!currentText.includes('/>')) {
           for (let i = 0; i < items.length; ++i) {
-            nsPrefix = getItemPrefix(items[i], origPrefix)
+            nsPrefix = getNsPrefix(document, position)
 
             if (
               !currentText.includes('</') &&
               (currentText.includes('<' + nsPrefix + items[i]) ||
                 (lineNum === 0 && currentText.includes(items[i])))
             ) {
-              return [items[i], lineNum, startPos]
+              tagPos = currentText.lastIndexOf('<')
+              return [items[i], lineNum, tagPos]
             }
-
             if (
               currentText.includes('<' + nsPrefix + items[i]) &&
               currentText.includes('</' + nsPrefix + items[i]) &&
               position.character > currentText.indexOf('>') &&
               position.character <= currentText.indexOf('</')
             ) {
-              return [items[i], lineNum, startPos]
+              tagPos = currentText.lastIndexOf('<')
+              return [items[i], lineNum, tagPos]
             }
           }
         }
@@ -197,13 +236,12 @@ export function checkTagOpen(
   position: vscode.Position,
   nsPrefix: string,
   tag: string
-) {
-  nsPrefix = getItemPrefix(tag, nsPrefix)
-
+): [boolean, boolean] {
   let triggerLine = position.line
   let triggerText = document.lineAt(triggerLine).text
   let itemsOnLine = getItemsOnLineCount(triggerText)
   let isMultiLineTag = false
+  let isDfdlPrefix = false
   let origTriggerLine = triggerLine
   let compareText = triggerText
   let compareLine = triggerLine
@@ -219,6 +257,13 @@ export function checkTagOpen(
   }
 
   let tagPos = textBeforeTrigger.lastIndexOf('<' + nsPrefix + tag)
+  if (tagPos < 0) {
+    tagPos = textBeforeTrigger.lastIndexOf('<dfdl:' + tag)
+    if (tagPos > 0) {
+      isDfdlPrefix = true
+      nsPrefix = 'dfdl:'
+    }
+  }
   const nextTagPos = triggerText.indexOf('<', tagPos + 1)
   let tagEndPos = triggerText.indexOf('>', tagPos)
 
@@ -229,7 +274,7 @@ export function checkTagOpen(
         (nextTagPos > tagEndPos || nextTagPos === -1)) ||
         tagEndPos === -1)
     ) {
-      return true
+      return [true, isDfdlPrefix]
     }
   }
 
@@ -237,6 +282,13 @@ export function checkTagOpen(
     compareText = document.lineAt(--compareLine).text
   }
   tagPos = triggerText.indexOf('<' + nsPrefix + tag)
+  if (tagPos < 0) {
+    tagPos = textBeforeTrigger.lastIndexOf('<dfdl:' + tag)
+    if (tagPos > 0) {
+      isDfdlPrefix = true
+      nsPrefix = 'dfdl:'
+    }
+  }
 
   if (itemsOnLine < 2 && tagPos > -1) {
     if (triggerText !== compareText) {
@@ -252,12 +304,12 @@ export function checkTagOpen(
         triggerPos > tagPos) ||
       position.line < origTriggerLine
     ) {
-      return true
+      return [true, isDfdlPrefix]
     }
   }
 
   if (!isMultiLineTag || tagPos === -1) {
-    return false
+    return [false, isDfdlPrefix]
   }
   //if this tag is part of a multi line set of annotations return true
   //else this tag is not open return false
@@ -290,7 +342,12 @@ export function getItemPrefix(item: string, nsPrefix: string) {
     itemPrefix = '?'
   }
 
-  if (item === 'dfdl:element' || item === 'dfdl:simpleType') {
+  if (
+    item === 'dfdl:element' ||
+    item === 'dfdl:sequence' ||
+    item === 'dfdl:simpleType' ||
+    item === 'dfdl:format'
+  ) {
     itemPrefix = ''
   }
   return itemPrefix
@@ -303,10 +360,14 @@ export function checkMultiLineTag(
   nsPrefix: string,
   tagPos: number,
   tagLine: number,
-  tag: string
-) {
+  tag: string,
+  isDfdlTag = false
+): [boolean, boolean] {
+  if (nsPrefix === 'dfdl:') {
+    isDfdlTag = true
+  }
   if (itemsOnLine > 1) {
-    return false
+    return [false, isDfdlTag]
   }
   let currentLine = position.line
   let openTagLine = position.line
@@ -333,7 +394,7 @@ export function checkMultiLineTag(
       (origText.indexOf('>') > position.character ||
         origText.indexOf('>') === -1)
     ) {
-      return true
+      return [true, isDfdlTag]
     }
   }
 
@@ -347,14 +408,14 @@ export function checkMultiLineTag(
       (triggerLine === tagLine && triggerPos > tagPos && tagPos !== -1) ||
       triggerLine < currentLine
     ) {
-      return true
+      return [true, isDfdlTag]
     }
   }
-  return false
+  return [false, isDfdlTag]
 }
 
 //returns an empty value or a prefix plus a colon
-export function getXsdNsPrefix(
+export function getNsPrefix(
   document: vscode.TextDocument,
   position: vscode.Position
 ) {
@@ -371,6 +432,7 @@ export function getXsdNsPrefix(
     }
     ++lineNum
   }
+
   //returns the standard prefix plus a colon in the case of missing schema tag
   return defaultXsdNsPrefix
 }
@@ -437,19 +499,8 @@ export function isNotTriggerChar(
   }
 }
 
-export function isTagEndTrigger(
-  document: vscode.TextDocument,
-  position: vscode.Position
-) {
-  const triggerText = document.lineAt(position.line).text
-  const triggerPos = position.character
-  const trigChar = triggerText.substring(triggerPos - 1, triggerPos)
-  if (
-    trigChar == '/' ||
-    (trigChar == '>' &&
-      !triggerText.includes('/>') &&
-      !triggerText.includes('</'))
-  ) {
+export function isTagEndTrigger(trigChar: string | undefined) {
+  if (trigChar == '/' || trigChar == '>') {
     return true
   } else {
     return false

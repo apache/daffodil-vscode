@@ -45,7 +45,7 @@ export function checkMissingCloseTag(
           i
         )
 
-        if (gt1res != undefined) {
+        if (gt1res != 'none') {
           return gt1res
         }
       }
@@ -248,7 +248,7 @@ export function getItemsForLineGT1(
 ) {
   let openTagArray: number[] = []
   let closeTagArray: number[] = []
-  let [nextCloseCharPos, nextOpenTagPos] = [0, 0, 0]
+  let [nextCloseCharPos, nextOpenTagPos] = [0, 0]
 
   while (
     (nextOpenTagPos = triggerText.indexOf(
@@ -336,7 +336,8 @@ export function getItemsForLineLT2(
             testLine = lineBefore
             while (!testText.includes('>')) {
               testText = document.lineAt(++testLine).text
-              if (testText.indexOf('<') > -1) [openTagArray.push(testLine)]
+              if (testText.indexOf('<' + nsPrefix + items[i]) > -1)
+                openTagArray.push(testLine)
             }
           }
 

@@ -17,7 +17,7 @@
 
 import * as vscode from 'vscode'
 
-import { checkBraceOpen, cursorWithinBraces, getXsdNsPrefix } from './utils'
+import { checkBraceOpen, cursorWithinBraces, getNsPrefix } from './utils'
 import { getDefinedTypes } from './attributeCompletion'
 import {
   attributeValues,
@@ -38,7 +38,8 @@ export function getAttributeValueCompletionProvider() {
         ) {
           return undefined
         }
-        const nsPrefix = getXsdNsPrefix(document, position)
+        const schemaPosition = new vscode.Position(0, 0)
+        const nsPrefix = getNsPrefix(document, schemaPosition)
         let additionalItems = getDefinedTypes(document, nsPrefix)
         let [attributeName, startPos, endPos] = getAttributeDetails(
           document,
@@ -93,7 +94,7 @@ export function getTDMLAttributeValueCompletionProvider() {
         ) {
           return undefined
         }
-        const nsPrefix = getXsdNsPrefix(document, position)
+        const nsPrefix = getNsPrefix(document, position)
         let additionalItems = getDefinedTypes(document, nsPrefix)
         let [attributeName, startPos, endPos] = getAttributeDetails(
           document,

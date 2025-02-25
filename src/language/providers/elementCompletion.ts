@@ -18,8 +18,9 @@
 import * as vscode from 'vscode'
 import { checkMissingCloseTag, getCloseTag } from './closeUtils'
 import {
+  XmlItem,
   checkBraceOpen,
-  getXsdNsPrefix,
+  getNsPrefix,
   isInXPath,
   isTagEndTrigger,
   nearestOpen,
@@ -43,19 +44,23 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
         token: vscode.CancellationToken,
         context: vscode.CompletionContext
       ) {
+        const triggerChar = context.triggerCharacter
         if (
           !checkBraceOpen(document, position) &&
           !cursorWithinBraces(document, position) &&
           !cursorWithinQuotes(document, position) &&
           !cursorAfterEquals(document, position) &&
           !isInXPath(document, position) &&
-          !isTagEndTrigger(document, position)
+          !isTagEndTrigger(triggerChar)
         ) {
-          let nsPrefix = getXsdNsPrefix(document, position)
+          let nsPrefix = getNsPrefix(document, position)
           let [triggerLine, triggerPos] = [position.line, position.character]
           let triggerText = document.lineAt(triggerLine).text
           let itemsOnLine = getItemsOnLineCount(triggerText)
           let nearestOpenItem = nearestOpen(document, position)
+          if (nearestOpenItem.itemNS != 'none') {
+            nsPrefix = nearestOpenItem.itemNS
+          }
           let lastCloseSymbol = triggerText.lastIndexOf('>')
           let firstOpenSymbol = triggerText.indexOf('<')
 
@@ -65,7 +70,10 @@ export function getElementCompletionProvider(dfdlFormatString: string) {
             nsPrefix
           )
 
-          if (!nearestOpenItem.includes('none') && missingCloseTag == 'none') {
+          if (
+            !nearestOpenItem.itemName.includes('none') &&
+            missingCloseTag == 'none'
+          ) {
             return undefined
           }
           if (
@@ -122,11 +130,13 @@ export function getTDMLElementCompletionProvider(tdmlFormatString: string) {
         return undefined
       }
 
-      let nsPrefix = getXsdNsPrefix(document, position)
+      let nsPrefix = getNsPrefix(document, position)
       let [triggerLine, triggerPos] = [position.line, position.character]
       let triggerText = document.lineAt(triggerLine).text
       let itemsOnLine = getItemsOnLineCount(triggerText)
-      let nearestOpenItem = nearestOpen(document, position)
+      let xmlItem = new XmlItem()
+      xmlItem = nearestOpen(document, position)
+      let nearestOpenItem = xmlItem.itemName
       let lastCloseSymbol = triggerText.lastIndexOf('>')
       let firstOpenSymbol = triggerText.indexOf('<')
 
