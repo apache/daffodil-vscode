@@ -30,14 +30,20 @@ export function getAttributeHoverProvider() {
       const word = document.getText(range)
 
       let itemNames: string[] = []
-      attributeCompletion('', '', 'dfdl:', '', '').items.forEach((r) =>
+      attributeCompletion('', '', 'dfdl', '', '').items.forEach((r) =>
         itemNames.push(r.item)
       )
+      let testWord = ''
       if (word.length > 0) {
-        if (itemNames.includes(word)) {
+        if (!word.includes('dfdl:')) {
+          testWord = 'dfdl:' + word
+        } else {
+          testWord = word
+        }
+        if (itemNames.includes(testWord)) {
           return new vscode.Hover({
             language: 'dfdl',
-            value: attributeHoverValues(word),
+            value: attributeHoverValues(testWord),
           })
         }
       }

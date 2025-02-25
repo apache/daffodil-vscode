@@ -36,7 +36,7 @@
     "watch:svelte": "yarn webpack --env development=true -w -c ./src/svelte/webpack.config.js",
     "watch:svelte-tests": "mocha -r ts-node/register -w ./src/svelte/tests/**/*.test.ts",
     "watch:tdmlEditorJS": "esbuild src/tdmlEditor/webview/webview.js --outfile=dist/views/tdmlEditor/webview/webview.js --bundle --platform=node --format=cjs --watch",
-    "webpack": "webpack --mode production --config ./webpack/ext-dev.webpack.config.js",
+    "webpack": "webpack --mode development --config ./webpack/ext-dev.webpack.config.js",
     "webpack:pkg": "webpack --mode production --config ./webpack/ext-package.webpack.config.js",
     "webpack:svelte": "webpack -c ./src/svelte/webpack.config.js",
     "compile:tdmlEditorJS": "esbuild src/tdmlEditor/webview/webview.js --outfile=dist/views/tdmlEditor/webview/webview.js --bundle --platform=node --format=cjs",
