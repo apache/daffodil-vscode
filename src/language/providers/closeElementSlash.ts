@@ -22,7 +22,7 @@ import {
   checkBraceOpen,
   isInXPath,
   isNotTriggerChar,
-  getXsdNsPrefix,
+  getNsPrefix,
   getItemPrefix,
   getItemsOnLineCount,
   cursorWithinBraces,
@@ -38,8 +38,8 @@ export function getCloseElementSlashProvider() {
         document: vscode.TextDocument,
         position: vscode.Position
       ) {
-        let backpos = position.with(position.line, position.character - 1)
-        const nsPrefix = getXsdNsPrefix(document, position)
+        let backpos = new vscode.Position(position.line, position.character - 1)
+        const nsPrefix = getNsPrefix(document, position)
         const triggerText = document
           .lineAt(position)
           .text.substring(0, position.character)
@@ -98,7 +98,7 @@ export function getTDMLCloseElementSlashProvider() {
         position: vscode.Position
       ) {
         let backpos = position.with(position.line, position.character - 1)
-        const nsPrefix = getXsdNsPrefix(document, position)
+        const nsPrefix = getNsPrefix(document, position)
         const triggerText = document
           .lineAt(position)
           .text.substring(0, position.character)
@@ -154,11 +154,6 @@ function checkItemsOnLine(
     !(nearestTagNotClosed == 'none') &&
     (itemsOnLine == 1 || itemsOnLine == 0)
   ) {
-    // let range = new vscode.Range(backpos, position)
-
-    // await vscode.window.activeTextEditor?.edit((editBuilder) => {
-    //   editBuilder.replace(range, '')
-    // })
     if (
       nearestTagNotClosed.includes('defineVariable') ||
       nearestTagNotClosed.includes('setVariable')
@@ -176,10 +171,6 @@ function checkItemsOnLine(
     ) {
       let tagPos = triggerText.lastIndexOf('<' + nsPrefix + nearestTagNotClosed)
       let tagEndPos = triggerText.indexOf('>', tagPos)
-      // let range = new vscode.Range(backpos, position)
-      // await vscode.window.activeTextEditor?.edit((editBuilder) => {
-      //   editBuilder.replace(range, '')
-      // })
 
       if (
         tagPos != -1 &&

@@ -49,17 +49,17 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
       },
       {
         item: 'dfdl:assert',
-        snippetString: '<dfdl:assert $0',
+        snippetString: '<' + nsPrefix + 'assert $0',
         markdownString: 'Used to assert truths about a DFDL model',
       },
       {
         item: 'dfdl:discriminator',
-        snippetString: '<dfdl:discriminator $0',
+        snippetString: '<' + nsPrefix + 'discriminator $0',
         markdownString: 'Used during parsing to resolve points or uncertainity, remove ambiguity during speculative parsing, improve diagnostic behavior',
       },
       {
         item: 'dfdl:format',
-        snippetString: '<dfdl:format $0',
+        snippetString: '<' + nsPrefix + 'format $0',
         markdownString: 'Defines the physical data format properties for multiple DFDL schema constructs',
       },
       {
@@ -102,62 +102,62 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
       },
       {
         item: 'dfdl:newVariableInstance',
-        snippetString: '<dfdl:newVariableInstance ref="$1"$0',
+        snippetString: '<' + nsPrefix + 'newVariableInstance ref="$1"$0',
         markdownString: 'Defines the name, type, and optional default value for the variable'
       },
       {
         item: 'dfdl:defineVariable',
-        snippetString: '<dfdl:defineVariable name="$1"$0',
+        snippetString: '<' + nsPrefix + 'defineVariable name="$1"$0',
         markdownString: 'Defines the name, type, and optionally default value for the variable.',
       },
       {
         item: 'dfdl:setVariable',
-        snippetString: '<dfdl:setVariable ref="${1|' + definedVariables + '"|}, value="$2"$0',
+        snippetString: '<' + nsPrefix + 'setVariable ref="${1|' + definedVariables + '"|}, value="$2"$0',
         markdownString: 'Sets the value of a variable whose declaration is in scope',
       },
       {
         item: 'dfdl:defineFormat',
-        snippetString: '<dfdl:defineFormat name="$1">\n\t$2\n</dfdl:defineFormat>$0',
+        snippetString: '<' + nsPrefix + 'defineFormat name="$1">\n\t$2\n</dfdl:defineFormat>$0',
         markdownString: 'Defines a named reusable format definition',
       },
       {
         item: 'dfdl:defineEscapeScheme',
-        snippetString: '<dfdl:defineEscapeScheme name=$1 >\n\t$0,/dfdl:defineEscapeScheme>',
+        snippetString: '<' + nsPrefix + 'defineEscapeScheme name=$1 >\n\t$0,/dfdl:defineEscapeScheme>',
         markdownString: 'Defines a named, reusable escapeScheme',
       },
       {
         item: 'dfdl:escapeScheme',
-        snippetString: '<dfdl:escapeScheme $0',
+        snippetString: '<' + nsPrefix + 'escapeScheme $0',
         markdownString: 'Allows a common set of properties to be defined that can be reused',
       },
       {
         item: 'dfdl:simpleType',
-        snippetString: '<dfdl:simpleType $1/>$0',
+        snippetString: '<' + nsPrefix + 'simpleType $1/>$0',
         markdownString: 'Defines the physical data format properties of an xs:simpleType',
       },
       {
         item: 'dfdl:element',
-        snippetString: '<dfdl:element $1/>$0',
+        snippetString: '<' + nsPrefix + 'element $1/>$0',
         markdownString: 'Defines the physical data format properties of an xs:element',
       },
       {
         item: 'dfdl:sequence',
-        snippetString: '<dfdl:sequence $1/>$0',
+        snippetString: '<' + nsPrefix + 'sequence $1/>$0',
         markdownString: 'Defines the physical data format properties of an xs:sequence group',
       },
       {
         item: 'dfdl:group',
-        snippetString: '<dfdl:group $1/>$0',
+        snippetString: '<' + nsPrefix + 'group $1/>$0',
         markdownString: 'Defines the physical data format properties of an xs:group reference',
       },
       {
         item: 'dfdl:choice',
-        snippetString: '<dfdl:choice $1/>$0',
+        snippetString: '<' + nsPrefix + 'choice $1/>$0',
         markdownString: 'Defines the physical data format properties of an xs:choice group',
       },
       {
         item: 'dfdl:property',
-        snippetString: '<dfdl:property name="$1">\n\t$2\n</dfdl:property>$0',
+        snippetString: '<' + nsPrefix + 'property name="$1">\n\t$2\n</dfdl:property>$0',
         markdownString: 'Used in the syntax of format annotations',
       },
       {
