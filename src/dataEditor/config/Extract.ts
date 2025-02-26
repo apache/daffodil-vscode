@@ -18,6 +18,8 @@ import { Uri, workspace } from 'vscode'
 import { Config, ConfigJSON, IConfig } from './Config'
 import XDGAppPaths from 'xdg-app-paths'
 import path from 'path'
+import { substituteVSCodeEnvVariables } from '../../utils'
+import { ServerPortKeyword } from './ConfigKeyword'
 
 export const APP_DATA_PATH: string = XDGAppPaths({ name: 'omega_edit' }).data()
 export function addToAppDataPath(filename: string): string {
@@ -41,12 +43,31 @@ function extractDataEditorConfigFromQuery(
 
 export function extractConfigurationVariables(): IConfig {
   const configObjArray = queryConfigurationsArray()
+  const workspaceConfig = workspace.getConfiguration()
+  const port = workspaceConfig.dataEditor?.port || Config.Default.port
+
+  const noLaunchJSONConfig: Config = {
+    ...Config.Default, // Populate settings w/ default configs
+    // override defaults if they exist in global user's settings.json below
+    port: port, // Get dataEdtior port from settings.json if it exists
+    logLevel:
+      workspaceConfig.dataEditor?.logging?.level || Config.Default.logLevel, // Get logging level from settings.json if exists
+    logFile: workspaceConfig.dataEditor?.logging?.file
+      ? path.normalize(
+          substituteVSCodeEnvVariables(
+            workspaceConfig.dataEditor?.logging?.file,
+            APP_DATA_PATH
+          ).replaceAll(ServerPortKeyword, port)
+        )
+      : Config.Default.logFile, // Get logging file path from settings.json if exists
+  }
+
   if (configObjArray === undefined || configObjArray.length === 0)
-    return Config.Default
+    return noLaunchJSONConfig // No launch specified for DFDL
 
   return configObjArray[0]['dataEditor'] === undefined
-    ? Config.Default
-    : Config.fromConfigJSON(extractDataEditorConfigFromQuery(configObjArray))
+    ? noLaunchJSONConfig // There is a launch option specified for daffodil-vscode, but somehow missing "dataEditor" part
+    : Config.fromConfigJSON(extractDataEditorConfigFromQuery(configObjArray)) // Use dataEditor section in launch.json
 }
 
 export default { addToAppDataPath, rootPath, extractConfigurationVariables }
