@@ -353,3 +353,59 @@ export function ensureFile(path: string): string {
   }
   return path
 }
+
+/**
+ * Substitutes in VSCode and environmental variables into a given string.
+ *
+ * @param input - given string
+ * @param alternativeWorkspace - alternative workspace location if vscode can't find a good workspace
+ * @returns modified input, but with all ${} corresponding to VSCode or Env variables substituted with their
+ */
+export function substituteVSCodeEnvVariables(
+  input: string,
+  alternativeWorkspace?: string
+): string {
+  const workspaceFolder =
+    vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ||
+    alternativeWorkspace ||
+    ''
+  const homeDir = os.homedir()
+
+  // Common VS Code variables
+  const variableMap: Record<string, string> = {
+    '${workspaceFolder}': workspaceFolder,
+    '${workspaceRoot}': workspaceFolder,
+    '${userHome}': homeDir,
+    '${file}': vscode.window.activeTextEditor?.document.uri.fsPath || '',
+    '${relativeFile}': path.relative(
+      workspaceFolder,
+      vscode.window.activeTextEditor?.document.uri.fsPath || ''
+    ),
+    '${fileBasename}': path.basename(
+      vscode.window.activeTextEditor?.document.uri.fsPath || ''
+    ),
+    '${fileDirname}': path.dirname(
+      vscode.window.activeTextEditor?.document.uri.fsPath || ''
+    ),
+    '${fileExtname}': path.extname(
+      vscode.window.activeTextEditor?.document.uri.fsPath || ''
+    ),
+    '${fileBasenameNoExtension}': path.basename(
+      vscode.window.activeTextEditor?.document.uri.fsPath || '',
+      path.extname(vscode.window.activeTextEditor?.document.uri.fsPath || '')
+    ),
+    '${cwd}': process.cwd(),
+  }
+
+  // Add all environment variables dynamically
+  Object.entries(process.env).forEach(([key, value]) => {
+    if (value) {
+      variableMap[`$\{env:${key}\}`] = value
+    }
+  })
+
+  // Substitute all variables in the input string
+  return Object.entries(variableMap).reduce((result, [variable, value]) => {
+    return result.replaceAll(variable, value)
+  }, input)
+}
