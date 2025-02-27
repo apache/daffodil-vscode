@@ -39,13 +39,7 @@ val daffodilVer = {
 
 lazy val commonSettings =
   Seq(
-    version := {
-      val versionRegex = raw""""version": "(.*)",""".r
-      versionRegex.findFirstMatchIn(packageJsonStr) match {
-        case Some(m) => m.group(1)
-        case None    => sys.error("Missing version specifier in package.json")
-      }
-    },
+    version := IO.read((ThisBuild / baseDirectory).value / "VERSION").trim,
     libraryDependencies ++= Seq(
       "org.apache.daffodil" %% "daffodil-sapi" % daffodilVer,
       "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVer
