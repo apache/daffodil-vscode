@@ -44,6 +44,7 @@ jobs:
           tlp_dir: 'daffodil'
           project_name: 'Apache Daffodil VS Code'
           project_id: 'daffodil-vscode'
+          project_dir: 'daffodil-vscode'
           gpg_signing_key: ${{ secrets.GPG_PRIVATE_KEY }}
           svn_username: ${{ secrets.SVN_USERNAME }}
           svn_password: ${{ secrets.SVN_PASSWORD }}
