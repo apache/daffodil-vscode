@@ -24,7 +24,7 @@ name: Scala Steward CI
 jobs:
   scala-steward:
     if: github.repository == 'apache/daffodil-vscode'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     name: Launch Scala Steward
     steps:
       - name: Launch Scala Steward
