@@ -25,7 +25,6 @@ import {
   createSimpleFileLogger,
   createViewport,
   del,
-  destroySession,
   edit,
   EditorClient,
   endSessionTransaction,
@@ -38,11 +37,9 @@ import {
   getCounts,
   getLanguage,
   getLogger,
-  getServerHeartbeat,
   getServerInfo,
   getViewportData,
   IOFlags,
-  IServerInfo,
   modifyViewport,
   numAscii,
   profileSession,
@@ -77,17 +74,14 @@ import {
   MessageLevel,
 } from '../svelte/src/utilities/message'
 import * as editor_config from './config'
-import {
-  HeartbeatInfo,
-  IHeartbeatInfo,
-} from './include/server/heartbeat/HeartBeatInfo'
-import {
-  configureOmegaEditPort,
-  ServerInfo,
-  ServerStopPredicate,
-} from './include/server/ServerInfo'
+import { configureOmegaEditPort, ServerInfo } from './include/server/ServerInfo'
 import { isDFDLDebugSessionActive } from './include/utils'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
+import {
+  addActiveSession,
+  removeActiveSession,
+} from './include/server/Sessions'
+import { getCurrentHeartbeatInfo } from './include/server/heartbeat'
 
 // *****************************************************************************
 // global constants
@@ -108,13 +102,9 @@ const MAX_LOG_FILES: number = 5 // Maximum number of log files to keep TODO: mak
 // *****************************************************************************
 // file-scoped variables
 // *****************************************************************************
-
-let activeSessions: string[] = []
+let serverInfo: ServerInfo = new ServerInfo()
 let checkpointPath: string = ''
 let client: EditorClient
-let getHeartbeatIntervalId: NodeJS.Timeout | number | undefined = undefined
-let heartbeatInfo: IHeartbeatInfo = new HeartbeatInfo()
-let serverInfo: IServerInfo = new ServerInfo()
 let omegaEditPort: number = 0
 
 // *****************************************************************************
@@ -162,6 +152,7 @@ export class DataEditorClient implements vscode.Disposable {
     })
     this.panel.webview.onDidReceiveMessage(this.messageReceiver, this)
     this.panel.onDidDispose(async () => {
+      await removeActiveSession(this.omegaSessionId)
       await this.dispose()
     })
     this.disposables.push(
@@ -187,19 +178,11 @@ export class DataEditorClient implements vscode.Disposable {
   addDisposable(dispoable: vscode.Disposable) {
     this.disposables.push(dispoable)
   }
-  dispose(): void {
+  async dispose(): Promise<void> {
     if (this.sendHeartbeatIntervalId) {
       clearInterval(this.sendHeartbeatIntervalId)
       this.sendHeartbeatIntervalId = undefined
     }
-
-    // destroy the session and remove it from the list of active sessions
-    destroySession(this.omegaSessionId).then((id) => {
-      removeActiveSession(id)
-      serverStopIf(() => {
-        return activeSessions.length == 0
-      })
-    })
 
     for (let i = 0; i < this.disposables.length; i++)
       this.disposables[i].dispose()
@@ -342,6 +325,8 @@ export class DataEditorClient implements vscode.Disposable {
   }
 
   private async sendHeartbeat() {
+    const heartbeatInfo = getCurrentHeartbeatInfo()
+
     await this.panel.webview.postMessage({
       command: MessageCommand.heartbeat,
       data: {
@@ -353,13 +338,13 @@ export class DataEditorClient implements vscode.Disposable {
         sessionCount: heartbeatInfo.sessionCount,
         serverInfo: {
           omegaEditPort: this.configVars.port,
-          serverVersion: heartbeatInfo.serverInfo.serverVersion,
-          serverHostname: heartbeatInfo.serverInfo.serverHostname,
-          serverProcessId: heartbeatInfo.serverInfo.serverProcessId,
-          jvmVersion: heartbeatInfo.serverInfo.jvmVersion,
-          jvmVendor: heartbeatInfo.serverInfo.jvmVendor,
-          jvmPath: heartbeatInfo.serverInfo.jvmPath,
-          availableProcessors: heartbeatInfo.serverInfo.availableProcessors,
+          serverVersion: serverInfo.serverVersion,
+          serverHostname: serverInfo.serverHostname,
+          serverProcessId: serverInfo.serverProcessId,
+          jvmVersion: serverInfo.jvmVersion,
+          jvmVendor: serverInfo.jvmVendor,
+          jvmPath: serverInfo.jvmPath,
+          availableProcessors: serverInfo.availableProcessors,
         },
       },
     })
@@ -848,12 +833,6 @@ async function createDataEditorWebviewPanel(
       await checkServerListening(omegaEditPort, OMEGA_EDIT_HOST),
       'server not listening'
     )
-    // initialize the first server heartbeat
-    await getHeartbeat()
-    assert(
-      heartbeatInfo.serverInfo.serverVersion.length > 0,
-      'heartbeat did not receive a server version'
-    )
   }
   fileToEdit = fileToEdit.replace(
     editor_config.WorkspaceKeyword,
@@ -1132,9 +1111,7 @@ function removeDirectory(dirPath: string): void {
     fs.rmdirSync(dirPath)
   }
 }
-async function serverStopIf(predicate: ServerStopPredicate) {
-  if (predicate()) await serverStop()
-}
+
 async function serverStop() {
   const serverPidFile = getPidFile(omegaEditPort)
   if (fs.existsSync(serverPidFile)) {
@@ -1186,57 +1163,6 @@ function generateLogbackConfigFile(
   rotateLogFiles(logFile)
   fs.writeFileSync(logbackConfigFile, logbackConfig)
   return logbackConfigFile // Return the path to the logback config file
-}
-
-function addActiveSession(sessionId: string): void {
-  if (!activeSessions.includes(sessionId)) {
-    activeSessions.push(sessionId)
-    // scale the heartbeat interval based on the number of active sessions to reduce load on the server
-    getHeartbeat().then(() => {
-      if (getHeartbeatIntervalId) {
-        clearInterval(getHeartbeatIntervalId)
-      }
-      getHeartbeatIntervalId = setInterval(async () => {
-        await getHeartbeat()
-      }, HEARTBEAT_INTERVAL_MS * activeSessions.length)
-    })
-  }
-}
-
-function removeActiveSession(sessionId: string): void {
-  const index = activeSessions.indexOf(sessionId)
-  if (index >= 0) {
-    activeSessions.splice(index, 1)
-    clearInterval(getHeartbeatIntervalId)
-    getHeartbeatIntervalId = undefined
-    if (activeSessions.length > 0) {
-      // scale the heartbeat interval based on the number of active sessions
-      getHeartbeat().then(() => {
-        getHeartbeatIntervalId = setInterval(async () => {
-          await getHeartbeat()
-        }, HEARTBEAT_INTERVAL_MS * activeSessions.length)
-      })
-    }
-  }
-}
-
-async function getHeartbeat() {
-  assert(omegaEditPort > 0, `illegal Ωedit port ${omegaEditPort}`)
-  const heartbeat = await getServerHeartbeat(
-    activeSessions,
-    HEARTBEAT_INTERVAL_MS
-  )
-  heartbeatInfo.omegaEditPort = omegaEditPort
-  heartbeatInfo.latency = heartbeat.latency
-  heartbeatInfo.serverCommittedMemory = heartbeat.serverCommittedMemory
-  heartbeatInfo.serverCpuCount = heartbeat.serverCpuCount
-  heartbeatInfo.serverCpuLoadAverage = heartbeat.serverCpuLoadAverage
-  heartbeatInfo.serverMaxMemory = heartbeat.serverMaxMemory
-  heartbeatInfo.serverTimestamp = heartbeat.serverTimestamp
-  heartbeatInfo.serverUptime = heartbeat.serverUptime
-  heartbeatInfo.serverUsedMemory = heartbeat.serverUsedMemory
-  heartbeatInfo.sessionCount = heartbeat.sessionCount
-  heartbeatInfo.serverInfo = serverInfo
 }
 
 async function serverStart() {
@@ -1337,8 +1263,7 @@ async function serverStart() {
       `Server version ${serverVersion} and client version ${clientVersion} must match`
     )
   }
-  // get an initial heartbeat
-  await getHeartbeat()
+
   statusBarItem.text = `Ωedit server v${serverVersion} ready on port ${omegaEditPort} with PID ${serverInfo.serverProcessId}`
   setTimeout(() => {
     statusBarItem.dispose()

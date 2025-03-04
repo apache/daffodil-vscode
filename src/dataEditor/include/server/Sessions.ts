@@ -14,17 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IServerHeartbeat } from '@omega-edit/client'
+import { destroySession } from '@omega-edit/client'
+import { updateHeartbeatInterval } from './heartbeat'
 
-export class HeartbeatInfo implements IServerHeartbeat {
-  omegaEditPort: number = 0 // Ωedit server port
-  latency: number = 0 // latency in ms
-  serverCommittedMemory: number = 0 // committed memory in bytes
-  serverCpuCount: number = 0 // cpu count
-  serverCpuLoadAverage: number = 0 // cpu load average
-  serverMaxMemory: number = 0 // max memory in bytes
-  serverTimestamp: number = 0 // timestamp in ms
-  serverUptime: number = 0 // uptime in ms
-  serverUsedMemory: number = 0 // used memory in bytes
-  sessionCount: number = 0 // session count
+let activeSessions: string[] = []
+
+export function addActiveSession(sessionId: string): void {
+  if (!activeSessions.includes(sessionId)) {
+    activeSessions.push(sessionId)
+    // scale the heartbeat interval based on the number of active sessions to reduce load on the server
+    updateHeartbeatInterval(activeSessions)
+  }
+}
+export async function removeActiveSession(sessionId: string) {
+  const index = activeSessions.indexOf(sessionId)
+  activeSessions.splice(index, 1)
+  updateHeartbeatInterval(activeSessions)
+  await destroySession(sessionId)
 }
