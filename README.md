@@ -31,10 +31,12 @@ This is an extension for Visual Studio Code (VS Code) which enables the interact
 
 ## Build Requirements
 
-- Java Development Kit (JDK) 8 or higher
+- Java Development Kit (JDK) between 8 and 17
 - SBT 0.13.8 or higher
 - Node 20 or higher
-- Yarn (https://yarnpkg.com/getting-started/install)
+- [Yarn Classic](https://classic.yarnpkg.com/en/docs/install#windows-stable)
+
+Read [DEVELOPMENT.md](DEVELOPMENT.md) for further instructions on setting up your own development environment. 
 
 ## Download
 
