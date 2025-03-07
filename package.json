@@ -80,6 +80,7 @@
     "css-loader": "^6.8.1",
     "css-minimizer-webpack-plugin": "^7.0.0",
     "esbuild": "^0.25.0",
+    "fast-xml-parser": "^4.5.2",
     "glob": "8.1.0",
     "mini-css-extract-plugin": "^2.7.6",
     "mocha": "10.2.0",
