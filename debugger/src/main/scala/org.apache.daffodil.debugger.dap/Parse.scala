@@ -906,13 +906,13 @@ object Parse {
            * the SourceRequest (even if a path is specified). */
           Try(
             Paths
-              .get(URI.create(startElement.schemaLocation.uriString))
+              .get(URI.create(startElement.schemaLocation.diagnosticFile.toURI().toString()))
               .toString()
           )
             .fold(
               _ =>
                 new Types.Source(
-                  startElement.schemaLocation.uriString,
+                  startElement.schemaLocation.diagnosticFile.toURI().toString(),
                   null,
                   0
                 ), // there is no valid path if the location is a schema contained in a jar file; see #76.
@@ -1449,7 +1449,7 @@ object Parse {
 
     def createLocation(loc: SchemaFileLocation): DAPodil.Location =
       DAPodil.Location(
-        URI.create(loc.uriString).normalize,
+        URI.create(loc.diagnosticFile.toURI().toString()).normalize,
         DAPodil.Line(loc.lineNumber.map(_.toInt).getOrElse(0))
       )
 
