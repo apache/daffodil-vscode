@@ -162,7 +162,7 @@ export class DataEditorClient implements vscode.Disposable {
         const eventAsEditorMessage = extractDaffodilEvent(debugEvent)
         if (eventAsEditorMessage === undefined) return
 
-        const forwardAs = eventAsEditorMessage.asEditorMessage()
+        const forwardAs = eventAsEditorMessage.asObject()
 
         await this.panel.webview.postMessage(forwardAs)
       })

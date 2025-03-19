@@ -74,12 +74,14 @@ object Parse {
   def apply(
       schema: Path,
       data: InputStream,
+      dataFilePath: Path,
       debugger: Debugger,
       infosetFormat: String,
       rootName: Option[String],
       rootNamespace: Option[String],
       variables: Map[String, String],
-      tunables: Map[String, String]
+      tunables: Map[String, String],
+      dapEvents: Channel[IO, Events.DebugEvent]
   ): IO[Parse] =
     for {
       dp <- Compiler()
@@ -104,16 +106,31 @@ object Parse {
               case "json" => new JsonInfosetOutputter(os, true)
             }
 
+            val dataSize = data.available()
+            val dataInputStream = new InputSourceDataInputStream(data)
+            val parseResult = dp.parse(dataInputStream, infosetOutputter)
+            val loc = parseResult.location()
+
             val parse =
               IO.interruptibleMany(
-                dp.parse(
-                  new InputSourceDataInputStream(data),
-                  infosetOutputter
-                )
+                parseResult
                 // WARNING: parse doesn't close the OutputStream, so closed below
               ).ensureOr(res => new Parse.Exception(res.getDiagnostics.toList))(res => !res.isError)
-                .guarantee(IO(os.close) *> done.set(true))
                 .void
+                .flatMap { _ =>
+                  val leftOverBits = (dataSize - (loc.bytePos1b - 1)) * 8
+
+                  if (leftOverBits > 0) {
+                    val message = DataLeftOverUtils.getMessage(dataFilePath, loc.bitPos1b, loc.bytePos1b, leftOverBits)
+
+                    Logger[IO].error(message) *> dapEvents.send(
+                      DataLeftOverEvent(loc.bitPos1b, loc.bytePos1b, leftOverBits, message)
+                    ) *> IO.unit
+                  } else {
+                    IO.unit
+                  }
+                }
+                .guarantee(IO(os.close) *> done.set(true))
 
             stopper &> parse
           }
@@ -754,12 +771,14 @@ object Parse {
             Parse(
               args.schemaPath,
               in,
+              args.dataPath,
               debugger,
               args.infosetFormat,
               args.rootName,
               args.rootNamespace,
               args.variables,
-              args.tunables
+              args.tunables,
+              dapEvents
             )
           )
           .toResource
@@ -1261,6 +1280,8 @@ object Parse {
       )
   }
   case class DataEvent(bytePos1b: Long) extends Events.DebugEvent("daffodil.data")
+  case class DataLeftOverEvent(bitPos1b: Long, bytePos1b: Long, leftOverBits: Long, message: String)
+      extends Events.DebugEvent("daffodil.dataLeftOver")
   case class InfosetEvent(content: String, mimeType: String) extends Events.DebugEvent("daffodil.infoset")
   object InfosetEvent {
     def apply(format: String, node: DIElement): InfosetEvent =
