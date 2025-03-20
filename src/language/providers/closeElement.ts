@@ -24,7 +24,7 @@ import {
   cursorWithinQuotes,
 } from './utils'
 import {
-  getXsdNsPrefix,
+  getNsPrefix,
   insertSnippet,
   isInXPath,
   isNotTriggerChar,
@@ -63,7 +63,7 @@ export function getCloseElementProvider() {
           backpos3 = position.with(position.line, position.character - 3)
         }
 
-        let nsPrefix = getXsdNsPrefix(document, position)
+        let nsPrefix = getNsPrefix(document, position)
         const origPrefix = nsPrefix
 
         const nearestTagNotClosed = checkMissingCloseTag(
@@ -143,7 +143,7 @@ export function getTDMLCloseElementProvider() {
           backpos3 = position.with(position.line, position.character - 3)
         }
 
-        let nsPrefix = getXsdNsPrefix(document, position)
+        let nsPrefix = getNsPrefix(document, position)
         const origPrefix = nsPrefix
 
         const nearestTagNotClosed = checkMissingCloseTag(
