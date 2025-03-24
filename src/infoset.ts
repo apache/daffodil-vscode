@@ -78,7 +78,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
       if (sid !== undefined) {
         let filepath = tmpFile(sid)
         fs.rmSync(`${filepath}`, { force: true })
-        fs.rmSync(`${filepath}.prev`, { force: true })
+        fs.rmSync(`${filepath}.prev.xml`, { force: true })
       }
       sid = undefined
       await openInfosetFilePrompt()
@@ -151,7 +151,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand('infoset.diff', async () => {
       if (sid !== undefined) {
         let filepath = ensureFile(tmpFile(sid))
-        let prev = ensureFile(`${filepath}.prev`)
+        let prev = ensureFile(`${filepath}.prev.xml`)
         vscode.commands.executeCommand(
           'vscode.diff',
           Uri.file(prev),

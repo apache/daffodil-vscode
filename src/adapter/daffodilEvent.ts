@@ -27,7 +27,7 @@ export function handleDebugEvent(e: vscode.DebugSessionCustomEvent) {
     case daf.infosetEvent:
       let update: daf.InfosetEvent = e.body
       let path = ensureFile(tmpFile(e.session.id))
-      fs.copyFileSync(path, `${path}.prev`)
+      fs.copyFileSync(path, `${path}.prev.xml`)
       fs.writeFileSync(path, update.content)
       break
     // this allows for any error event to be caught in this case
