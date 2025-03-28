@@ -68,7 +68,7 @@
     "@tsconfig/svelte": "^5.0.2",
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.3",
-    "@types/node": "^20.11.30",
+    "@types/node": "^22.13.14",
     "@types/vscode": "^1.90.0",
     "@types/vscode-webview": "^1.57.5",
     "@vscode/debugadapter-testsupport": "1.65.0",
