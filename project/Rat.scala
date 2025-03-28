@@ -26,6 +26,8 @@ object Rat {
     file(".metal"),
     // vscode-test generated directory
     file(".vscode-test"),
+    // version file does not contain a license header
+    file("VERSION"),
     /** Can't add license headers in JSON files. Adding a license attribute breaks things in some of these files as
       * well.
       */
