@@ -527,12 +527,10 @@ object DAPodil extends IOApp {
         debugee,
         whenDone
       )
-      _ <- dapodil.handleRequests.compile.lastOrError
-        .onError(
-          Logger[IO]
-            .error(_)("unhandled error") *> whenDone.complete(Done(false)).void
-        )
-        .background
+      _ <- dapodil.handleRequests.compile.lastOrError.onError { case e =>
+        Logger[IO]
+          .error(e)("unhandled error") *> whenDone.complete(Done(false)).void
+      }.background
 
     } yield whenDone.get
 
