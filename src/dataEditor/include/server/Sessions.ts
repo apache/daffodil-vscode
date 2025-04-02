@@ -16,6 +16,7 @@
  */
 import { destroySession } from '@omega-edit/client'
 import { updateHeartbeatInterval } from './heartbeat'
+import { serverStop } from '../../dataEditorClient'
 
 let activeSessions: string[] = []
 
@@ -31,4 +32,5 @@ export async function removeActiveSession(sessionId: string) {
   activeSessions.splice(index, 1)
   updateHeartbeatInterval(activeSessions)
   await destroySession(sessionId)
+  await serverStop()
 }

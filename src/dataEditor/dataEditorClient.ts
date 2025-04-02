@@ -1112,7 +1112,7 @@ function removeDirectory(dirPath: string): void {
   }
 }
 
-async function serverStop() {
+export async function serverStop() {
   const serverPidFile = getPidFile(omegaEditPort)
   if (fs.existsSync(serverPidFile)) {
     const pid = parseInt(fs.readFileSync(serverPidFile).toString())
