@@ -35,11 +35,7 @@ import {
 } from 'tdmlEditor/utilities/tdmlXmlUtils'
 import xmlFormat from 'xml-formatter'
 import { CommandsProvider } from '../views/commands'
-import {
-  DaffodilDataLeftOver,
-  extractDaffodilData,
-  extractDaffodilEvent,
-} from '../daffodilDebugger/daffodil'
+import * as daffodilDebugErrors from './daffodilDebugErrors'
 
 export const outputChannel: vscode.OutputChannel =
   vscode.window.createOutputChannel('Daffodil')
@@ -562,19 +558,7 @@ export function activateDaffodilDebug(
   tdmlEditor.activate(context)
   rootCompletion.activate(context)
 
-  vscode.debug.onDidReceiveDebugSessionCustomEvent(async (e) => {
-    const debugEvent = extractDaffodilEvent(e)
-    if (debugEvent === undefined) return
-    const debugEventObject = debugEvent.asObject()
-
-    if (debugEventObject.command == 'daffodil.dataLeftOver') {
-      const dataLeftOver = extractDaffodilData(
-        debugEventObject
-      ) as DaffodilDataLeftOver
-
-      vscode.window.showErrorMessage(dataLeftOver.message)
-    }
-  })
+  daffodilDebugErrors.activate()
 }
 
 class DaffodilConfigurationProvider

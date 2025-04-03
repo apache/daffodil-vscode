@@ -33,6 +33,11 @@ export interface DaffodilDataLeftOver {
   message: string
 }
 
+export const parseErrorEvent = 'daffodil.parseError'
+export interface DaffodilParseError {
+  message: string
+}
+
 export const infosetEvent = 'daffodil.infoset'
 export interface InfosetEvent {
   content: string
@@ -77,17 +82,21 @@ export interface IDaffodilEvent {
 
 export type DaffodilEventType =
   | 'daffodil.data'
+  | 'daffodil.dataLeftOver'
+  | 'daffodil.parseError'
   | 'daffodil.infoset'
   | 'daffodil.config'
 export type DaffodilEventData = { command: string; data: any }
 export type DaffodilDataType =
   | DaffodilData
   | DaffodilDataLeftOver
+  | DaffodilParseError
   | InfosetEvent
   | ConfigEvent
 export type DaffodilDataTypeMap = {
   'daffodil.data': DaffodilData
   'daffodil.dataLeftOver': DaffodilDataLeftOver
+  'daffodil.parseError': DaffodilParseError
   'daffodil.infoset': InfosetEvent
   'daffodil.config': ConfigEvent
 }

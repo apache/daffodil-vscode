@@ -115,7 +115,21 @@ object Parse {
               IO.interruptibleMany(
                 parseResult
                 // WARNING: parse doesn't close the OutputStream, so closed below
-              ).ensureOr(res => new Parse.Exception(res.getDiagnostics.toList))(res => !res.isError)
+              ).flatTap { res =>
+                if (res.isError) {
+                  dapEvents
+                    .send(
+                      Parse.Event.Error(
+                        res.getDiagnostics.toList
+                          .map(d => d.toString)
+                          .mkString("\n")
+                      )
+                    )
+                    .void
+                } else IO.unit
+              }.ensureOr { res =>
+                new Parse.Exception(res.getDiagnostics.toList)
+              }(res => !res.isError)
                 .void
                 .flatMap { _ =>
                   val leftOverBits = (dataSize - (loc.bytePos1b - 1)) * 8
@@ -1153,6 +1167,7 @@ object Parse {
     case class EndElement(state: StateForDebugger) extends Event
     case object Fini extends Event
     case class Control(state: DAPodil.Debugee.State) extends Event
+    case class Error(message: String) extends Events.DebugEvent("daffodil.parseError")
 
     implicit val show: Show[Event] = Show.fromToString
   }
