@@ -122,7 +122,7 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
       },
       {
         item: 'dfdl:defineEscapeScheme',
-        snippetString: '<' + nsPrefix + 'defineEscapeScheme name=$1 >\n\t$0,/dfdl:defineEscapeScheme>',
+        snippetString: '<dfdl:defineEscapeScheme name=$1 >\n\t$0</dfdl:defineEscapeScheme>',
         markdownString: 'Defines a named, reusable escapeScheme',
       },
       {
