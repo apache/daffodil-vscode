@@ -46,7 +46,8 @@
     "test": "sbt test && yarn test:svelte && node ./out/tests/runTest.js",
     "test:svelte": "mocha -r ts-node/register ./src/svelte/tests/**/*.test.ts",
     "sbt": "sbt debugger/Universal/packageBin",
-    "svelte:check": "svelte-check --tsconfig ./tsconfig.json"
+    "svelte:check": "svelte-check --tsconfig ./tsconfig.json",
+    "update-version": "run-func build/yarn-scripts.ts updateVersion"
   },
   "dependencies": {
     "@omega-edit/client": "0.9.87",

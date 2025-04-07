@@ -120,10 +120,67 @@ function package() {
   )
 }
 
+/* START SECTION: Update version */
+// helper function to get the version passed in
+function parseArgs() {
+  const args = process.argv.slice(1)
+
+  for (let i = 0; i < args.length; i++) {
+    if ((args[i] === '-v' || args[i] == '--version') && i + 1 < args.length) {
+      return args[i + 1]
+    }
+  }
+
+  return null
+}
+
+function updatePackageJsonVersion(version) {
+  const packageJsonPath = 'package.json'
+
+  if (!fs.existsSync(packageJsonPath)) {
+    console.error('Error: package.json not found')
+    process.exit(1)
+  }
+
+  const pkgRaw = fs.readFileSync(packageJsonPath, 'utf-8')
+  const pkg = JSON.parse(pkgRaw)
+  pkg.version = version
+
+  fs.writeFileSync(
+    packageJsonPath,
+    JSON.stringify(pkg, null, 2) + '\n',
+    'utf-8'
+  )
+  console.log(`package.json version updated to ${version}`)
+}
+
+function updateVersionFile(version) {
+  fs.writeFileSync('VERSION', version + '\n', 'utf-8')
+  console.log(`VERSION updated to ${version}`)
+}
+
+function updateVersion() {
+  let newVersion = parseArgs()
+
+  if (!newVersion) {
+    console.error('Error: Please provide a version using -v or --version')
+    process.exit(1)
+  }
+
+  if (newVersion.startsWith('v')) {
+    newVersion = newVersion.slice(1)
+  }
+
+  updatePackageJsonVersion(newVersion)
+  updateVersionFile(newVersion)
+}
+/* END SECTION: Update version */
+
 module.exports = {
   genVersionTS: genVersionTS,
   nodeclean: nodeclean,
   scalaclean: scalaclean,
+  updateVersion: updateVersion,
   watch: watch,
   package: package,
 }
