@@ -49,17 +49,17 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
       },
       {
         item: 'dfdl:assert',
-        snippetString: '<' + nsPrefix + 'assert $0',
+        snippetString: '<dfdl:assert $0',
         markdownString: 'Used to assert truths about a DFDL model',
       },
       {
         item: 'dfdl:discriminator',
-        snippetString: '<' + nsPrefix + 'discriminator $0',
+        snippetString: '<dfdl:discriminator $0',
         markdownString: 'Used during parsing to resolve points or uncertainity, remove ambiguity during speculative parsing, improve diagnostic behavior',
       },
       {
         item: 'dfdl:format',
-        snippetString: '<' + nsPrefix + 'format $0',
+        snippetString: '<dfdl:format $0',
         markdownString: 'Defines the physical data format properties for multiple DFDL schema constructs',
       },
       {
@@ -102,22 +102,22 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
       },
       {
         item: 'dfdl:newVariableInstance',
-        snippetString: '<' + nsPrefix + 'newVariableInstance ref="$1"$0',
+        snippetString: '<dfdl:newVariableInstance ref="$1"$0',
         markdownString: 'Defines the name, type, and optional default value for the variable'
       },
       {
         item: 'dfdl:defineVariable',
-        snippetString: '<' + nsPrefix + 'defineVariable name="$1"$0',
+        snippetString: '<dfdl:defineVariable name="$1"$0',
         markdownString: 'Defines the name, type, and optionally default value for the variable.',
       },
       {
         item: 'dfdl:setVariable',
-        snippetString: '<' + nsPrefix + 'setVariable ref="${1|' + definedVariables + '"|}, value="$2"$0',
+        snippetString: '<dfdl:setVariable ref="${1|' + definedVariables + '"|}, value="$2"$0',
         markdownString: 'Sets the value of a variable whose declaration is in scope',
       },
       {
         item: 'dfdl:defineFormat',
-        snippetString: '<' + nsPrefix + 'defineFormat name="$1">\n\t$2\n</dfdl:defineFormat>$0',
+        snippetString: '<dfdl:defineFormat name="$1">\n\t$2\n</dfdl:defineFormat>$0',
         markdownString: 'Defines a named reusable format definition',
       },
       {
@@ -127,37 +127,37 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
       },
       {
         item: 'dfdl:escapeScheme',
-        snippetString: '<' + nsPrefix + 'escapeScheme $0',
+        snippetString: '<dfdl:escapeScheme $0',
         markdownString: 'Allows a common set of properties to be defined that can be reused',
       },
       {
         item: 'dfdl:simpleType',
-        snippetString: '<' + nsPrefix + 'simpleType $1/>$0',
+        snippetString: '<dfdl:simpleType $1/>$0',
         markdownString: 'Defines the physical data format properties of an xs:simpleType',
       },
       {
         item: 'dfdl:element',
-        snippetString: '<' + nsPrefix + 'element $1/>$0',
+        snippetString: '<dfdl:element $1/>$0',
         markdownString: 'Defines the physical data format properties of an xs:element',
       },
       {
         item: 'dfdl:sequence',
-        snippetString: '<' + nsPrefix + 'sequence $1/>$0',
+        snippetString: '<dfdl:sequence $1/>$0',
         markdownString: 'Defines the physical data format properties of an xs:sequence group',
       },
       {
         item: 'dfdl:group',
-        snippetString: '<' + nsPrefix + 'group $1/>$0',
+        snippetString: '<dfdl:group $1/>$0',
         markdownString: 'Defines the physical data format properties of an xs:group reference',
       },
       {
         item: 'dfdl:choice',
-        snippetString: '<' + nsPrefix + 'choice $1/>$0',
+        snippetString: '<dfdl:choice $1/>$0',
         markdownString: 'Defines the physical data format properties of an xs:choice group',
       },
       {
         item: 'dfdl:property',
-        snippetString: '<' + nsPrefix + 'property name="$1">\n\t$2\n</dfdl:property>$0',
+        snippetString: '<dfdl:property name="$1">\n\t$2\n</dfdl:property>$0',
         markdownString: 'Used in the syntax of format annotations',
       },
       {
