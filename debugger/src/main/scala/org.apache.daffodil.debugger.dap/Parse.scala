@@ -107,13 +107,13 @@ object Parse {
             }
 
             val dataSize = data.available()
-            val dataInputStream = new InputSourceDataInputStream(data)
-            val parseResult = dp.parse(dataInputStream, infosetOutputter)
-            val loc = parseResult.location()
 
             val parse =
               IO.interruptibleMany(
-                parseResult
+                dp.parse(
+                  new InputSourceDataInputStream(data),
+                  infosetOutputter
+                )
                 // WARNING: parse doesn't close the OutputStream, so closed below
               ).flatTap { res =>
                 if (res.isError) {
@@ -130,8 +130,8 @@ object Parse {
               }.ensureOr { res =>
                 new Parse.Exception(res.getDiagnostics.toList)
               }(res => !res.isError)
-                .void
-                .flatMap { _ =>
+                .flatMap { parseResult =>
+                  val loc = parseResult.location()
                   val leftOverBits = (dataSize - (loc.bytePos1b - 1)) * 8
 
                   if (leftOverBits > 0) {
@@ -144,6 +144,7 @@ object Parse {
                     IO.unit
                   }
                 }
+                .void
                 .guarantee(IO(os.close) *> done.set(true))
 
             stopper &> parse
