@@ -336,9 +336,22 @@ export async function copyTestCase(
       node.name?.endsWith(testCaseElement)
     )
 
+    /**
+     * Creates an absolute path from the given relative path to the temp TDML file
+     *
+     * @param relativePath - Relative path to convert into an absolute path
+     * @returns
+     */
+    const getAbsolutePathFromRelativeToTempTDMLFIlePath = (
+      relativePath: string
+    ) => resolve(dirname(getTmpTDMLFilePath()), relativePath)
+
+    // set to relative path to DFDL file from destination folder
     sourceTestCase[0].attributes[testCaseModelAttribute] = relative(
-      destinationFilePath,
-      sourceTestCase[0].attributes[testCaseModelAttribute].toString()
+      dirname(destinationFilePath),
+      getAbsolutePathFromRelativeToTempTDMLFIlePath(
+        sourceTestCase[0].attributes[testCaseModelAttribute].toString() // Contains relative path to the temp TDML file
+      )
     )
 
     // Each test case may contain any number of documents
@@ -355,9 +368,12 @@ export async function copyTestCase(
                 documentPartNode.elements !== undefined &&
                 documentPartNode.elements[0].text !== undefined
               )
+                // Set to relative path to data file from destination folder
                 documentPartNode.elements[0].text = relative(
-                  destinationFilePath,
-                  documentPartNode.elements[0].text.toString()
+                  dirname(destinationFilePath),
+                  getAbsolutePathFromRelativeToTempTDMLFIlePath(
+                    documentPartNode.elements[0].text.toString() // Contains relative path to the temp TDML file
+                  )
                 )
             })
         )
@@ -376,11 +392,15 @@ export async function copyTestCase(
               if (
                 dfdlInfosetNode.elements !== undefined &&
                 dfdlInfosetNode.elements[0].text !== undefined
-              )
+              ) {
+                // Set relative path to infoset from destinatino
                 dfdlInfosetNode.elements[0].text = relative(
-                  destinationFilePath,
-                  dfdlInfosetNode.elements[0].text.toString()
+                  dirname(destinationFilePath),
+                  getAbsolutePathFromRelativeToTempTDMLFIlePath(
+                    dfdlInfosetNode.elements[0].text.toString() // Relative path from temp TDML file to infoset file
+                  )
                 )
+              }
             })
         )
     })
