@@ -37,6 +37,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
+      - name: Check if SVN secrets are set
+        run: |
+          if [ -z "${{ secrets.DAFFODIL_SVN_DEV_USERNAME }}" ]; then
+            echo "DAFFODIL_SVN_DEV_USERNAME is not set"
+          else
+            echo "DAFFODIL_SVN_DEV_USERNAME is set"
+          fi
+
+          if [ -z "${{ secrets.DAFFODIL_SVN_DEV_PASSWORD }}" ]; then
+            echo "DAFFODIL_SVN_DEV_PASSWORD is not set"
+          else
+            echo "DAFFODIL_SVN_DEV_PASSWORD is set"
+          fi
+
       - name: ASF Release Candidate
         id: rc
         uses: apache/daffodil-infrastructure/actions/release-candidate@main
