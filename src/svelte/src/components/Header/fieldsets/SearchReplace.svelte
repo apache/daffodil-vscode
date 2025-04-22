@@ -281,7 +281,7 @@ limitations under the License.
         placeholder="Seek To Offset (base {$addressRadix})"
         allowDefaultInput="true"
         bind:value={$seekOffsetInput}
-        on:inputEnter={handleInputEnter}
+        on:inputEnter={$seekable.valid ? handleInputEnter : () => {}}
       >
         {#if $seekOffsetSearchType === OffsetSearchType.RELATIVE}
           <Tooltip
