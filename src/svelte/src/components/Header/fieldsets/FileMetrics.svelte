@@ -163,7 +163,9 @@ limitations under the License.
   <hr />
   <FlexContainer --dir="row">
     <FlexContainer --dir="column">
-      <label for="disk_file_size">Disk Size</label>
+      <Tooltip description="Initial file size" alwaysEnabled={true}>
+        <label for="disk_file_size">Disk Size</label>
+      </Tooltip>
       <Tooltip
         description="{$fileMetrics.diskSize.toLocaleString('en')} bytes"
         alwaysEnabled={true}
@@ -174,7 +176,9 @@ limitations under the License.
       </Tooltip>
     </FlexContainer>
     <FlexContainer --dir="column">
-      <label for="computed_file_size">Computed Size</label>
+      <Tooltip description="Size as file is being edited" alwaysEnabled={true}>
+        <label for="computed_file_size">Computed Size</label>
+      </Tooltip>
       <Tooltip
         description="{$fileMetrics.computedSize.toLocaleString('en')} bytes"
         alwaysEnabled={true}
