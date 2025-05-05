@@ -121,14 +121,9 @@ class TDMLSuite extends munit.FunSuite {
   }
 
   test("Test Execute") {
+    val schemaPathExecute = schemaPath
+    val dataPathExecute = dataPath
 
-    var schemaPathExecute = Paths.get("/debugger/src/test/data/emptySchema.xml")
-    var dataPathExecute = Paths.get("/debugger/src/test/data/emptyData.xml")
-
-    if (System.getProperty("os.name").toLowerCase.startsWith("win") == true) {
-      schemaPathExecute = schemaPath
-      dataPathExecute = dataPath
-    }
     TDML.generate(infosetPath, schemaPath, dataPath, tdmlName, tdmlDescription, tdmlPath.toString())
     val executePaths = TDML.execute(tdmlName, tdmlDescription, tdmlPath.toAbsolutePath().toString())
 
