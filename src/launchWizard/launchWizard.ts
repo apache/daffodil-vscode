@@ -510,7 +510,7 @@ class LaunchWizard {
 
     // tdml items need 0 height and width when hidden so there is no large empty space
     let tdmlNameDesVisOrHiddenStyle =
-      tdmlAction !== null
+      tdmlAction !== null && tdmlAction !== 'none' // Hide TDML name and desc fields if tdmlAction is none
         ? 'margin-top: 10px; visibility: visible;'
         : 'width: 0px; height: 0px; visibility: hidden'
     let tdmlPathVisOrHiddenStyle =
