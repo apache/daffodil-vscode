@@ -294,9 +294,7 @@ function save() {
         },
         tdmlConfig: {
           action: configValues.tdmlAction,
-          name: configValues.tdmlName,
-          description: configValues.tdmlDescription,
-          path: configValues.tdmlPath,
+          // Additional fields are added below
         },
         trace: configValues.trace,
         stopOnEntry: configValues.stopOnEntry,
@@ -320,6 +318,24 @@ function save() {
         },
       },
     ],
+  }
+
+  // Add relevant TDML properties based on action specified
+  switch (configValues.tdmlAction) {
+    case 'none':
+      break
+    case 'generate':
+      obj.configurations[0].tdmlConfig.path = configValues.tdmlPath
+    case 'append':
+    case 'execute':
+      obj.configurations[0].tdmlConfig.name = configValues.tdmlName
+      obj.configurations[0].tdmlConfig.description =
+        configValues.tdmlDescription
+      break
+    default:
+      throw new Error(
+        'Unable to save configuration item in launch.json. tdmlAction save actions not defined!'
+      )
   }
 
   vscode.postMessage({
