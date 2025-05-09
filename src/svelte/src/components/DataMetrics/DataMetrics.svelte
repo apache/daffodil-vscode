@@ -27,6 +27,7 @@ limitations under the License.
   import Tooltip from 'src/components/layouts/Tooltip.svelte'
 
   const PROFILE_DOS_EOL = 256
+  const MAX_BYTE_VALUE = 255
 
   // title for the byte profile graph
   export let title: string
@@ -135,7 +136,10 @@ limitations under the License.
   function handleCsvProfileDownload(): void {
     const csvContent =
       'Byte,Frequency\n' +
-      byteProfile.map((val, idx) => `${idx},${val}`).join('\n')
+      byteProfile
+        .filter((_, idx) => idx <= MAX_BYTE_VALUE)
+        .map((val, idx) => `${idx},${val}`)
+        .join('\n')
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
