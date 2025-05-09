@@ -124,7 +124,7 @@ limitations under the License.
 <SidePanel
   position="top-left"
   title="Data Profiler"
-  panelWidth="270px"
+  panelWidth="285px"
   bind:open={isProfilerOpen}
 >
   {#if isProfilerOpen}
