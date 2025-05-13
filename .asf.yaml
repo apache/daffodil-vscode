@@ -35,6 +35,7 @@ github:
     - rthomas320
     - stricklandrbls
     - JeremyYao
+    - naga-panchumarty
 notifications:
     commits:      commits@daffodil.apache.org
     issues:       commits@daffodil.apache.org
