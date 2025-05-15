@@ -25,15 +25,9 @@ github:
     merge:    false
     rebase:   true
   collaborators:
-    - ds-nteligen
-    - egbicker
     - hdalsania
     - lrbarber
     - michael-hoke
-    - nlewis05
-    - NolanMatt
-    - rthomas320
-    - stricklandrbls
     - JeremyYao
     - naga-panchumarty
 notifications:
