@@ -23,6 +23,7 @@ import path from 'path'
 import { VSCodeLaunchConfigArgs } from './classes/vscode-launch'
 import { InfosetOutput } from './daffodilDebugger'
 import { getTmpTDMLFilePath } from './tdmlEditor/utilities/tdmlXmlUtils'
+import { XMLParser } from 'fast-xml-parser'
 
 let currentConfig: vscode.DebugConfiguration
 
@@ -408,4 +409,41 @@ export function substituteVSCodeEnvVariables(
   return Object.entries(variableMap).reduce((result, [variable, value]) => {
     return result.replaceAll(variable, value)
   }, input)
+}
+
+/**
+ * Retrieves an array of test case items from a TDML (Test Data Markup Language) file.
+ *
+ * @param path - The file path to the TDML file.
+ * @returns An array of objects representing the test cases, where each object contains:
+ *          - `name`: The name of the test case (or undefined if not present).
+ *          - `description`: The description of the test case (or undefined if not present).
+ *          Returns an empty array if the file does not exist or if no test cases are found.
+ */
+export function getTDMLTestCaseItems(
+  path: string
+): { name: string | undefined; description: string | undefined }[] {
+  if (!fs.existsSync(path)) {
+    return [] // TDML file not found
+  }
+
+  // Needed objects for parsing
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    removeNSPrefix: true,
+  })
+  const fileData = fs.readFileSync(path)
+
+  // representaiton of TDML XML file as JS object
+  const xml_obj = parser.parse(fileData)
+
+  // Read through TDML test cases and populate each TDML test case item if XML file is valid enough
+  if (Array.isArray(xml_obj['testSuite']?.['parserTestCase'])) {
+    return xml_obj['testSuite']['parserTestCase'].map((obj) => ({
+      name: obj['@_name'],
+      description: obj['@_description'],
+    }))
+  } else {
+    return []
+  }
 }
