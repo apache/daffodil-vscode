@@ -2,7 +2,7 @@
   "name": "apache-daffodil-vscode",
   "displayName": "Apache Daffodil™ Extension for Visual Studio Code",
   "description": "Apache Daffodil™ Extension for Visual Studio Code providing DFDL syntax highlighting, DFDL code completion, DFDL schema debugging, and data editor",
-  "version": "1.4.1-SNAPSHOT",
+  "version": "1.4.1",
   "daffodilVersion": "3.10.0",
   "publisher": "asf",
   "author": "Apache Daffodil",
