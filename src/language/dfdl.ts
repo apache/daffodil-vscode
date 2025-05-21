@@ -23,6 +23,7 @@ import { getCloseElementProvider } from './providers/closeElement'
 import { getAttributeValueCompletionProvider } from './providers/attributeValueCompletion'
 import { getCloseElementSlashProvider } from './providers/closeElementSlash'
 import { getAttributeHoverProvider } from './providers/attributeHover'
+import { getDocumentFormattingEditProvider } from './providers/documentFormattingEdit'
 
 export function activate(context: vscode.ExtensionContext) {
   let dfdlFormat = fs
@@ -41,4 +42,9 @@ export function activate(context: vscode.ExtensionContext) {
     getCloseElementSlashProvider(),
     getAttributeHoverProvider()
   )
+
+  const daffodilSettingsConfig = vscode.workspace.getConfiguration('daffodil')
+  if (daffodilSettingsConfig.get<boolean>('enableFormatter')) {
+    context.subscriptions.push(getDocumentFormattingEditProvider())
+  }
 }

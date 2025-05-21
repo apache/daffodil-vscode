@@ -13,7 +13,8 @@
   "icon": "images/daffodil.ico",
   "categories": [
     "Debuggers",
-    "Programming Languages"
+    "Programming Languages",
+    "Formatters"
   ],
   "repository": {
     "type": "git",
@@ -64,7 +65,7 @@
     "unzip-stream": "0.3.4",
     "wait-port": "1.1.0",
     "xdg-app-paths": "8.3.0",
-    "xml-formatter": "^3.6.0",
+    "xml-formatter": "^3.6.6",
     "xml-js": "^1.6.11"
   },
   "devDependencies": {
@@ -958,6 +959,16 @@
             "type": "boolean",
             "default": false,
             "description": "Enable verbose logging"
+          }
+        }
+      },
+      {
+        "title": "Editor",
+        "properties": {
+          "daffodil.enableFormatter": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable or disable the formatter for DFDL files"
           }
         }
       }
