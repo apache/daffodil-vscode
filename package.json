@@ -572,11 +572,10 @@
                     "enum": [
                       "none",
                       "generate",
-                      "append",
                       "execute"
                     ],
                     "default": "generate",
-                    "description": "TDML Case Action (none | generate | append | exectute)"
+                    "description": "TDML Case Action (none | generate | exectute)"
                   },
                   "name": {
                     "type": "string",
