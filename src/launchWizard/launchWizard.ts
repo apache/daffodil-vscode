@@ -496,7 +496,7 @@ class LaunchWizard {
     })
 
     let tdmlActionSelect = 'none'
-    let tdmlActions = ['none', 'generate', 'append', 'execute']
+    let tdmlActions = ['none', 'generate', 'execute']
     let tdmlAction =
       'tdmlConfig' in defaultValues ? defaultValues.tdmlConfig['action'] : null
     let tdmlName =
@@ -733,7 +733,7 @@ class LaunchWizard {
 
       <div id="tdmlActionDiv" class="setting-div">
         <p>TDML Action:</p>
-        <p class="setting-description">TDML Action (none | generate | append | execute)</p>
+        <p class="setting-description">TDML Action (none | generate | execute)</p>
         <select onChange="updateTDMLAction()" class="file-input" style="width: 200px;" id="tdmlAction">
           ${tdmlActionSelect}
         </select>

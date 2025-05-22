@@ -340,7 +340,7 @@ object Parse {
     // }
     //
     // The action field is parsed first.
-    // If it is a valid action ('generate' | 'append' | 'execute' | 'none'), create a LaunchArgs object of the appropriate type
+    // If it is a valid action ('generate' | 'execute' | 'none'), create a LaunchArgs object of the appropriate type
     // If it is 'none' or missing, create a LaunchArgs.Manual object. This will ignore any other fields in the tdmlConfig object.
     //
     // arguments:  Launch config
@@ -376,21 +376,6 @@ object Parse {
                 parseVariables(arguments),
                 parseTunables(arguments)
               ).parMapN(LaunchArgs.TDMLConfig.Generate.apply)
-            case "append" =>
-              (
-                parseSchema(arguments),
-                parseData(arguments),
-                parseStopOnEntry(arguments),
-                parseInfosetFormat(arguments),
-                parseInfosetOutput(arguments, true),
-                parseTDMLName(tdmlConfig),
-                parseTDMLDescription(tdmlConfig),
-                parseTDMLPath(tdmlConfig),
-                parseRootName(arguments),
-                parseRootNamespace(arguments),
-                parseVariables(arguments),
-                parseTunables(arguments)
-              ).parMapN(LaunchArgs.TDMLConfig.Append.apply)
             case "execute" =>
               (
                 parseStopOnEntry(arguments),
@@ -418,7 +403,7 @@ object Parse {
               ).parMapN(LaunchArgs.Manual.apply)
             case invalidType =>
               Left(
-                s"invalid 'tdmlConfig.action': '$invalidType', must be 'generate', 'append', 'none', or 'execute'"
+                s"invalid 'tdmlConfig.action': '$invalidType', must be 'generate', 'none', or 'execute'"
               ).toEitherNel
           }
       }

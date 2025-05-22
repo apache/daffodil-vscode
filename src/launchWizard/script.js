@@ -326,7 +326,6 @@ function save() {
       break
     case 'generate':
       obj.configurations[0].tdmlConfig.path = configValues.tdmlPath
-    case 'append':
     case 'execute':
       obj.configurations[0].tdmlConfig.name = configValues.tdmlName
       obj.configurations[0].tdmlConfig.description =
