@@ -84,7 +84,7 @@
     "fast-xml-parser": "^4.5.2",
     "glob": "8.1.0",
     "mini-css-extract-plugin": "^2.7.6",
-    "mocha": "10.2.0",
+    "mocha": "11.5.0",
     "prettier": "3.2.5",
     "prettier-plugin-svelte": "3.2.6",
     "run-func": "^3.0.0",
