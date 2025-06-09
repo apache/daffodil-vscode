@@ -40,6 +40,7 @@ object Rat {
     file("svelte/package.json"),
     file(".prettierrc"),
     file("svelte/.prettierrc"),
+    file("build/license_data.json"),
     // ignore images - daffiodil.ico
     file("images/daffodil.ico"),
     // yarn and rpm generated files

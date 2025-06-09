@@ -1,0 +1,42 @@
+{
+    "allowedLiceneseTypes": [
+        "Apache-2.0",
+        "Apache-1.1",
+        "PHP-3.01",
+        "BSD-2-Clause",
+        "BSD-3-Clause",
+        "DOM4J",
+        "PostgreSQL",
+        "BSD-3-Clause-LBNL",
+        "MIT",
+        "ISC",
+        "CUP",
+        "MIT-0",
+        "ICU",
+        "NCSA",
+        "W3C-20150513",
+        "Xnet",
+        "Zlib",
+        "FSF",
+        "Bitstream-Vera",
+        "AFL-3.0",
+        "MS-PL",
+        "PSF-2.0",
+        "PIL",
+        "APAFML",
+        "BSL-1.0",
+        "WTFPL",
+        "ZPL-2.0",
+        "ACE",
+        "MulanPSL-2.0",
+        "0BSD",
+        "TCL"
+    ],
+    "packages": [
+       {
+            "name": "buffers",
+            "license": "MIT",
+            "allowed": true
+        }
+    ]
+}

@@ -21,6 +21,7 @@ const path = require('path')
 const fs = require('fs')
 const glob = require('glob')
 const concurrently = require('concurrently')
+const child_process = require('child_process')
 
 function rmFileOrDirectory(path) {
   if (fs.existsSync(path)) fs.rmSync(path, { recursive: true })
@@ -176,6 +177,98 @@ function updateVersion() {
 }
 /* END SECTION: Update version */
 
+/* START SECTION: LICENSE related methods */
+function getLicenseData() {
+  return JSON.parse(
+    child_process
+      .execSync(
+        `yarn licenses list --json --prod | jq 'select(.type == "table").data.body'`
+      )
+      .toString()
+  )
+}
+
+function checkMissingLicenseData() {
+  const licenses = getLicenseData()
+
+  const packageLicenseData = fs.readFileSync('build/package/LICENSE', 'utf-8')
+  const packageLicenseLines = packageLicenseData.split('\n')
+
+  const packageNoticeData = fs.readFileSync('build/package/NOTICE', 'utf-8')
+  const packageNoticeLines = packageNoticeData.split('\n')
+
+  const packageNoNoticeData = fs.readFileSync('build/package/NONOTICE', 'utf-8')
+  const packageNoNoticeLines = packageNoNoticeData.split('\n')
+
+  const missingLicenseData = []
+
+  licenses.forEach((license) => {
+    if (
+      packageLicenseLines
+        .map((line) => line.startsWith('-') && line.includes(license[0]))
+        .some(Boolean) ||
+      packageNoticeLines
+        .map((line) => line.startsWith('-') && line.includes(license[0]))
+        .some(Boolean) ||
+      packageNoNoticeLines
+        .map((line) => line.startsWith('-') && line.includes(license[0]))
+        .some(Boolean)
+    )
+      return
+
+    missingLicenseData.push(license[0])
+  })
+
+  if (missingLicenseData.length > 0) {
+    console.log('Missing LICENSE data for the following dependencies')
+    missingLicenseData.forEach((licenseName) =>
+      console.log(`  - ${licenseName}`)
+    )
+    process.exit(1)
+  } else {
+    console.log('No missing LICENSE data!')
+  }
+}
+
+function checkLicenseCompatibility() {
+  const licenses = getLicenseData()
+
+  const licenseDataFileData = JSON.parse(
+    fs.readFileSync('build/license_data.json', 'utf-8')
+  )
+
+  const allowedLicenseTypes = licenseDataFileData.allowedLiceneseTypes
+  const allowedLicenses = licenseDataFileData.packages
+    .filter((data) => data.allowed)
+    .map((data) => data.name)
+
+  const badLicenses = []
+
+  licenses.forEach((license) => {
+    const licenseCompatibile =
+      allowedLicenseTypes.filter((licenseType) =>
+        license[2].includes(licenseType)
+      ).length > 0
+        ? true
+        : false
+
+    if (!licenseCompatibile && !allowedLicenses.includes(license[0])) {
+      badLicenses.push(license)
+    }
+  })
+
+  if (badLicenses.length > 0) {
+    console.log('The follow dependencies have not ASF approved LICENCES:')
+    badLicenses.forEach((license) =>
+      console.log(`  - ${license[0]} -> ${license[2]}`)
+    )
+    process.exit(1)
+  } else {
+    console.log('All dependency LICENSES are compatibile!')
+  }
+}
+/* END SECTION: LICENSE related methods */
+
 module.exports = {
   genVersionTS: genVersionTS,
   nodeclean: nodeclean,
@@ -183,4 +276,6 @@ module.exports = {
   updateVersion: updateVersion,
   watch: watch,
   package: package,
+  checkMissingLicenseData: checkMissingLicenseData,
+  checkLicenseCompatibility: checkLicenseCompatibility,
 }
