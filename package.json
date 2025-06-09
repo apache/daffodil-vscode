@@ -74,7 +74,7 @@
     "@types/vscode-webview": "^1.57.5",
     "@vscode/debugadapter-testsupport": "1.68.0",
     "@vscode/test-electron": "2.3.8",
-    "@vscode/vsce": "3.2.2",
+    "@vscode/vsce": "^3.5.0",
     "chai": "^5.2.0",
     "concurrently": "^8.2.2",
     "copy-webpack-plugin": "^12.0.2",
@@ -967,5 +967,6 @@
     "publisherDisplayName": "Apache Software Foundation",
     "publisherId": "4dbc1d1a-d64b-46f8-8756-1c234855f645",
     "isPreReleaseVersion": false
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
