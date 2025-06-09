@@ -89,42 +89,6 @@ jobs:
       - name: TypeScript lint
         run: yarn lint
 
-  rat-check:
-    name: Rat Check
-    strategy:
-      matrix:
-        java_distribution: [temurin]
-        java_version: [8]
-        os: [ubuntu-22.04]
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
-    env:
-      SBT: sbt -J-Xms1024m -J-Xmx5120m -J-XX:ReservedCodeCacheSize=512m -J-XX:MaxMetaspaceSize=1024m ++2.12.15
-    steps:
-      ############################################################
-      # Setup
-      ############################################################
-
-      - name: Check out Repository
-        uses: actions/checkout@v4.2.2
-        with:
-          fetch-depth: 0
-
-      - name: Setup Java
-        uses: actions/setup-java@v4.7.0
-        with:
-          distribution: ${{ matrix.java_distribution }}
-          java-version: ${{ matrix.java_version }}
-
-      ############################################################
-      # Rat check
-      ############################################################
-
-      - name: Run Rat Check
-        run: $SBT ratCheck || (cat target/rat.txt; exit 1)
-
   build-test-package:
     name: "Build, Test, and Package (OS: ${{ matrix.os }}, Node: ${{ matrix.node }}, Java: ${{ matrix.java_version }}, VS Code: ${{ matrix.vscode }})"
     strategy:

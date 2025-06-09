@@ -26,6 +26,8 @@
     "gen-version-ts": "run-func build/yarn-scripts.ts genVersionTS",
     "nodeclean": "run-func build/yarn-scripts.ts nodeclean",
     "scalaclean": "run-func build/yarn-scripts.ts scalaclean",
+    "check-missing-license-data": "run-func build/yarn-scripts.ts checkMissingLicenseData",
+    "check-license-compatibility": "run-func build/yarn-scripts.ts checkLicenseCompatibility",
     "clean": "yarn nodeclean && yarn scalaclean",
     "precompile": "yarn nodeclean && yarn gen-version-ts && yarn webpack:svelte && yarn compile:tdmlEditorJS",
     "compile": "tsc -p ./ && yarn sbt",

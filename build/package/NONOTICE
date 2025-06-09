@@ -22,6 +22,11 @@ The following binary components distributed with this project are licensed under
     This package is available under the Apache License v2 without a NOTICE:
         Repository at: https://github.com/grpc/grpc-node
 
+- 'human-signals' in extension/dist/ext/extension.js
+  This product bundles 'human-signals' from the above files.
+    This package is available under the Apache License v2 without a NOTICE:
+        Repository at: https://github.com/ehmicky/human-signals
+
 - 'long' in extension/dist/ext/extension.js
 - 'long' in node_modules/@omega-edit/client
   This product bundles 'long' from the above files.
