@@ -30,7 +30,7 @@ jobs:
           [
             macos-13,
             ubuntu-22.04,
-            windows-2019,
+            windows-2022,
             macos-latest,
             ubuntu-latest,
             windows-latest,
