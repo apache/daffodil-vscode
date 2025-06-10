@@ -19,6 +19,7 @@ import * as vscode from 'vscode'
 import * as assert from 'assert'
 import * as path from 'path'
 import * as fs from 'fs'
+import * as os from 'os'
 import { PROJECT_ROOT, PACKAGE_PATH, TEST_SCHEMA } from './common'
 import { getConfig, killProcess } from '../../utils'
 import { runDebugger, stopDebugging } from '../../daffodilDebugger'
@@ -54,13 +55,13 @@ suite('Daffodil Debugger', () => {
     {
       logging: {
         level: 'INFO',
-        file: 'daffodil-debugger-4711.log',
+        file: path.join(os.tmpdir(), 'yarn-test-daffodil-debugger-4711.log'),
       },
     },
     {
       logging: {
         level: 'INFO',
-        file: 'daffodil-debugger-4712.log',
+        file: path.join(os.tmpdir(), 'yarn-test-daffodil-debugger-4712.log'),
       },
     },
   ]
@@ -97,10 +98,6 @@ suite('Daffodil Debugger', () => {
     // No need to deleted the debugging server because upon re-run, webpack cleans and re-extracts it.
     if (fs.existsSync(XML_INFOSET_PATH)) fs.rmSync(XML_INFOSET_PATH)
     if (fs.existsSync(JSON_INFOSET_PATH)) fs.rmSync(JSON_INFOSET_PATH)
-    dfdlDebuggers.forEach((dfdlDebugger) => {
-      if (fs.existsSync(dfdlDebugger.logging.file))
-        fs.rmSync(dfdlDebugger.logging.file)
-    })
   })
 
   test('should output xml infoset', async () => {
