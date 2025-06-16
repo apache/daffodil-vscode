@@ -39,7 +39,7 @@ jobs:
 
       - name: ASF Release Candidate
         id: rc
-        uses: apache/daffodil-infrastructure/actions/release-candidate@main
+        uses: apache/daffodil-infrastructure/actions/release-candidate@c96c906ce1a4d1593c62a48c4baf8733e0d218fb # main
         with:
           tlp_dir: 'daffodil'
           project_name: 'Apache Daffodil VS Code'
