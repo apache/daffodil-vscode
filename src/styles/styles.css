@@ -107,6 +107,7 @@
 .setting-div {
   font-size: 16px;
   cursor: pointer;
+  width: 450px;
 }
 
 .save-button {
