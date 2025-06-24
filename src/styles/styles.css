@@ -79,6 +79,10 @@
   background-color: grey;
 }
 
+.container input:checked:hover ~ .checkmark {
+  background-color: #4caf50;
+}
+
 /* Create the checkmark/indicator (hidden when not checked) */
 .checkmark:after {
   content: '';
@@ -107,6 +111,7 @@
 .setting-div {
   font-size: 16px;
   cursor: pointer;
+  width: 325px;
 }
 
 .save-button {
