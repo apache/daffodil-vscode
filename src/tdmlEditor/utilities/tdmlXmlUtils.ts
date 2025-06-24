@@ -71,11 +71,11 @@ const documentElement = 'document'
 const documentPartElement = 'documentPart'
 const infosetElement = 'infoset'
 const dfdlInfosetElement = 'dfdlInfoset'
+export const TMP_TDML_FILENAME: string = 'generatedTDML.tdml'
 
 // When a TDML file is generated on a DFDL parse, it is generated at this location
 export function getTmpTDMLFilePath() {
-  const tmpTDMLFileName: string = 'generatedTDML.tdml' as const
-  return join(os.tmpdir(), tmpTDMLFileName)
+  return join(os.tmpdir(), TMP_TDML_FILENAME)
 }
 
 export function getDefaultTDMLTestCaseName() {
