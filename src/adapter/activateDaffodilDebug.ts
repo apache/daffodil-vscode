@@ -15,6 +15,7 @@ import * as dfdlExt from 'language/semantics/dfdlExt'
 import * as dataEditClient from 'dataEditor'
 import * as tdmlEditor from 'tdmlEditor'
 import * as rootCompletion from 'rootCompletion'
+import { tmpdir } from 'os'
 
 import {
   CancellationToken,
@@ -32,6 +33,7 @@ import {
   appendTestCase,
   getTmpTDMLFilePath,
   copyTestCase,
+  TMP_TDML_FILENAME,
 } from 'tdmlEditor/utilities/tdmlXmlUtils'
 import xmlFormat from 'xml-formatter'
 import { CommandsProvider } from '../views/commands'
@@ -239,6 +241,16 @@ export function activateDaffodilDebug(
     vscode.commands.registerCommand(
       'extension.dfdl-debug.appendTDML',
       async (resource: vscode.Uri) => {
+        if (!fs.existsSync(getTmpTDMLFilePath())) {
+          vscode.window.showErrorMessage(
+            `TDML ERROR: Test suite not found. Ensure that the TDML action is set to "generate" for your DFDL debugging launch configuration before appending.`
+          )
+          console.error(
+            `TDML ERROR: Test suite not found. ${TMP_TDML_FILENAME} was not found in ${tmpdir()} for Append TDML operation.`
+          )
+          return
+        }
+
         let targetResource = resource
 
         if (!targetResource && vscode.window.activeTextEditor) {
@@ -265,6 +277,16 @@ export function activateDaffodilDebug(
     vscode.commands.registerCommand(
       'extension.dfdl-debug.copyTDML',
       async (_) => {
+        if (!fs.existsSync(getTmpTDMLFilePath())) {
+          vscode.window.showErrorMessage(
+            `TDML ERROR: Test suite not found. Ensure that the TDML action is set to "generate" for your DFDL debugging launch configuration before copying.`
+          )
+          console.error(
+            `TDML ERROR: Test suite not found. ${TMP_TDML_FILENAME} was not found in ${tmpdir()} for Copy TDML operation.`
+          )
+          return
+        }
+
         // Ask for destination path
         // Copy file in /tmp to destination path
         // TDMLConfig.path should not be used here because that only matters when sending to the server
