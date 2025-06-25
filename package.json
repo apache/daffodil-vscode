@@ -52,7 +52,7 @@
     "update-version": "run-func build/yarn-scripts.ts updateVersion"
   },
   "dependencies": {
-    "@omega-edit/client": "0.9.87",
+    "@omega-edit/client": "^0.9.88",
     "@viperproject/locate-java-home": "1.1.15",
     "@vscode/debugadapter": "1.67.0",
     "@vscode/webview-ui-toolkit": "^1.2.2",

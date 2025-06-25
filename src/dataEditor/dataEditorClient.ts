@@ -282,8 +282,16 @@ export class DataEditorClient implements vscode.Disposable {
         createSessionResponse.hasFileSize()
           ? (createSessionResponse.getFileSize() as number)
           : 0
-    } catch {
-      const msg = `Failed to create session for ${this.fileToEdit}`
+    } catch (err) {
+      // Error message obtained from https://github.com/ctc-oss/omega-edit/commit/b85ecc4579a77469bf29181a2e6ab7f839ee8a52#diff-59917b7537d1a13d123e6c53315fd9f8eebb9a037c8e92142b8caefa64c5e1cbR84
+      const isEmojiWindowsError =
+        err ==
+        'createSession error: 13 INTERNAL: Emojis in filenames is not supported on Windows'
+
+      const msg = isEmojiWindowsError
+        ? `Unable to open ${this.fileToEdit}! Data editor doesn't support Emojis in filename on Windows.`
+        : `Failed to create session for ${this.fileToEdit}`
+
       getLogger().error({
         err: {
           msg: msg,
@@ -291,6 +299,11 @@ export class DataEditorClient implements vscode.Disposable {
         },
       })
       vscode.window.showErrorMessage(msg)
+
+      if (isEmojiWindowsError) {
+        // fine to return early here and not remove session b/c addActiveSession doesn't get called for this error. createSession() errors out.
+        return
+      }
     }
 
     // create the viewport
