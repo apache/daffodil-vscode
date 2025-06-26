@@ -30,6 +30,7 @@ github:
     - michael-hoke
     - JeremyYao
     - naga-panchumarty
+    - CoverRyan
 notifications:
     commits:      commits@daffodil.apache.org
     issues:       commits@daffodil.apache.org
