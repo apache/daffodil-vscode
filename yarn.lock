@@ -427,23 +427,23 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@omega-edit/client@0.9.87":
-  version "0.9.87"
-  resolved "https://registry.yarnpkg.com/@omega-edit/client/-/client-0.9.87.tgz#d6ebd101f061873e33e3b584c8e7dd74680574c5"
-  integrity sha512-LYLdOIRjUX8tKjXqridMKdABJ3wxlG32UKX1NVcPI6prTC2kTeGGsPT/4L0rblc/wUl/obu/BRLf97fN/r1BZg==
+"@omega-edit/client@^0.9.88":
+  version "0.9.88"
+  resolved "https://registry.yarnpkg.com/@omega-edit/client/-/client-0.9.88.tgz#bf68e813aa75bcf60bad9af20780a18ed319b9cc"
+  integrity sha512-yf1bQtH2zkdF9M/yXxUKeKtQwMKZUK78lylHLVz3Gja4YE/Fi2yKdm1TOtFn0qxFwpJlA53b9aTPqxK08cu7Yw==
   dependencies:
     "@grpc/grpc-js" "1.12.2"
-    "@omega-edit/server" "0.9.87"
+    "@omega-edit/server" "0.9.88"
     "@types/google-protobuf" "3.15.12"
     google-protobuf "3.21.4"
     pid-port "1.0.2"
-    pino "9.6.0"
+    pino "9.7.0"
     wait-port "1.1.0"
 
-"@omega-edit/server@0.9.87":
-  version "0.9.87"
-  resolved "https://registry.yarnpkg.com/@omega-edit/server/-/server-0.9.87.tgz#0106352494db75b6d709f9a41784f99fc30fbc0c"
-  integrity sha512-vF1QF4HmE0I2qrH5nWz4QMKDTgd9Z/NbQ3mQ96vSATdx3x/zM3D5mOibieWHUoX2nS4jQ7zNRsBvGuXXuZCDKw==
+"@omega-edit/server@0.9.88":
+  version "0.9.88"
+  resolved "https://registry.yarnpkg.com/@omega-edit/server/-/server-0.9.88.tgz#346d99439772ed8be1c7a00a5196677cc2872def"
+  integrity sha512-O+lV7l1P28CcjMflvPzcqRhhbl/xas03q0f6jwd4NF+E+PFjd27K+PAwPLLKvyHBHrrRqrATMRYFyAxlqsmiHw==
 
 "@parcel/watcher-android-arm64@2.5.1":
   version "2.5.1"
@@ -3906,17 +3906,17 @@ pino-std-serializers@^7.0.0:
   resolved "https://registry.yarnpkg.com/pino-std-serializers/-/pino-std-serializers-7.0.0.tgz#7c625038b13718dbbd84ab446bd673dc52259e3b"
   integrity sha512-e906FRY0+tV27iq4juKzSYPbUj2do2X2JX4EzSca1631EB2QJQUqGbDuERal7LCtOpxl6x3+nvo9NPZcmjkiFA==
 
-pino@9.6.0:
-  version "9.6.0"
-  resolved "https://registry.yarnpkg.com/pino/-/pino-9.6.0.tgz#6bc628159ba0cc81806d286718903b7fc6b13169"
-  integrity sha512-i85pKRCt4qMjZ1+L7sy2Ag4t1atFcdbEt76+7iRJn1g2BvsnRMGu9p8pivl9fs63M2kF/A0OacFZhTub+m/qMg==
+pino@9.7.0:
+  version "9.7.0"
+  resolved "https://registry.yarnpkg.com/pino/-/pino-9.7.0.tgz#ff7cd86eb3103ee620204dbd5ca6ffda8b53f645"
+  integrity sha512-vnMCM6xZTb1WDmLvtG2lE/2p+t9hDEIvTWJsu6FejkE62vB7gDhvzrpFR4Cw2to+9JNQxVnkAKVPA1KPB98vWg==
   dependencies:
     atomic-sleep "^1.0.0"
     fast-redact "^3.1.1"
     on-exit-leak-free "^2.1.0"
     pino-abstract-transport "^2.0.0"
     pino-std-serializers "^7.0.0"
-    process-warning "^4.0.0"
+    process-warning "^5.0.0"
     quick-format-unescaped "^4.0.3"
     real-require "^0.2.0"
     safe-stable-stringify "^2.3.1"
@@ -4222,10 +4222,10 @@ process-nextick-args@~2.0.0:
   resolved "https://registry.yarnpkg.com/process-nextick-args/-/process-nextick-args-2.0.1.tgz#7820d9b16120cc55ca9ae7792680ae7dba6d7fe2"
   integrity sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==
 
-process-warning@^4.0.0:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/process-warning/-/process-warning-4.0.1.tgz#5c1db66007c67c756e4e09eb170cdece15da32fb"
-  integrity sha512-3c2LzQ3rY9d0hc1emcsHhfT9Jwz0cChib/QN89oME2R451w5fy3f0afAhERFZAwrbDU43wk12d0ORBpDVME50Q==
+process-warning@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/process-warning/-/process-warning-5.0.0.tgz#566e0bf79d1dff30a72d8bbbe9e8ecefe8d378d7"
+  integrity sha512-a39t9ApHNx2L4+HBnQKqxxHNs1r7KF+Intd8Q/g1bUh6q0WIp9voPXJ/x0j+ZL45KF1pJd9+q2jLIRMfvEshkA==
 
 protobufjs@^7.2.5:
   version "7.5.3"
