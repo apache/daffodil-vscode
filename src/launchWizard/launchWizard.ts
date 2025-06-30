@@ -500,13 +500,17 @@ class LaunchWizard {
     let tdmlAction =
       'tdmlConfig' in defaultValues ? defaultValues.tdmlConfig['action'] : null
     let tdmlName =
-      'tdmlConfig' in defaultValues ? defaultValues.tdmlConfig['name'] : null
+      'tdmlConfig' in defaultValues && defaultValues.tdmlConfig['name']
+        ? defaultValues.tdmlConfig['name']
+        : ''
     let tdmlDescription =
-      'tdmlConfig' in defaultValues
+      'tdmlConfig' in defaultValues && defaultValues.tdmlConfig['description']
         ? defaultValues.tdmlConfig['description']
-        : null
+        : ''
     let tdmlPath =
-      'tdmlConfig' in defaultValues ? defaultValues.tdmlConfig['path'] : null
+      'tdmlConfig' in defaultValues && defaultValues.tdmlConfig['path']
+        ? defaultValues.tdmlConfig['path']
+        : ''
 
     // tdml items need 0 height and width when hidden so there is no large empty space
     let tdmlNameDesVisOrHiddenStyle =

@@ -79,19 +79,22 @@ async function getTDMLConfig(
   if (config?.tdmlConfig?.action === 'generate') {
     if (
       config?.tdmlConfig?.name === undefined ||
-      config?.tdmlConfig?.name === 'undefined'
+      config?.tdmlConfig?.name === 'undefined' ||
+      config?.tdmlConfig?.name === ''
     )
       config.tdmlConfig.name = getDefaultTDMLTestCaseName()
 
     if (
       config?.tdmlConfig?.description === undefined ||
-      config?.tdmlConfig?.description === 'undefined'
+      config?.tdmlConfig?.description === 'undefined' ||
+      config?.tdmlConfig?.description === ''
     )
       config.tdmlConfig.description = getDefaultTDMLTestCaseDescription()
 
     if (
       config?.tdmlConfig?.path === undefined ||
-      config?.tdmlConfig?.path === 'undefined'
+      config?.tdmlConfig?.path === 'undefined' ||
+      config?.tdmlConfig?.path === ''
     )
       config.tdmlConfig.path = getTmpTDMLFilePath()
   }
