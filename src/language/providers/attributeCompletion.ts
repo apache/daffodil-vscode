@@ -16,7 +16,7 @@
  */
 
 import * as vscode from 'vscode'
-
+import { xml2js } from 'xml-js'
 import {
   XmlItem,
   getSchemaNsPrefix,
@@ -67,6 +67,81 @@ function getCompletionItems(
   return compItems
 }
 
+/** Removes duplicate attribute suggestions from an element. Also handles cases where the element is prefixed with dfdl:
+ *
+ * @param originalAttributeSuggestions  The completion item list
+ * @param position position object provided by VSCode of the cursor
+ * @param document vscode object
+ * @param nsPrefix namespace prefix of the element (includes the :)
+ * @returns
+ */
+function prunedDuplicateAttributes(
+  originalAttributeSuggestions: vscode.CompletionItem[] | undefined,
+  position: vscode.Position,
+  document: vscode.TextDocument,
+  nsPrefix: string
+): vscode.CompletionItem[] | undefined {
+  if (
+    originalAttributeSuggestions == undefined ||
+    originalAttributeSuggestions.length == 0
+  ) {
+    return originalAttributeSuggestions
+  }
+
+  // Setting up stuff to create a full stirng representation of the XML element
+  const fullDocumentText = document.getText()
+  let indexLowerBound = document.offsetAt(position) // This gets the character right behind the cursor
+  let indexUpperBound = document.offsetAt(position) + 1 // This gets the character after the cursor
+
+  // Traverse backwards character by character to find the first <
+  for (let i = indexLowerBound - 1; i >= 0; i--) {
+    if (fullDocumentText[i] == '<') {
+      indexLowerBound = i
+      break
+    }
+  }
+
+  // Traverse forward character by character to find > or <
+  for (let i = indexUpperBound; i < fullDocumentText.length; i++) {
+    if (fullDocumentText[i] == '<' || fullDocumentText[i] == '>') {
+      // This should be guaranteed as attempting to
+      indexUpperBound = i + 1
+      break
+    }
+  }
+
+  // Create the full representation of the current XML element for parsing
+  // Force it to be closed if the current xml element isn't closed it
+  const fullXMLElementText =
+    fullDocumentText[indexUpperBound - 1] != '>'
+      ? `${fullDocumentText.substring(indexLowerBound, indexUpperBound - 1)}>`
+      : fullDocumentText.substring(indexLowerBound, indexUpperBound)
+
+  // Obtain attributes for the currentl XML element after attempting to parse the whole thing as an XML element
+  const xmlRep = xml2js(fullXMLElementText, {})
+  const attributes = xmlRep.elements?.[0].attributes
+
+  if (attributes) {
+    // Some autocompletion attributes may or may not contain the dfdl: attribute when you accept it
+    // This flag determines whether or not we should ignore the dfdl: label when looking at the original attribute suggestions
+    const removeDFDLPrefix = nsPrefix === 'dfdl:'
+    const attributeSet: Set<string> = new Set(Object.keys(attributes))
+
+    // Return attributes that don't exist in the orignal all encompassing list
+    // Note if the element has a dfdl: prefix, then only look at the suffix of the attribute
+    return originalAttributeSuggestions.filter((suggestionItem) => {
+      const SuggestionLabel = suggestionItem.label.toString()
+      return !attributeSet.has(
+        removeDFDLPrefix && SuggestionLabel.startsWith('dfdl:')
+          ? SuggestionLabel.substring('dfdl:'.length)
+          : SuggestionLabel
+      )
+    })
+  }
+
+  return originalAttributeSuggestions
+}
+
 export function getAttributeCompletionProvider() {
   return vscode.languages.registerCompletionItemProvider(
     { language: 'dfdl' },
@@ -107,8 +182,7 @@ export function getAttributeCompletionProvider() {
           itemsOnLine < 2
             ? '\t'
             : ''
-
-        return checkNearestOpenItem(
+        const fullAttrCompletionList = checkNearestOpenItem(
           nearestOpenItem,
           triggerText,
           nsPrefix,
@@ -116,6 +190,13 @@ export function getAttributeCompletionProvider() {
           additionalItems,
           charBeforeTrigger,
           charAfterTrigger
+        )
+
+        return prunedDuplicateAttributes(
+          fullAttrCompletionList,
+          position,
+          document,
+          nsPrefix
         )
       },
     },
@@ -229,10 +310,9 @@ function checkNearestOpenItem(
     charAfterTrigger !== '\t'
       ? ' '
       : ''
-  let dfdlPrefix = dfdlDefaultPrefix
-  if (nsPrefix === 'dfdl:') {
-    dfdlPrefix = ''
-  }
+
+  const dfdlPrefix = nsPrefix === 'dfdl:' ? '' : dfdlDefaultPrefix
+
   switch (nearestOpenItem) {
     case 'element':
       return getCompletionItems(
