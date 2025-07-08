@@ -46,7 +46,7 @@ import org.apache.daffodil.sapi.io.InputSourceDataInputStream
 import org.apache.daffodil.tdml.TDML
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 /** A Daffodil parse of a schema against data. */
@@ -84,7 +84,7 @@ object Parse {
       dapEvents: Channel[IO, Events.DebugEvent]
   ): IO[Parse] =
     for {
-      dp <- Compiler()
+      dp <- DAPCompiler()
         .compile(schema, rootName, rootNamespace, tunables)
         .map(p =>
           p.withDebugger(debugger)
@@ -116,7 +116,7 @@ object Parse {
                 )
                 // WARNING: parse doesn't close the OutputStream, so closed below
               ).flatTap { res =>
-                if (res.isError) {
+                if (res.isError()) {
                   dapEvents
                     .send(
                       Parse.Event.Error(
@@ -129,16 +129,17 @@ object Parse {
                 } else IO.unit
               }.ensureOr { res =>
                 new Parse.Exception(res.getDiagnostics.toList)
-              }(res => !res.isError)
+              }(res => !res.isError())
                 .flatMap { parseResult =>
                   val loc = parseResult.location()
-                  val leftOverBits = (dataSize - (loc.bytePos1b - 1)) * 8
+                  val leftOverBits = (dataSize - ((loc.bytePos1b()) - 1)) * 8
 
                   if (leftOverBits > 0) {
-                    val message = DataLeftOverUtils.getMessage(dataFilePath, loc.bitPos1b, loc.bytePos1b, leftOverBits)
+                    val message =
+                      DataLeftOverUtils.getMessage(dataFilePath, loc.bitPos1b(), loc.bytePos1b(), leftOverBits)
 
                     Logger[IO].error(message) *> dapEvents.send(
-                      DataLeftOverEvent(loc.bitPos1b, loc.bytePos1b, leftOverBits, message)
+                      DataLeftOverEvent(loc.bitPos1b(), loc.bytePos1b(), leftOverBits, message)
                     ) *> IO.unit
                   } else {
                     IO.unit
@@ -897,7 +898,7 @@ object Parse {
                 )
               _ <- data.send(newState.data)
             } yield newState
-          case (state, Parse.Event.EndElement(_)) => IO.pure(state.copy(data = state.data.pop))
+          case (state, Parse.Event.EndElement(_)) => IO.pure(state.copy(data = state.data.pop()))
           case (state, _: Parse.Event.Fini.type)  => IO.pure(state)
           case (state, Event.Control(DAPodil.Debugee.State.Stopped(reason))) =>
             val events =
@@ -926,7 +927,7 @@ object Parse {
       */
     def createFrame(startElement: Parse.Event.StartElement): IO[DAPodil.Frame] =
       for {
-        ids <- (frameIds.next, variableRefs.next, variableRefs.next, variableRefs.next).tupled
+        ids <- (frameIds.next(), variableRefs.next(), variableRefs.next(), variableRefs.next()).tupled
         (frameId, parseScopeId, schemaScopeId, dataScopeId) = ids
 
         stackFrame = new Types.StackFrame(
@@ -974,20 +975,22 @@ object Parse {
         ref: DAPodil.VariablesReference,
         event: Event.StartElement
     ): IO[DAPodil.Frame.Scope] =
-      (variableRefs.next, variableRefs.next, variableRefs.next, variableRefs.next, variableRefs.next).mapN {
+      (variableRefs.next(), variableRefs.next(), variableRefs.next(), variableRefs.next(), variableRefs.next()).mapN {
         (pouRef, delimiterStackRef, diagnosticsRef, diagnosticsValidationsRef, diagnosticsErrorsRef) =>
           val hidden = event.state.withinHiddenNest
           val childIndex = if (event.state.childPos != -1) Some(event.state.childPos) else None
           val groupIndex = if (event.state.groupPos != -1) Some(event.state.groupPos) else None
           val occursIndex = if (event.state.arrayIterationPos != -1) Some(event.state.arrayIterationPos) else None
-          val foundDelimiter = for {
-            dpr <- event.state.delimitedParseResult.toScalaOption
-            dv <- dpr.matchedDelimiterValue.toScalaOption
-          } yield Misc.remapStringToVisibleGlyphs(dv)
-          val foundField = for {
-            dpr <- event.state.delimitedParseResult.toScalaOption
-            f <- dpr.field.toScalaOption
-          } yield Misc.remapStringToVisibleGlyphs(f)
+          val foundDelimiter = if (event.state.delimitedParseResult.isDefined) {
+            val dpr = event.state.delimitedParseResult.get
+            val value = Misc.remapStringToVisibleGlyphs(dpr.matchedDelimiterValue.get)
+            Some(value)
+          } else None
+          val foundField = if (event.state.delimitedParseResult.isDefined) {
+            val dpr = event.state.delimitedParseResult.get
+            val value = Misc.remapStringToVisibleGlyphs(dpr.field.get)
+            Some(value)
+          } else None
 
           val pouRootVariable =
             new Types.Variable("Points of uncertainty", "", null, pouRef.value, null)
@@ -1058,7 +1061,7 @@ object Parse {
         .toList
         .flatTraverse { case (ns, vs) =>
           // every namespace is a DAP variable in the current scope, and links to its set of Daffodil-as-DAP variables
-          variableRefs.next.map { ref =>
+          variableRefs.next().map { ref =>
             List(scopeRef -> List(new Types.Variable(ns.toString(), "", null, ref.value, null))) ++
               List(
                 ref -> vs
@@ -1148,7 +1151,7 @@ object Parse {
       def this(pstate: PState, infoset: Option[InfosetEvent]) =
         this(
           pstate.copyStateForDebugger,
-          pstate.currentNode.toScalaOption.map(element => ElementName(element.name)),
+          pstate.currentNode.toOption.map(element => ElementName(element.name)),
           pstate.schemaFileLocation,
           pstate.pointsOfUncertainty.iterator.toList.map(mark =>
             PointOfUncertainty(
@@ -1386,7 +1389,7 @@ object Parse {
             nextAwaitStarted <- Deferred[IO, Unit]
             _ <- state.modify {
               case s @ AwaitingFirstAwait(waiterArrived) =>
-                s -> waiterArrived.get *> step
+                s -> waiterArrived.get *> step()
               case Running => Running -> IO.unit
               case Stopped(whenContinued, _) =>
                 Stopped(nextContinue, nextAwaitStarted) -> (
@@ -1399,7 +1402,7 @@ object Parse {
         def continue(): IO[Unit] =
           state.modify {
             case s @ AwaitingFirstAwait(waiterArrived) =>
-              s -> waiterArrived.get *> continue
+              s -> waiterArrived.get *> continue()
             case Running => Running -> IO.unit
             case Stopped(whenContinued, _) =>
               Running -> whenContinued.complete(()).void // wake up await-ers
@@ -1452,14 +1455,14 @@ object Parse {
           var node = pstate.infoset
           while (node.diParent != null) node = node.diParent
           node match {
-            case d: DIDocument if d.contents.size == 0 => None
-            case _                                     => Some(InfosetEvent(infosetFormat, node))
+            case d: DIDocument if d.numChildren == 0 => None
+            case _                                   => Some(InfosetEvent(infosetFormat, node))
           }
         }
 
         for {
           _ <- logger.debug("pre-control await")
-          isStepping <- control.await // may block until external control says to unblock, for stepping behavior
+          isStepping <- control.await() // may block until external control says to unblock, for stepping behavior
           _ <- logger.debug("post-control await")
           location = createLocation(pstate.schemaFileLocation)
           shouldBreak <- breakpoints.shouldBreak(location)
@@ -1492,7 +1495,7 @@ object Parse {
 
     override def endElement(pstate: PState, processor: Parser): Unit =
       dispatcher.unsafeRunSync {
-        control.await *> // ensure no events while debugger is paused
+        control.await() *> // ensure no events while debugger is paused
           events.send(Event.EndElement(pstate.copyStateForDebugger)).void
       }
   }
