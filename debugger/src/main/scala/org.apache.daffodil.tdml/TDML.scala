@@ -23,7 +23,7 @@ import javax.xml.bind.JAXBContext
 import javax.xml.bind.JAXBElement
 import javax.xml.bind.Marshaller
 import javax.xml.namespace.QName
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import org.apache.daffodil.lib.xml.XMLUtils
 
 object TDML {

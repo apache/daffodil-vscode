@@ -22,7 +22,7 @@ import cats.syntax.all._
 import java.nio.file.Path
 import org.apache.daffodil.sapi._
 
-trait Compiler {
+trait DAPCompiler {
   def compile(
       schema: Path,
       rootName: Option[String],
@@ -31,9 +31,9 @@ trait Compiler {
   ): IO[DataProcessor]
 }
 
-object Compiler {
-  def apply(): Compiler =
-    new Compiler {
+object DAPCompiler {
+  def apply(): DAPCompiler =
+    new DAPCompiler {
       def compile(
           schema: Path,
           rootName: Option[String],
@@ -49,7 +49,7 @@ object Compiler {
               rootName,
               rootNamespace
             )
-        ).ensureOr(pf => CompilationFailed(pf.getDiagnostics))(!_.isError)
+        ).ensureOr(pf => CompilationFailed(pf.getDiagnostics))(!_.isError())
           .map(_.onPath("/"))
     }
 
