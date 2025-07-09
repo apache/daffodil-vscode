@@ -38,7 +38,7 @@ import java.nio.file.Paths
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration._
 
 import logging._
@@ -98,9 +98,9 @@ object DAPSession {
       dispatcher.unsafeRunSync {
         for {
           _ <- Logger[IO].info(show"R> $request")
-          _ <- requests.send(request).recoverWith {
+          _ <- requests.send(request).void.recoverWith {
             // format: off
-            case t => Logger[IO].error(t)(show"error during handling of request $request")
+            case t: Throwable => Logger[IO].error(t)(show"error during handling of request $request")
             // format: on
           }
         } yield ()
@@ -247,7 +247,7 @@ class DAPodil(
   def loadedSources(request: Request): IO[Unit] =
     state.get.flatMap {
       case DAPodil.State.Launched(debugee) =>
-        debugee.sources.flatMap { sources =>
+        debugee.sources().flatMap { sources =>
           session.sendResponse(
             request.respondSuccess(
               DAPodil.LoadedSources(sources)
@@ -328,7 +328,7 @@ class DAPodil(
     state.get.flatMap {
       case DAPodil.State.Launched(debugee) =>
         for {
-          _ <- debugee.step
+          _ <- debugee.step()
           _ <- session.sendResponse(request.respondSuccess())
         } yield ()
       case s => DAPodil.InvalidState.raise(request, "Launched", s)
@@ -365,7 +365,7 @@ class DAPodil(
     state.get.flatMap {
       case DAPodil.State.Launched(debugee) =>
         for {
-          data <- debugee.data.get
+          data <- debugee.data().get
           _ <- data.stack
             .findFrame(DAPodil.Frame.Id(args.frameId))
             .fold(
@@ -390,7 +390,7 @@ class DAPodil(
       case DAPodil.State.Launched(debugee) =>
         // return the variables for the requested "variablesReference", which is associated with a scope, which is associated with a stack frame
         for {
-          data <- debugee.data.get
+          data <- debugee.data().get
           _ <- data.stack
             .variables(DAPodil.VariablesReference(args.variablesReference))
             .fold(
@@ -470,7 +470,7 @@ object DAPodil extends IOApp {
           Logger[IO].info(s"launched with options listenPort: $listenPort, listenTimeout: $listenTimeout")
       }
 
-      state <- Ref[IO].of[State](State.Uninitialized)
+      _ <- Ref[IO].of[State](State.Uninitialized) // state for the DAPodil instance
 
       address = new InetSocketAddress(InetAddress.getLoopbackAddress, options.listenPort)
       serverSocket = {
@@ -550,7 +550,7 @@ object DAPodil extends IOApp {
     def sourceChanges(): Stream[IO, Source]
 
     def awaitFirstStackFrame(): IO[Unit] =
-      data.discrete
+      data().discrete
         .collectFirst { case d if !d.stack.frames.isEmpty => () }
         .compile
         .lastOrError
@@ -604,8 +604,8 @@ object DAPodil extends IOApp {
     case object Uninitialized extends State
     case object Initialized extends State
     case class Launched(debugee: Debugee) extends State {
-      val stackTrace: IO[StackTrace] = debugee.data.get.map(_.stack)
-      val threads: IO[List[Types.Thread]] = debugee.data.get.map(_.threads)
+      val stackTrace: IO[StackTrace] = debugee.data().get.map(_.stack)
+      val threads: IO[List[Types.Thread]] = debugee.data().get.map(_.threads)
     }
     case class FailedToLaunch(request: Request, reasons: NonEmptyList[String], cause: Option[Throwable]) extends State
 
@@ -637,10 +637,12 @@ object DAPodil extends IOApp {
     }
 
     def deliverEvents(debugee: Debugee, session: DAPSession[Request, Response, DebugEvent]): Stream[IO, Unit] = {
-      val dapEvents = debugee.events
+      val dapEvents = debugee
+        .events()
         .onFinalizeCase(ec => Logger[IO].debug(s"dapEvents: $ec"))
 
-      val sourceEventsDelivery = debugee.sourceChanges
+      val sourceEventsDelivery = debugee
+        .sourceChanges()
         .map(source => DAPodil.LoadedSourceEvent("changed", source.toDAP))
         .onFinalizeCase(ec => Logger[IO].debug(s"sourceEventsDelivery: $ec"))
 
@@ -671,7 +673,7 @@ object DAPodil extends IOApp {
       copy(stack = stack.push(frame))
 
     def pop(): Data =
-      copy(stack = stack.pop) // TODO: warn of bad pop
+      copy(stack = stack.pop()) // TODO: warn of bad pop
   }
 
   object Data {

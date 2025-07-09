@@ -33,6 +33,6 @@ object Next {
     for {
       ids <- Ref[IO].of(0)
     } yield new Next[Int] {
-      def next: IO[Int] = ids.getAndUpdate(_ + 1)
+      def next(): IO[Int] = ids.getAndUpdate(_ + 1)
     }
 }
