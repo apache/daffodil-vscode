@@ -631,8 +631,8 @@ object Parse {
         .flatMap(path =>
           Either
             .catchNonFatal(Paths.get(path.getAsString).toFile().getAbsolutePath())
-            .leftMap(t => s"'infosetOutput.path' field from launch request is not a valid path: $t")
-            .ensureOr(file => s"can't write to infoset output file at ${file}") { f =>
+            .leftMap(t => s"'tdmlConfig.path' field from launch request is not a valid path: $t")
+            .ensureOr(file => s"can't generate TDML file at ${file}") { f =>
               val file = Paths.get(f).toFile()
               // If an empty string is passed in, it will be set to the workspace directory by default
               // This is inside the Java code, so we have to make sure that the TDML file we
