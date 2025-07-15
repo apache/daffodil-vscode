@@ -17,7 +17,12 @@
 
 import * as vscode from 'vscode'
 
-import { checkBraceOpen, cursorWithinBraces, getNsPrefix } from './utils'
+import {
+  checkBraceOpen,
+  cursorWithinBraces,
+  cursorWithinQuotes,
+  getNsPrefix,
+} from './utils'
 import { getDefinedTypes } from './attributeCompletion'
 import {
   attributeValues,
@@ -34,7 +39,8 @@ export function getAttributeValueCompletionProvider() {
       ) {
         if (
           checkBraceOpen(document, position) ||
-          cursorWithinBraces(document, position)
+          cursorWithinBraces(document, position) ||
+          !cursorWithinQuotes(document, position)
         ) {
           return undefined
         }
@@ -189,10 +195,9 @@ function getAttributeDetails(
           )
           endPos = currentText.indexOf(quoteChar[i], currentPos + 1)
           attributeStartPos = textBeforeTrigger.lastIndexOf(' ')
-          attributeName = textBeforeTrigger.substring(
-            attributeStartPos + 1,
-            currentPos - 1
-          )
+          attributeName = textBeforeTrigger
+            .substring(attributeStartPos + 1, currentPos - 1)
+            .trim()
         }
       }
     }

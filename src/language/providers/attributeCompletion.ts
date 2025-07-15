@@ -74,6 +74,7 @@ function getCompletionItems(
  * @param document
  * @returns
  */
+
 function getPotentialAttributeText(
   position: vscode.Position,
   document: vscode.TextDocument
@@ -83,6 +84,11 @@ function getPotentialAttributeText(
   let upperLineBound: number = position.line
 
   // Determining the lowerbound strategy: Traverse backwards line-by-line until we encounter an opening character (<)
+
+  //handle edge case if there's an element closing on the same line or if there is a closing tag after the cursor on the same line
+  if (lowerLineBound > 0) {
+    lowerLineBound--
+  }
   while (
     lowerLineBound > 0 && // Make sure we aren't going to negative line indexes
     document.lineAt(lowerLineBound).text.indexOf('<') == -1 // continue going up the document if there is no <
@@ -164,7 +170,7 @@ function prunedDuplicateAttributes(
 
   // Traverse forward character by character to find > or <
   while (
-    indexUpperBound < relevantDocText.length - 1 &&
+    indexUpperBound < relevantDocText.length &&
     !(
       relevantDocText[indexUpperBound] == '<' ||
       relevantDocText[indexUpperBound] == '>'
@@ -177,7 +183,7 @@ function prunedDuplicateAttributes(
   // Force it to be closed if the current xml element isn't closed it
   const fullXMLElementText =
     relevantDocText[indexUpperBound - 1] != '>'
-      ? `${relevantDocText.substring(indexLowerBound, indexUpperBound - 1)}>`
+      ? `${relevantDocText.substring(indexLowerBound, indexUpperBound)}>`
       : relevantDocText.substring(indexLowerBound, indexUpperBound)
 
   // Obtain attributes for the currentl XML element after attempting to parse the whole thing as an XML element
@@ -223,6 +229,7 @@ export function getAttributeCompletionProvider() {
         let nearestOpenItem = xmlItem.itemName
         let itemsOnLine = getItemsOnLineCount(triggerText)
         const nsPrefix = xmlItem.itemNS
+        const attributeNames = xmlItem.itemAttributes
         let additionalItems = getDefinedTypes(
           document,
           getSchemaNsPrefix(document)
@@ -245,8 +252,10 @@ export function getAttributeCompletionProvider() {
           itemsOnLine < 2
             ? '\t'
             : ''
+
         const fullAttrCompletionList = checkNearestOpenItem(
           nearestOpenItem,
+          attributeNames,
           triggerText,
           nsPrefix,
           preVal,
@@ -286,6 +295,7 @@ export function getTDMLAttributeCompletionProvider() {
         let nearestOpenItem = xmlItem.itemName
         let itemsOnLine = getItemsOnLineCount(triggerText)
         const nsPrefix = xmlItem.itemNS
+        const attributeNames = xmlItem.itemAttributes
         let additionalItems = getDefinedTypes(document, nsPrefix)
 
         if (isInXPath(document, position)) return undefined
@@ -308,6 +318,7 @@ export function getTDMLAttributeCompletionProvider() {
 
         return checkNearestOpenItem(
           nearestOpenItem,
+          attributeNames,
           triggerText,
           nsPrefix,
           preVal,
@@ -354,6 +365,7 @@ export function getDefinedTypes(
 
 function checkNearestOpenItem(
   nearestOpenItem: string,
+  attributeNames: string[],
   triggerText: string,
   nsPrefix: string,
   preVal: string,
@@ -524,6 +536,7 @@ function checkNearestOpenItem(
     case 'format':
       return getCompletionItems(
         [
+          'ref',
           'dfdl:byteOrder',
           'dfdl:bitOrder',
           'dfdl:binaryNumberRep',

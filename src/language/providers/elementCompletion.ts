@@ -27,6 +27,7 @@ import {
   createCompletionItem,
   getCommonItems,
   nearestTag,
+  getAttributeNames,
   getItemsOnLineCount,
   cursorWithinBraces,
   cursorWithinQuotes,
@@ -312,7 +313,17 @@ function nearestOpenTagChildElements(
         iCount < 2
           ? new vscode.Position(tagPosition.line - 1, tagPosition.character)
           : tagPosition
-      let pElement = getAnnotationParent(document, newPosition, nsPrefix)
+      let [pElement, pPosition] = getAnnotationParent(
+        document,
+        newPosition,
+        nsPrefix
+      )
+      let attributeNames: string[] = getAttributeNames(
+        document,
+        pPosition,
+        nsPrefix,
+        pElement
+      )
       switch (pElement) {
         case 'schema':
           return getElementCompletionItems(
@@ -332,7 +343,6 @@ function nearestOpenTagChildElements(
               'dfdl:assert',
               'dfdl:discriminator',
               'dfdl:element',
-              'dfdl:setVariable',
               'dfdl:property',
             ],
             '',
@@ -344,6 +354,7 @@ function nearestOpenTagChildElements(
             [
               'dfdl:assert',
               'dfdl:discriminator',
+              'dfdl:setVariable',
               'dfdl:newVariableInstance',
               'dfdl:sequence',
             ],
@@ -365,18 +376,32 @@ function nearestOpenTagChildElements(
             nsPrefix
           )
         case 'group':
-          return getElementCompletionItems(
-            [
-              'dfdl:assert',
-              'dfdl:group',
-              'dfdl:discriminator',
-              'dfdl:newVariableInstance',
-              'dfdl:setVariable',
-            ],
-            '',
-            '',
-            nsPrefix
-          )
+          if (attributeNames.includes('ref')) {
+            return getElementCompletionItems(
+              [
+                'dfdl:assert',
+                'dfdl:group',
+                'dfdl:discriminator',
+                'dfdl:newVariableInstance',
+                'dfdl:setVariable',
+              ],
+              '',
+              '',
+              nsPrefix
+            )
+          } else {
+            return getElementCompletionItems(
+              [
+                'dfdl:assert',
+                'dfdl:group',
+                'dfdl:discriminator',
+                'dfdl:setVariable',
+              ],
+              '',
+              '',
+              nsPrefix
+            )
+          }
         case 'simpleType':
           return getElementCompletionItems(
             [
@@ -419,6 +444,7 @@ function nearestOpenTagChildElements(
           'annotation',
           'include',
           'import',
+          'defineVariable',
         ],
         '',
         '',
@@ -437,10 +463,11 @@ export function getAnnotationParent(
   document: vscode.TextDocument,
   tagPosition: vscode.Position,
   nsPrefix: string
-): string {
+): [string, vscode.Position] {
   let pElementText = document.lineAt(tagPosition.line).text
   let iCount = getItemsOnLineCount(pElementText)
   let pElement = ''
+  let pPosition = tagPosition
   let [nElement, newPosition] = getTagNearestTrigger(
     document,
     tagPosition,
@@ -460,7 +487,7 @@ export function getAnnotationParent(
       )
     }
     pElementText = document.lineAt(newPosition.line).text
-    let [nElement] = getTagNearestTrigger(
+    let [nElement, nPosition] = getTagNearestTrigger(
       document,
       newPosition,
       pElementText,
@@ -470,8 +497,9 @@ export function getAnnotationParent(
       nsPrefix
     )
     pElement = nElement
+    pPosition = nPosition
   }
-  return pElement
+  return [pElement, pPosition]
 }
 
 export function getTagNearestTrigger(
