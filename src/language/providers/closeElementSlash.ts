@@ -39,8 +39,18 @@ export function getCloseElementSlashProvider() {
         position: vscode.Position
       ) {
         let backpos = new vscode.Position(position.line, position.character - 1)
-        const nsPrefix = getNsPrefix(document, position)
-        const triggerText = document
+        let nsPrefix = getNsPrefix(document, position)
+        let triggerText = document.lineAt(position.line).text
+        let tagPos = triggerText.lastIndexOf('<' + nsPrefix + ':')
+        triggerText.lastIndexOf(',' + nsPrefix + ':')
+        if (tagPos < 0) {
+          tagPos = triggerText.lastIndexOf('<dfdl:')
+          if (tagPos > 0) {
+            nsPrefix = 'dfdl:'
+          }
+        }
+
+        triggerText = document
           .lineAt(position)
           .text.substring(0, position.character)
         let nearestTagNotClosed = checkMissingCloseTag(

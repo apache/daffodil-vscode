@@ -147,7 +147,7 @@ Select alignment from the dropdown. select 1 as the value for alignment.
 
 Place the cursor at line 33 column 1. Type CTRL+space.
 
-- [ ] Verify the dropdown contains dfdl:defineEscapeScheme, dfdl:defineFormat, dfdl:defineVariable,and dfdl:format.
+- [ ] Verify the dropdown contains dfdl:defineEscapeScheme, dfdl:defineFormat, ,and dfdl:format.
 
 Place the cursor at line 52 column 56 at the end of the line. Backspace over the last two characters "/>". The cursor should be directly after encoding="ascii". Type a / (slash '/').
 
