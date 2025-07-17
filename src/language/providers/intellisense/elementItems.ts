@@ -28,6 +28,11 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
         snippetString: '<${1|\0,xs:,xsd:|}$2' + 'schema xmlns:xs="http://www.w3.org/2001/xmlSchema"\n\t\txmlns:dfdl="http://www.ogf.org/dfdl/dfdl-1.0/"\n\t\txmlns:daf="urn:ogf:dfdl:2013:imp:daffodil.apache.org:2018:ext"\n\t\txmlns:fn="http:/www.w3.org/2005/xpath-functions"\nelementFormDefault="unqualified"$0',
       },
       {
+        item: nsPrefix + 'element',
+        snippetString: '<' + nsPrefix + 'element $1"$0',
+        markdownString: 'Defines an xs element',
+      },
+      {
         item: nsPrefix + 'element name',
         snippetString: '<' + nsPrefix + 'element name="$1"$0',
         markdownString: 'Defines an xs element',
@@ -36,6 +41,11 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
         item: nsPrefix + 'element ref',
         snippetString: '<' + nsPrefix + 'element ref="$1"$0',
         markdownString: 'Defines a reference to a declared element',
+      },
+      {
+        item: nsPrefix + 'group',
+        snippetString: '<' + nsPrefix + 'group "$1">\n\t$0\n</' + nsPrefix + 'group>',
+        markdownString: 'Defines a named model group to be reused later',
       },
       {
         item: nsPrefix + 'group name',
@@ -76,7 +86,7 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
         markdownString: 'Defines a complex type definition',
       },
       {
-        item: nsPrefix + 'complexType name=',
+        item: nsPrefix + 'complexType name',
         snippetString: '<' + nsPrefix + 'complexType name="$1">\n\t$0\n</' + nsPrefix + 'complexType>',
         markdownString: 'Defines a complex type definition',
       },
@@ -86,7 +96,7 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
         markdownString: 'Defines a simple type definition',
       },
       {
-        item: nsPrefix + 'simpleType name=',
+        item: nsPrefix + 'simpleType name',
         snippetString: '<' + nsPrefix + 'simpleType name="$1"$0',
         markdownString: 'Defines simple type definition',
       },
@@ -107,6 +117,11 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
       },
       {
         item: 'dfdl:defineVariable',
+        snippetString: '<dfdl:defineVariable "$1"$0',
+        markdownString: 'Defines the name, type, and optionally default value for the variable.',
+      },
+      {
+        item: 'dfdl:defineVariable name',
         snippetString: '<dfdl:defineVariable name="$1"$0',
         markdownString: 'Defines the name, type, and optionally default value for the variable.',
       },

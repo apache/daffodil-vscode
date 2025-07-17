@@ -18,6 +18,7 @@
 import * as vscode from 'vscode'
 import { commonCompletion } from './intellisense/commonItems'
 import { isXPath } from '../semantics/dfdlExt'
+import { xml2js } from 'xml-js'
 
 const schemaPrefixRegEx = new RegExp('</?(|[^ ]+:)schema')
 
@@ -53,6 +54,7 @@ const items = [
 export class XmlItem {
   private _itemName: string = 'none'
   private _itemNS: string = 'none'
+  private _itemAttributes: string[] = []
 
   public get itemName() {
     return this._itemName
@@ -68,6 +70,14 @@ export class XmlItem {
 
   public set itemNS(nameSpace: string) {
     this._itemNS = nameSpace
+  }
+
+  public set itemAttributes(attributeNames: string[]) {
+    this._itemAttributes = attributeNames
+  }
+
+  public get itemAttributes() {
+    return this._itemAttributes
   }
 }
 
@@ -131,7 +141,7 @@ export function nearestOpen(
   const nsPrefix = getNsPrefix(document, position)
 
   for (let i = 0; i < items.length; ++i) {
-    let [isTagOpen, isDfdlNs] = checkTagOpen(
+    let [isTagOpen, isDfdlNs, attributeNames] = checkTagOpen(
       document,
       position,
       nsPrefix,
@@ -144,6 +154,7 @@ export function nearestOpen(
         xmlItem.itemNS = nsPrefix
       }
       xmlItem.itemName = items[i]
+      xmlItem.itemAttributes = attributeNames
       return xmlItem
     }
   }
@@ -236,7 +247,7 @@ export function checkTagOpen(
   position: vscode.Position,
   nsPrefix: string,
   tag: string
-): [boolean, boolean] {
+): [boolean, boolean, string[]] {
   let triggerLine = position.line
   let triggerText = document.lineAt(triggerLine).text
   let itemsOnLine = getItemsOnLineCount(triggerText)
@@ -245,71 +256,82 @@ export function checkTagOpen(
   let origTriggerLine = triggerLine
   let compareText = triggerText
   let compareLine = triggerLine
+  let attributeNames: string[] = []
   const triggerPos = position.character
-  const textBeforeTrigger = triggerText.substring(0, triggerPos)
 
   while (itemsOnLine < 2 && !triggerText.trim().startsWith('<')) {
     triggerText = document.lineAt(--triggerLine).text
   }
 
-  if (!(triggerText.endsWith('>') && triggerText.includes('<'))) {
+  let tagPos = triggerText.lastIndexOf('<' + nsPrefix + tag)
+
+  if (tagPos < 0) {
+    tagPos = triggerText.lastIndexOf('<dfdl:' + tag)
+    if (tagPos > 0) {
+      isDfdlPrefix = true
+      nsPrefix = 'dfdl:'
+    }
+  }
+
+  if (
+    !(
+      triggerText.trim().startsWith('<' + nsPrefix + tag) &&
+      triggerText.endsWith('>')
+    )
+  ) {
     isMultiLineTag = true
   }
 
-  let tagPos = textBeforeTrigger.lastIndexOf('<' + nsPrefix + tag)
-  if (tagPos < 0) {
-    tagPos = textBeforeTrigger.lastIndexOf('<dfdl:' + tag)
-    if (tagPos > 0) {
-      isDfdlPrefix = true
-      nsPrefix = 'dfdl:'
-    }
-  }
-  const nextTagPos = triggerText.indexOf('<', tagPos + 1)
-  let tagEndPos = triggerText.indexOf('>', tagPos)
+  if (!isMultiLineTag) {
+    const nextTagPos = triggerText.indexOf('<', tagPos + 1)
+    let tagEndPos = triggerText.indexOf('>', tagPos)
 
-  if (tagPos > -1 && itemsOnLine > 1) {
-    if (
-      triggerPos > tagPos &&
-      ((triggerPos <= tagEndPos &&
-        (nextTagPos > tagEndPos || nextTagPos === -1)) ||
-        tagEndPos === -1)
-    ) {
-      return [true, isDfdlPrefix]
-    }
-  }
-
-  while (compareText.trim() === '') {
-    compareText = document.lineAt(--compareLine).text
-  }
-  tagPos = triggerText.indexOf('<' + nsPrefix + tag)
-  if (tagPos < 0) {
-    tagPos = textBeforeTrigger.lastIndexOf('<dfdl:' + tag)
-    if (tagPos > 0) {
-      isDfdlPrefix = true
-      nsPrefix = 'dfdl:'
-    }
-  }
-
-  if (itemsOnLine < 2 && tagPos > -1) {
-    if (triggerText !== compareText) {
-      tagEndPos = compareText.indexOf('>')
+    if (tagPos > -1 && itemsOnLine > 1) {
+      if (
+        triggerPos > tagPos &&
+        ((triggerPos <= tagEndPos &&
+          (nextTagPos > tagEndPos || nextTagPos === -1)) ||
+          tagEndPos === -1)
+      ) {
+        attributeNames = getAttributeNames(document, position, nsPrefix, tag)
+        return [true, isDfdlPrefix, attributeNames]
+      }
     }
 
-    if (
-      (triggerPos > tagPos &&
-        triggerPos <= tagEndPos &&
-        triggerLine === position.line) ||
-      (compareLine == position.line &&
-        triggerPos <= tagEndPos &&
-        triggerPos > tagPos) ||
-      position.line < origTriggerLine
-    ) {
-      return [true, isDfdlPrefix]
+    while (compareText.trim() === '') {
+      compareText = document.lineAt(--compareLine).text
+    }
+    tagPos = triggerText.indexOf('<' + nsPrefix + tag)
+    if (tagPos < 0) {
+      tagPos = triggerText.lastIndexOf('<dfdl:' + tag)
+      if (tagPos > 0) {
+        isDfdlPrefix = true
+        nsPrefix = 'dfdl:'
+      }
+    }
+
+    if (itemsOnLine < 2 && tagPos > -1) {
+      if (triggerText !== compareText) {
+        tagEndPos = compareText.indexOf('>')
+      }
+
+      if (
+        (triggerPos > tagPos &&
+          triggerPos <= tagEndPos &&
+          triggerLine === position.line) ||
+        (compareLine == position.line &&
+          triggerPos <= tagEndPos &&
+          triggerPos > tagPos) ||
+        position.line < origTriggerLine
+      ) {
+        attributeNames = getAttributeNames(document, position, nsPrefix, tag)
+        return [true, isDfdlPrefix, attributeNames]
+      }
     }
   }
 
   if (!isMultiLineTag || tagPos === -1) {
-    return [false, isDfdlPrefix]
+    return [false, isDfdlPrefix, attributeNames]
   }
   //if this tag is part of a multi line set of annotations return true
   //else this tag is not open return false
@@ -362,12 +384,13 @@ export function checkMultiLineTag(
   tagLine: number,
   tag: string,
   isDfdlTag = false
-): [boolean, boolean] {
+): [boolean, boolean, string[]] {
   if (nsPrefix === 'dfdl:') {
     isDfdlTag = true
   }
+  let attributeNames: string[] = []
   if (itemsOnLine > 1) {
-    return [false, isDfdlTag]
+    return [false, isDfdlTag, attributeNames]
   }
   let currentLine = position.line
   let openTagLine = position.line
@@ -375,43 +398,42 @@ export function checkMultiLineTag(
   const origText = document.lineAt(currentLine).text
   let currentText = origText
 
-  //the current line doesn't have the self close symbol
-  if (!currentText.endsWith('/>')) {
-    while (currentText.trim() === '' || !currentText.includes('<')) {
-      --openTagLine
-      currentText = document.lineAt(openTagLine).text
-      if (currentText.includes('/>')) {
-        closeTagLine = openTagLine
-      }
-    }
-
-    if (
-      currentText.indexOf('<' + nsPrefix + tag) !== -1 &&
-      currentText.indexOf('>') === -1 &&
-      currentText.indexOf('<' + nsPrefix + tag) &&
-      openTagLine <= position.line &&
-      closeTagLine >= position.line &&
-      (origText.indexOf('>') > position.character ||
-        origText.indexOf('>') === -1)
-    ) {
-      return [true, isDfdlTag]
-    }
+  //Get the opening tag
+  while (
+    (currentText.trim() === '' ||
+      !currentText.includes('<' + nsPrefix + tag)) &&
+    openTagLine > 0
+  ) {
+    --openTagLine
+    currentText = document.lineAt(openTagLine).text
   }
 
-  if (currentText.endsWith('/>')) {
-    let triggerPos = position.character
-    let tagEndPos = currentText.indexOf('/>')
-    let triggerLine = position.line
+  if (currentText.includes('<' + nsPrefix + tag)) {
+    let multiLineText = currentText.trim()
+    let closeText = document.lineAt(openTagLine).text
+
+    closeTagLine = openTagLine
+
+    //Get closing tag
+    while (
+      (closeText.trim() === '' || !closeText.includes('>')) &&
+      closeTagLine < document.lineCount
+    ) {
+      ++closeTagLine
+      closeText = document.lineAt(closeTagLine).text
+      multiLineText += ' ' + closeText.trim()
+    }
+    currentText = multiLineText
 
     if (
-      (triggerLine === currentLine && triggerPos < tagEndPos) ||
-      (triggerLine === tagLine && triggerPos > tagPos && tagPos !== -1) ||
-      triggerLine < currentLine
+      currentText.includes('<' + nsPrefix + tag) &&
+      currentText.includes('>')
     ) {
-      return [true, isDfdlTag]
+      attributeNames = getAttributeNames(document, position, nsPrefix, tag)
+      return [true, isDfdlTag, attributeNames]
     }
   }
-  return [false, isDfdlTag]
+  return [false, isDfdlTag, attributeNames]
 }
 
 //returns an empty value or a prefix plus a colon
@@ -435,6 +457,64 @@ export function getNsPrefix(
 
   //returns the standard prefix plus a colon in the case of missing schema tag
   return defaultXsdNsPrefix
+}
+
+export function getAttributeNames(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  nsPrefix: string,
+  tag: string
+): string[] {
+  let currentLine = position.line
+  let openTagLine = position.line
+  let closeTagLine = position.line
+  let currentText = document.lineAt(currentLine).text
+  let closeText = currentText
+
+  //if mulit-line tag
+  if (
+    !(
+      currentText.trim().startsWith('<' + nsPrefix + tag) &&
+      currentText.endsWith('>')
+    )
+  ) {
+    //Get the opening tag
+    while (
+      (currentText.trim() === '' ||
+        !currentText.includes('<' + nsPrefix + tag)) &&
+      openTagLine > -1
+    ) {
+      --openTagLine
+      currentText = document.lineAt(openTagLine).text
+    }
+
+    let multiLineText = currentText.trim()
+
+    closeTagLine = openTagLine
+
+    //Get closing tag
+    closeText = document.lineAt(openTagLine).text
+    while (
+      (closeText.trim() === '' || !closeText.includes('>')) &&
+      closeTagLine < document.lineCount
+    ) {
+      ++closeTagLine
+      closeText = document.lineAt(closeTagLine).text
+      multiLineText += ' ' + closeText.trim()
+    }
+    currentText = multiLineText
+  }
+
+  let attributeNames: string[] = []
+  const xmljs = xml2js(currentText, {})
+  const attributes = xmljs.elements?.[0].attributes
+  if (attributes) {
+    const attributeSet: Set<string> = new Set(Object.keys(attributes))
+    attributeNames = [...attributeSet]
+    return attributeNames
+  }
+
+  return attributeNames
 }
 
 export function getItemsOnLineCount(triggerText: String) {

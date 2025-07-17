@@ -34,6 +34,14 @@ export function checkMissingCloseTag(
     const textBeforeTrigger = triggerText.substring(0, triggerPos)
 
     nsPrefix = getItemPrefix(items[i], origPrefix)
+    let tagPos = triggerText.lastIndexOf('<' + nsPrefix + items[i])
+
+    if (tagPos < 0) {
+      tagPos = triggerText.lastIndexOf('<dfdl:' + items[i])
+      if (tagPos > 0) {
+        nsPrefix = 'dfdl:'
+      }
+    }
 
     if (itemsOnLine > 1) {
       if (textBeforeTrigger.lastIndexOf('<' + nsPrefix + items[i]) > -1) {
