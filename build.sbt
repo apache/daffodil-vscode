@@ -52,9 +52,8 @@ lazy val commonSettings =
     maintainer := "Apache Daffodil <dev@daffodil.apache.org>",
     organization := "org.apache.daffodil",
     // scala-steward:off
-    scalaVersion := "2.12.15",
+    scalaVersion := "2.13.16",
     // scala-steward:on
-    scalacOptions ++= Seq("-Ypartial-unification"),
     // remove the -Xcheckinit option added by the sbt tpoletcat plugin. This
     // option leads to non-reproducible builds
     scalacOptions --= Seq("-Xcheckinit"),
