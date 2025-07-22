@@ -58,6 +58,7 @@
     - [Debugging the Extension](#debugging-the-extension)
       - [Changing the sampleWorkspace folder name and location](#changing-the-sampleworkspace-folder-name-and-location)
       - [Test a Local Version of Apache Daffodil Debugger](#test-a-local-version-of-apache-daffodil-debugger)
+      - [Debugging UI Source](#debugging-ui-source)
     - [Troubleshooting](#troubleshooting)
       - [Yarn Package Issues](#yarn-package-issues)
         - [If Yarn Keeps Updating to The Latest Version](#if-yarn-keeps-updating-to-the-latest-version)
@@ -371,7 +372,51 @@ The local Apache Daffodil™ Extension for Visual Studio Code downloads and cach
     ```
 
     This will start the debug adapter and await a connection from the Apache Daffodil VS Code Extension (usually on TCP port 4711); and
-- debug your schema file, as long as it has the `useExistingServer` setting above.
+- debug your schema file, as long as your `launch.json` has the `useExistingServer` setting above.
+
+#### Debugging UI Source
+
+##### Inspecting the HTML
+
+To inspect the HTML, open up the UI window (e.g., Configure launch.json, Data Editor) that you wish to inspect and open the Webview Developer Tools with `Ctrl + Shift + P` and typing `Developer: Open Webview Developer Tools`.
+
+**NOTE:** This only debugs the UI from the DOM. It does not add any debugging functionality within the extension's JS/TS source files.
+
+![ui-debug1](https://github.com/user-attachments/assets/77f44956-7536-4e96-b9ec-23b7ffbaecdc)
+
+From the Elements tab, you can inspect the HTML by expanding and hovering elements to highlight them in the UI.
+
+![ui-debug2](https://github.com/user-attachments/assets/a3378311-236e-4c54-9e58-ab34286da461)
+
+Likewise, you can use the Inspect tool to click on items in the UI to see the corresponding HTML element.
+
+![ui-debug3](https://github.com/user-attachments/assets/a601c5e8-9eff-46a2-9811-c62c16b2fe27)
+
+![ui-debug4](https://github.com/user-attachments/assets/27c407f7-ded2-4780-b8e8-e5d6bb8d1f40)
+
+##### Debugging the JavaScript 
+
+To debug the JavaScript, add a `debugger` statement to the source code where you want to debug. The debugger statement acts like a breakpoint and pauses execution when reached.
+
+![ui-debug5](https://github.com/user-attachments/assets/13b493d7-ea48-40dc-ba87-7beb42a9c7e5)
+
+Start the Extension debug window and open the UI window (e.g., Configure launch.json, Data Editor) that you are debugging, and open the Webview Developer Tools with `Ctrl + Shift + P` and typing `Developer: Open Webview Developer Tools`. Then, complete the action necessary to reach the `debugger` statement if need be. After the `debugger` statement is reached, the execution will pause, and the source will be shown in the Webview Developer Tools window.
+
+![ui-debug6](https://github.com/user-attachments/assets/a6f5af73-f285-4556-82de-88a5a569ec02)
+
+You can then add breakpoints by clicking the line number.
+
+![ui-debug7](https://github.com/user-attachments/assets/1243f7b2-29a0-4bbd-9878-617afa7d725b)
+
+You can also use the bar on the right side to continue or step through the execution.
+
+![ui-debug8](https://github.com/user-attachments/assets/69114004-6b88-42e1-b3a3-871a63197ebb)
+
+To examine the value of a variable while stepping through the execution, you can add a watch expression in the right pane.
+
+![ui-debug9](https://github.com/user-attachments/assets/9727f743-9704-40bc-bed9-2b8aa0de7831)
+
+![ui-debug10](https://github.com/user-attachments/assets/26c9e2bc-0283-4f79-9091-88b0def8807b)
 
 ### Troubleshooting
 
