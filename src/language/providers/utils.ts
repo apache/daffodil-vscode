@@ -273,11 +273,13 @@ export function checkTagOpen(
     }
   }
 
+  // If there is one or less xml tags on the line and the beginning of the line
+  // contains the start tag and there is not an ending tag character after the
+  // start tag assume it is a multi-line tag
   if (
-    !(
-      triggerText.trim().startsWith('<' + nsPrefix + tag) &&
-      triggerText.endsWith('>')
-    )
+    itemsOnLine < 2 &&
+    triggerText.trim().startsWith('<' + nsPrefix + tag) &&
+    triggerText.indexOf('>', tagPos) < 0 //if tag ending character is missing will return -1
   ) {
     isMultiLineTag = true
   }
@@ -395,7 +397,20 @@ export function checkMultiLineTag(
   let currentLine = position.line
   let openTagLine = position.line
   let closeTagLine = position.line
-  const origText = document.lineAt(currentLine).text
+  let origText = document.lineAt(currentLine).text
+  //if the original line is blank get the previous line
+  while (origText.trim() === '') {
+    origText = document.lineAt(--currentLine).text
+  }
+  //If the cursor is after an end tag return false
+  if (
+    (position.character > origText.indexOf('</') ||
+      position.line > currentLine) &&
+    (origText.includes('</' + nsPrefix + tag) || origText.includes('/>'))
+  ) {
+    return [false, isDfdlTag, attributeNames]
+  }
+
   let currentText = origText
 
   //Get the opening tag
@@ -422,6 +437,9 @@ export function checkMultiLineTag(
       ++closeTagLine
       closeText = document.lineAt(closeTagLine).text
       multiLineText += ' ' + closeText.trim()
+    }
+    if (closeText.includes('>')) {
+      multiLineText += closeText.trim()
     }
     currentText = multiLineText
 
