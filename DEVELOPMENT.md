@@ -58,6 +58,7 @@
     - [Debugging the Extension](#debugging-the-extension)
       - [Changing the sampleWorkspace folder name and location](#changing-the-sampleworkspace-folder-name-and-location)
       - [Test a Local Version of Apache Daffodil Debugger](#test-a-local-version-of-apache-daffodil-debugger)
+      - [Debugging UI Source](#debugging-ui-source)
     - [Troubleshooting](#troubleshooting)
       - [Yarn Package Issues](#yarn-package-issues)
         - [If Yarn Keeps Updating to The Latest Version](#if-yarn-keeps-updating-to-the-latest-version)
@@ -373,6 +374,32 @@ The local Apache Daffodil™ Extension for Visual Studio Code downloads and cach
 
     This will start the debug adapter and await a connection from the Apache Daffodil VS Code Extension (usually on TCP port 4711); and
 - debug your schema file, as long as it has the `useExistingServer` setting above.
+
+#### Debugging UI Source
+
+After starting an Extension debug window and setting up the Data Editor, open the Webview Developer Tools with `Ctrl + Shift + P` and type `Developer: Open Webview Developer Tools`. 
+
+![ui-debug1](https://github.com/user-attachments/assets/14ccd4dc-b8e1-4555-add9-b4dd106a82b9)
+
+Select the Sources tab in the tool window.
+
+![ui-debug2](https://github.com/user-attachments/assets/97e84c81-b0fd-4ac0-8488-a2c0115b0eba)
+
+In the navigation pane on the left, select the file to place breakpoints.
+
+![ui-debug3](https://github.com/user-attachments/assets/c63ba4d3-1963-4ce2-81a1-751a54b8acf7)
+
+Place breakpoints by clicking the line number.
+
+![ui-debug4](https://github.com/user-attachments/assets/3375876f-c4e6-4df0-a383-c57dbcb7727e)
+
+You can then inspect values by either opening the Memory Inspector
+
+![ui-debug5](https://github.com/user-attachments/assets/2731592c-6994-4449-825c-ef12564551a4)
+
+or by adding a watch expression.
+
+![ui-debug6](https://github.com/user-attachments/assets/f45a5a54-57b0-48ee-8b7c-77797df66c45)
 
 ### Troubleshooting
 
