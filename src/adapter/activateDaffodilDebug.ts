@@ -137,7 +137,7 @@ async function showTDMLSaveDialog(fileRequested, label, title) {
 }
 
 // Function for setting up the commands for Run and Debug file
-function createDebugRunFileConfigs(
+async function createDebugRunFileConfigs(
   resource: vscode.Uri,
   runOrDebug: String,
   tdmlAction: String | undefined,
@@ -168,35 +168,50 @@ function createDebugRunFileConfigs(
         tdmlConfig.action = tdmlAction
 
         if (tdmlAction === 'execute') {
-          tdmlConfig.name = '${command:AskForTDMLName}'
-          tdmlConfig.description = '${command:AskForTDMLDescription}'
           tdmlConfig.path = targetResource.fsPath
         }
       }
 
-      vscode.debug.startDebugging(
-        undefined,
-        getConfig({
-          name: 'Run File',
-          request: 'launch',
-          type: 'dfdl',
-          schema: {
-            path: tdmlConfig.action === 'execute' ? '' : targetResource.fsPath,
-            rootName: null,
-            rootNamespace: null,
-          },
-          data:
-            tdmlConfig.action === 'execute' ? '' : '${command:AskForDataName}',
-          debugServer: false,
-          infosetFormat: 'xml',
-          infosetOutput: {
-            type: 'file',
-            path: '${workspaceFolder}/' + infosetFile,
-          },
-          tdmlConfig: tdmlConfig,
-        }),
-        { noDebug: noDebug }
-      )
+      const config = getConfig({
+        name: 'Run File',
+        request: 'launch',
+        type: 'dfdl',
+        schema: {
+          path: tdmlConfig.action === 'execute' ? '' : targetResource.fsPath,
+          rootName: null,
+          rootNamespace: null,
+        },
+        data:
+          tdmlConfig.action === 'execute' ? '' : '${command:AskForDataName}',
+        debugServer: false,
+        infosetFormat: 'xml',
+        infosetOutput: {
+          type: 'file',
+          path: '${workspaceFolder}/' + infosetFile,
+        },
+        tdmlConfig: tdmlConfig,
+      })
+
+      // If we're calling execute TDML from a .tdml file
+      // set the name and the description of the TDML test case we want
+      // before running the debugger
+      if (
+        typeof config.tdmlConfig?.path === 'string' &&
+        path.extname(config.tdmlConfig?.path).toLowerCase() == '.tdml' &&
+        typeof config.tdmlConfig?.action === 'string' &&
+        config.tdmlConfig?.action.toLowerCase() == 'execute'
+      ) {
+        config.tdmlConfig.name = await vscode.commands.executeCommand(
+          'extension.dfdl-debug.getTDMLName',
+          config
+        )
+
+        config.tdmlConfig.description = await vscode.commands.executeCommand(
+          'extension.dfdl-debug.getTDMLDescription',
+          config
+        )
+      }
+      vscode.debug.startDebugging(undefined, config, { noDebug: noDebug })
     }
 
     vscode.debug.onDidTerminateDebugSession(async () => {
@@ -410,13 +425,12 @@ export function activateDaffodilDebug(
           .map((obj) => obj.name) as string[]
 
         // dropdown
-        return await vscode.window
-          .showQuickPick(test_case_names, {
-            placeHolder: 'Test Case Name',
-          })
-          .then((value) => {
-            return value // return selected dropdown value
-          })
+        // Await showQuickPick directly and return the result
+        const selection = await vscode.window.showQuickPick(test_case_names, {
+          placeHolder: 'Test Case Name',
+        })
+
+        return selection
       }
     )
   )
@@ -436,14 +450,15 @@ export function activateDaffodilDebug(
           ),
         ] as string[]
 
-        // dropdown
-        return await vscode.window
-          .showQuickPick(test_case_unique_descriptions, {
+        // Await showQuickPick directly and return the result
+        const selection = await vscode.window.showQuickPick(
+          test_case_unique_descriptions,
+          {
             placeHolder: 'Test Case Description',
-          })
-          .then((value) => {
-            return value // return selected dropdown value
-          })
+          }
+        )
+
+        return selection
       }
     )
   )

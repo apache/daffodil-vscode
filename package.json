@@ -829,7 +829,6 @@
         "variables": {
           "AskForSchemaName": "extension.dfdl-debug.getSchemaName",
           "AskForDataName": "extension.dfdl-debug.getDataName",
-          "AskForTDMLName": "extension.dfdl-debug.getTDMLName",
           "AskForTDMLDescription": "extension.dfdl-debug.getTDMLDescription",
           "AskForTDMLPath": "extension.dfdl-debug.getTDMLPath",
           "AskForValidatedTDMLPath": "extension.dfdl-debug.getValidatedTDMLPath",
