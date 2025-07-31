@@ -43,6 +43,7 @@ import {
 import xmlFormat from 'xml-formatter'
 import { CommandsProvider } from '../views/commands'
 import * as daffodilDebugErrors from './daffodilDebugErrors'
+import { TDMLProvider } from 'tdmlEditor/TDMLProvider'
 
 export const outputChannel: vscode.OutputChannel =
   vscode.window.createOutputChannel('Daffodil')
@@ -143,12 +144,17 @@ async function createDebugRunFileConfigs(
   tdmlAction: string | undefined,
   runLast = false
 ) {
-  let targetResource = resource
+  let targetResource: vscode.Uri | undefined = resource
   let noDebug = runOrDebug === 'run'
 
-  if (!targetResource && vscode.window.activeTextEditor) {
-    targetResource = vscode.window.activeTextEditor.document.uri
+  if (!targetResource) {
+    if (vscode.window.activeTextEditor) {
+      targetResource = vscode.window.activeTextEditor.document.uri
+    } else if (TDMLProvider.getDocumentUri()) {
+      targetResource = TDMLProvider.getDocumentUri()
+    }
   }
+
   if (targetResource) {
     let infosetFile = `${
       path.basename(targetResource.fsPath).split('.')[0]
@@ -168,7 +174,7 @@ async function createDebugRunFileConfigs(
         tdmlConfig.action = tdmlAction
 
         if (tdmlAction === 'execute') {
-          tdmlConfig.path = targetResource.fsPath.toString()
+          tdmlConfig.path = targetResource.fsPath
 
           tdmlConfig.name =
             tdmlConfig.name ||
@@ -177,17 +183,7 @@ async function createDebugRunFileConfigs(
               tdmlConfig.path
             ))
 
-          tdmlConfig.description =
-            tdmlConfig.description ||
-            (await vscode.commands.executeCommand(
-              'extension.dfdl-debug.getTDMLDescription',
-              tdmlConfig.path
-            ))
-
-          if (!tdmlConfig.name || !tdmlConfig.description) {
-            vscode.window.showInformationMessage(
-              'ESC pressed on a TDML Test Case selection picker! Stopping debugging.'
-            )
+          if (!tdmlConfig.name) {
             return
           }
         }
@@ -417,14 +413,13 @@ export function activateDaffodilDebug(
     vscode.commands.registerCommand(
       'extension.dfdl-debug.getTDMLName',
       async (tdmlConfigPath) => {
-        // Config item gets passed
-
         // get test case name options for dropdown
         const test_case_names: string[] = getTDMLTestCaseItems(tdmlConfigPath)
-          .filter((obj) => typeof obj.name == 'string')
-          .map((obj) => obj.name) as string[]
 
         if (test_case_names.length == 0) {
+          vscode.window.showInformationMessage(
+            'No test cases found in TDML file.'
+          )
           return
         }
 
@@ -432,36 +427,6 @@ export function activateDaffodilDebug(
         return await vscode.window.showQuickPick(test_case_names, {
           placeHolder: 'Test Case Name',
         })
-      }
-    )
-  )
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      'extension.dfdl-debug.getTDMLDescription',
-      async (tdmlConfigPath) => {
-        // Config item gets passed
-
-        // get unique test case description options for dropdown as it may be possible for overlapping description
-        const test_case_unique_descriptions: string[] = [
-          ...new Set(
-            getTDMLTestCaseItems(tdmlConfigPath)
-              .filter((obj) => typeof obj.description == 'string')
-              .map((obj) => obj.description)
-          ),
-        ] as string[]
-
-        if (test_case_unique_descriptions.length == 0) {
-          return
-        }
-
-        // Await showQuickPick directly and return the result
-        return await vscode.window.showQuickPick(
-          test_case_unique_descriptions,
-          {
-            placeHolder: 'Test Case Description',
-          }
-        )
       }
     )
   )
