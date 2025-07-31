@@ -33,9 +33,14 @@ export class TDMLProvider implements vscode.CustomTextEditorProvider {
     return providerRegistration
   }
 
+  public static getDocumentUri(): vscode.Uri | undefined {
+    return TDMLProvider.currentUri
+  }
+
   private static readonly viewType = AppConstants.viewTypeId
   private registered = false
   private currentPanel: vscode.WebviewPanel | undefined = undefined
+  private static currentUri: vscode.Uri | undefined = undefined
 
   constructor(private readonly context: vscode.ExtensionContext) {}
 
@@ -58,7 +63,19 @@ export class TDMLProvider implements vscode.CustomTextEditorProvider {
     webviewPanel.webview.html = this._getWebviewContent(webviewPanel.webview)
     webviewPanel.onDidChangeViewState((e) => {
       this.currentPanel = e.webviewPanel
+
+      if (e.webviewPanel.active) {
+        TDMLProvider.currentUri = document.uri
+      } else if (
+        TDMLProvider.currentUri?.toString() === document.uri.toString()
+      ) {
+        TDMLProvider.currentUri = undefined
+      }
     })
+
+    if (webviewPanel.active) {
+      TDMLProvider.currentUri = document.uri
+    }
 
     try {
       printChannelOutput(document.uri.toString(), true)
@@ -128,6 +145,10 @@ export class TDMLProvider implements vscode.CustomTextEditorProvider {
 
     webviewPanel.onDidDispose(() => {
       changeDocumentSubscription.dispose()
+
+      if (TDMLProvider.currentUri?.toString() === document.uri.toString()) {
+        TDMLProvider.currentUri = undefined
+      }
     })
 
     webviewPanel.webview.onDidReceiveMessage((e) => {

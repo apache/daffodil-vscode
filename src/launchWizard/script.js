@@ -57,7 +57,6 @@ function getConfigValues() {
   const infosetOutputType = document.getElementById('infosetOutputType').value
   const tdmlAction = document.getElementById('tdmlAction').value
   const tdmlName = document.getElementById('tdmlName').value
-  const tdmlDescription = document.getElementById('tdmlDescription').value
   const tdmlPath = document.getElementById('tdmlPath').value
   const openDataEditor = document.getElementById('openDataEditor').checked
   const openInfosetDiffView = document.getElementById(
@@ -99,7 +98,6 @@ function getConfigValues() {
     infosetOutputType,
     tdmlAction,
     tdmlName,
-    tdmlDescription,
     tdmlPath,
     openDataEditor,
     openInfosetDiffView,
@@ -221,18 +219,10 @@ function updateTDMLAction() {
       'margin-top: 10px; visibility: visible;'
     document.getElementById('tdmlName').style =
       'margin-top: 10px; visibility: visible;'
-    document.getElementById('tdmlDescriptionLabel').style =
-      'margin-top: 10px; visibility: visible;'
-    document.getElementById('tdmlDescription').style =
-      'margin-top: 10px; visibility: visible;'
   } else {
     document.getElementById('tdmlNameLabel').style =
       'width: 0px; height: 0px; visibility: hidden;'
     document.getElementById('tdmlName').style =
-      'width: 0px; height: 0px; visibility: hidden;'
-    document.getElementById('tdmlDescriptionLabel').style =
-      'width: 0px; height: 0px; visibility: hidden;'
-    document.getElementById('tdmlDescription').style =
       'width: 0px; height: 0px; visibility: hidden;'
   }
 
@@ -328,8 +318,6 @@ function save() {
       obj.configurations[0].tdmlConfig.path = configValues.tdmlPath
     case 'execute':
       obj.configurations[0].tdmlConfig.name = configValues.tdmlName
-      obj.configurations[0].tdmlConfig.description =
-        configValues.tdmlDescription
       break
     default:
       throw new Error(
@@ -370,7 +358,6 @@ function copyConfig() {
         tdmlConfig: {
           action: configValues.tdmlAction,
           name: configValues.tdmlName,
-          description: configValues.tdmlDescription,
           path: configValues.tdmlPath,
         },
         trace: configValues.trace,
@@ -431,10 +418,6 @@ async function updateConfigValues(config) {
     config['tdmlConfig'] && config.tdmlConfig['name']
       ? config.tdmlConfig['name']
       : config.tdmlName
-  document.getElementById('tdmlDescription').value =
-    config['tdmlConfig'] && config.tdmlConfig['description']
-      ? config.tdmlConfig['description']
-      : config.tdmlDescription
   document.getElementById('tdmlPath').value =
     config['tdmlConfig'] && config.tdmlConfig['path']
       ? config.tdmlConfig['path']

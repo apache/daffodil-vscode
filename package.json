@@ -119,7 +119,6 @@
     "onCommand:extension.dfdl-debug.executeTDML",
     "onCommand:extension.dfdl-debug.copyTDML",
     "onCommand:extension.dfdl-debug.getTDMLName",
-    "onCommand:extension.dfdl-debug.getTDMLDescription",
     "onCommand:extension.dfdl-debug.getTDMLPath",
     "onCommand:extension.dfdl-debug.getValidatedTDMLPath",
     "onCommand:extension.dfdl-debug.getValidatedTDMLCopyPath",
@@ -581,11 +580,6 @@
                     "default": "",
                     "description": "TDML Case Name"
                   },
-                  "description": {
-                    "type": "string",
-                    "default": "",
-                    "description": "TDML Case Description"
-                  },
                   "path": {
                     "type": "string",
                     "default": "${command:AskForTDMLPath}",
@@ -828,8 +822,6 @@
         "variables": {
           "AskForSchemaName": "extension.dfdl-debug.getSchemaName",
           "AskForDataName": "extension.dfdl-debug.getDataName",
-          "AskForTDMLName": "extension.dfdl-debug.getTDMLName",
-          "AskForTDMLDescription": "extension.dfdl-debug.getTDMLDescription",
           "AskForTDMLPath": "extension.dfdl-debug.getTDMLPath",
           "AskForValidatedTDMLPath": "extension.dfdl-debug.getValidatedTDMLPath",
           "AskForValidatedTDMLCopyPath": "extension.dfdl-debug.getValidatedTDMLCopyPath"
