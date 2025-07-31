@@ -34,14 +34,15 @@ class TDMLSuite extends munit.FunSuite {
   val dataPath = Paths.get("./debugger/src/test/data/emptyData.xml").toAbsolutePath()
   val notInfosetPath = Paths.get("./debugger/src/test/data/notInfoset.xml").toAbsolutePath()
   val tdmlName = "TestTDMLName"
-  val tdmlDescription = "Test TDML Description"
+  val tdmlDescription = TDML.getDefaultTDMLTestCaseDescription()
   val tdmlPath = Paths.get("./testTDML.tdml").toAbsolutePath()
   val expectedNSHashSet = HashSet[String](
     "http://www.ibm.com/xmlns/dfdl/testData"
   )
-  val tdmlSingleTestCase = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+  val tdmlSingleTestCase = s"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns1:testSuite xmlns:ns1="http://www.ibm.com/xmlns/dfdl/testData" suiteName="TestTDMLName" defaultRoundTrip="onePass">
-    <ns1:parserTestCase name="TestTDMLName" root="file" model="debugger/src/test/data/emptySchema.xml" roundTrip="onePass" description="Test TDML Description">
+    <ns1:parserTestCase name="TestTDMLName" root="file" model="debugger/src/test/data/emptySchema.xml" roundTrip="onePass" description="${TDML
+      .getDefaultTDMLTestCaseDescription()}">
         <ns1:document>
             <ns1:documentPart type="file">debugger/src/test/data/emptyData.xml</ns1:documentPart>
         </ns1:document>
@@ -50,9 +51,10 @@ class TDMLSuite extends munit.FunSuite {
         </ns1:infoset>
     </ns1:parserTestCase>
 </ns1:testSuite>"""
-  val tdmlDoubleTestCase = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+  val tdmlDoubleTestCase = s"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns1:testSuite xmlns:ns1="http://www.ibm.com/xmlns/dfdl/testData" suiteName="TestTDMLName" defaultRoundTrip="onePass">
-    <ns1:parserTestCase name="TestTDMLName" root="file" model="debugger/src/test/data/emptySchema.xml" roundTrip="onePass" description="Test TDML Description">
+    <ns1:parserTestCase name="TestTDMLName" root="file" model="debugger/src/test/data/emptySchema.xml" roundTrip="onePass" description="${TDML
+      .getDefaultTDMLTestCaseDescription()}">
         <ns1:document>
             <ns1:documentPart type="file">debugger/src/test/data/emptyData.xml</ns1:documentPart>
         </ns1:document>
@@ -75,7 +77,7 @@ class TDMLSuite extends munit.FunSuite {
   override def afterEach(context: AfterEach): Unit = { val _ = tdmlPath.toFile.delete() }
 
   test("Test Generate") {
-    TDML.generate(infosetPath, schemaPath, dataPath, tdmlName, tdmlDescription, tdmlPath.toString())
+    TDML.generate(infosetPath, schemaPath, dataPath, tdmlName, tdmlPath.toString())
 
     val content = readString(tdmlPath)
     val contentXml = XML.loadString(content)
@@ -86,7 +88,7 @@ class TDMLSuite extends munit.FunSuite {
   }
 
   test(name = "Negative Generate") {
-    TDML.generate(notInfosetPath, schemaPath, dataPath, tdmlName, tdmlDescription, tdmlPath.toString())
+    TDML.generate(notInfosetPath, schemaPath, dataPath, tdmlName, tdmlPath.toString())
 
     val content = readString(tdmlPath)
     val contentXml = XML.loadString(content)
@@ -96,36 +98,12 @@ class TDMLSuite extends munit.FunSuite {
     assertNotEquals(contentXml, tdmlSingleTestCaseXml)
   }
 
-  test("Test Append") {
-    TDML.generate(infosetPath, schemaPath, dataPath, tdmlName, tdmlDescription, tdmlPath.toString())
-    TDML.append(infosetPath, schemaPath, dataPath, tdmlName, tdmlDescription, tdmlPath.toString())
-
-    val content = readString(tdmlPath)
-    val contentXml = XML.loadString(content)
-
-    // Validate the namespaces as well. If they ever get placed out of order, this test can act as a canary.
-    assertEquals(getNamespaces(contentXml), expectedNSHashSet)
-    assertEquals(contentXml, tdmlDoubleTestCaseXml)
-  }
-
-  test("Negative Append") {
-    TDML.generate(infosetPath, schemaPath, dataPath, tdmlName, tdmlDescription, tdmlPath.toString())
-    TDML.append(notInfosetPath, schemaPath, dataPath, tdmlName, tdmlDescription, tdmlPath.toString())
-
-    val content = readString(tdmlPath)
-    val contentXml = XML.loadString(content)
-
-    // Validate the namespaces as well. If they ever get placed out of order, this test can act as a canary.
-    assertEquals(getNamespaces(contentXml), expectedNSHashSet)
-    assertNotEquals(contentXml, tdmlDoubleTestCaseXml)
-  }
-
   test("Test Execute") {
     val schemaPathExecute = schemaPath
     val dataPathExecute = dataPath
 
-    TDML.generate(infosetPath, schemaPath, dataPath, tdmlName, tdmlDescription, tdmlPath.toString())
-    val executePaths = TDML.execute(tdmlName, tdmlDescription, tdmlPath.toAbsolutePath().toString())
+    TDML.generate(infosetPath, schemaPath, dataPath, tdmlName, tdmlPath.toString())
+    val executePaths = TDML.execute(tdmlName, tdmlPath.toAbsolutePath().toString())
 
     assertEquals(executePaths, Option[(Path, Path)]((schemaPathExecute.normalize(), dataPathExecute.normalize())))
   }
@@ -138,7 +116,7 @@ class TDMLSuite extends munit.FunSuite {
 
   test("Test createTestCase") {
     val testCase =
-      TDML.createTestCase(infosetPath.toString(), schemaPath.toString(), dataPath.toString(), tdmlName, tdmlDescription)
+      TDML.createTestCase(infosetPath.toString(), schemaPath.toString(), dataPath.toString(), tdmlName)
 
     assertEquals(testCase.getDescription.toString(), tdmlDescription)
     assertEquals(testCase.getName.toString(), tdmlName)

@@ -33,7 +33,6 @@ class ParseSuite extends FunSuite {
   var infosetOutputPath = "testPath/infoset.xml"
   var tdmlAction = ""
   val tdmlName = "Test TDML Name"
-  val tdmlDescription = "Test TDML Description"
   val tdmlPath = "testPath/test.tdml"
   val stopOnEntry = true
   val useExistingServer = false
@@ -113,15 +112,6 @@ class ParseSuite extends FunSuite {
     assertEquals(parseResult.swap.toOption.map(_.head).getOrElse("no error"), "missing 'tdmlConfig.name' field from launch request")
   }
 
-  test("Parse failed - invalid tdmlConfig - no description") {
-    tdmlAction = "generate"
-    buildJson()
-    testTDMLObject.remove("description")
-    val parseResult = Parse.Debugee.parseTDMLDescription(testTDMLObject)
-    assertEquals(parseResult.isLeft, true)
-    assertEquals(parseResult.swap.toOption.map(_.head).getOrElse("no error"), "missing 'tdmlConfig.description' field from launch request")
-  }
-
   test("Parse failed - invalid tdmlConfig - no path") {
     tdmlAction = "generate"
     buildJson()
@@ -167,7 +157,6 @@ class ParseSuite extends FunSuite {
 
     testTDMLObject.addProperty("action", tdmlAction)
     testTDMLObject.addProperty("name", tdmlName)
-    testTDMLObject.addProperty("description", tdmlDescription)
     testTDMLObject.addProperty("path", tdmlPath)
 
     testJsonObject.addProperty("name", name)
