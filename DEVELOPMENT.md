@@ -228,7 +228,6 @@ Upon opening, VSCode may prompt you to install recommended extensions. Go ahead 
 Daffodil-VSCode depends on the following extensions
 
 - [JAR Viewer - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=wmanth.jar-viewer)
-- [Highlight Matching Tag - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=vincaslt.highlight-matching-tag)
 
 ### Verifying Setup Can Build
 

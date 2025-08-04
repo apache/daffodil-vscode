@@ -60,21 +60,11 @@ async function main() {
       resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath)
 
     // Install required extensions
-    cp.spawnSync(
-      cli,
-      [
-        ...args,
-        '--install-extension',
-        'vincaslt.highlight-matching-tag',
-        '--install-extension',
-        'wmanth.jar-viewer',
-      ],
-      {
-        encoding: 'utf-8',
-        stdio: 'inherit',
-        shell: os.platform().toLowerCase() != 'darwin',
-      }
-    )
+    cp.spawnSync(cli, [...args, '--install-extension', 'wmanth.jar-viewer'], {
+      encoding: 'utf-8',
+      stdio: 'inherit',
+      shell: os.platform().toLowerCase() != 'darwin',
+    })
 
     // Download VS Code, unzip it and run the integration tests
     const runTestsResult = await runTests({

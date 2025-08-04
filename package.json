@@ -104,7 +104,6 @@
     "webpack-cli": "6.0.1"
   },
   "extensionDependencies": [
-    "vincaslt.highlight-matching-tag",
     "wmanth.jar-viewer"
   ],
   "main": "./dist/ext/extension.js",
