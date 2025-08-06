@@ -441,11 +441,26 @@ export function getTDMLTestCaseItems(
   const xml_obj = parser.parse(fileData)
 
   // Read through TDML test cases and populate each TDML test case item if XML file is valid enough
-  if (Array.isArray(xml_obj['testSuite']?.['parserTestCase'])) {
+  if (
+    // Otherwise, it's an array
+    Array.isArray(xml_obj['testSuite']?.['parserTestCase'])
+  ) {
     return xml_obj['testSuite']['parserTestCase'].map((obj) => ({
       name: obj['@_name'],
       description: obj['@_description'],
     }))
+  } else if (
+    // One item results in an object type
+    xml_obj['testSuite']?.['parserTestCase'] &&
+    typeof xml_obj['testSuite']?.['parserTestCase'] == 'object'
+  ) {
+    const obj = xml_obj['testSuite']?.['parserTestCase']
+    return [
+      {
+        name: obj['@_name'],
+        description: obj['@_description'],
+      },
+    ]
   } else {
     return []
   }

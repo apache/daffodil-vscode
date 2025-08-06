@@ -579,12 +579,12 @@
                   },
                   "name": {
                     "type": "string",
-                    "default": "${command:AskForTDMLName}",
+                    "default": "",
                     "description": "TDML Case Name"
                   },
                   "description": {
                     "type": "string",
-                    "default": "${command:AskForTDMLDescription}",
+                    "default": "",
                     "description": "TDML Case Description"
                   },
                   "path": {
