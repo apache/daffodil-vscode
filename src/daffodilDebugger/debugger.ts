@@ -67,12 +67,14 @@ async function getTDMLConfig(
 
     if (config?.tdmlConfig?.name === undefined)
       config.tdmlConfig.name = await vscode.commands.executeCommand(
-        'extension.dfdl-debug.getTDMLName'
+        'extension.dfdl-debug.getTDMLName',
+        config?.tdmlConfig?.path
       )
 
     if (config?.tdmlConfig?.description === undefined)
       config.tdmlConfig.description = await vscode.commands.executeCommand(
-        'extension.dfdl-debug.getTDMLDescription'
+        'extension.dfdl-debug.getTDMLDescription',
+        config?.tdmlConfig?.path
       )
   }
 
