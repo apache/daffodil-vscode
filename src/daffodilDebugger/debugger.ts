@@ -21,7 +21,6 @@ import * as path from 'path'
 import { getConfig } from '../utils'
 import { runDebugger, stopDebugger, stopDebugging } from './utils'
 import {
-  getDefaultTDMLTestCaseDescription,
   getDefaultTDMLTestCaseName,
   getTmpTDMLFilePath,
 } from '../tdmlEditor/utilities/tdmlXmlUtils'
@@ -70,12 +69,6 @@ async function getTDMLConfig(
         'extension.dfdl-debug.getTDMLName',
         config?.tdmlConfig?.path
       )
-
-    if (config?.tdmlConfig?.description === undefined)
-      config.tdmlConfig.description = await vscode.commands.executeCommand(
-        'extension.dfdl-debug.getTDMLDescription',
-        config?.tdmlConfig?.path
-      )
   }
 
   if (config?.tdmlConfig?.action === 'generate') {
@@ -85,13 +78,6 @@ async function getTDMLConfig(
       config?.tdmlConfig?.name === ''
     )
       config.tdmlConfig.name = getDefaultTDMLTestCaseName()
-
-    if (
-      config?.tdmlConfig?.description === undefined ||
-      config?.tdmlConfig?.description === 'undefined' ||
-      config?.tdmlConfig?.description === ''
-    )
-      config.tdmlConfig.description = getDefaultTDMLTestCaseDescription()
 
     if (
       config?.tdmlConfig?.path === undefined ||

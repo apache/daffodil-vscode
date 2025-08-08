@@ -503,10 +503,6 @@ class LaunchWizard {
       'tdmlConfig' in defaultValues && defaultValues.tdmlConfig['name']
         ? defaultValues.tdmlConfig['name']
         : ''
-    let tdmlDescription =
-      'tdmlConfig' in defaultValues && defaultValues.tdmlConfig['description']
-        ? defaultValues.tdmlConfig['description']
-        : ''
     let tdmlPath =
       'tdmlConfig' in defaultValues && defaultValues.tdmlConfig['path']
         ? defaultValues.tdmlConfig['path']
@@ -740,9 +736,6 @@ class LaunchWizard {
 
         <p id="tdmlNameLabel" style="${tdmlNameDesVisOrHiddenStyle}" class="setting-description">TDML Name:</p>
         <input style="${tdmlNameDesVisOrHiddenStyle}" class="file-input" value="${tdmlName}" id="tdmlName">
-
-        <p id="tdmlDescriptionLabel" style="${tdmlNameDesVisOrHiddenStyle}" class="setting-description">TDML Description:</p>
-        <input style="${tdmlNameDesVisOrHiddenStyle}" class="file-input" value="${tdmlDescription}" id="tdmlDescription">
 
         <p id="tdmlPathLabel" style="${tdmlPathVisOrHiddenStyle}" class="setting-description">TDML File Path:</p>
         <input style="${tdmlPathVisOrHiddenStyle}" class="file-input" value="${tdmlPath}" id="tdmlPath">

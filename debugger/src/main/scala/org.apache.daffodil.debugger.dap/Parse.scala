@@ -269,22 +269,6 @@ object Parse {
             infosetFormat: String,
             infosetOutput: LaunchArgs.InfosetOutput,
             name: String,
-            description: String,
-            path: String,
-            rootName: Option[String],
-            rootNamespace: Option[String],
-            variables: Map[String, String],
-            tunables: Map[String, String]
-        ) extends TDMLConfig
-
-        case class Append(
-            schemaPath: Path,
-            dataPath: Path,
-            stopOnEntry: Boolean,
-            infosetFormat: String,
-            infosetOutput: LaunchArgs.InfosetOutput,
-            name: String,
-            description: String,
             path: String,
             rootName: Option[String],
             rootNamespace: Option[String],
@@ -297,7 +281,6 @@ object Parse {
             infosetFormat: String,
             infosetOutput: LaunchArgs.InfosetOutput,
             name: String,
-            description: String,
             path: String,
             rootName: Option[String],
             rootNamespace: Option[String],
@@ -335,7 +318,6 @@ object Parse {
     // tdmlConfig: {
     //   action: '',
     //   name: '',
-    //   description: '',
     //   path: ''
     // }
     //
@@ -369,7 +351,6 @@ object Parse {
                 parseInfosetFormat(arguments),
                 parseInfosetOutput(arguments, true),
                 parseTDMLName(tdmlConfig),
-                parseTDMLDescription(tdmlConfig),
                 parseTDMLPath(tdmlConfig),
                 parseRootName(arguments),
                 parseRootNamespace(arguments),
@@ -382,7 +363,6 @@ object Parse {
                 parseInfosetFormat(arguments),
                 parseInfosetOutput(arguments),
                 parseTDMLName(tdmlConfig),
-                parseTDMLDescription(tdmlConfig),
                 parseTDMLPath(tdmlConfig),
                 parseRootName(arguments),
                 parseRootNamespace(arguments),
@@ -573,7 +553,6 @@ object Parse {
     // tdmlConfig: {
     //   action: '',
     //   name: '',
-    //   description: '',
     //   path: ''
     // }
     //
@@ -589,20 +568,6 @@ object Parse {
         .toRight("missing 'tdmlConfig.name' field from launch request")
         .map(_.getAsString())
         .flatMap(name => Either.cond(name.length() > 0, name, "'name' field from 'tdmlConfig' object cannot be empty"))
-        .toEitherNel
-
-    // Parse the description field from the tdmlConfig object from the launch config
-    // Returns an error if the field is missing or is an empty string
-    //
-    // tdmlConfig: tdmlConfig object from the launch config
-    def parseTDMLDescription(tdmlConfig: JsonObject) =
-      Option(tdmlConfig.getAsJsonPrimitive("description"))
-        .toRight("missing 'tdmlConfig.description' field from launch request")
-        .map(_.getAsString())
-        .flatMap(description =>
-          Either
-            .cond(description.length() > 0, description, "'description' field from 'tdmlConfig' object cannot be empty")
-        )
         .toEitherNel
 
     // Parse the path field from the tdmlConfig object from the launch config
@@ -646,7 +611,6 @@ object Parse {
               infosetFormat,
               infosetOutput,
               name,
-              description,
               tdmlPath,
               rootName,
               rootNamespace,
@@ -670,52 +634,11 @@ object Parse {
         ).onFinalize(
           infosetOutput match {
             case Debugee.LaunchArgs.InfosetOutput.File(path) =>
-              IO(TDML.generate(path, schemaPath, dataPath, name, description, tdmlPath))
+              IO(TDML.generate(path, schemaPath, dataPath, name, tdmlPath))
             case _ =>
               // This case should never be hit. Validation is being done on launch config prior to
               //   this section of code attempting to run a DFDL operation. If the user is trying to
               //   generate a TDML file and an infosetOutput type of 'none' | 'console' is selected,
-              //   an error will be displayed, and the execution will be aborted, before the DFDL operation begins.
-              IO.unit
-          }
-        )
-      case Debugee.LaunchArgs.TDMLConfig
-            .Append(
-              schemaPath,
-              dataPath,
-              stopOnEntry,
-              infosetFormat,
-              infosetOutput,
-              name,
-              description,
-              tdmlPath,
-              rootName,
-              rootNamespace,
-              variables,
-              tunables
-            ) =>
-        // Create a LaunchArgs.Manual, run the debugee with it, and then append to the existing TDML file
-        debugee(
-          Debugee.LaunchArgs
-            .Manual(
-              schemaPath,
-              dataPath,
-              stopOnEntry,
-              infosetFormat,
-              infosetOutput,
-              rootName,
-              rootNamespace,
-              variables,
-              tunables
-            )
-        ).onFinalize(
-          infosetOutput match {
-            case Debugee.LaunchArgs.InfosetOutput.File(path) =>
-              IO(TDML.append(path, schemaPath, dataPath, name, description, tdmlPath))
-            case _ =>
-              // This case should never be hit. Validation is being done on launch config prior to
-              //   this section of code attempting to run a DFDL operation. If the user is trying to
-              //   append to a TDML file and an infosetOutput type of 'none' | 'console' is selected,
               //   an error will be displayed, and the execution will be aborted, before the DFDL operation begins.
               IO.unit
           }
@@ -726,7 +649,6 @@ object Parse {
               infosetFormat,
               infosetOutput,
               name,
-              description,
               tdmlPath,
               rootName,
               rootNamespace,
@@ -734,10 +656,10 @@ object Parse {
               tunables
             ) =>
         // From a TDML file, create a LaunchArgs.Manual from the named test, run the debugee with it
-        Resource.eval(IO(TDML.execute(name, description, tdmlPath))).flatMap {
+        Resource.eval(IO(TDML.execute(name, tdmlPath))).flatMap {
           case None =>
             Resource.raiseError[IO, Debugee, Throwable](
-              new RuntimeException(s"couldn't execute TDML with name $name, description $description, path $tdmlPath")
+              new RuntimeException(s"couldn't execute TDML with name $name, path $tdmlPath")
             )
           case Some((schemaPath, dataPath)) =>
             debugee(
@@ -1208,17 +1130,15 @@ object Parse {
           variables: Map[String, String],
           tunables: Map[String, String]
       ) extends LaunchArgs
-      case class TDMLConfig(action: String, name: String, description: String, path: String) extends LaunchArgs
+      case class TDMLConfig(action: String, name: String, path: String) extends LaunchArgs
 
       object TDMLConfig {
         def apply(that: Debugee.LaunchArgs.TDMLConfig): TDMLConfig =
           that match {
-            case Debugee.LaunchArgs.TDMLConfig.Generate(_, _, _, _, _, name, description, path, _, _, _, _) =>
-              TDMLConfig("generate", name, description, path)
-            case Debugee.LaunchArgs.TDMLConfig.Append(_, _, _, _, _, name, description, path, _, _, _, _) =>
-              TDMLConfig("append", name, description, path)
-            case Debugee.LaunchArgs.TDMLConfig.Execute(_, _, _, name, description, path, _, _, _, _) =>
-              TDMLConfig("execute", name, description, path)
+            case Debugee.LaunchArgs.TDMLConfig.Generate(_, _, _, _, _, name, path, _, _, _, _) =>
+              TDMLConfig("generate", name, path)
+            case Debugee.LaunchArgs.TDMLConfig.Execute(_, _, _, name, path, _, _, _, _) =>
+              TDMLConfig("execute", name, path)
           }
       }
     }

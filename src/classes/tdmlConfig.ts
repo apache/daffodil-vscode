@@ -18,6 +18,5 @@
 export interface TDMLConfig {
   action: string
   name?: string
-  description?: string
   path?: string
 }
