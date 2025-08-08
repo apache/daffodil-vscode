@@ -32,8 +32,11 @@ export function handleDebugEvent(e: vscode.DebugSessionCustomEvent) {
       break
     // this allows for any error event to be caught in this case
     case e.event.startsWith('daffodil.error') ? e.event : '':
-      vscode.window.showErrorMessage(e.body.message, { modal: true })
+      if (!e.body.message.startsWith('Schema Definition Error:')) {
+        vscode.window.showErrorMessage(e.body.message, { modal: true })
+      }
       outputChannel.appendLine(e.body.message)
+      outputChannel.show(true)
       break
   }
 }
