@@ -168,10 +168,10 @@ async function createDebugRunFileConfigs(
         noDebug: noDebug,
       })
     } else {
-      var tdmlConfig = <TDMLConfig>{}
+      var tdmlConfig: TDMLConfig | undefined = undefined
 
       if (tdmlAction) {
-        tdmlConfig.action = tdmlAction
+        tdmlConfig = { action: tdmlAction }
 
         if (tdmlAction === 'execute') {
           tdmlConfig.path = targetResource.fsPath
@@ -194,19 +194,19 @@ async function createDebugRunFileConfigs(
         request: 'launch',
         type: 'dfdl',
         schema: {
-          path: tdmlConfig.action === 'execute' ? '' : targetResource.fsPath,
+          path: tdmlConfig?.action === 'execute' ? '' : targetResource.fsPath,
           rootName: null,
           rootNamespace: null,
         },
         data:
-          tdmlConfig.action === 'execute' ? '' : '${command:AskForDataName}',
+          tdmlConfig?.action === 'execute' ? '' : '${command:AskForDataName}',
         debugServer: false,
         infosetFormat: 'xml',
         infosetOutput: {
           type: 'file',
           path: '${workspaceFolder}/' + infosetFile,
         },
-        tdmlConfig: tdmlConfig,
+        ...(tdmlConfig && { tdmlConfig: tdmlConfig }),
       })
 
       vscode.debug.startDebugging(undefined, config, { noDebug: noDebug })
@@ -640,7 +640,7 @@ class DaffodilConfigurationProvider
       !dataFolder.includes('${command:AskForSchemaName}') &&
       !dataFolder.includes('${command:AskForDataName}') &&
       !dataFolder.includes('${workspaceFolder}') &&
-      config.tdmlConfig.action !== 'execute' &&
+      config.tdmlConfig?.action !== 'execute' &&
       vscode.workspace.workspaceFolders &&
       dataFolder !== vscode.workspace.workspaceFolders[0].uri.fsPath &&
       dataFolder.split('.').length === 1 &&
