@@ -175,17 +175,6 @@ async function createDebugRunFileConfigs(
 
         if (tdmlAction === 'execute') {
           tdmlConfig.path = targetResource.fsPath
-
-          tdmlConfig.name =
-            tdmlConfig.name ||
-            (await vscode.commands.executeCommand(
-              'extension.dfdl-debug.getTDMLName',
-              tdmlConfig.path
-            ))
-
-          if (!tdmlConfig.name) {
-            return
-          }
         }
       }
 
@@ -380,11 +369,16 @@ export function activateDaffodilDebug(
       'extension.dfdl-debug.getValidatedTDMLPath',
       async (fileRequested = null) => {
         // Open native file explorer to allow user to select data file from anywhere on their machine
-        return await getFile(
+        const retVal = await getFile(
           fileRequested,
           'Select TDML File',
           'Select TDML File'
         )
+
+        if (!retVal)
+          vscode.window.showInformationMessage('Invalid TDML Path selected')
+
+        return retVal
       }
     )
   )
@@ -424,9 +418,14 @@ export function activateDaffodilDebug(
         }
 
         // Await showQuickPick directly and return the result
-        return await vscode.window.showQuickPick(test_case_names, {
+        const retVal = await vscode.window.showQuickPick(test_case_names, {
           placeHolder: 'Test Case Name',
         })
+
+        if (!retVal)
+          vscode.window.showInformationMessage('Invalid TDML Name selected')
+
+        return retVal
       }
     )
   )
