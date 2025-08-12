@@ -53,38 +53,32 @@ async function getTDMLConfig(
   // If we are doing a TDML execute, these fields will be replaced,
   //   so we don't need to prompt for them now.
   if (config?.tdmlConfig?.action === 'execute') {
-    // Erase the value of `data` so that we aren't prompted for it later
-    // Might need to add `schema` here if we move the `Execute TDML` command
-    //   away from the detected dfdl language in VSCode.
+    // Erase the value of `data` and 'schema.path' so that we aren't prompted for it later
     config.data = ''
     config.schema.path = ''
 
-    if (config?.tdmlConfig?.path === undefined)
-      config.tdmlConfig.path = await vscode.commands.executeCommand(
+    config.tdmlConfig.path =
+      config.tdmlConfig.path ||
+      (await vscode.commands.executeCommand(
         'extension.dfdl-debug.getValidatedTDMLPath'
-      )
+      ))
 
-    if (config?.tdmlConfig?.name === undefined)
-      config.tdmlConfig.name = await vscode.commands.executeCommand(
+    if (!config.tdmlConfig.path) return false
+
+    config.tdmlConfig.name =
+      config.tdmlConfig.name ||
+      (await vscode.commands.executeCommand(
         'extension.dfdl-debug.getTDMLName',
-        config?.tdmlConfig?.path
-      )
+        config.tdmlConfig.path
+      ))
+
+    if (!config.tdmlConfig.name) return false
   }
 
   if (config?.tdmlConfig?.action === 'generate') {
-    if (
-      config?.tdmlConfig?.name === undefined ||
-      config?.tdmlConfig?.name === 'undefined' ||
-      config?.tdmlConfig?.name === ''
-    )
-      config.tdmlConfig.name = getDefaultTDMLTestCaseName()
-
-    if (
-      config?.tdmlConfig?.path === undefined ||
-      config?.tdmlConfig?.path === 'undefined' ||
-      config?.tdmlConfig?.path === ''
-    )
-      config.tdmlConfig.path = getTmpTDMLFilePath()
+    config.tdmlConfig.name =
+      config.tdmlConfig.name || getDefaultTDMLTestCaseName()
+    config.tdmlConfig.path = config.tdmlConfig.path || getTmpTDMLFilePath()
   }
 
   if (config?.tdmlConfig?.action !== 'execute' && config.data === '') {
