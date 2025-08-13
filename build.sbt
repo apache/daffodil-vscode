@@ -98,7 +98,7 @@ lazy val debugger = project
       "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.34.0",
       // scala-steward:on
       "co.fs2" %% "fs2-io" % "3.9.4",
-      "com.monovore" %% "decline-effect" % "2.4.1",
+      "com.monovore" %% "decline-effect" % "2.5.0",
       "org.typelevel" %% "log4cats-slf4j" % "2.7.0",
       "org.scalameta" %% "munit" % "1.0.2" % Test
     ),
