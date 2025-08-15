@@ -203,6 +203,7 @@ export class DataEditorClient implements vscode.Disposable {
         openLabel: 'Select',
         canSelectFiles: true,
         canSelectFolders: false,
+        title: 'Select Data File to Inspect',
       })
       if (fileUri && fileUri[0]) {
         this.fileToEdit = fileUri[0].fsPath
