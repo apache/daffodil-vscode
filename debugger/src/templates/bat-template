@@ -122,7 +122,7 @@ if defined DAFFODIL_DEBUG_CLASSPATH (
 
 
 rem Call the application and pass all arguments unchanged.
-"%_JAVACMD%" !_JAVA_OPTS! !DAFFODIL_DEBUGGER_OPTS! -cp "%NEW_CLASSPATH%" %MAIN_CLASS% !_APP_ARGS!
+"%_JAVACMD%" !_JAVA_OPTS! !DAFFODIL_DEBUGGER_OPTS! -cp %NEW_CLASSPATH% %MAIN_CLASS% !_APP_ARGS!
 
 @endlocal
 
