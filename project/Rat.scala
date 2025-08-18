@@ -62,7 +62,12 @@ object Rat {
     file("src/svelte/src/resources/fonts/RedHatMono-Regular.woff2"),
     // scalafmt-core files
     file(".git-blame-ignore-revs")
-  )
+  ) ++ {
+    // images
+    val dir = new File("images")
+    if (dir.exists && dir.isDirectory) dir.listFiles().toSeq
+    else Seq.empty
+  }
 
   lazy val MIT_LICENSE_NAME = "MIT License"
 
