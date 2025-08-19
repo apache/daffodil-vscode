@@ -282,7 +282,7 @@ export function activateDaffodilDebug(
       }
     ),
     vscode.commands.registerCommand(
-      'extension.dfdl-debug.copyTDML',
+      'extension.dfdl-debug.createTDML',
       async (_) => {
         if (!fs.existsSync(getTmpTDMLFilePath())) {
           vscode.window.showErrorMessage(
