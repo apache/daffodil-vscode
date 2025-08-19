@@ -117,7 +117,7 @@
     "onCommand:extension.dfdl-debug.debugEditorContents",
     "onCommand:extension.dfdl-debug.appendTDML",
     "onCommand:extension.dfdl-debug.executeTDML",
-    "onCommand:extension.dfdl-debug.copyTDML",
+    "onCommand:extension.dfdl-debug.createTDML",
     "onCommand:extension.dfdl-debug.getTDMLName",
     "onCommand:extension.dfdl-debug.getTDMLPath",
     "onCommand:extension.dfdl-debug.getValidatedTDMLPath",
@@ -271,7 +271,7 @@
           "when": "resourceLangId == tdml"
         },
         {
-          "command": "extension.dfdl-debug.copyTDML",
+          "command": "extension.dfdl-debug.createTDML",
           "when": "resourceLangId == dfdl"
         }
       ],
@@ -293,7 +293,7 @@
           "when": "resourceLangId == tdml"
         },
         {
-          "command": "extension.dfdl-debug.copyTDML",
+          "command": "extension.dfdl-debug.createTDML",
           "when": "resourceLangId == dfdl"
         },
         {
@@ -376,10 +376,11 @@
         "enablement": "!inDebugMode"
       },
       {
-        "command": "extension.dfdl-debug.copyTDML",
-        "title": "Copy TDML File",
+        "command": "extension.dfdl-debug.createTDML",
+        "title": "Create TDML File",
         "category": "Daffodil Debug",
-        "enablement": "!inDebugMode"
+        "enablement": "!inDebugMode",
+        "tooltip": "testing123"
       },
       {
         "command": "extension.dfdl-debug.toggleFormatting",
