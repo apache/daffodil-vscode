@@ -791,7 +791,7 @@
               "infosetFormat": "xml",
               "infosetOutput": {
                 "type": "file",
-                "path": "${workspaceFolder}/target/infoset.xml"
+                "path": "^\"\\${workspaceFolder}/target/infoset.xml\""
               },
               "tdmlConfig": {
                 "action": "generate"
@@ -806,14 +806,14 @@
               "dataEditor": {
                 "port": 9000,
                 "logging": {
-                  "file": "${workspaceFolder}/dataEditor-${omegaEditPort}.log",
+                  "file": "^\"\\${workspaceFolder}/dataEditor-\\${omegaEditPort}.log\"",
                   "level": "info"
                 }
               },
               "dfdlDebugger": {
                 "logging": {
                   "level": "INFO",
-                  "file": "${workspaceFolder}/daffodil-debugger.log"
+                  "file": "^\"\\${workspaceFolder}/daffodil-debugger.log\""
                 }
               }
             }
