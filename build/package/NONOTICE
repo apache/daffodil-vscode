@@ -159,3 +159,8 @@ The following binary components distributed with this project are licensed under
   This package is available under the Apache License v2 without a NOTICE:
       Repository at: https://github.com/hidekatsu-izuno/jsonic/
       NOTE: This one appears to be in a different language does this cause any issues?
+
+- org.fusesource.jansi-<VERSION>.jar in daffodil-debugger-<VERSION>.zip
+  This product bundles 'jansi' from the above files.
+  This package is available under the Apache License v2 without a NOTICE:
+      Repository at: https://github.com/fusesource/jansi
