@@ -16,6 +16,8 @@
  */
 
 import * as vscode from 'vscode'
+import { outputChannel } from '../adapter/activateDaffodilDebug'
+import jsep from 'jsep'
 
 const viewName = 'commandsView'
 const packageCommands = require('../../package.json').contributes.commands
@@ -41,7 +43,8 @@ class CommandItem extends vscode.TreeItem {
 export class CommandsProvider implements vscode.TreeDataProvider<CommandItem> {
   private commands: Array<CommandItem>
   constructor() {
-    this.commands = getCommands('!inDebugMode')
+    this.commands = this.getCommands()
+    this.refresh()
   }
 
   private _onDidChangeTreeData: vscode.EventEmitter<
@@ -80,40 +83,202 @@ export class CommandsProvider implements vscode.TreeDataProvider<CommandItem> {
 
     // Create listeners to update the commands based on if a debug session is happening
     vscode.debug.onDidStartDebugSession(() => {
-      this.commands = getCommands('inDebugMode')
+      this.commands = this.getCommands()
       this.refresh()
     })
     vscode.debug.onDidTerminateDebugSession(() => {
-      this.commands = getCommands('!inDebugMode')
+      this.commands = this.getCommands()
       this.refresh()
     })
+    context.subscriptions.push(
+      vscode.window.tabGroups.onDidChangeTabs(() => {
+        this.commands = this.getCommands()
+        this.refresh()
+      }),
+
+      vscode.window.onDidChangeActiveTextEditor(() => {
+        this.commands = this.getCommands()
+        this.refresh()
+      })
+    )
 
     context.subscriptions.push(tree)
   }
-}
 
-// Function to parse all the commands from the package.json, that currently enabled,
-// to an array of CommandItems
-function getCommands(enablement: String): Array<CommandItem> {
-  const commands = Array<CommandItem>()
+  // Get the type of the currently active custom editor. If we're not using a custom editor, return an empty string
+  private getActiveCustomEditor(): string {
+    // TabGroups are able to represent many different types of editors, including Text Editors, Notebook Editors, and WebView Editors
+    const tabInput = vscode.window.tabGroups.activeTabGroup.activeTab?.input
+    if (tabInput && tabInput instanceof vscode.TabInputCustom)
+      return tabInput.viewType
+    return ''
+  }
 
-  packageCommands
-    .filter(
-      (c) =>
-        !c.command.startsWith(viewName) &&
-        (enablement === c.enablement || c.enablement === undefined)
-    )
-    .forEach((command) => {
-      commands.push(
-        new CommandItem(
-          command.title,
-          command.command,
-          command.category,
-          command.enablement ?? '',
-          vscode.TreeItemCollapsibleState.None
-        )
+  // This context will be passed into the AST parser. It should contain information on the different keywords expected
+  // in our boolean expressions mapped to their resolved values.
+  private getEnablementContext(): Record<string, any> {
+    return {
+      inDebugMode: () => vscode.debug.activeDebugSession,
+      editorLangId: () => this.getActiveLangId(),
+      activeEditor: () => this.getActiveCustomEditor(),
+      editorTextFocus: () => !(vscode.window.activeTextEditor === undefined),
+    }
+  }
+
+  private getActiveLangId(): string {
+    return vscode.window.activeTextEditor?.document.languageId || ''
+  }
+
+  // Evaluate an Abstract Syntax Tree - useful for evaluating boolean expressions that are contained within a string
+  // Be sure to wrap the string in a jsep constructor (eg. jsep(str))
+  private evaluateAst(
+    node:
+      | jsep.Expression
+      | jsep.baseTypes
+      | (jsep.Expression | jsep.baseTypes)[],
+    context: Record<string, any>
+  ): any {
+    if (Array.isArray(node)) {
+      outputChannel.appendLine('Unexpected array node')
+      return
+    }
+
+    if (!node) {
+      outputChannel.appendLine('Unexpected undefined node')
+      return
+    }
+
+    if (
+      typeof node === 'string' ||
+      typeof node === 'number' ||
+      typeof node === 'boolean'
+    ) {
+      return node
+    }
+
+    if (typeof node !== 'object' || !('type' in node)) {
+      outputChannel.appendLine(`Invalid AST node: ${JSON.stringify(node)}`)
+      return
+    }
+
+    switch (node.type) {
+      case 'Literal':
+        return node.value
+      case 'Identifier': {
+        if (!node.name || typeof node.name !== 'string') {
+          outputChannel.appendLine(
+            `Invalid Identifier: ${node.name}, type of ${typeof node.name}`
+          )
+          return
+        }
+
+        if (!(node.name in context)) {
+          outputChannel.appendLine(`Unknown identifier: ${node.name}`)
+        }
+
+        const val = context[node.name]
+        return typeof val === 'function' ? val() : val
+      }
+      case 'CallExpression': {
+        const callee = node.callee as jsep.Identifier
+
+        if (callee.type !== 'Identifier') {
+          outputChannel.appendLine(
+            `Unsupported function call: ${node.name}. Only top-level identifiers are allowed`
+          )
+          return
+        }
+
+        const fn = context[callee.name]
+        if (typeof fn !== 'function') {
+          outputChannel.appendLine(
+            `Indentifier ${callee.name} is not a function`
+          )
+          return
+        }
+
+        // None of the functions currently need arguments
+        // To support arguments, start with the following lines:
+        // const args = node.arguments.map(arg => evaluateEnablement2(arg, context))
+        // fn(...args)
+        return fn()
+      }
+      case 'UnaryExpression': {
+        const arg = this.evaluateAst(node.argument, context)
+        switch (node.operator) {
+          case '!':
+            return !arg
+          default:
+            outputChannel.appendLine(
+              `Unsupported unary operator: ${node.operator}`
+            )
+            return
+        }
+      }
+      case 'LogicalExpression': {
+        const left = this.evaluateAst(node.left, context)
+        const right = this.evaluateAst(node.right, context)
+        switch (node.operator) {
+          case '&&':
+            return left && right
+          case '||':
+            return left || right
+          default:
+            outputChannel.appendLine(
+              `Unsupported logical operator: ${node.operator}`
+            )
+            return
+        }
+      }
+      case 'BinaryExpression': {
+        const left = this.evaluateAst(node.left, context)
+        const right = this.evaluateAst(node.right, context)
+        switch (node.operator) {
+          case '==':
+            return left == right
+          case '!=':
+            return left != right
+          case '&&':
+            return left && right
+          case '||':
+            return left || right
+          default:
+            outputChannel.appendLine(
+              `Unsupported binary operator: ${node.operator}`
+            )
+            return
+        }
+      }
+      default:
+        outputChannel.appendLine(`Unsupported node type: ${(node as any).type}`)
+        return
+    }
+  }
+
+  // Function to parse all the commands from the package.json, that currently enabled,
+  // to an array of CommandItems
+  private getCommands(): Array<CommandItem> {
+    const commands = Array<CommandItem>()
+
+    packageCommands
+      .filter(
+        (c) =>
+          !c.command.startsWith(viewName) &&
+          c.enablement &&
+          this.evaluateAst(jsep(c.enablement), this.getEnablementContext())
       )
-    })
+      .forEach((command) => {
+        commands.push(
+          new CommandItem(
+            command.title,
+            command.command,
+            command.category ?? '',
+            command.enablement ?? '',
+            vscode.TreeItemCollapsibleState.None
+          )
+        )
+      })
 
-  return commands
+    return commands
+  }
 }
