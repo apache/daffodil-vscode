@@ -32,15 +32,11 @@ suite('Daffodil Debugger', () => {
   // debugger options
   const DATA = path.join(PROJECT_ROOT, 'src/tests/data/test.txt')
   const XML_INFOSET_PATH = path.join(PROJECT_ROOT, 'testinfoset.xml')
-  const TDML_PATH = path.join(PROJECT_ROOT, 'tdmltest.tdml')
   const JSON_INFOSET_PATH = path.join(PROJECT_ROOT, 'testinfoset.json')
   const debuggers: vscode.Terminal[] = []
 
   const tdmlConf = {
-    action: 'generate',
-    name: 'tdmlConf',
-    description: 'testtdml',
-    path: TDML_PATH,
+    action: 'none',
   }
 
   const dataEditor: DataEditorConfig = {
