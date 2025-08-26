@@ -63,6 +63,9 @@ limitations under the License.
   <span
     on:mouseenter={showTooltip ? NULL : renderTooltip}
     on:mouseleave={showTooltip ? renderTooltip : NULL}
+    on:focusout={() => {
+      showTooltip = false
+    }}
   >
     <slot />
   </span>
