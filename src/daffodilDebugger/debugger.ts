@@ -145,16 +145,30 @@ export async function getDebugger(
 
     // Get schema file before debugger starts to avoid timeout
     if (config.schema.path.includes('${command:AskForSchemaName}')) {
-      config.schema.path = await vscode.commands.executeCommand(
+      const schemaPath = await vscode.commands.executeCommand(
         'extension.dfdl-debug.getSchemaName'
       )
+
+      // Stop execution if schemaPath is null, undefined, or empty string
+      if (!schemaPath) {
+        return await stopDebugging().then((_) => undefined)
+      }
+
+      config.schema.path = schemaPath
     }
 
     // Get data file before debugger starts to avoid timeout
     if (config.data.includes('${command:AskForDataName}')) {
-      config.data = await vscode.commands.executeCommand(
+      const dataPath = await vscode.commands.executeCommand(
         'extension.dfdl-debug.getDataName'
       )
+
+      // Stop execution if dataPath is null, undefined, or empty string
+      if (!dataPath) {
+        return await stopDebugging().then((_) => undefined)
+      }
+
+      config.data = dataPath
     }
 
     let workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath
