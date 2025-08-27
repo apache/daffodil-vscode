@@ -31,8 +31,16 @@ limitations under the License.
   import FlexContainer from '../layouts/FlexContainer.svelte'
   import DataView from '../DataDisplays/Fieldsets/DataView.svelte'
   import HelpIcon from '../layouts/HelpIcon.svelte'
+  /* DEBUG_ONLY_START */
+  import { getDebugVarContext } from '../Debug'
+  getDebugVarContext().add({
+    id: 'selection',
+    valueStr: () => {
+      return `(${$selectionDataStore.startOffset}, ${$selectionDataStore.endOffset})`
+    },
+  })
+  /* DEBUG_ONLY_END */
   const eventDispatcher = createEventDispatcher()
-
   let selectionOffsetText: string
   $: selectionOffsetText = setSelectionOffsetInfo(
     'Selection',

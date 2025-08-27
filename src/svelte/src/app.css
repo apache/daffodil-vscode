@@ -32,10 +32,6 @@ limitations under the License. */
   font-weight: normal bold;
   src: url(../resources/fonts/SpaceGrotesk-Variable.woff2) format('woff2');
 }
-.material-symbols-outlined {
-  font-family: 'Material Symbols Outlined';
-}
-/* Data Editor - Global CSS Styles */
 
 html {
   --monospace-font: 'Red Hat Mono';
@@ -63,6 +59,19 @@ html {
   --color-search-result: #69a0a7;
   --color-replace-result: #5f816b;
 }
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+
+a:hover {
+  color: #535bf2;
+}
 
 /* Global LEGEND Styles */
 legend {
@@ -80,9 +89,11 @@ button {
   margin: 1pt 2pt 1pt 2px;
   padding: 2px;
 }
+
 button:not(:disabled):hover {
   font-weight: bold;
 }
+
 button:disabled {
   opacity: 0.3;
   cursor: not-allowed;
@@ -103,6 +114,7 @@ header {
 fieldset {
   width: 100%;
 }
+
 fieldset label {
   font-weight: bold;
 }
@@ -119,6 +131,7 @@ select {
   border-style: solid;
   /*noinspection CssUnresolvedCustomProperty*/
 }
+
 input::placeholder {
   font-style: italic;
 }
@@ -144,6 +157,7 @@ textarea::-webkit-scrollbar {
   background-color: transparent;
   width: 10pt;
 }
+
 textarea::-webkit-scrollbar-thumb {
   background-color: var(--color-secondary-light);
   border-radius: 4px;
@@ -157,17 +171,21 @@ body {
 body.light {
   color: var(--color-primary-darkest);
 }
+
 body.dark {
   color: var(--color-primary-lightest);
 }
+
 div.light,
 span.light {
   background-color: var(--color-primary-light);
 }
+
 div.dark,
 span.dark {
   background-color: var(--color-primary-dark);
 }
+
 label {
   white-space: nowrap;
   overflow-wrap: break-word;
@@ -181,11 +199,13 @@ form {
   padding: 0;
   margin: 0;
 }
+
 span.nowrap {
   white-space: nowrap;
   overflow-x: auto;
   display: inline-block;
 }
+
 span.editable {
   white-space: nowrap;
   overflow-x: auto;
@@ -195,15 +215,18 @@ span.editable {
   text-decoration-color: steelblue;
   cursor: pointer;
 }
+
 span.editable:hover {
   font-weight: bolder;
 }
+
 input.dark,
 select.dark {
   background-color: #101821;
   color: #e1e3e5;
   border-color: #687483;
 }
+
 input.light,
 select.light {
   background-color: #e1e3e5;
@@ -216,6 +239,7 @@ button.dark {
   color: #fffdfa;
   border-color: #c8b69b;
 }
+
 button.light {
   background-color: #c8b69b;
   color: #322716;
@@ -226,13 +250,16 @@ span.btn-icon {
   font-size: large;
   font-weight: 700;
 }
+
 span.errMsg {
   color: red;
 }
+
 span.mirror {
   transform: scaleX(-1);
   display: inline-block;
 }
+
 span.input-actions button {
   height: 100%;
   margin: 0;
@@ -244,31 +271,38 @@ span.input-actions button {
   /*noinspection CssUnresolvedCustomProperty*/
   font-family: 'Red Hat Mono';
 }
+
 span.input-actions button.dark {
   background-color: var(--color-primary-dark);
   border-color: #687483;
 }
+
 span.input-actions button.light {
   background-color: var(--color-primary-lightest);
   border-color: #2f3e4f;
 }
+
 span.input-actions button.dark:hover {
   background-color: var(--color-primary-dark-hover);
   font-weight: bolder;
 }
+
 span.input-actions button.light:hover {
   background-color: var(--color-primary-light-hover);
   font-weight: bolder;
 }
+
 span.input-actions button.active {
   outline-style: inset;
   outline-offset: -1px;
   outline-width: 2px;
 }
+
 span.input-actions button.active.dark {
   background-color: var(--color-primary-dark-hover);
   outline-color: var(--color-primary-lightest);
 }
+
 span.input-actions button.active.light {
   background-color: var(--color-primary-light-hover);
   outline-color: var(--color-primary-mid);
