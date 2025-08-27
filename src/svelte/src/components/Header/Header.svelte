@@ -15,13 +15,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import FileMetrics from './fieldsets/FileMetrics.svelte'
   import SearchReplace from './fieldsets/SearchReplace.svelte'
   import Settings from './fieldsets/Settings.svelte'
   import FlexContainer from '../layouts/FlexContainer.svelte'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
-  import { fileMetrics } from '../../stores'
   import Tooltip from '../layouts/Tooltip.svelte'
+  import FileMetrics from './fieldsets/FileMetrics.svelte'
+  import { fileMetrics } from '../../stores'
 
   let hideChildren = false
 </script>
@@ -29,7 +29,10 @@ limitations under the License.
 {#if hideChildren}
   <FlexContainer>
     <FlexContainer --justify-content="space-between" --align-items="center">
-      <div class="filename-display"><b>File:</b> {$fileMetrics.name}</div>
+      <div class="filename-display">
+        <b>File:</b>
+        {$fileMetrics.name}
+      </div>
       <Tooltip alwaysEnabled={true} description={'Maximize header'}>
         <button
           class={$UIThemeCSSClass + ' minmax-icon'}

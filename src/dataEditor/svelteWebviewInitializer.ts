@@ -16,7 +16,7 @@
  */
 
 import * as vscode from 'vscode'
-
+import * as fs from 'fs'
 export class SvelteWebviewInitializer {
   constructor(private context: vscode.ExtensionContext) {}
 
@@ -32,31 +32,50 @@ export class SvelteWebviewInitializer {
     webView: vscode.Webview
   ): string {
     const nonce = this.getNonce()
-    const scriptUri = webView.asWebviewUri(
-      this.getSvelteAppDistributionIndexJsUri(context, view)
-    )
-    const stylesUri = webView.asWebviewUri(this.getStylesUri(context))
-    return `
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title>Data Editor</title>
-        <meta charset="UTF-8">
-        <!--
-          Use a content security policy to only allow loading images from the extension directory,
-          and only allow scripts that have a specific nonce.
-        -->
-        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${webView.cspSource}; style-src ${webView.cspSource}; img-src ${webView.cspSource}; script-src 'nonce-${nonce}';">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="${stylesUri}" rel="stylesheet" type="text/css" />
-    </head>
-    <body>
-    </body>
-    <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
-</html>
-`
-  }
 
+    const scriptUri = this.getResourceUri('js', context, (uri) => {
+      return webView.asWebviewUri(uri)
+    })
+    const stylesUri = this.getResourceUri('css', context, (uri) => {
+      return webView.asWebviewUri(uri)
+    })
+    const indexPath = this.getResourceUri('index', context)
+    let indexHTML = this.injectNonce(
+      this.getIndexHTML(context),
+      webView,
+      nonce,
+      scriptUri
+    )!
+    indexHTML = fs
+      .readFileSync(indexPath!.fsPath, 'utf-8')
+      .replace(/src="\.\/index.js"/, `src="${scriptUri.toString()}"`)
+      .replace(/href="\.\/style.css"/, `href="${stylesUri.toString()}"`)
+      .replaceAll(/nonce="__nonce__"/g, `nonce="${nonce}""`)
+    return indexHTML
+  }
+  private injectNonce(
+    html: string,
+    webView: vscode.Webview,
+    nonce: string,
+    scriptsUri: vscode.Uri
+  ) {
+    let ret = html.replaceAll(
+      '<head>',
+      `<head><meta http-equiv="Content-Security-Policy" content="default-src ${webView.cspSource}; font-src ${webView.cspSource}; style-src 'self' 'unsafe-inline' ${webView.cspSource}; img-src ${webView.cspSource}; script-src 'nonce-${nonce}' ${webView.cspSource};">`
+    )
+    return ret
+  }
+  private getIndexHTML(context: vscode.ExtensionContext) {
+    const indexFile = vscode.Uri.joinPath(
+      context.extensionUri,
+      'dist',
+      'views',
+      'dataEditor',
+      'index.html'
+    )
+    const indexContent = fs.readFileSync(indexFile.fsPath).toString()
+    return indexContent
+  }
   // get a nonce for use in a content security policy
   private getNonce(): string {
     let text = ''
@@ -97,22 +116,41 @@ export class SvelteWebviewInitializer {
     return vscode.Uri.joinPath(context.extensionUri, 'dist', 'views', view)
   }
 
-  // get the svelte app distribution index.js uri
-  private getSvelteAppDistributionIndexJsUri(
+  private getResourceUri(
+    item: 'index' | 'css' | 'js',
     context: vscode.ExtensionContext,
-    view: string
-  ): vscode.Uri {
-    return vscode.Uri.joinPath(
+    uriDecorator?: (uriPath: vscode.Uri) => any
+  ): vscode.Uri
+
+  private getResourceUri<R>(
+    item: 'index' | 'css' | 'js',
+    context: vscode.ExtensionContext,
+    uriDecorator: (uriPath: vscode.Uri) => R
+  ): R
+  private getResourceUri<R>(
+    item: 'index' | 'css' | 'js',
+    context: vscode.ExtensionContext,
+    uriDecorator?: (uriPath: vscode.Uri) => R
+  ): vscode.Uri | R {
+    let resourceFile = ''
+    switch (item) {
+      case 'index':
+        resourceFile = item + '.html'
+        break
+      case 'css':
+        resourceFile = 'style.css'
+        break
+      case 'js':
+        resourceFile = 'index.js'
+        break
+    }
+    let ret = vscode.Uri.joinPath(
       context.extensionUri,
       'dist',
       'views',
-      view,
-      'index.js'
+      'dataEditor',
+      resourceFile
     )
-  }
-
-  // get the styles uri
-  private getStylesUri(context: vscode.ExtensionContext): vscode.Uri {
-    return vscode.Uri.joinPath(context.extensionUri, 'dist', 'styles.css')
+    return uriDecorator ? uriDecorator(ret) : ret
   }
 }

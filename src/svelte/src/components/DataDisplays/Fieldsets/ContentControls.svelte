@@ -41,7 +41,9 @@ limitations under the License.
     <FlexContainer>
       <Button
         disabledBy={!$applicable}
-        fn={applyChanges}
+        fn={(e) => {
+          applyChanges(e!)
+        }}
         description="Apply changes"
       >
         <span slot="left" class="btn-icon material-symbols-outlined"
