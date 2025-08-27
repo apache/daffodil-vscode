@@ -379,8 +379,7 @@
         "command": "extension.dfdl-debug.createTDML",
         "title": "Create TDML File",
         "category": "Daffodil Debug",
-        "enablement": "!inDebugMode",
-        "tooltip": "testing123"
+        "enablement": "!inDebugMode"
       },
       {
         "command": "extension.dfdl-debug.toggleFormatting",
