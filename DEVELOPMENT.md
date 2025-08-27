@@ -302,7 +302,7 @@ You may see this window pop up
 
 ![webpack_not_fully_loaded](https://github.com/user-attachments/assets/9d4f45f2-cc81-40de-a456-2aecbc3df9b7)
 
-Click on debug anyway once `yarn watch` says webpack is fully compiled.
+Click on debug anyway once `yarn watch` says vite is fully compiled.
 
 ![webpack-fully-loaded](https://github.com/user-attachments/assets/5dd3202d-a853-4d9c-8b4a-48c381256d0f)
 
@@ -523,7 +523,8 @@ When debugging in VSCode, if you're noticing that it's not possible to view vari
 
 ![image](https://github.com/user-attachments/assets/8d7c8d91-98ff-4e47-ac13-e9fe49b79182)
 
-under `"scripts"` in `package.json`, modify the mode for webpack to be `production`. The line should look like `"webpack": "webpack --mode production --config ./webpack/ext-dev.webpack.config.js",`
+the yarn script `"vite:dev"`, under `"scripts"` in `package.json`, should be utilized for building the
+extension for debugging capabilities.
 
 #### Re-trying Verification After Errors
 
