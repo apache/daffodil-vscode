@@ -96,7 +96,7 @@ jobs:
         java_distribution: [temurin]
         java_version: [8, 11, 17]
         os: [macos-13, ubuntu-22.04, windows-2022]
-        node: ["20.18.3", "22.14.0"]
+        node: ["20.19.4", "22.14.0"]
         vscode: ["1.90.0", "stable"] # v1.90.0 is the first version of VSCode to use Node 20
       fail-fast: false # don't immediately fail all other jobs if a single job fails
     runs-on: ${{ matrix.os }}

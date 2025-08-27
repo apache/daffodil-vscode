@@ -57,9 +57,9 @@ object Rat {
     file("debugger/src/test/data/notInfoset.xml"),
     file("debugger/src/test/data/emptySchema.dfdl.xsd"),
     // svelte icons/fonts
-    file("src/svelte/src/resources/icons/material-icons.woff2"),
-    file("src/svelte/src/resources/fonts/SpaceGrotesk-Variable.woff2"),
-    file("src/svelte/src/resources/fonts/RedHatMono-Regular.woff2"),
+    file("src/svelte/resources/icons/material-icons.woff2"),
+    file("src/svelte/resources/fonts/SpaceGrotesk-Variable.woff2"),
+    file("src/svelte/resources/fonts/RedHatMono-Regular.woff2"),
     // scalafmt-core files
     file(".git-blame-ignore-revs")
   ) ++ {

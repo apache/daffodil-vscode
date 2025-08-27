@@ -420,6 +420,7 @@ export const applicable = derived(
     $regularSizedFile,
   ]) => {
     if (!$regularSizedFile) {
+      if ($viewport.length < 0) return false
       return $viewport.data.length !=
         $editorSelection.length / radixBytePad($displayRadix) &&
         $editorActionsAllowed === EditActionRestrictions.OverwriteOnly

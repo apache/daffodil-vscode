@@ -24,7 +24,7 @@ limitations under the License.
   import { DATA_PROFILE_MAX_LENGTH } from '../../stores/configuration'
   import { radixToString, regexEditDataTest } from '../../utilities/display'
   import ISO6391 from 'iso-639-1'
-  import Tooltip from 'src/components/layouts/Tooltip.svelte'
+  import Tooltip from '../layouts/Tooltip.svelte'
 
   const PROFILE_DOS_EOL = 256
   const MAX_BYTE_VALUE = 255

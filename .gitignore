@@ -70,3 +70,6 @@ server/sbtXjc/resources/xsd/*.xsd
 doc/*.docx
 doc/*.html
 doc/.wiki/
+
+# ignore .env files
+**/.env
