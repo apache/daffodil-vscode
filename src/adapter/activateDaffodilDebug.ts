@@ -77,17 +77,7 @@ async function getFile(fileRequested, label, title) {
         if (fileUri && fileUri[0]) {
           let path = fileUri[0].fsPath
 
-          if (
-            process.platform === 'win32' &&
-            path.length > 2 &&
-            path.charCodeAt(0) > 97 &&
-            path.charCodeAt(0) <= 122 &&
-            path.charAt(1) === ':'
-          ) {
-            path = path.charAt(0).toUpperCase() + path.slice(1)
-          }
-
-          return path
+          return normalizePath(path)
         }
 
         return ''
@@ -95,6 +85,22 @@ async function getFile(fileRequested, label, title) {
   }
 
   return file
+}
+
+// Method to normalize the drive letter in a Windows path to a capital letter
+// Even when using Windows, when sending a path to the backend that will be used
+// to determine the source file for breakpoints/debugging, it must be case-sensitive
+function normalizePath(path: string): string {
+  if (
+    process.platform === 'win32' &&
+    path.length > 2 &&
+    path.charCodeAt(0) > 97 &&
+    path.charCodeAt(0) <= 122 &&
+    path.charAt(1) === ':'
+  )
+    return path.charAt(0).toUpperCase() + path.slice(1)
+
+  return path
 }
 
 /** Method to show dialog to save TDML file
@@ -116,19 +122,7 @@ async function showTDMLSaveDialog(fileRequested, label, title) {
     })
     .then((fileUri) => {
       if (fileUri) {
-        let path = fileUri.fsPath
-
-        if (
-          process.platform === 'win32' &&
-          path.length > 2 &&
-          path.charCodeAt(0) > 97 &&
-          path.charCodeAt(0) <= 122 &&
-          path.charAt(1) === ':'
-        ) {
-          path = path.charAt(0).toUpperCase() + path.slice(1)
-        }
-
-        return path
+        return normalizePath(fileUri.fsPath)
       }
 
       return ''
@@ -156,8 +150,10 @@ async function createDebugRunFileConfigs(
   }
 
   if (targetResource) {
+    const normalizedResource = normalizePath(targetResource.fsPath)
+
     let infosetFile = `${
-      path.basename(targetResource.fsPath).split('.')[0]
+      path.basename(normalizedResource).split('.')[0]
     }-infoset.xml`
     vscode.window.showInformationMessage(infosetFile)
 
@@ -174,7 +170,7 @@ async function createDebugRunFileConfigs(
         tdmlConfig = { action: tdmlAction }
 
         if (tdmlAction === 'execute') {
-          tdmlConfig.path = targetResource.fsPath
+          tdmlConfig.path = normalizedResource
         }
       }
 
@@ -183,7 +179,7 @@ async function createDebugRunFileConfigs(
         request: 'launch',
         type: 'dfdl',
         schema: {
-          path: tdmlConfig?.action === 'execute' ? '' : targetResource.fsPath,
+          path: tdmlConfig?.action === 'execute' ? '' : normalizedResource,
           rootName: null,
           rootNamespace: null,
         },
