@@ -335,21 +335,21 @@
         "command": "extension.dfdl-debug.debugEditorContents",
         "title": "Debug File",
         "category": "Daffodil Debug",
-        "enablement": "!inDebugMode",
+        "enablement": "!inDebugMode && editorLangId == 'dfdl'",
         "icon": "$(debug-alt)"
       },
       {
         "command": "extension.dfdl-debug.runEditorContents",
         "title": "Run File",
         "category": "Daffodil Debug",
-        "enablement": "!inDebugMode",
+        "enablement": "!inDebugMode && editorLangId == 'dfdl'",
         "icon": "$(play)"
       },
       {
         "command": "extension.dfdl-debug.debugLastEditorContents",
         "title": "Debug Last File",
         "category": "Daffodil Debug",
-        "enablement": "!inDebugMode",
+        "enablement": "!inDebugMode && editorLangId == 'dfdl'",
         "icon": "$(debug-alt)"
       },
       {
