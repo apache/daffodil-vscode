@@ -103,6 +103,18 @@ function normalizePath(path: string): string {
   return path
 }
 
+/**
+ * Configures the file path string of an intended TDML save file if the
+ * extension is malformed.
+ * @param pathStr
+ * @returns file path string with a valid TDML file extension.
+ */
+function validateTDMLFilePath(pathStr: string): string {
+  return !pathStr.match(/.*[.]tdml[.]xml|.*[.]tdml$/gm)
+    ? (pathStr += '.tdml')
+    : pathStr
+}
+
 /** Method to show dialog to save TDML file
  * Details:
  *   Required so that the vscode api commands:
@@ -128,7 +140,7 @@ async function showTDMLSaveDialog(fileRequested, label, title) {
       return ''
     })
 
-  return file
+  return validateTDMLFilePath(file)
 }
 
 // Function for setting up the commands for Run and Debug file
