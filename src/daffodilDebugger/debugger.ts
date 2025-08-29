@@ -24,6 +24,7 @@ import {
   getDefaultTDMLTestCaseName,
   getTmpTDMLFilePath,
 } from '../tdmlEditor/utilities/tdmlXmlUtils'
+import { outputChannel } from '../adapter/activateDaffodilDebug'
 
 // Function to get data file given a folder
 export async function getDataFileFromFolder(dataFolder: string) {
@@ -78,7 +79,12 @@ async function getTDMLConfig(
   if (config?.tdmlConfig?.action === 'generate') {
     config.tdmlConfig.name =
       config.tdmlConfig.name || getDefaultTDMLTestCaseName()
-    config.tdmlConfig.path = config.tdmlConfig.path || getTmpTDMLFilePath()
+    config.tdmlConfig.path = getTmpTDMLFilePath()
+
+    outputChannel.appendLine(
+      `TDML File generated at: ${config.tdmlConfig.path}`
+    )
+    outputChannel.show()
   }
 
   if (config?.tdmlConfig?.action !== 'execute' && config.data === '') {
