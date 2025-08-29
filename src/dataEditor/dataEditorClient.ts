@@ -931,11 +931,11 @@ async function sendViewportRefresh(
     command: MessageCommand.viewportRefresh,
     data: {
       viewportId: viewportDataResponse.getViewportId(),
-      viewportOffset: viewportDataResponse.getOffset(),
-      viewportLength: viewportDataResponse.getLength(),
-      viewportFollowingByteCount: viewportDataResponse.getFollowingByteCount(),
-      viewportData: viewportDataResponse.getData_asU8(),
-      viewportCapacity: VIEWPORT_CAPACITY_MAX,
+      fileOffset: viewportDataResponse.getOffset(),
+      length: viewportDataResponse.getLength(),
+      bytesLeft: viewportDataResponse.getFollowingByteCount(),
+      data: viewportDataResponse.getData_asU8(),
+      capacity: VIEWPORT_CAPACITY_MAX,
     },
   })
 }
