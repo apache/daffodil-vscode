@@ -41,7 +41,7 @@ jobs:
       ############################################################
 
       - name: Check out Repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.0
         with:
           fetch-depth: 0
 
@@ -74,7 +74,7 @@ jobs:
       ############################################################
 
       - name: Check out Repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.0
         with:
           fetch-depth: 0
 
@@ -109,7 +109,7 @@ jobs:
       ############################################################
 
       - name: Check out Repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.0
         with:
           fetch-depth: 0
 
