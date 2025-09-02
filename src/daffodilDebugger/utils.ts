@@ -26,7 +26,7 @@ import { deactivate } from '../adapter/extension'
 import { getDaffodilVersion } from './daffodil'
 import { Artifact } from '../classes/artifact'
 import { DFDLDebugger } from '../classes/dfdlDebugger'
-import { osCheck, runScript } from '../utils'
+import { osCheck, runScript, terminalName } from '../utils'
 
 export const daffodilVersion = (filePath: string): string => {
   return getDaffodilVersion(filePath)
@@ -130,10 +130,23 @@ function latestJdk(jdkHomes: IJavaHomeInfo[]): IJavaHomeInfo | undefined {
 export async function stopDebugging() {
   vscode.debug.stopDebugging().then(async () => {
     deactivate()
-    for (const t of vscode.window.terminals) {
-      await t.processId?.then(async (id) => {
-        await stopDebugger(id)
-      })
+    for (const terminal of vscode.window.terminals) {
+      const pid = await terminal.processId
+
+      // Only kill known debug terminals created by the extension itself
+      if (terminal.name.toLowerCase().includes(terminalName)) {
+        terminal.dispose()
+
+        // Wait briefly to allow dispose to take effect
+        await new Promise((res) => setTimeout(res, 200))
+
+        // If terminal still exists, fallback to stopDebugger
+        // "stopDebugger" uses taskkill or kill which results in an exit code of 1
+        const stillExists = vscode.window.terminals.some((t) => t === terminal)
+        if (stillExists && pid) {
+          await stopDebugger(pid)
+        }
+      }
     }
   })
 }
