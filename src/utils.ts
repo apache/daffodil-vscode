@@ -27,7 +27,7 @@ import { XMLParser } from 'fast-xml-parser'
 
 let currentConfig: vscode.DebugConfiguration
 
-const terminalName = 'daffodil-debugger'
+export const terminalName = 'daffodil-debugger'
 
 export const regexp = {
   comma: new RegExp(',', 'g'),
