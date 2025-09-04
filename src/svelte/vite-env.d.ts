@@ -14,25 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-{
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "type": "npm",
-            "script": "compile",
-            "isBackground": false,
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": "$tsc-watch"
-        },
-        {
-            "type": "npm",
-            "script": "watch",
-            "group": "build",
-            "isBackground": true,
-        }
-    ]
-}
+
+/// <reference types="svelte" />
+/// <reference types="vite/client" />
