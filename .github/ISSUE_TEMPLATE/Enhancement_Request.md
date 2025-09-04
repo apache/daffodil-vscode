@@ -6,10 +6,10 @@
 
 ## Proposed Solution / Description
 
-[Describe the enhancement in detail. How will it work? What are the key features or changes involved? Include any relevant technical details, design considerations, or user flows. You can use bullet points, numbered lists, and code blocks for clarity.]
+[Describe the enhancement in detail. How will it work? What are the key features or changes involved? Include any relevant technical details, design considerations, or user flows. You can use bullet points, numbered lists, code blocks, and diagrams/pictures for clarity.]
 
-### Addtional Context
+### Addtional Notes
 
--   **New Feature:** Add a search bar to the user dashboard.
+-   [**New Feature:** Add a search bar to the user dashboard.
 -   **Improved Workflow:** Streamline the data import process by adding a progress indicator.
--   **Technical Changes:** Implement a new API endpoint for `GET /users/{id}/data`.
+-   **Technical Changes:** Implement a new API endpoint for `GET /users/{id}/data`.]

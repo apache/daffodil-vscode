@@ -1,25 +1,25 @@
 ## Description
 
-A clear and concise description of what the bug is.
+[A clear and concise description of what the bug is.]
 
 ## Steps to Reproduce
 
-1. Go to '...'
+[1. Go to '...'
 2. Click on '...'
-3. See error
+3. See error]
 
-## Expected behavior
+## Expected Behavior
 
-What did you expect to happen?
+[What did you expect to happen?]
 
-## Actual behavior
+## Actual Behavior
 
-What actually happened?
+[What actually happened?]
 
-## Screenshots and additional context (optional) 
+## Additional Notes and Screenshots (optional) 
 
 ## Environment
 
-- OS: 
+[- OS: 
 - Browser/VS Code version: 
-- Extension version: 
+- Extension version: ]
