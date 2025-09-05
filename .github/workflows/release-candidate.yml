@@ -62,9 +62,11 @@ jobs:
         uses: actions/setup-node@5e2628c959b9ade56971c0afcebbe5332d44b398 # v4.4.0
         with:
           node-version: 20
+          cache: yarn
+          cache-dependency-path: yarn.lock
 
       - name: Install node dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Create Binary Artifacts
         run: |
