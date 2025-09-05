@@ -78,7 +78,7 @@ async function getTDMLConfig(
   if (config?.tdmlConfig?.action === 'generate') {
     config.tdmlConfig.name =
       config.tdmlConfig.name || getDefaultTDMLTestCaseName()
-    config.tdmlConfig.path = config.tdmlConfig.path || getTmpTDMLFilePath()
+    config.tdmlConfig.path = getTmpTDMLFilePath()
   }
 
   if (config?.tdmlConfig?.action !== 'execute' && config.data === '') {
