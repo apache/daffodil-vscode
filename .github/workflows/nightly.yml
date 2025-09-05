@@ -78,7 +78,7 @@ jobs:
       ############################################################
 
       - name: Install node dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Runs tests - Linux
         run: xvfb-run -a yarn test
