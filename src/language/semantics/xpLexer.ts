@@ -323,7 +323,7 @@ export class Data {
       case ',':
         matchesPart1 = p1 === 'in' || p1 === ':='
         // 'then' added here as it must not appear in an if expr:
-        ;(isPart2 = p1 === 'then'), p1 === 'in' || p1 === ':='
+        ;((isPart2 = p1 === 'then'), p1 === 'in' || p1 === ':=')
         break
       default:
         isPart2 = false
