@@ -794,7 +794,8 @@
                 "path": "^\"\\${workspaceFolder}/target/infoset.xml\""
               },
               "tdmlConfig": {
-                "action": "generate"
+                "action": "generate",
+                "name": "Default Test Case"
               },
               "debugServer": 4711,
               "openDataEditor": false,
