@@ -17,13 +17,7 @@
 
 // All tests ran here are ones that require the vscode API
 import * as path from 'path'
-import * as cp from 'child_process'
-import * as os from 'os'
-import {
-  runTests,
-  resolveCliArgsFromVSCodeExecutablePath,
-  downloadAndUnzipVSCode,
-} from '@vscode/test-electron'
+import { runTests, downloadAndUnzipVSCode } from '@vscode/test-electron'
 
 // The earliest version supported as indicated in package.json engines/vscode,
 // so that version is a reasonable default.
@@ -56,15 +50,6 @@ async function main() {
     const extensionTestsPath = path.resolve(__dirname, './suite/index')
 
     const vscodeExecutablePath = await downloadAndUnzipVSCode(testVsCodeVersion)
-    const [cli, ...args] =
-      resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath)
-
-    // Install required extensions
-    cp.spawnSync(cli, [...args, '--install-extension', 'wmanth.jar-viewer'], {
-      encoding: 'utf-8',
-      stdio: 'inherit',
-      shell: os.platform().toLowerCase() != 'darwin',
-    })
 
     // Download VS Code, unzip it and run the integration tests
     const runTestsResult = await runTests({
