@@ -103,9 +103,6 @@
     "webpack": "5.101.1",
     "webpack-cli": "6.0.1"
   },
-  "extensionDependencies": [
-    "wmanth.jar-viewer"
-  ],
   "main": "./dist/ext/extension.js",
   "activationEvents": [
     "onLanguage:dfdl",

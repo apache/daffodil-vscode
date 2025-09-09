@@ -50,7 +50,6 @@
     - [General Workflow](#general-workflow)
     - [Opening the Repository in VSCode](#opening-the-repository-in-vscode)
       - [Recommended VSCode Extensions](#recommended-vscode-extensions)
-      - [Required VSCode Extensions](#required-vscode-extensions)
     - [Verifying Setup Can Build](#verifying-setup-can-build)
       - [Yarn Package](#yarn-package)
       - [Automated Testing Suite](#automated-testing-suite)
@@ -223,10 +222,6 @@ There are multiple ways of opening the repository that you have cloned in VSCode
 Upon opening, VSCode may prompt you to install recommended extensions. Go ahead and accept installing the recommended extensions.
 
 - [Prettier - Code formatter - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
-
-#### Required VSCode Extensions
-
-Daffodil-VSCode depends on the following extensions
 
 - [JAR Viewer - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=wmanth.jar-viewer)
 
