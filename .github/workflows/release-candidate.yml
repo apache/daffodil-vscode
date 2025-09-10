@@ -53,7 +53,7 @@ jobs:
           publish: true
 
       - name: Setup Java
-        uses: actions/setup-java@67aec007b3fcabe15ca665bfccc1e255dd52e30d # v4.6.0
+        uses: actions/setup-java@a7ab372554b6eb1a8eb25e7d9aec1cc9f3ea1a76 # v4.6.0
         with:
           distribution: temurin
           java-version: 8
