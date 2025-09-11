@@ -173,10 +173,12 @@ suite('Daffodfil', () => {
     })
   })
 
-  suite('non-debug specifc commands', () => {
+  suite('non-debug specific commands', () => {
     const nonDebugSpecificCmds = [
       'extension.dfdl-debug.debugEditorContents',
       'extension.dfdl-debug.runEditorContents',
+      'extension.dfdl-debug.debugLastEditorContents',
+      'extension.dfdl-debug.executeTDML',
     ]
 
     // This breaks when the omega-edit tests run for some reason
@@ -201,7 +203,7 @@ suite('Daffodfil', () => {
     })
   })
 
-  suite('debug specifc commands', () => {
+  suite('debug specific commands', () => {
     const debugSpecificCmds = [
       'extension.dfdl-debug.toggleFormatting',
       'infoset.display',
