@@ -95,9 +95,12 @@ object Parse {
       done <- Ref[IO].of(false)
       pleaseStop <- Deferred[IO, Unit]
     } yield new Parse {
+      // Define run function associated w/ Parse instances
       def run(): Stream[IO, Byte] =
+        // Note that .drain() and .through() being called on this do not consume data
         fs2.io
-          .readOutputStream(4096) { os =>
+          .readOutputStream(4096) { os => // Sufficiently sized 4KB chunk size for consumption process.
+
             val stopper =
               pleaseStop.get *> IO.canceled // will cancel the concurrent parse effect
 
