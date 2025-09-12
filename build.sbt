@@ -101,7 +101,7 @@ lazy val debugger = project
       "com.monovore" %% "decline-effect" % "2.5.0",
       "org.typelevel" %% "log4cats-slf4j" % "2.7.1",
       "org.scalameta" %% "munit" % "1.0.4" % Test,
-      "org.fusesource.jansi" % "jansi" % "1.18"
+      "org.fusesource.jansi" % "jansi" % "2.4.2"
     ),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer),
     buildInfoPackage := "org.apache.daffodil.debugger.dap",
