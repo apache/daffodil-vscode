@@ -18,10 +18,11 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
-import { getConfig } from '../utils'
+import { getConfig, setCurrentConfig } from '../utils'
 import { runDebugger, stopDebugger, stopDebugging } from './utils'
 import {
   getDefaultTDMLTestCaseName,
+  getTestCaseDisplayData,
   getTmpTDMLFilePath,
 } from '../tdmlEditor/utilities/tdmlXmlUtils'
 
@@ -73,6 +74,18 @@ async function getTDMLConfig(
       ))
 
     if (!config.tdmlConfig.name) return false
+
+    await getTestCaseDisplayData(config.tdmlConfig.path).then(
+      (testSuiteData) => {
+        testSuiteData.testCases.forEach((testCase) => {
+          if (testCase.testCaseName === config.tdmlConfig.name) {
+            // Behave the same as the backend - if there are multiple data documents, ignore any past the first
+            config.data = testCase.dataDocuments[0]
+            config.schema.path = testCase.testCaseModel
+          }
+        })
+      }
+    )
   }
 
   if (config?.tdmlConfig?.action === 'generate') {
@@ -133,7 +146,7 @@ async function getDaffodilDebugClasspath(
 export async function getDebugger(
   context: vscode.ExtensionContext,
   config: vscode.DebugConfiguration
-): Promise<vscode.DebugConfiguration | undefined> {
+) {
   config = getConfig(config) // make sure all config attributes are set
 
   if (vscode.workspace.workspaceFolders !== undefined) {
@@ -179,6 +192,8 @@ export async function getDebugger(
       workspaceFolder
     )
 
+    setCurrentConfig(config)
+
     if (!config.useExistingServer) {
       await runDebugger(
         context.asAbsolutePath('./'),
@@ -189,6 +204,4 @@ export async function getDebugger(
       )
     }
   }
-
-  return config
 }

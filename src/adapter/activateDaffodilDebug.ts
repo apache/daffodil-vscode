@@ -24,12 +24,7 @@ import {
   WorkspaceFolder,
 } from 'vscode'
 import { getDataFileFromFolder, getDebugger } from '../daffodilDebugger'
-import {
-  getConfig,
-  getCurrentConfig,
-  getTDMLTestCaseItems,
-  setCurrentConfig,
-} from '../utils'
+import { getConfig, getCurrentConfig, getTDMLTestCaseItems } from '../utils'
 import { FileAccessor } from './daffodilRuntime'
 import { TDMLConfig } from '../classes/tdmlConfig'
 import { handleDebugEvent } from './daffodilEvent'
@@ -657,14 +652,14 @@ class DaffodilConfigurationProvider
     ) {
       return getDataFileFromFolder(dataFolder).then((dataFile) => {
         config.data = dataFile
-        return getDebugger(this.context, config).then((updatedConfig) => {
-          return setCurrentConfig(updatedConfig ?? config)
+        return getDebugger(this.context, config).then((_) => {
+          return getCurrentConfig()
         })
       })
     }
 
-    return getDebugger(this.context, config).then((updatedConfig) => {
-      return setCurrentConfig(updatedConfig ?? config)
+    return getDebugger(this.context, config).then((_) => {
+      return getCurrentConfig()
     })
   }
 }

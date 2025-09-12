@@ -82,6 +82,7 @@ import {
   removeActiveSession,
 } from './include/server/Sessions'
 import { getCurrentHeartbeatInfo } from './include/server/heartbeat'
+import { getCurrentConfig } from '../utils'
 
 // *****************************************************************************
 // global constants
@@ -117,7 +118,11 @@ export function activate(ctx: vscode.ExtensionContext): void {
       DATA_EDITOR_COMMAND,
       async (fileToEdit: string = '') => {
         let configVars = editor_config.extractConfigurationVariables()
-        return await createDataEditorWebviewPanel(ctx, configVars, fileToEdit)
+        return await createDataEditorWebviewPanel(
+          ctx,
+          configVars,
+          vscode.debug.activeDebugSession ? getCurrentConfig().data : fileToEdit
+        )
       }
     )
   )
