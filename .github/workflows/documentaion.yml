@@ -17,19 +17,18 @@
 name: Enforce Documentation Checkbox
 
 on:
-  push:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
     branches-ignore:
       - "dependabot/**" # dependabot PRs/branches
       - "update/**" # scala-steward PRs/branches
-  pull_request:
-    types: [opened, edited, synchronize, reopened]
 
 jobs:
   enforce-checkbox:
     runs-on: ubuntu-22.04
     steps:
       - name: Check required confirmation checkbox
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
         with:
           script: |
             const prBody = context.payload.pull_request.body || "";
