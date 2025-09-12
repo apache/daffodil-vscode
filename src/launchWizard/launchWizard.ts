@@ -495,8 +495,16 @@ class LaunchWizard {
       }
     })
 
-    let tdmlActionSelect = 'none'
-    let tdmlActions = ['none', 'generate', 'execute']
+    const TDML_EXECUTE_ACTION = 'execute'
+    const TDML_NONE_ACTION = 'none'
+    const TDML_GENERATE_ACTION = 'generate'
+
+    let tdmlActionSelect = TDML_NONE_ACTION
+    let tdmlActions = [
+      TDML_NONE_ACTION,
+      TDML_GENERATE_ACTION,
+      TDML_EXECUTE_ACTION,
+    ]
     let tdmlAction =
       'tdmlConfig' in defaultValues ? defaultValues.tdmlConfig['action'] : null
     let tdmlName =
@@ -510,11 +518,11 @@ class LaunchWizard {
 
     // tdml items need 0 height and width when hidden so there is no large empty space
     let tdmlNameDesVisOrHiddenStyle =
-      tdmlAction !== null && tdmlAction !== 'none' // Hide TDML name and desc fields if tdmlAction is none
+      tdmlAction !== null && tdmlAction !== TDML_NONE_ACTION // Hide TDML name and desc fields if tdmlAction is none
         ? 'margin-top: 10px; visibility: visible;'
         : 'width: 0px; height: 0px; visibility: hidden'
     let tdmlPathVisOrHiddenStyle =
-      tdmlAction === 'generate'
+      tdmlAction === TDML_EXECUTE_ACTION
         ? 'margin-top: 10px; visibility: visible;'
         : 'width: 0px; height: 0px; visibility: hidden'
 
@@ -729,7 +737,7 @@ class LaunchWizard {
 
       <div id="tdmlActionDiv" class="setting-div">
         <p>TDML Action:</p>
-        <p class="setting-description">TDML Action (none | generate | execute)</p>
+        <p class="setting-description">TDML Action (${TDML_NONE_ACTION} | ${TDML_GENERATE_ACTION} | ${TDML_EXECUTE_ACTION})</p>
         <select onChange="updateTDMLAction()" class="file-input" style="width: 200px;" id="tdmlAction">
           ${tdmlActionSelect}
         </select>

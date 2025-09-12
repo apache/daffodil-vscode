@@ -226,11 +226,16 @@ function updateTDMLAction() {
       'width: 0px; height: 0px; visibility: hidden;'
   }
 
-  if (tdmlSelectedValue === 'generate') {
+  if (tdmlSelectedValue === 'execute') {
     document.getElementById('tdmlPathLabel').style =
       'margin-top: 10px; visibility: visible;'
     document.getElementById('tdmlPath').style =
       'margin-top: 10px; visibility: visible;'
+
+    // Catch case when we switch from another TDML action to execute and it shows undefined b/c path is not in tdmlConfig object
+    if (document.getElementById('tdmlPath').value === 'undefined') {
+      document.getElementById('tdmlPath').value = ''
+    }
   } else {
     document.getElementById('tdmlPathLabel').style =
       'width: 0px; height: 0px; visibility: hidden;'
@@ -314,9 +319,9 @@ function save() {
   switch (configValues.tdmlAction) {
     case 'none':
       break
-    case 'generate':
-      obj.configurations[0].tdmlConfig.path = configValues.tdmlPath
     case 'execute':
+      obj.configurations[0].tdmlConfig.path = configValues.tdmlPath
+    case 'generate':
       obj.configurations[0].tdmlConfig.name = configValues.tdmlName
       break
     default:
