@@ -18,7 +18,7 @@
 
 <div align="center">
 
-<img src="https://daffodil.apache.org/assets/themes/apache/img/apache-daffodil-logo.png" height="85" alt="Apache Daffodil"/>
+![Apache Daffodil](https://daffodil.apache.org/assets/themes/apache/img/apache-daffodil-logo.png)
 
 # Apache Daffodil™ Extension for Visual Studio Code
 
@@ -27,89 +27,58 @@
 
 </div>
 
-This is an extension for Visual Studio Code (VS Code) which enables the interactive debugging of DFDL schema parsing using [Apache Daffodil](https://daffodil.apache.org/).
+The Apache Daffodil™ Extension for Visual Studio Code is an extension to the Microsoft® Visual Studio Code (VS Code) editor, designed for Data Format Description Language<sup><a href="#footnotes">1</a></sup> [(DFDL)](https://daffodil.apache.org/docs/dfdl/) Schema developers. 
 
-## Build Requirements
+DFDL is a data modeling language used to describe file formats. The DFDL language is a subset of eXtensible Markup Language (XML) Schema Definition (XSD). File formats are rich and complex - they require a modeling language to describe them. Developing DFDL Schemas can be challenging, requiring extensive iterative development and testing.
 
-- Java Development Kit (JDK) between 8 and 17
-- SBT 0.13.8 or higher
-- Node 20 or higher
-- [Yarn Classic](https://classic.yarnpkg.com/en/docs/install#windows-stable)
+The purpose of the Apache Daffodil™ Extension for Visual Studio Code is to ease the burden on DFDL Schema developers by enabling rapid development of high-quality DFDL Schemas, with syntax highlighting, code completion, data file editing, and debugging of DFDL Schema parsing operations using Apache Daffodil™.
 
-Read [DEVELOPMENT.md](DEVELOPMENT.md) for further instructions on setting up your own development environment. 
+## DFDL Schema Development
 
-## Download
+![image](images/schema-dev.png)
 
-### VS Code Marketplace
+The Apache Daffodil™ Extension for Visual Studio Code provides syntax highlighting to enhance the readability and context of the text. It provides instant feedback to developers, indicating that the structure and code are syntactically correct.
 
-The easiest way to install the extension is through the VS Code Extension Marketplace. The steps are as follow:
+The Apache Daffodil™ Extension for Visual Studio Code provides code completion, offering context-aware code segment predictions that can dramatically speed up DFDL Schema development by reducing keyboard input, developer memorization, and typos.
 
-- `Ctrl+P` (windown/linux) OR `Command+P` (macos)
-- Type in `ext install ASF.apache-daffodil-vscode`, then hit `Enter`. This will begin installing the extension.
+## Daffodil Data Parse Debugger
 
-### Prebuilt VSIX
+![image 2](images/data-parse-debugger.png)
 
-If you wish to download the VSIX file instead, perhaps to install a previous version of the extension. The prebuilt VSIX files used to released the extension are available at [Apache Daffodil VS Code Release Page](https://daffodil.apache.org/vscode/). The steps are as follow:
+The Apache Daffodil™ Extension for Visual Studio provides a Daffodil parse debugger, enabling developers to control the execution of Daffodil parse operations. Given a DFDL Schema and a target data file, the developer can step through the execution of parse operations line by line, or until the parse reaches some developer-defined location, known as a breakpoint, in the DFDL Schema or the data being parsed. What is particularly helpful is that the developer can watch the parsed output, known as the “Infoset”, as it is being created by the parser, and watch where the parser is parsing in the data file. This enables the developer to quickly discover and correct DFDL Schema issues, making development and testing cycles more efficient.
 
-- Navigate to [Apache Daffodil VS Code Release Page](https://daffodil.apache.org/vscode/).
-- Click on a release version.
-- On the next page you will see `Binaries` click on the file listed to begin the download.
-- See the `Installation From File` section for installing the prebuilt file.
+## Data Editor
 
-## Package VSIX and Debugger
+![image 3](images/DE-brief.png)
 
-:exclamation:**NOT necessary if using prebuilt VSIX**:exclamation:
+The Apache Daffodil™ Extension for Visual Studio Code provides an integrated data editor tuned specifically for challenging Daffodil use cases. It is designed to support large files, of any type, that are well beyond the limits of the standard text editor in VS Code. The Data Editor enables the editing of single or multiple bytes in various encodings. The Data Editor can seek to file offsets, search and replace byte sequences, profile data, and determine a file's content type. Features of the Data Editor will evolve to address the specific needs of the Daffodil community.
 
-:exclamation:**NOT necessary if running extension via VS Code without VSIX but a `yarn install` will be required**:exclamation:
+### Data Debugger Integration
+![image](https://github.com/apache/daffodil-vscode/assets/30351915/7f906c91-83bc-454e-a164-4dad51842887)
 
-Run full package
+The Data Editor component can be configured to run alongside and open the designated file specified by the data debugger. During this operation, whenever the debug session steps to a new byte position or stops at a breakpoint, the data content within the Data Editor will illustrate the byte location.
 
-  ```bash
-  yarn package
-  ```
+# Prerequisites
 
-* This command performs the following tasks:
-  * Create sbt zip package and unzip it
-  * Install dependencies
-  * Compiles Extension
-  * Packages Extension
-  * Creates Files
-    ```
-    apache-daffodil-vscode-*.vsix
-    ```
+* [Install VS Code, version 1.82.0 or greater](https://code.visualstudio.com/download)
+* [Install Java Runtime 8 or greater](https://docs.oracle.com/goldengate/1212/gg-winux/GDRAD/java.htm#BGBFJHAB)
+* On Linux, glibc 2.31 or greater is required
 
-## Running Debug Server
+# Getting Help
 
-The debug server will automatically be run by the extension unless `useExistingServer` is to set to `true` inside of `.vscode/launch.json`
+If additional help or guidance on using Apache Daffodil™, Apache Daffodil™ Extension for Visual Studio Code, or DFDL development in general is needed, please engage with the Daffodil user and developer communities on [mailing lists](https://daffodil.apache.org/community/) (https://daffodil.apache.org/community/) and/or review the [list archives](https://lists.apache.org/list.html?users@daffodil.apache.org) (https://lists.apache.org/list.html?users@daffodil.apache.org).
 
-If you wish to run the debug server manually the scripts to do so are at the following locations:
-* Debugging through VS Code with or without VSIX:
-  * Linux = `/home/USERNAME/.local/share/daffodil-dap`
-  * Mac = `/Users/USERNAME/Library/Application\ Support/daffodil-dap`
-  * Windows = `C:\\Users\\USERNAME\\AppData\\Roaming\\daffodil-dap`
+# Community Feedback
 
-## Installation From File
+[![image 5](images/asf_logo_url.png)](https://www.apache.org)
 
-Once you have either downloaded the VSIX file or created it, you can now install it. There are two options to do this:
+Apache Daffodil™ and the Apache Daffodil™ Extension for Visual Studio Code are Apache Software Foundation (ASF) projects, are free open-source software, and are under active development. Feedback and contributions are welcome.
 
-* Via "Extensions: Install from VSIX" command from within VS Code.
-  * Open the Command Palette with Shift-Command-P (Mac) OR Shift-Ctrl-P (Windows/Linux)
-  * Type `vsix` to bring up the command and pointing it at the `vsix` file
-
-* Via command line
-  ```bash
-  code --install-extension apache-daffodil-vscode-*.vsix
-  ```
-
-## Usage
-
-Please refer to the Wiki page at https://github.com/apache/daffodil-vscode/wiki
-
-## Getting Help
-
-You can ask questions on the dev@daffodil.apache.org or
-users@daffodil.apache.org mailing lists.  You can report bugs via
-[GitHub Issues].
+# Additional Resources
+* [Apache Daffodil™ Home Page](https://daffodil.apache.org) (https://daffodil.apache.org)
+* [Apache Daffodil™ Extension for Visual Studio Code Repository](https://github.com/apache/daffodil-vscode) (https://github.com/apache/daffodil-vscode)
+* [Apache Daffodil™ Extension for Visual Studio Code Wiki](https://github.com/apache/daffodil-vscode/wiki) (https://github.com/apache/daffodil-vscode/wiki)
+* [Apache Daffodil™ Library Repository](https://github.com/apache/daffodil) (https://github.com/apache/daffodil)
 
 ## License
 
@@ -127,3 +96,16 @@ This product includes the [Xml Schema Object Model](https://github.com/kohsuke/x
 This product includes the Regular Mono [RedHatFont](https://github.com/RedHatOfficial/RedHatFont) font, which is licensed under the SIL Open Font License, Version 1.1.
 
 This product includes the [space-grotesk](https://github.com/floriankarsten/space-grotesk) font, which is licensed under the SIL Open Font License, Version 1.1.
+
+# Legal
+
+Apache, Apache Feather Logo, Apache Daffodil, Daffodil, and the Apache Daffodil logo are trademarks of The Apache Software Foundation.  Visual Studio Code and VS Code are trademarks of Microsoft® Corporation. All rights reserved.
+
+#### Footnotes
+
+<sup>1</sup> Data Format Description Language (DFDL) is a standard from the Open Grid Forum (www.ogf.org), available [here](https://ogf.org/documents/GFD.240.pdf) (https://ogf.org/documents/GFD.240.pdf).
+
+
+Copyright © 2025 [The Apache Software Foundation](https://www.apache.org/). Licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0). 
+<br/>
+Apache, Apache Daffodil, Daffodil, and the Apache Daffodil logo are trademarks of The Apache Software Foundation.

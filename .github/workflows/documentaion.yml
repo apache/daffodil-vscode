@@ -1,0 +1,42 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+name: Enforce Documentation Checkbox
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches-ignore:
+      - "dependabot/**" # dependabot PRs/branches
+      - "update/**" # scala-steward PRs/branches
+
+jobs:
+  enforce-checkbox:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check required confirmation checkbox
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
+        with:
+          script: |
+            const prBody = context.payload.pull_request.body || "";
+            const checkbox1Text = "- [x] I have determined that no documentation updates are needed for these changes";
+            const checkbox2Text = "- [x] I have added following documentation for these changes";
+
+            if (!prBody.includes(checkbox1Text) && !prBody.includes(checkbox2Text)) {
+              core.setFailed("❌ Required documentation checkbox not checked. Please check one of the the box before merging.");
+            } else {
+              core.info("✅ Required documentation checkbox is checked.");
+            }

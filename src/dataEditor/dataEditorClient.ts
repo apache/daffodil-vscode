@@ -82,6 +82,8 @@ import {
   removeActiveSession,
 } from './include/server/Sessions'
 import { getCurrentHeartbeatInfo } from './include/server/heartbeat'
+import * as child_process from 'child_process'
+import { osCheck } from '../utils'
 
 // *****************************************************************************
 // global constants
@@ -1194,7 +1196,37 @@ function generateLogbackConfigFile(
 }
 
 async function serverStart() {
-  await serverStop()
+  // Check for stale PID file
+  const serverPidFile = getPidFile(omegaEditPort)
+  if (fs.existsSync(serverPidFile)) {
+    const pid = parseInt(fs.readFileSync(serverPidFile).toString())
+    if (!isNaN(pid)) {
+      // Ensure PID isn't assigned to a different process before stopping process
+      try {
+        if (
+          child_process
+            .execSync(
+              osCheck(
+                `wmic process where processid=${pid} get CommandLine`,
+                `ps -p ${pid} -o command=`
+              )
+            )
+            .toString('ascii')
+            .toLowerCase()
+            .includes('omega-edit')
+        ) {
+          await serverStop()
+        } else {
+          fs.unlinkSync(serverPidFile)
+        }
+      } catch (error) {
+        // if process doesn't exist, ps returns 1 resulting in command failed error
+        fs.unlinkSync(serverPidFile)
+      }
+    } else {
+      fs.unlinkSync(serverPidFile)
+    }
+  }
   const serverStartingText = `Ωedit server starting on port ${omegaEditPort}`
   const statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left

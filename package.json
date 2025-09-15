@@ -77,17 +77,17 @@
     "@vscode/debugadapter-testsupport": "1.68.0",
     "@vscode/test-electron": "2.3.8",
     "@vscode/vsce": "^3.5.0",
-    "chai": "^5.2.0",
-    "concurrently": "^9.2.0",
+    "chai": "^6.0.1",
+    "concurrently": "^9.2.1",
     "copy-webpack-plugin": "^13.0.0",
     "css-loader": "^6.8.1",
     "css-minimizer-webpack-plugin": "^7.0.0",
     "esbuild": "^0.25.0",
     "fast-xml-parser": "^4.5.2",
     "glob": "8.1.0",
-    "mini-css-extract-plugin": "^2.7.6",
+    "mini-css-extract-plugin": "^2.9.4",
     "mocha": "11.5.0",
-    "prettier": "3.2.5",
+    "prettier": "3.6.2",
     "prettier-plugin-svelte": "3.2.6",
     "run-func": "^3.0.0",
     "sass": "^1.89.2",
@@ -103,9 +103,6 @@
     "webpack": "5.101.1",
     "webpack-cli": "6.0.1"
   },
-  "extensionDependencies": [
-    "wmanth.jar-viewer"
-  ],
   "main": "./dist/ext/extension.js",
   "activationEvents": [
     "onLanguage:dfdl",
