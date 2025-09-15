@@ -61,7 +61,12 @@ object Rat {
     file("src/svelte/src/resources/fonts/SpaceGrotesk-Variable.woff2"),
     file("src/svelte/src/resources/fonts/RedHatMono-Regular.woff2"),
     // scalafmt-core files
-    file(".git-blame-ignore-revs")
+    file(".git-blame-ignore-revs"),
+    // Issue templates
+    file(".github/ISSUE_TEMPLATE/bug_report.md"),
+    file(".github/ISSUE_TEMPLATE/feature_request.md"),
+    file(".github/ISSUE_TEMPLATE/enhancement_request.md"),
+    file(".github/pull_request_template.md")
   ) ++ {
     // images
     val dir = new File("images")
