@@ -111,7 +111,6 @@
     "onCommand:extension.dfdl-debug.getSchemaName",
     "onCommand:extension.dfdl-debug.getDataName",
     "onCommand:extension.dfdl-debug.getTDMLName",
-    "onCommand:extension.dfdl-debug.getTDMLPath",
     "onCommand:extension.dfdl-debug.getValidatedTDMLPath",
     "onCommand:extension.dfdl-debug.getValidatedTDMLCopyPath"
   ],
@@ -576,7 +575,7 @@
                   },
                   "path": {
                     "type": "string",
-                    "default": "${command:AskForTDMLPath}",
+                    "default": "${command:AskForValidatedTDMLPath}",
                     "description": "TDML Case Path"
                   }
                 },
@@ -788,7 +787,8 @@
                 "path": "^\"\\${workspaceFolder}/target/infoset.xml\""
               },
               "tdmlConfig": {
-                "action": "generate"
+                "action": "generate",
+                "name": "Default Test Case"
               },
               "debugServer": 4711,
               "openDataEditor": false,
@@ -816,7 +816,6 @@
         "variables": {
           "AskForSchemaName": "extension.dfdl-debug.getSchemaName",
           "AskForDataName": "extension.dfdl-debug.getDataName",
-          "AskForTDMLPath": "extension.dfdl-debug.getTDMLPath",
           "AskForValidatedTDMLPath": "extension.dfdl-debug.getValidatedTDMLPath",
           "AskForValidatedTDMLCopyPath": "extension.dfdl-debug.getValidatedTDMLCopyPath"
         }

@@ -58,13 +58,18 @@ async function getTDMLConfig(
     config.data = ''
     config.schema.path = ''
 
-    config.tdmlConfig.path =
-      config.tdmlConfig.path ||
-      (await vscode.commands.executeCommand(
+    if (
+      config.tdmlConfig.path === '${command:AskForValidatedTDMLPath}' ||
+      !config.tdmlConfig.path
+    ) {
+      config.tdmlConfig.path = await vscode.commands.executeCommand(
         'extension.dfdl-debug.getValidatedTDMLPath'
-      ))
+      )
+    }
 
-    if (!config.tdmlConfig.path) return false
+    if (!config.tdmlConfig.path) {
+      return false
+    }
 
     config.tdmlConfig.name =
       config.tdmlConfig.name ||

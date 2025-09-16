@@ -22,7 +22,6 @@ import * as child_process from 'child_process'
 import path from 'path'
 import { VSCodeLaunchConfigArgs } from './classes/vscode-launch'
 import { InfosetOutput } from './daffodilDebugger'
-import { getTmpTDMLFilePath } from './tdmlEditor/utilities/tdmlXmlUtils'
 import { XMLParser } from 'fast-xml-parser'
 
 let currentConfig: vscode.DebugConfiguration
@@ -139,7 +138,7 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
       ...{
         action: 'generate',
         name: 'Default Test Case',
-        path: getTmpTDMLFilePath(),
+        path: '${command:AskForValidatedTDMLPath}',
       },
       ...((defaultConf.get('tdmlConfig') as object) || {}),
     },
