@@ -18,7 +18,6 @@
 import * as assert from 'assert'
 import * as utils from '../../utils'
 import { VSCodeLaunchConfigArgs } from '../../classes/vscode-launch'
-import { getTmpTDMLFilePath } from 'tdmlEditor/utilities/tdmlXmlUtils'
 
 suite('Utils Test Suite', () => {
   var name = 'Default Config'
@@ -44,7 +43,7 @@ suite('Utils Test Suite', () => {
     tdmlConfig: {
       action: 'generate',
       name: 'Default Test Case',
-      path: getTmpTDMLFilePath(),
+      path: '${command:AskForValidatedTDMLPath}',
     },
     stopOnEntry: true,
     useExistingServer: false,

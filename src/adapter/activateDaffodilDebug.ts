@@ -440,22 +440,6 @@ export function activateDaffodilDebug(
     )
   )
 
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      'extension.dfdl-debug.getTDMLPath',
-      async (_) => {
-        return await vscode.window
-          .showInputBox({
-            prompt: 'TDML File: ',
-            value: '${workspaceFolder}/infoset.tdml',
-          })
-          .then((value) => {
-            return value
-          })
-      }
-    )
-  )
-
   // register a configuration provider for 'dfdl' debug type
   const provider = new DaffodilConfigurationProvider(context)
   context.subscriptions.push(
