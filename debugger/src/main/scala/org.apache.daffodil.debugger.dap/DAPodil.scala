@@ -487,7 +487,7 @@ object DAPodil extends IOApp {
         .recoverWith {
           // format: off
           case _: SocketTimeoutException =>
-            Logger[IO].warn(s"timed out listening for connection on $uri, exiting").as(ExitCode.Error)
+            Logger[IO].error(s"timed out listening for connection on $uri, exiting").as(ExitCode.Error)
           // format: on
         }
 
