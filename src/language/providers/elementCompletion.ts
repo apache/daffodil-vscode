@@ -288,22 +288,6 @@ function nearestOpenTagChildElements(
         '',
         nsPrefix
       )
-    case 'restriction':
-      return getElementCompletionItems(
-        [
-          'maxInclusive',
-          'maxExclusive',
-          'minInclusive',
-          'minExclusive',
-          'pattern',
-          'totalDigits',
-          'fractionDigits',
-          'enumeration',
-        ],
-        '',
-        '',
-        nsPrefix
-      )
     case 'annotation':
       return getElementCompletionItems(['appinfo'], '', '', nsPrefix)
     case 'appinfo':

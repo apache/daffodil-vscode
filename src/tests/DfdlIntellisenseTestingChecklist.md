@@ -34,22 +34,16 @@ Place the cursor at the same position as above. Type CTRL+space
 Place the cursor at line 48, column 18 at the end of the line
 <xs:sequence>. Type a space or CTRL+space.
 
-- [ ] Verify dropdown contains xs:annotation, xs:choice, xs:element
-      name, xs:element ref, and xs:sequence.
+- [ ] Verify dropdown contains xs:annotation, xs:choice, xs:element,
+      xs:element name, xs:element ref, and xs:sequence.
 
 Place cursor at line 56, column 39 at the end of the line xs:element
 name="Keyword". Type a space.
 
-- [ ] Verify dropdown contains dfdl:alignment, dfdl:alignmentUnits,
-      dfdl:binaryBooleanFalseRep, dfdl:binaryBooleanTrueRep,
-      dfdl:binaryNumberRep, dfdl:bitOrder, dfdl:byteOrder,
-      dfdl:choiceBranchKey, dfdl:encoding, dfdl:inputValueCalc, dfdl:length,
-      dfdl:lengthKind, dfdl:lengthPattern, dfdl:lengthUnits, dfdl:occursCount,
-      dfdl:occursCountKind, dfdl:outputNewLine dfdl:outputValueCalc,
-      dfdl:prefxIncludesPrefixLength, dfdl:prefixLengthType,
-      dfdl:representation, dfdl:terminator, maxOccurs, minOccurs, name, ref,
-      and type.
-      Note: This isn't a comprehensive list of attributes, just the most commonly used attributes.
+- [ ] Verify dropdown contains 'maxOccurs','minOccurs','nillable','ref','default','fixed','dfdl:occursCount','dfdl:bitOrder','dfdl:byteOrder','dfdl:encoding','dfdl:utf16Width','dfdl:encodingErrorPolicy','dfdl:fillbyte','dfdl:leadingSkip','dfdl:trailingSkip','dfdl:initiator','dfdl:emptyValueDelimiterPolicy','dfdl:emptyElementParsePolicy',,'dfdl:lengthUnits','dfdl:length','dfdl:prefixIncludesPrefixLength','dfdl:prefixLengthType','dfdl:lengthPattern','dfdl:textPadKind','dfdl:textTrimKind','dfdl:textOutputMinLength','dfdl:escapeSchemeRef','dfdl:textBidi','dfdl:textStringustification','dfdl:textStringPadChar','dfdl:truncateSpecifiedLengthString','dfdl:decimalSigned','dfdl:textNumberRep','dfdl:textNumberJustification','dfdl:textNumberPadCharacter','dfdl:textNumberPattern','dfdl:textnumberRounding','dfdl:textNumberRoundingMode','dfdl:textNumberRoundingIncrement','dfdl:textNumberCheckPolicy','dfdl:textStandardDecimalSeparator','dfdl:textStandardGroupingSeparator','dfdl:textStandardExponentRep','dfdl:textStandardInfinityRep','dfdl:textStandardNaNRep','dfdl:textStandardZeroRep',
+      'dfdl:textStandardBase','dfdl:textZonedSignStyle','dfdl:binaryNumberRep','dfdl:binaryDecimalVirtualPoint','dfdl:binaryPakedSignCodes','dfdl:binaryNumberCheckPolicy','dfdl:binaryFloatRep','dfdl:textBooleanTrueRep','dfdl:textBooleanFalseRep','dfdl:textBooleanJustification','dfdl:textBooleanPadChar','dfdl:binaryBooleanTrueRep','dfdl:binaryBoolenaFalseRep','dfdl:calendarPattern','dfdl:calendarPatternKind','dfdl:calendarCheckPolicy','dfdl:calendarTimeZone','dfdl:calendarObserveDST','dfdl:calendarFirstDayOfWeek','dfdl:calendarDaysInFirstWeek','dfdl:calendarCenturyStart','dfdl:calendarLanguage','dfdl:textCalendarJustification','dfdl:textCalendarPadCharacter','dfdl:binaryCalendarRep','dfdl:binaryCalendarEpoch','dfdl:nillKind','dfdl:nilValue','dfdl:nilValueDelimiterPolicy','dfdl:useNilValueForDefault','dfdl:floating','dfdl:choiceBranchKey','dfdl:occursCountKind','dfdl:occursCount','dfdl:inputValueCalc','dfdl:outputValueCalc'
+
+- [ ] Verify dropdown does not contain 'name',' type','dfdl:alignment','dfdl:length','dfdl:alignmentUnits','dfdl:representation','dfdl:lengthKind','dfdl:terminator','dfdl:outputNewLine'
 
 - [ ] Verify dropdown appears with above listed elements, and the first
       line in dropdown is highlighted with a description of the highlighted
@@ -75,22 +69,16 @@ Place the cursor at line 57 column 65, after dfdl:length="10". Type CTRL+space. 
 
 Place cursor at line 67, column 26, after </xs:element>. Type a space.
 
-- [ ] Verify the dropdown contains xs:annotation, xs:choice, xs:element
+- [ ] Verify the dropdown contains xs:annotation, xs:choice, xs:element, xs:element
       name, xs:element ref, and xs:sequence.
 
 Place the cursor at line 68, column 42 after <xs:element
 name="Datastream". Type a space.
 
-- [ ] Verify the dropdown contains dfdl:alignment, dfdl:alignmentUnits,
-      dfdl:binaryBooleanFalseRep, dfdl:binaryBooleanTrueRep,
-      dfdl:binaryNumberRep, dfdl:bitOrder, dfdl:byteOrder,
-      dfdl:choiceBranchKey, dfdl:encoding, dfdl:inputValueCalc, dfdl:length,
-      dfdl:lengthKind, dfdl:lengthPattern, dfdl:lengthUnits, dfdl:occursCount,
-      dfdl:occursCountKind, dfdl:outputNewLine dfdl:outputValueCalc,
-      dfdl:prefxIncludesPrefixLength, dfdl:prefixLengthType,
-      dfdl:representation, dfdl:terminator, maxOccurs, minOccurs, name, ref,
-      and type.
-      Note: This isn't a comprehensive list of attributes, just the most commonly used attributes.
+- [ ] Verify the dropdown contains maxOccurs,nillable,ref,default,fixed,dfdl:occursCount,dfdl:bitOrder,dfdl:byteOrder,dfdl:encoding,dfdl:utf16Width,dfdl:encodingErrorPolicy,dfdl:alignment,dfdl:alignmentUnits,dfdl:fillbyte,dfdl:leadingSkip,dfdl:trailingSkip,dfdl:initiator,dfdl:terminator,dfdl:emptyValueDelimiterPolicy,dfdl:outputNewLine,dfdl:emptyElementParsePolicy,dfdl:prefixIncludesPrefixLength,dfdl:prefixLengthType,dfdl:lengthPattern,dfdl:textPadKind,dfdl:textTrimKind,dfdl:textOutputMinLength,dfdl:escapeSchemeRef,dfdl:textBidi,dfdl:textStringustification,dfdl:textStringPadChar,dfdl:truncateSpecifiedLengthString,dfdl:decimalSigned,dfdl:textNumberRep,dfdl:textNumberJustification,dfdl:textNumberPadCharacter,dfdl:textNumberPattern,dfdl:textnumberRounding,dfdl:textNumberRoundingMode,dfdl:textNumberRoundingIncrement,dfdl:textNumberCheckPolicy,dfdl:textStandardDecimalSeparator,dfdl:textStandardGroupingSeparator,dfdl:textStandardExponentRep,dfdl:textStandardInfinityRep,dfdl:textStandardNaNRep,dfdl:textStandardZeroRep,
+      dfdl:textStandardBase,dfdl:textZonedSignStyle,dfdl:binaryNumberRep,dfdl:binaryDecimalVirtualPoint,dfdl:binaryPakedSignCodes,dfdl:binaryNumberCheckPolicy,dfdl:binaryFloatRep,dfdl:textBooleanTrueRep,dfdl:textBooleanFalseRep,dfdl:textBooleanJustification,dfdl:textBooleanPadChar,dfdl:binaryBooleanTrueRep,dfdl:binaryBoolenaFalseRep,dfdl:calendarPattern,dfdl:calendarPatternKind,dfdl:calendarCheckPolicy,dfdl:calendarTimeZone,dfdl:calendarObserveDST,dfdl:calendarFirstDayOfWeek,dfdl:calendarDaysInFirstWeek,dfdl:calendarCenturyStart,dfdl:calendarLanguage,dfdl:textCalendarJustification,dfdl:textCalendarPadCharacter,dfdl:binaryCalendarRep,dfdl:binaryCalendarEpoch,dfdl:nillKind,dfdl:nilValue,dfdl:nilValueDelimiterPolicy,dfdl:useNilValueForDefault,dfdl:floating,dfdl:choiceBranchKey,dfdl:occursCount,dfdl:inputValueCalc,dfdl:outputValueCalc,
+
+- [ ] Verify the dropdown does not contain name,type,minOccurs,dfdl:representation,dfdl:lengthKind,dfdl:lengthUnits,dfdl:length,dfdl:occursCountKind
 
 Place the cursor at line 68 column 98, within the double quotes containing the value binary for dfdl:representation. Type CTRL+space.
 
@@ -103,7 +91,8 @@ Place the cursor at line 68 column 252 at the end of the line. Backspace over th
 
 Place cursor at line 69, column 25, before </xs:sequence>. Type CTRL+space.
 
-- [ ] Verify the dropdown contains xs:choice, xs:group name, dfdl:group ref, and xs:sequence.
+- [ ] Verify the dropdown contains xs:annotation, xs:choice, xs:element, xs:element
+      name, xs:element ref, and xs:sequence.
 
 Place a cursor at line 71 column 20, after </xs:element>. Backspace until the closing element tag is erased. Type > (the greater than symbol).
 
@@ -128,17 +117,9 @@ See issue # 1083 "Intellisense issue when the "/" character is typed" for contex
 
 Place the cursor at line 31 column 39, after ref="GeneralFormat". Type a space.
 
-- [ ] Verify the dropdown contains a long list of dfdl attributes including:
-      dfdl:alignment, dfdl:alignmentUnits,
-      dfdl:binaryBooleanFalseRep, dfdl:binaryBooleanTrueRep,
-      dfdl:binaryNumberRep, dfdl:bitOrder, dfdl:byteOrder,
-      dfdl:choiceBranchKey, dfdl:encoding, dfdl:inputValueCalc, dfdl:length,
-      dfdl:lengthKind, dfdl:lengthPattern, dfdl:lengthUnits, dfdl:occursCount,
-      dfdl:occursCountKind, dfdl:outputNewLine dfdl:outputValueCalc,
-      dfdl:prefxIncludesPrefixLength, dfdl:prefixLengthType,
-      dfdl:representation, dfdl:terminator, maxOccurs, minOccurs, name, ref,
-      and type.
-      Note: This isn't a comprehensive list of attributes, just the most commonly used attributes.
+- [ ] Verify the dropdown contains name,maxOccurs,minOccurs,nillable,type,default,fixed,dfdl:occursCount,dfdl:bitOrder,dfdl:byteOrder,dfdl:utf16Width,dfdl:encodingErrorPolicy,dfdl:alignmentUnits,dfdl:fillbyte,dfdl:leadingSkip,dfdl:trailingSkip,dfdl:initiator,dfdl:terminator,dfdl:emptyValueDelimiterPolicy,dfdl:outputNewLine,dfdl:emptyElementParsePolicy,,dfdl:lengthUnits,dfdl:length,dfdl:prefixIncludesPrefixLength,dfdl:prefixLengthType,dfdl:lengthPattern,dfdl:textPadKind,dfdl:textTrimKind,dfdl:textOutputMinLength,dfdl:escapeSchemeRef,dfdl:textBidi,dfdl:textStringustification,dfdl:textStringPadChar,dfdl:truncateSpecifiedLengthString,dfdl:decimalSigned,dfdl:textNumberRep,dfdl:textNumberJustification,dfdl:textNumberPadCharacter,dfdl:textNumberPattern,dfdl:textnumberRounding,dfdl:textNumberRoundingMode,dfdl:textNumberRoundingIncrement,dfdl:textNumberCheckPolicy,dfdl:textStandardDecimalSeparator,dfdl:textStandardGroupingSeparator,dfdl:textStandardExponentRep,dfdl:textStandardInfinityRep,dfdl:textStandardNaNRep,dfdl:textStandardZeroRep,dfdl:textStandardBase,dfdl:textZonedSignStyle,dfdl:binaryNumberRep,dfdl:binaryDecimalVirtualPoint,dfdl:binaryPakedSignCodes,dfdl:binaryNumberCheckPolicy,dfdl:binaryFloatRep,dfdl:textBooleanTrueRep,dfdl:textBooleanFalseRep,dfdl:textBooleanJustification,dfdl:textBooleanPadChar,dfdl:binaryBooleanTrueRep,dfdl:binaryBoolenaFalseRep,dfdl:calendarPattern,dfdl:calendarPatternKind,dfdl:calendarCheckPolicy,dfdl:calendarTimeZone,dfdl:calendarObserveDST,dfdl:calendarFirstDayOfWeek,dfdl:calendarDaysInFirstWeek,dfdl:calendarCenturyStart,dfdl:calendarLanguage,dfdl:textCalendarJustification,dfdl:textCalendarPadCharacter,dfdl:binaryCalendarRep,dfdl:binaryCalendarEpoch,dfdl:nillKind,dfdl:nilValue,dfdl:nilValueDelimiterPolicy,dfdl:useNilValueForDefault,dfdl:floating,dfdl:choiceBranchKey,dfdl:occursCountKind,dfdl:occursCount,dfdl:inputValueCalc,dfdl:outputValueCalc,
+
+- [ ] Verify the dropdown doesnot contain ref,dfdl:encoding,dfdl:alignment,dfdl:lengthKind,dfdl:representation
 
 Select alignment from the dropdown. select 1 as the value for alignment.
 
@@ -147,7 +128,7 @@ Select alignment from the dropdown. select 1 as the value for alignment.
 
 Place the cursor at line 33 column 1. Type CTRL+space.
 
-- [ ] Verify the dropdown contains dfdl:defineEscapeScheme, dfdl:defineFormat, ,and dfdl:format.
+- [ ] Verify the dropdown contains dfdl:defineEscapeScheme,dfdl:defineFormat,dfdl:defineVariable,dfdl:format.
 
 Place the cursor at line 52 column 56 at the end of the line. Backspace over the last two characters "/>". The cursor should be directly after encoding="ascii". Type a / (slash '/').
 
@@ -155,22 +136,16 @@ Place the cursor at line 52 column 56 at the end of the line. Backspace over the
 
 Place the cursor at line 59, column 46, after representation="text". Type a space.
 
-- [ ] Verify the dropdown contains dfdl:alignment, dfdl:alignmentUnits,
-      dfdl:binaryBooleanFalseRep, dfdl:binaryBooleanTrueRep,
-      dfdl:binaryNumberRep, dfdl:bitOrder, dfdl:byteOrder,
-      dfdl:choiceBranchKey, dfdl:encoding, dfdl:inputValueCalc, dfdl:length,
-      dfdl:lengthKind, dfdl:lengthPattern, dfdl:lengthUnits, dfdl:occursCount,
-      dfdl:occursCountKind, dfdl:outputNewLine dfdl:outputValueCalc,
-      dfdl:prefxIncludesPrefixLength, dfdl:prefixLengthType,
-      dfdl:representation, dfdl:terminator, maxOccurs, minOccurs, name, ref,
-      and type.
-      Note: This isn't a comprehensive list of attributes, just the most commonly used attributes.
+- [ ] Verify the dropdown contains name,maxOccurs,minOccurs,nillable,ref,type,default,fixed,dfdl:occursCount,dfdl:bitOrder,dfdl:byteOrder,dfdl:utf16Width,dfdl:encodingErrorPolicy,dfdl:alignmentUnits,dfdl:fillbyte,dfdl:leadingSkip,dfdl:trailingSkip,dfdl:terminator,dfdl:emptyValueDelimiterPolicy,dfdl:outputNewLine,dfdl:emptyElementParsePolicy,dfdl:lengthUnits,dfdl:length,dfdl:prefixIncludesPrefixLength,dfdl:prefixLengthType,dfdl:lengthPattern,dfdl:textPadKind,dfdl:textTrimKind,dfdl:textOutputMinLength,dfdl:escapeSchemeRef,dfdl:textBidi,dfdl:textStringustification,dfdl:textStringPadChar,dfdl:truncateSpecifiedLengthString,dfdl:decimalSigned,dfdl:textNumberJustification,dfdl:textNumberPadCharacter,dfdl:textNumberPattern,dfdl:textnumberRounding,dfdl:textNumberRoundingMode,dfdl:textNumberRoundingIncrement,dfdl:textNumberCheckPolicy,dfdl:textStandardDecimalSeparator,dfdl:textStandardGroupingSeparator,dfdl:textStandardExponentRep,dfdl:textStandardInfinityRep,dfdl:textStandardNaNRep,dfdl:textStandardZeroRep,
+      dfdl:textStandardBase,dfdl:textZonedSignStyle,dfdl:binaryNumberRep,dfdl:binaryDecimalVirtualPoint,dfdl:binaryPakedSignCodes,dfdl:binaryNumberCheckPolicy,dfdl:binaryFloatRep,dfdl:textBooleanTrueRep,dfdl:textBooleanFalseRep,dfdl:textBooleanJustification,dfdl:textBooleanPadChar,dfdl:binaryBooleanTrueRep,dfdl:binaryBoolenaFalseRep,dfdl:calendarPattern,dfdl:calendarPatternKind,dfdl:calendarCheckPolicy,dfdl:calendarTimeZone,dfdl:calendarObserveDST,dfdl:calendarFirstDayOfWeek,dfdl:calendarDaysInFirstWeek,dfdl:calendarCenturyStart,dfdl:calendarLanguage,dfdl:textCalendarJustification,dfdl:textCalendarPadCharacter,dfdl:binaryCalendarRep,dfdl:binaryCalendarEpoch,dfdl:nillKind,dfdl:nilValue,dfdl:nilValueDelimiterPolicy,dfdl:useNilValueForDefault,dfdl:floating,dfdl:choiceBranchKey,dfdl:occursCountKind,dfdl:occursCount,dfdl:inputValueCalc,dfdl:outputValueCalc,
+
+- [ ] Verify the dropdown does not contain dfdl:encoding,dfdl:alignment,dfdl:initiator,dfdl:lengthKind,dfdl:representation,dfdl:textNumberRep
 
 Select dfdl:alignment from the dropdown. select 1 as the value.
 
 - [ ] Verify that alignment="1" was inserted.
 - [ ] Verify that alignment does not contian the dfdl: prefix.
 
-Place the cursor at line 68 column 59, after >. Type CTRL+space. -[ ] Verify the dropdown contains dfdl:assert, dfdl:discriminator, dfdl:element, dfdl:property, and dfdl:setVariable.
+Place the cursor at line 68 column 59, after >. Type CTRL+space. -[ ] Verify the dropdown contains dfdl:assert, dfdl:discriminator, dfdl:element, dfdl:property
 
 DO NOT save any changes to the test file.
