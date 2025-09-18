@@ -75,7 +75,6 @@ import {
 } from '../svelte/src/utilities/message'
 import * as editor_config from './config'
 import { configureOmegaEditPort, ServerInfo } from './include/server/ServerInfo'
-import { isDFDLDebugSessionActive } from './include/utils'
 import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
 import {
   addActiveSession,
@@ -101,6 +100,7 @@ export const APP_DATA_PATH: string = XDGAppPaths({ name: 'omega_edit' }).data()
 
 const HEARTBEAT_INTERVAL_MS: number = 1000 // 1 second (1000 ms)
 const MAX_LOG_FILES: number = 5 // Maximum number of log files to keep TODO: make this configurable
+const OPEN_EDITORS = new Map<string, vscode.WebviewPanel>()
 
 // *****************************************************************************
 // file-scoped variables
@@ -144,40 +144,37 @@ export class DataEditorClient implements vscode.Disposable {
   private sendHeartbeatIntervalId: NodeJS.Timeout | number | undefined =
     undefined
   private disposables: vscode.Disposable[] = []
+
   constructor(
     protected context: vscode.ExtensionContext,
     private view: string,
     title: string,
     private configVars: editor_config.IConfig,
-    fileToEdit: string = ''
+    fileToEdit: string = '',
+    panel: vscode.WebviewPanel
   ) {
-    const column =
-      fileToEdit !== '' ? vscode.ViewColumn.Two : vscode.ViewColumn.Active
-    this.panel = vscode.window.createWebviewPanel(this.view, title, column, {
-      enableScripts: true,
-      retainContextWhenHidden: true,
-    })
+    this.panel = panel
     this.panel.webview.onDidReceiveMessage(this.messageReceiver, this)
+
     this.panel.onDidDispose(async () => {
-      await removeActiveSession(this.omegaSessionId)
-      await this.dispose()
+      await this.dispose() // session cleanup is now in `static open()`
     })
-    this.disposables.push(
+
+    this.disposables = [
       this.panel,
       vscode.debug.onDidReceiveDebugSessionCustomEvent(async (e) => {
-        const debugEvent = e
-        const eventAsEditorMessage = extractDaffodilEvent(debugEvent)
+        const eventAsEditorMessage = extractDaffodilEvent(e)
         if (eventAsEditorMessage === undefined) return
-
         const forwardAs = eventAsEditorMessage.asObject()
-
         await this.panel.webview.postMessage(forwardAs)
-      })
-    )
-    context.subscriptions.push(this)
+      }),
+    ]
+
+    this.context.subscriptions.push(this)
 
     this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
     this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
+
     this.currentViewportId = ''
     this.fileToEdit = fileToEdit
     this.displayState = new DisplayState(this.panel)
@@ -198,13 +195,62 @@ export class DataEditorClient implements vscode.Disposable {
   show(): void {
     this.panel.reveal()
   }
+  public static async open(
+    context: vscode.ExtensionContext,
+    view: string,
+    configVars: editor_config.IConfig,
+    fileToEdit: string = ''
+  ): Promise<DataEditorClient | undefined> {
+    const title = 'Data Editor'
+    const column =
+      fileToEdit !== '' ? vscode.ViewColumn.Two : vscode.ViewColumn.Active
+
+    const panel = vscode.window.createWebviewPanel(view, title, column, {
+      enableScripts: true,
+      retainContextWhenHidden: true,
+    })
+
+    const editor = new DataEditorClient(
+      context,
+      view,
+      title,
+      configVars,
+      fileToEdit,
+      panel
+    )
+
+    await editor.initialize()
+
+    panel.onDidDispose(async () => {
+      const pathKey = path.resolve(editor.fileToEdit).toLowerCase()
+      OPEN_EDITORS.delete(pathKey)
+      await removeActiveSession(editor.sessionId())
+      await editor.dispose()
+    })
+
+    return editor
+  }
 
   public async initialize() {
     checkpointPath = this.configVars.checkpointPath
 
     if (this.fileToEdit !== '') {
+      // Case: file passed in directly — check for duplicates now
+      const realFilePath = path.resolve(this.fileToEdit).toLowerCase()
+
+      if (OPEN_EDITORS.has(realFilePath)) {
+        vscode.window.showInformationMessage(
+          `Data editor already open for: ${this.fileToEdit}`
+        )
+        OPEN_EDITORS.get(realFilePath)?.reveal()
+        this.panel.dispose()
+        return
+      }
+
       await this.setupDataEditor()
+      OPEN_EDITORS.set(realFilePath, this.panel)
     } else {
+      // Case: no file passed in — prompt user
       const fileUri = await vscode.window.showOpenDialog({
         canSelectMany: false,
         openLabel: 'Select',
@@ -212,10 +258,26 @@ export class DataEditorClient implements vscode.Disposable {
         canSelectFolders: false,
         title: 'Select Data File',
       })
+
       if (fileUri && fileUri[0]) {
         this.fileToEdit = fileUri[0].fsPath
-        this.panel.title = path.basename(this.fileToEdit)
+        const realFilePath = path.resolve(this.fileToEdit).toLowerCase()
+
+        if (OPEN_EDITORS.has(realFilePath)) {
+          vscode.window.showInformationMessage(
+            `Data editor already open for: ${this.fileToEdit}`
+          )
+          OPEN_EDITORS.get(realFilePath)?.reveal()
+          this.panel.dispose()
+          return
+        }
+
         await this.setupDataEditor()
+        OPEN_EDITORS.set(realFilePath, this.panel)
+      } else {
+        // User cancelled the dialog
+        this.panel.dispose()
+        return
       }
     }
     // send and initial heartbeat, then send the heartbeat to the webview at regular intervals
@@ -836,16 +898,16 @@ async function createDataEditorWebviewPanel(
   ctx: vscode.ExtensionContext,
   launchConfigVars: editor_config.IConfig,
   fileToEdit: string
-): Promise<DataEditorClient> {
-  // make sure the app data path exists
+): Promise<DataEditorClient | undefined> {
+  // Ensure the app data path exists
   fs.mkdirSync(APP_DATA_PATH, { recursive: true })
   assert(fs.existsSync(APP_DATA_PATH), 'app data path does not exist')
 
-  // make sure the omega edit port is configured
+  // Make sure the omega edit port is configured
   configureOmegaEditPort(launchConfigVars)
   omegaEditPort = launchConfigVars.port
 
-  // only start up the server if one is not already running
+  // Start the server if it's not already running
   if (!(await checkServerListening(omegaEditPort, OMEGA_EDIT_HOST))) {
     await setupLogging(launchConfigVars)
     await serverStart()
@@ -855,27 +917,20 @@ async function createDataEditorWebviewPanel(
       'server not listening'
     )
   }
+
+  // Normalize workspace keyword if needed
   fileToEdit = fileToEdit.replace(
     editor_config.WorkspaceKeyword,
     editor_config.rootPath
   )
-  const dataEditorView = new DataEditorClient(
+
+  // Use the new duplicate-safe open method
+  return await DataEditorClient.open(
     ctx,
     'dataEditor',
-    'Data Editor',
     launchConfigVars,
     fileToEdit
   )
-  await dataEditorView.initialize()
-  if (isDFDLDebugSessionActive())
-    dataEditorView.addDisposable(
-      vscode.debug.onDidTerminateDebugSession(async () => {
-        if (dataEditorView) await dataEditorView.dispose()
-      })
-    )
-
-  dataEditorView.show()
-  return dataEditorView
 }
 
 function rotateLogFiles(logFile: string): void {
