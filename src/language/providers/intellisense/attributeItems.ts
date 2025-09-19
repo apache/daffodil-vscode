@@ -36,6 +36,16 @@ export const attributeCompletion = (
         markdownString: 'Specifies the name of an element in this schema'
       },
       {
+        item: 'default',
+        snippetString: spacingChar + 'default="$1"$0' + afterChar,
+        markdownString: 'Value automatically assigned to an element in this schema'
+      },
+      {
+        item: 'fixed',
+        snippetString: spacingChar + 'fixed="$1"$0' + afterChar,
+        markdownString: 'Specifies the exact value of an element in this schema'
+      },
+      {
         item: 'minOccurs',
         snippetString: spacingChar + 'minOccurs="${1|0,1|}"$0' + afterChar,
         markdownString: 'Minimum number of times element will occur',
@@ -44,6 +54,11 @@ export const attributeCompletion = (
         item: 'maxOccurs',
         snippetString: spacingChar + 'maxOccurs="${1|0,1,unbounded|}"$0' + afterChar,
         markdownString: 'Maximum number of times element will occur',
+      },
+      {
+        item: 'nillable',
+        snippetString: spacingChar + 'nillable="${true|false|}"$0' + afterChar,
+        markdownString: 'Allows for the concept of an element having no value',
       },
       {
         item: 'dfdl:occursCount',
@@ -64,6 +79,11 @@ export const attributeCompletion = (
         item: 'dfdl:occursCountKind',
         snippetString: spacingChar + dfdlPrefix + 'occursCountKind="${1|expression,fixed,implicit,parsed,stopValue|}"$0' + afterChar,
         markdownString: 'Specifies how the actual number of occurrences is to be established',
+      },
+      {
+        item: 'dfdl:occursStopValue',
+        snippetString: spacingChar + dfdlPrefix + 'occursStopValue="$1"$0' + afterChar,
+        markdownString: 'A whitespace separated list of logical values that specify the alternative logical stop values for the element',
       },
       {
         item: 'dfdl:length',
@@ -214,6 +234,11 @@ export const attributeCompletion = (
         item: 'dfdl:textNumberJustification',
         snippetString: spacingChar + dfdlPrefix + 'textNumberJustification=${1|left,right,center|}"$0' + afterChar,
         markdownString: 'Controls how the data is padded or trimmed on parsing and unparsing',
+      },
+      {
+        item: 'dfdl:textNumberPadCharacter',
+        snippetString: spacingChar + dfdlPrefix + 'textNumberPadCharacter="$1"$0' + afterChar,
+        markdownString: 'The value that is used when padding or trimming number elements',
       },
       {
         item: 'dfdl:textNumberRoundingMode',
@@ -459,6 +484,26 @@ export const attributeCompletion = (
         item: 'dfdl:calendarLanguage',
         snippetString: spacingChar + dfdlPrefix + 'calendarLanguage="$1"$0' + afterChar,
         markdownString: 'The language that is used when the pattern produces a presentation in text',
+      },
+      {
+        item: 'dfdl:textCalendarJustification',
+        snippetString: spacingChar + dfdlPrefix + 'textCalendarJustification="${1|left,right,center|}"$0' + afterChar,
+        markdownString: 'Controls how the data is padded or trimmed on parsing and unparsing',
+      },
+      {
+        item: 'dfdl:textCalendarPadCharacter',
+        snippetString: spacingChar + dfdlPrefix + 'textCalendarPadCharacter="$1"$0' + afterChar,
+        markdownString: 'The value that is used when padding or trimming calendar elements. The value can be a single character or a single byte',
+      },
+      {
+        item: 'dfdl:binaryCalendarRep',
+        snippetString: spacingChar + dfdlPrefix + 'binaryCalendarRep="${1|packed,bcd,ibm4690Packed,binarySeconds,binaryMilliseconds|}"$0' + afterChar,
+        markdownString: 'Valid values are packed, bcd, ibm4690Packed, binarySeconds, binaryMilliseconds',
+      },
+      {
+        item: 'dfdl:binaryCalendarEpoch',
+        snippetString: spacingChar + dfdlPrefix + 'binaryCalendarEpoch="$1"$0' + afterChar,
+        markdownString: 'The epoch from which to calculate dates and times. Used when dfdl:binaryCalendarRep is binarySeconds or binaryMilliseconds',
       },
       {
         item: "dfdl:documentFinalTerminatorCanBeMissing" + afterChar,

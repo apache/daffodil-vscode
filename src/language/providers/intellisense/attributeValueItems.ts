@@ -80,6 +80,9 @@ export function attributeValues(
     case 'maxOccurs':
       insertSnippet('"${1|0,1,unbounded|}"$0', startPos)
       break
+    case 'nillable':
+      insertSnippet('"${true|false|}"$0', startPos)
+      break
     case 'occursCount':
       insertSnippet('"$1"$0', startPos)
       break
