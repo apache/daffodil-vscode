@@ -22,7 +22,7 @@ limitations under the License.
   export let totalLines = 0
   export let currentLine = 0
   export let fileOffset = 0
-  export let percentageTraversed
+  export let percentageTraversed: number
   export let maxDisplayLines = 20
   export let selectionActive: boolean
 

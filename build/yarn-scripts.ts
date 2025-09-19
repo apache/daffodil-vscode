@@ -81,13 +81,10 @@ const scalaclean = () => {
 
 function watch() {
   concurrently(
-    [
-      'webpack --watch --devtool nosources-source-map --config ./webpack/ext-dev.webpack.config.js',
-      'yarn watch:svelte',
-      'yarn watch:tdmlEditorJS',
-    ],
+    ['yarn watch:vite-dev', 'yarn watch:svelte', 'yarn watch:tdmlEditorJS'],
     {
-      killOthers: ['failure', 'success'],
+      killOthersOn: ['failure'],
+      restartTries: 1,
     }
   )
 }
