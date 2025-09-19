@@ -103,6 +103,26 @@ function normalizePath(path: string): string {
   return path
 }
 
+/**
+ * Configures the file path string of an intended TDML save file if the
+ * extension is malformed.
+ * @param pathStr
+ * @returns file path string with a valid TDML file extension.
+ */
+function validateTDMLFilePath(pathStr: string): string {
+  // Create capture groups for the path
+  // Capture Group 2 will be all valid extensions potentially chained at the end of the path
+  // Capture Group 1 will be the rest of the filename (before the valid extensions)
+  const matches = pathStr.match(/(^.*?)((\.tdml|\.tdml\.xml)*)$/i)
+  if (matches) {
+    // We want to grab the first valid extension found from the previous regex's Capture Group 2
+    //    and append that to the filename with TDML extensions stripped (previous regex's Capture Group 1)
+    const extMatches = matches[2].match(/^\.tdml.xml|^\.tdml/i)
+    return extMatches ? matches[1] + extMatches : matches[1] + '.tdml'
+  }
+  return pathStr + '.tdml'
+}
+
 /** Method to show dialog to save TDML file
  * Details:
  *   Required so that the vscode api commands:
@@ -110,25 +130,19 @@ function normalizePath(path: string): string {
  *   can be sent a file instead of always opening up a prompt.
  */
 async function showTDMLSaveDialog(fileRequested, label, title) {
-  let file = ''
-
-  file = await vscode.window
-    .showSaveDialog({
-      saveLabel: label,
-      title: title,
-      filters: {
-        TDML: ['tdml'],
-      },
-    })
-    .then((fileUri) => {
-      if (fileUri) {
-        return normalizePath(fileUri.fsPath)
-      }
-
-      return ''
-    })
-
-  return file
+  let file = await vscode.window.showSaveDialog({
+    saveLabel: label,
+    title: title,
+    filters: {
+      TDML: ['tdml', 'tdml.xml'],
+    },
+    defaultUri: fileRequested,
+  })
+  if (!file) {
+    vscode.window.showErrorMessage('No output TDML filename provided')
+    return
+  }
+  return validateTDMLFilePath(normalizePath(file.fsPath))
 }
 
 // Function for setting up the commands for Run and Debug file
