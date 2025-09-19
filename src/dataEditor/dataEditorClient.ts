@@ -84,6 +84,7 @@ import {
 import { getCurrentHeartbeatInfo } from './include/server/heartbeat'
 import * as child_process from 'child_process'
 import { osCheck } from '../utils'
+import { getCurrentConfig } from '../utils'
 
 // *****************************************************************************
 // global constants
@@ -119,7 +120,11 @@ export function activate(ctx: vscode.ExtensionContext): void {
       DATA_EDITOR_COMMAND,
       async (fileToEdit: string = '') => {
         let configVars = editor_config.extractConfigurationVariables()
-        return await createDataEditorWebviewPanel(ctx, configVars, fileToEdit)
+        return await createDataEditorWebviewPanel(
+          ctx,
+          configVars,
+          vscode.debug.activeDebugSession ? getCurrentConfig().data : fileToEdit
+        )
       }
     )
   )
