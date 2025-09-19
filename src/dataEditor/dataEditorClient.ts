@@ -197,19 +197,7 @@ export class DataEditorClient implements vscode.Disposable {
     configVars: editor_config.IConfig,
     fileToEdit: string = ''
   ): Promise<void> {
-    const normalizedPath = path.resolve(fileToEdit).toLowerCase()
-
-    if (openEditors.has(normalizedPath)) {
-      console.log('Currently open editors:', Array.from(openEditors.keys()))
-
-      vscode.window.showInformationMessage(
-        `Data editor already open for: ${fileToEdit}`
-      )
-      openEditors.get(normalizedPath)?.reveal()
-      return
-    }
-
-    const title = path.basename(fileToEdit)
+    const title = fileToEdit ? path.basename(fileToEdit) : 'Data Editor'
     const column =
       fileToEdit !== '' ? vscode.ViewColumn.Two : vscode.ViewColumn.Active
 
@@ -226,13 +214,27 @@ export class DataEditorClient implements vscode.Disposable {
       fileToEdit,
       panel
     )
+
     await editor.initialize()
 
-    openEditors.set(normalizedPath, panel)
+    // Only now do we know the real file path
+    const realFilePath = path.resolve(editor.fileToEdit).toLowerCase()
+
+    if (openEditors.has(realFilePath)) {
+      // Already open (somehow) – reveal and bail
+      vscode.window.showInformationMessage(
+        `Data editor already open for: ${editor.fileToEdit}`
+      )
+      openEditors.get(realFilePath)?.reveal()
+      panel.dispose()
+      return
+    }
+
+    openEditors.set(realFilePath, panel)
 
     panel.onDidDispose(async () => {
-      openEditors.delete(normalizedPath)
-      await removeActiveSession(editor.omegaSessionId)
+      openEditors.delete(realFilePath)
+      await removeActiveSession(editor.sessionId())
       await editor.dispose()
     })
   }
@@ -254,6 +256,10 @@ export class DataEditorClient implements vscode.Disposable {
         this.fileToEdit = fileUri[0].fsPath
         this.panel.title = path.basename(this.fileToEdit)
         await this.setupDataEditor()
+      } else {
+        // User cancelled dialog — don't continue
+        this.panel.dispose()
+        return
       }
     }
     // send and initial heartbeat, then send the heartbeat to the webview at regular intervals
@@ -900,7 +906,7 @@ async function createDataEditorWebviewPanel(
     editor_config.rootPath
   )
 
-  // ✅ Use the new duplicate-safe open method
+  // Use the new duplicate-safe open method
   await DataEditorClient.open(ctx, 'dataEditor', launchConfigVars, fileToEdit)
 }
 
