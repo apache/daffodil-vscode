@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { destroySession, getSessionCount } from '@omega-edit/client'
+import { destroySession, getLogger, getSessionCount } from '@omega-edit/client'
 import { updateHeartbeatInterval } from './heartbeat'
 import { serverStop } from '../../dataEditorClient'
 
@@ -35,6 +35,10 @@ export async function removeActiveSession(sessionId: string) {
 
   // Only stop the server if there are no active sessions
   if ((await getSessionCount()) === 0) {
+    getLogger().info(
+      { fn: 'DataEditorClient::removeActiveSession' },
+      'Stopping server!'
+    )
     await serverStop()
   }
 }
