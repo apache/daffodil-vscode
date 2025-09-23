@@ -82,6 +82,23 @@ export async function activate(ctx: vscode.ExtensionContext) {
       }
       sid = undefined
       await openInfosetFilePrompt()
+
+      const tabs: vscode.Tab[] = vscode.window.tabGroups.all
+        .map((tg) => tg.tabs)
+        .flat()
+
+      // Find the tab that matches the file Uri
+      const foundTab = tabs.find(
+        (tab) =>
+          tab.input instanceof vscode.TabInputText &&
+          tab.input.uri.path === doc?.fileName
+      )
+
+      // If the tab is found, close it
+      if (foundTab) {
+        // The close method can take a single tab or an array of tabs
+        await vscode.window.tabGroups.close(foundTab)
+      }
     })
   )
 
