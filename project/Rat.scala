@@ -62,6 +62,18 @@ object Rat {
     file("src/svelte/src/resources/fonts/RedHatMono-Regular.woff2"),
     // scalafmt-core files
     file(".git-blame-ignore-revs"),
+    // DFDL schema element and attribute cross reference
+    file("src/language/dfdl-xref/DFDL_ElementXRef.md"),
+    file("src/language/dfdl-xref/DFDL_ElementAnnotationXRef.md"),
+    file("src/language/dfdl-xref/DFDL_PropertyXRef.md"),
+    file("src/language/dfdl-xref/html/DFDL_XRef.htm"),
+    file("src/language/dfdl-xref/html/DFDL_XRef_files/filelist.xml"),
+    file("src/language/dfdl-xref/html/DFDL_XRef_files/sheet001.htm"),
+    file("src/language/dfdl-xref/html/DFDL_XRef_files/sheet002.htm"),
+    file("src/language/dfdl-xref/html/DFDL_XRef_files/sheet003.htm"),
+    file("src/language/dfdl-xref/html/DFDL_XRef_files/stylesheet.css"),
+    file("src/language/dfdl-xref/html/DFDL_XRef_files/tabstrip.htm"),
+    file("src/language/dfdl-xref/DFDL_XRef.xlsx"),
     // Issue templates
     file(".github/ISSUE_TEMPLATE/bug_report.md"),
     file(".github/ISSUE_TEMPLATE/feature_request.md"),

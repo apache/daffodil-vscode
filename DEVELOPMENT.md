@@ -77,6 +77,7 @@
   - [Reviewing and Verifying Dependency Bot Updates](#reviewing-and-verifying-dependency-bot-updates)
   - [Testing Information](#testing-information)
   - [Monitoring Project Status](#monitoring-project-status)
+  - [DFDL Intellisense Suggestion Cross Reference](#dfdl-intellisense-suggestion-cross-reference)
   - [Thank you for your interest in contributing to this project!](#thank-you-for-your-interest-in-contributing-to-this-project)
 
 ## Welcome
@@ -572,6 +573,10 @@ List of manual tests can be found in the [testing README](https://github.com/apa
 ## Monitoring Project Status
 
 Milestone-level project status can be monitored using the [Projects tab](https://github.com/apache/daffodil-vscode/projects) in the [Project's GitHub repository](https://github.com/apache/daffodil-vscode).
+
+## DFDL Intellisense Suggestion Cross Reference
+
+Documents exist that attempt to map the DFDL schema elements and attributes in the [Apache DFDL Specification](https://daffodil.apache.org/docs/dfdl/) that can be used as a guide to determine the intellisense suggestions that the extension should make based on the element or attribute marked by the cursor when intellisense is triggered. The documents include an excel spreadsheet, markdown file exports of the spreadsheets, and html exports of the spreadsheets. These files can be found in the source code at src/language/dfdl-xref and src/language/dfdl-xref/html.
 
 ## Thank you for your interest in contributing to this project
 
