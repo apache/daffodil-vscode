@@ -179,7 +179,7 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
         item: 'restriction',
         // use the "xs:" prefix for primitive types to differentiate them from custom simple types
         snippetString: '<' + nsPrefix + 'restriction base="${1|xs:string,xs:decimal,xs:float,xs:double,xs:integer,xs:nonNegativeInteger,xs:int,xs:unsignedInt,xs:short,xs:unsignedShort,xs:long,xs:unsignedLong,xs:byte,xs:unsignedByte,xs:hexBinary,xs:boolean|}"$0',
-        markdownString: 'Specify type the element is restricted to',
+        markdownString: 'Specify the base type the element is restricted to',
       },
       {
         item: 'minInclusive',
