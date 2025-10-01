@@ -16,8 +16,6 @@
 ---
 name: LICENES CI
 on:
-  push:
-    branches-ignore: ["dependabot/**"]
   pull_request:
     types: [opened, synchronize, reopened]
 
