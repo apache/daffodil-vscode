@@ -16,7 +16,7 @@
  */
 
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.13.1")
-addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.3")
+addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.4")
 addSbtPlugin("org.typelevel" % "sbt-tpolecat" % "0.5.2")
 addSbtPlugin("org.musigma" % "sbt-rat" % "0.7.0")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.5")
