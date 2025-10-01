@@ -17,7 +17,9 @@
 name: CI
 on:
   push:
-    branches-ignore: ["dependabot/**"]
+    branches-ignore:
+      - "dependabot/**" # dependabot branches
+      - "update/**" # scala-steward branches
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:

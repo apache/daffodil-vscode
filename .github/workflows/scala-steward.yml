@@ -21,6 +21,10 @@ on:
 
 name: Scala Steward CI
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   scala-steward:
     if: github.repository == 'apache/daffodil-vscode'
