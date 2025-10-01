@@ -70,7 +70,7 @@ If additional help or guidance on using Apache Daffodil™, Apache Daffodil™ E
 
 # Community Feedback
 
-[![image 5](images/asf_logo_url.png)](https://www.apache.org)
+<img src="images/asf_logo_wide.png" width="200" alt="Apache Software Foundation Logo">
 
 Apache Daffodil™ and the Apache Daffodil™ Extension for Visual Studio Code are Apache Software Foundation (ASF) projects, are free open-source software, and are under active development. Feedback and contributions are welcome.
 
@@ -99,7 +99,7 @@ This product includes the [space-grotesk](https://github.com/floriankarsten/spac
 
 # Legal
 
-Apache, Apache Feather Logo, Apache Daffodil, Daffodil, and the Apache Daffodil logo are trademarks of The Apache Software Foundation.  Visual Studio Code and VS Code are trademarks of Microsoft® Corporation. All rights reserved.
+Apache, the Apache logo, Apache Daffodil, Daffodil, and the Apache Daffodil logo are trademarks of The Apache Software Foundation.  Visual Studio Code and VS Code are trademarks of Microsoft® Corporation. All rights reserved.
 
 #### Footnotes
 
