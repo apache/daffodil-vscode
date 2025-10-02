@@ -31,7 +31,7 @@ on:
 jobs:
   enforce-checkbox:
     # this if is to further ensure that this job won't run on dependabot or scala-steward PRs
-    if: github.actor != 'dependabot[bot]' && github.actor != 'github-actions[bot]'
+    if: ${{ !startsWith(github.head_ref, 'dependabot/') && !startsWith(github.head_ref, 'update/') }}
     runs-on: ubuntu-22.04
     steps:
       - name: Check required confirmation checkbox
