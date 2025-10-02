@@ -1056,7 +1056,7 @@ class DisplayState {
     vscode.window.onDidChangeActiveColorTheme(async (event) => {
       this.colorThemeKind = event.kind
       await this.sendUIThemeUpdate()
-    })
+    }, this)
     this.sendUIThemeUpdate()
   }
 
