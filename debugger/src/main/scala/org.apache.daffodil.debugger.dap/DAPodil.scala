@@ -193,6 +193,10 @@ class DAPodil(
         disconnect(request, args)
       case extract(Command.EVALUATE, args: EvaluateArguments) =>
         eval(request, args)
+      case extract(Command.STEPIN, _) =>
+        stepIn(request)
+      case extract(Command.STEPOUT, _) =>
+        stepOut(request)
       case _ =>
         session.abort(ErrorEvent.UnhandledRequest(show"unhandled request $request"), show"unhandled request $request")
     }
@@ -328,7 +332,7 @@ class DAPodil(
     state.get.flatMap {
       case DAPodil.State.Launched(debugee) =>
         for {
-          _ <- debugee.step()
+          _ <- debugee.stepIn()
           _ <- session.sendResponse(request.respondSuccess())
         } yield ()
       case s => DAPodil.InvalidState.raise(request, "Launched", s)
@@ -420,6 +424,26 @@ class DAPodil(
             case Some(v) =>
               session.sendResponse(request.respondSuccess(new Responses.EvaluateResponseBody(v.value, 0, null, 0)))
           }
+        } yield ()
+      case s => DAPodil.InvalidState.raise(request, "Launched", s)
+    }
+
+  def stepIn(request: Request): IO[Unit] =
+    state.get.flatMap {
+      case DAPodil.State.Launched(debugee) =>
+        for {
+          _ <- debugee.stepIn()
+          _ <- session.sendResponse(request.respondSuccess())
+        } yield ()
+      case s => DAPodil.InvalidState.raise(request, "Launched", s)
+    }
+
+  def stepOut(request: Request): IO[Unit] =
+    state.get.flatMap {
+      case DAPodil.State.Launched(debugee) =>
+        for {
+          _ <- debugee.stepOut()
+          _ <- session.sendResponse(request.respondSuccess())
         } yield ()
       case s => DAPodil.InvalidState.raise(request, "Launched", s)
     }
@@ -554,7 +578,9 @@ object DAPodil extends IOApp {
         .compile
         .lastOrError
 
-    def step(): IO[Unit]
+    def stepOver(): IO[Unit]
+    def stepIn(): IO[Unit]
+    def stepOut(): IO[Unit]
     def continue(): IO[Unit]
     def pause(): IO[Unit]
     def setBreakpoints(uri: URI, lines: List[DAPodil.Line]): IO[Unit]
@@ -571,7 +597,9 @@ object DAPodil extends IOApp {
       object Stopped {
         def entry: Stopped = Stopped(Reason.Entry)
         def pause: Stopped = Stopped(Reason.Pause)
-        def step: Stopped = Stopped(Reason.Step)
+        def stepOver: Stopped = Stopped(Reason.StepOver)
+        def stepIn: Stopped = Stopped(Reason.StepIn)
+        def stepOut: Stopped = Stopped(Reason.StepOut)
         def breakpointHit(location: DAPodil.Location): Stopped = Stopped(Reason.BreakpointHit(location))
 
         sealed trait Reason
@@ -587,7 +615,9 @@ object DAPodil extends IOApp {
           case object Pause extends Reason
 
           /** The user requested a step, which completed, so now we are stopped again. */
-          case object Step extends Reason
+          case object StepOver extends Reason
+          case object StepIn extends Reason
+          case object StepOut extends Reason
 
           /** A breakpoint was hit. */
           case class BreakpointHit(location: DAPodil.Location) extends Reason
