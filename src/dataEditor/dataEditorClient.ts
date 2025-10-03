@@ -84,6 +84,7 @@ import { getCurrentHeartbeatInfo } from './include/server/heartbeat'
 import * as child_process from 'child_process'
 import { osCheck } from '../utils'
 import { getCurrentConfig } from '../utils'
+import { isDFDLDebugSessionActive } from './include/utils'
 
 // *****************************************************************************
 // global constants
@@ -157,7 +158,8 @@ export class DataEditorClient implements vscode.Disposable {
     this.panel.webview.onDidReceiveMessage(this.messageReceiver, this)
 
     this.panel.onDidDispose(async () => {
-      await this.dispose() // session cleanup is now in `static open()`
+      await this.dispose()
+      await removeActiveSession(this.omegaSessionId)
     })
 
     this.disposables = [
@@ -227,7 +229,13 @@ export class DataEditorClient implements vscode.Disposable {
       await removeActiveSession(editor.sessionId())
       await editor.dispose()
     })
-
+    if (isDFDLDebugSessionActive()) {
+      editor.addDisposable(
+        vscode.debug.onDidTerminateDebugSession(async () => {
+          editor.dispose()
+        })
+      )
+    }
     return editor
   }
 
