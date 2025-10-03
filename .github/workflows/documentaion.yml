@@ -19,6 +19,7 @@ name: Enforce Documentation Checkbox
 on:
   push:
     branches-ignore:
+      - "main"
       - "dependabot/**" # dependabot branches
       - "update/**" # scala-steward branches
   pull_request:
