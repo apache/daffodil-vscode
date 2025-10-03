@@ -205,20 +205,6 @@ async function createDebugRunFileConfigs(
 
       vscode.debug.startDebugging(undefined, config, { noDebug: noDebug })
     }
-
-    vscode.debug.onDidTerminateDebugSession(async () => {
-      if (!vscode.workspace.workspaceFolders) {
-        return
-      }
-
-      vscode.workspace
-        .openTextDocument(
-          `${vscode.workspace.workspaceFolders[0].uri.fsPath}/${infosetFile}`
-        )
-        .then((doc) => {
-          vscode.window.showTextDocument(doc)
-        })
-    })
   }
 }
 
