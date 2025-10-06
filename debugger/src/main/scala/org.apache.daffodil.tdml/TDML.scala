@@ -23,8 +23,8 @@ import javax.xml.bind.JAXBContext
 import javax.xml.bind.JAXBElement
 import javax.xml.bind.Marshaller
 import javax.xml.namespace.QName
-import scala.jdk.CollectionConverters._
 import org.apache.daffodil.lib.xml.XMLUtils
+import scala.jdk.CollectionConverters._
 
 object TDML {
   def getDefaultTDMLTestCaseDescription(): String =
@@ -189,14 +189,14 @@ object TDML {
   def execute(tdmlName: String, tdmlPath: String): Option[(Path, Path)] = {
     val basePath = Paths.get(tdmlPath).toAbsolutePath().getParent().toString()
 
-    val testCaseList = JAXBContext
-      .newInstance(classOf[TestSuite])
-      .createUnmarshaller()
-      .unmarshal(new File(tdmlPath))
-      .asInstanceOf[TestSuite]
-      .getTutorialOrParserTestCaseOrDefineSchema()
-      .asScala
-      .toList
+    val testCaseList =
+      JAXBContext
+        .newInstance(classOf[TestSuite])
+        .createUnmarshaller()
+        .unmarshal(new File(tdmlPath))
+        .asInstanceOf[TestSuite]
+        .getTutorialOrParserTestCaseOrDefineSchema()
+        .asScala
 
     testCaseList.collectFirst {
       case (ptc: ParserTestCaseType) if ptc.getName() == tdmlName =>

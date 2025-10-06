@@ -3,7 +3,6 @@
   "displayName": "Apache Daffodil™ Extension for Visual Studio Code",
   "description": "Apache Daffodil™ Extension for Visual Studio Code providing DFDL syntax highlighting, DFDL code completion, DFDL schema debugging, and data editor",
   "version": "1.4.2-SNAPSHOT",
-  "daffodilVersion": "3.11.0",
   "publisher": "asf",
   "author": "Apache Daffodil",
   "license": "Apache-2.0",
@@ -30,7 +29,7 @@
     "check-license-compatibility": "run-func build/yarn-scripts.ts checkLicenseCompatibility",
     "clean": "yarn nodeclean && yarn scalaclean",
     "precompile": "yarn nodeclean && yarn gen-version-ts && yarn svelte:build && yarn compile:tdmlEditorJS",
-    "compile": "tsc -p ./ && yarn sbt",
+    "compile": "tsc -p ./ && yarn sbt && yarn vite:dev",
     "lint": "yarn prettier src -c",
     "lint:fix": "yarn prettier src -w",
     "prewatch": "yarn gen-version-ts && yarn sbt",
@@ -44,7 +43,7 @@
     "pretest": "yarn compile && yarn vite:dev",
     "test": "sbt test && yarn test:svelte && node ./out/tests/runTest.js",
     "test:svelte": "mocha -r ts-node/register ./src/svelte/tests/**/*.test.ts",
-    "sbt": "sbt debugger/Universal/packageBin",
+    "sbt": "sbt Universal/packageBin",
     "svelte:check": "svelte-check --tsconfig ./src/svelte/tsconfig.json",
     "svelte:build": "cd src/svelte && vite build --config ./vite.config.mjs --mode production --emptyOutDir",
     "update-version": "run-func build/yarn-scripts.ts updateVersion",
@@ -685,8 +684,18 @@
               },
               "dfdlDebugger": {
                 "type": "object",
-                "description": "Configuration for debugger. Settings are logging (level and file)",
+                "description": "Configuration for debugger. Settings are daffodilVersion, timeout and logging (level and file)",
                 "properties": {
+                  "daffodilVersion": {
+                    "type": "string",
+                    "default": "3.11.0",
+                    "description": "Daffodil version to use."
+                  },
+                  "timeout": {
+                    "type": "string",
+                    "default": "10s",
+                    "description": "Debugger connection timeout in seconds(s), minutes(m) or hours(h)"
+                  },
                   "logging": {
                     "type": "object",
                     "description": "DFDL Debugger Logging Configuration",
@@ -716,6 +725,8 @@
                   }
                 },
                 "default": {
+                  "daffodilVersion": "3.11.0",
+                  "timeout": "10s",
                   "logging": {
                     "level": "INFO",
                     "file": "${workspaceFolder}/daffodil-debugger.log"
@@ -760,6 +771,8 @@
               }
             },
             "dfdlDebugger": {
+              "daffodilVersion": "3.11.0",
+              "timeout": "10s",
               "logging": {
                 "level": "INFO",
                 "file": "${workspaceFolder}/daffodil-debugger.log"
@@ -806,6 +819,8 @@
                 }
               },
               "dfdlDebugger": {
+                "daffodilVersion": "3.11.0",
+                "timeout": "10s",
                 "logging": {
                   "level": "INFO",
                   "file": "^\"\\${workspaceFolder}/daffodil-debugger.log\""
@@ -926,8 +941,10 @@
           },
           "dfdlDebugger": {
             "type": "object",
-            "description": "Configuration for debugger. Settings are logging (level and file)",
+            "description": "Configuration for debugger. Settings are daffodilVersion, timeout and logging (level and file)",
             "default": {
+              "daffodilVersion": "3.11.0",
+              "timeout": "10s",
               "logging": {
                 "level": "INFO",
                 "file": "${workspaceFolder}/daffodil-debugger.log"

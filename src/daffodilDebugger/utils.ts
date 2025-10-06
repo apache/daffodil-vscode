@@ -23,14 +23,11 @@ import { IJavaHomeInfo } from '@viperproject/locate-java-home/js/es5/lib/interfa
 import * as semver from 'semver'
 import { LIB_VERSION } from '../version'
 import { deactivate } from '../adapter/extension'
-import { getDaffodilVersion } from './daffodil'
 import { Artifact } from '../classes/artifact'
 import { DFDLDebugger } from '../classes/dfdlDebugger'
-import { osCheck, runScript, terminalName } from '../utils'
-
-export const daffodilVersion = (filePath: string): string => {
-  return getDaffodilVersion(filePath)
-}
+import { displayModalError, osCheck, runScript, terminalName } from '../utils'
+import { outputChannel } from '../adapter/activateDaffodilDebug'
+import { checkIfDaffodilJarsNeeded } from './daffodilJars'
 
 export const daffodilArtifact = (version: string): Artifact => {
   return new Artifact('daffodil-debugger', version, 'daffodil-debugger')
@@ -39,7 +36,12 @@ export const daffodilArtifact = (version: string): Artifact => {
 export const stopDebugger = async (id: number | undefined = undefined) =>
   child_process.exec(osCheck(`taskkill /F /PID ${id}`, `kill -9 ${id}`))
 
-export const shellArgs = (port: number, isAtLeastJdk17: boolean) => {
+export const shellArgs = (
+  port: number,
+  timeout: string,
+  daffodilPath: string,
+  isAtLeastJdk17: boolean
+) => {
   // Workaround: certain reflection (used by JAXB) isn't allowed by default in JDK 17:
   //   https://docs.oracle.com/en/java/javase/17/migrate/migrating-jdk-8-later-jdk-releases.html#GUID-7BB28E4D-99B3-4078-BDC4-FC24180CE82B
   const extraArgs = isAtLeastJdk17
@@ -48,7 +50,22 @@ export const shellArgs = (port: number, isAtLeastJdk17: boolean) => {
         ['-J--add-opens', '-Jjava.base/java.lang=ALL-UNNAMED']
       )
     : []
-  return ['--listenPort', `${port}`].concat(extraArgs)
+  return [
+    '--listenPort',
+    `${port}`,
+    '--listenTimeout',
+    `${timeout}`,
+    '--daffodilPath',
+    `"${daffodilPath}"`,
+  ].concat(extraArgs)
+}
+
+export async function getScalaVersion(
+  daffodilVersion: string
+): Promise<string> {
+  if (semver.satisfies(daffodilVersion, '>=4.0.0')) return '3'
+  else if (semver.satisfies(daffodilVersion, '>=3.11.0')) return '2.13'
+  else return '2.12'
 }
 
 export async function runDebugger(
@@ -58,34 +75,59 @@ export async function runDebugger(
   serverPort: number,
   dfdlDebugger: DFDLDebugger,
   createTerminal: boolean = false
-): Promise<vscode.Terminal> {
-  const dfdlVersion = daffodilVersion(filePath)
+): Promise<vscode.Terminal | undefined> {
+  if (
+    !dfdlDebugger.timeout.endsWith('s') &&
+    !dfdlDebugger.timeout.endsWith('m') &&
+    !dfdlDebugger.timeout.endsWith('s')
+  ) {
+    vscode.window.showErrorMessage(
+      `DFDL Debugger Timeout ${dfdlDebugger.timeout} does not end in either s for seconds, m for minutes or h for hours.
+      Appending s to end of timeout string.`
+    )
+    dfdlDebugger.timeout = `${dfdlDebugger.timeout}s`
+  }
+
+  // Locates the $JAVA_HOME, or if not defined, the highest version available.
+  const javaHome: IJavaHomeInfo | undefined = await getJavaHome()
+
+  const isAtLeastJdk17: boolean = parseFloat(javaHome?.version ?? '0') >= 17
+  outputChannel.appendLine(
+    `[DEBUG] Choosing java home at ${javaHome?.path}, version ${javaHome?.version}, is at least JDK 17: ${isAtLeastJdk17}`
+  )
+
+  let dfdlVersion = dfdlDebugger.daffodilVersion
+  let scalaVersion = await getScalaVersion(dfdlDebugger.daffodilVersion)
+
+  if (scalaVersion == '') {
+    displayModalError(
+      `Daffodil Version ${dfdlDebugger.daffodilVersion} does not satisfy any version requirements`
+    )
+    return undefined
+  }
+
+  outputChannel.appendLine(
+    `[INFO] Using Scala ${scalaVersion} + Daffodil ${dfdlVersion} debugger`
+  )
+
+  /**
+   * The Scala 3 with Daffodil >= 4.0.0 debugger can only be ran on JDK 17 or greater. So if the java version
+   * being used is less than 17, fallback to the Scala 2.13 and Daffodil 3.11.0 debugger and notify the user.
+   */
+  if (semver.satisfies(dfdlVersion, '>=4.0.0') && !isAtLeastJdk17) {
+    displayModalError(`Daffodil Versions 4.0.0+ requires JDK >= 17`)
+    return undefined
+  }
+
+  // Download the daffodil CLI jars if needed
+  const daffodilPath = await checkIfDaffodilJarsNeeded(dfdlVersion)
+
   const artifact = daffodilArtifact(dfdlVersion)
   const scriptPath = path.join(
     rootPath,
-    `daffodil-debugger-${dfdlVersion}-${LIB_VERSION}`
+    `daffodil-debugger-${scalaVersion}-${LIB_VERSION}`
   )
-  // Locates the $JAVA_HOME, or if not defined, the highest version available.
-  const javaHome: IJavaHomeInfo | undefined = await new Promise(
-    (resolve, reject) => {
-      _locateJavaHome({ version: '>=1.8' }, (error, javaHomes) => {
-        console.log(`detected java homes: ${JSON.stringify(javaHomes)}`)
-        javaHomes
-          ? resolve(
-              process.env.JAVA_HOME
-                ? javaHomes.find(
-                    (home, idx, obj) => home.path == process.env.JAVA_HOME
-                  )
-                : latestJdk(javaHomes)
-            )
-          : undefined
-      })
-    }
-  )
-  const isAtLeastJdk17: boolean = parseFloat(javaHome?.version ?? '0') >= 17
-  console.log(
-    `choosing java home at ${javaHome?.path}, version ${javaHome?.version}, is at least JDK 17: ${isAtLeastJdk17}`
-  )
+
   // The backend's launch script honors $JAVA_HOME, but if not set it assumes java is available on the path.
   const env = javaHome
     ? {
@@ -108,11 +150,29 @@ export async function runDebugger(
     scriptPath,
     artifact.scriptName,
     createTerminal,
-    shellArgs(serverPort, isAtLeastJdk17),
+    shellArgs(serverPort, dfdlDebugger.timeout, daffodilPath, isAtLeastJdk17),
     env,
     'daffodil'
   )
 }
+
+export const getJavaHome = async (): Promise<IJavaHomeInfo | undefined> =>
+  await new Promise((resolve, reject) => {
+    _locateJavaHome({ version: '>=1.8' }, (error, javaHomes) => {
+      outputChannel.appendLine(
+        `[DEBUG] Detected java homes: ${JSON.stringify(javaHomes)}`
+      )
+      javaHomes
+        ? resolve(
+            process.env.JAVA_HOME
+              ? javaHomes.find(
+                  (home, idx, obj) => home.path == process.env.JAVA_HOME
+                )
+              : latestJdk(javaHomes)
+          )
+        : undefined
+    })
+  })
 
 function latestJdk(jdkHomes: IJavaHomeInfo[]): IJavaHomeInfo | undefined {
   if (jdkHomes.length > 0) {

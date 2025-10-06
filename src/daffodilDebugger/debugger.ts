@@ -210,13 +210,19 @@ export async function getDebugger(
     setCurrentConfig(config)
 
     if (!config.useExistingServer) {
-      await runDebugger(
+      let newDebugger = await runDebugger(
         context.asAbsolutePath('./'),
         daffodilDebugClasspath,
         context.asAbsolutePath('./package.json'),
         config.debugServer,
         config.dfdlDebugger
       )
+
+      // This ensures the extension doesn't try to connect to the debugger if the debugger
+      // wasn't created
+      if (!newDebugger) {
+        return await stopDebugging().then((_) => undefined)
+      }
     }
   }
 }

@@ -27,23 +27,10 @@ import javax.xml.transform.stream.StreamSource
 //Fixes build issues on java11+
 run / fork := true
 Global / lintUnusedKeysOnLoad := false
-val packageJsonStr = scala.io.Source.fromFile("package.json").mkString
-
-val daffodilVer = {
-  val daffodilVerRegex = raw""""daffodilVersion": "(.*)",""".r
-  daffodilVerRegex.findFirstMatchIn(packageJsonStr) match {
-    case Some(m) => m.toString.split(":")(1).trim.replaceAll("\"", "").replaceAll(",", "")
-    case None    => sys.error("Missing daffodilVersion specifier in package.json")
-  }
-}
 
 lazy val commonSettings =
   Seq(
     version := IO.read((ThisBuild / baseDirectory).value / "VERSION").trim,
-    libraryDependencies ++= Seq(
-      "org.apache.daffodil" %% "daffodil-sapi" % daffodilVer,
-      "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVer
-    ),
     dependencyOverrides ++= Seq(
       "org.apache.commons" % "commons-lang3" % "3.18.0"
     ),
@@ -51,9 +38,6 @@ lazy val commonSettings =
     licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
     maintainer := "Apache Daffodil <dev@daffodil.apache.org>",
     organization := "org.apache.daffodil",
-    // scala-steward:off
-    scalaVersion := "2.13.16",
-    // scala-steward:on
     // remove the -Xcheckinit option added by the sbt tpoletcat plugin. This
     // option leads to non-reproducible builds
     scalacOptions --= Seq("-Xcheckinit"),
@@ -73,40 +57,6 @@ lazy val ratSettings = Seq(
   ratExcludes := Rat.excludes,
   ratFailBinaries := true
 )
-
-lazy val `daffodil-debugger` = project
-  .in(file("."))
-  .settings(commonSettings, ratSettings)
-  .settings(publish / skip := true)
-  .dependsOn(debugger)
-  .aggregate(debugger)
-
-lazy val debugger = project
-  .in(file("debugger"))
-  .enablePlugins(BuildInfoPlugin, JavaAppPackaging, UniversalPlugin, ClasspathJarPlugin, SbtXjcPlugin)
-  .settings(commonSettings)
-  .settings(xjcSettings)
-  .settings(
-    name := "daffodil-debugger",
-    libraryDependencies ++= Seq(
-      /* NOTE: To support Java 8:
-       *   logback-classic can not go above version 1.2.11.
-       *   com.microsoft.java.debug.core can not go above version 0.34.0.
-       */
-      // scala-steward:off
-      "ch.qos.logback" % "logback-classic" % "1.2.11",
-      "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.34.0",
-      // scala-steward:on
-      "co.fs2" %% "fs2-io" % "3.12.0",
-      "com.monovore" %% "decline-effect" % "2.5.0",
-      "org.typelevel" %% "log4cats-slf4j" % "2.7.1",
-      "org.scalameta" %% "munit" % "1.1.1" % Test,
-      "org.fusesource.jansi" % "jansi" % "1.18"
-    ),
-    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, "daffodilVersion" -> daffodilVer),
-    buildInfoPackage := "org.apache.daffodil.debugger.dap",
-    packageName := s"${name.value}-$daffodilVer"
-  )
 
 /* Workaround: certain reflection (used by JAXB) isn't allowed by default in JDK 17:
  * https://docs.oracle.com/en/java/javase/17/migrate/migrating-jdk-8-later-jdk-releases.html#GUID-7BB28E4D-99B3-4078-BDC4-FC24180CE82B
@@ -128,7 +78,6 @@ lazy val xjcSettings =
     libraryDependencies ++= Seq(
       "com.sun.xml.bind" % "jaxb-impl" % "2.3.9",
       "javax.activation" % "activation" % "1.1.1",
-      "org.apache.daffodil" %% "daffodil-lib" % daffodilVer % Test,
       "org.glassfish.jaxb" % "jaxb-xjc" % "2.3.9"
     ),
     Test / javaOptions ++= extraJvmOptions, // tests use JAXB at runtime
@@ -150,11 +99,11 @@ lazy val xjcSettings =
       // classes
       lazy val xjcSourceDir = crossTarget.value / "xjc"
 
-      // Get the daffodil-lib jar from the dependencies, this is the only jar we need to extract
+      // Get the daffodil-lib or daffodil-core jar from the dependencies, this is the only jar we need to extract
       // files from
-      val daffodilLibJar = managedJars(Test, Set[String]("jar"), update.value)
+      val daffodilJarWithTdmlXsd = managedJars(Test, Set[String]("jar"), update.value)
         .map(_.data)
-        .find(_.getName.contains("daffodil-lib"))
+        .find(_.getName.contains(getDaffodilJarName(scalaBinaryVersion.value)))
         .get
 
       // cache the results of jar extraction so we don't keep extracting files (which would
@@ -162,7 +111,7 @@ lazy val xjcSettings =
       val cachedFun = FileFunction.cached(stream.cacheDirectory / "xjcSources") { _ =>
         // Extract the DFDL TDML schema file used for JAXB generation.
         IO.unzip(
-          daffodilLibJar,
+          daffodilJarWithTdmlXsd,
           xjcSourceDir,
           NameFilter.fnToNameFilter(f => f == "org/apache/daffodil/xsd/tdml.xsd")
         )
@@ -218,6 +167,114 @@ lazy val xjcSettings =
 
       // only invalidate the cache if the daffodil lib jar changed and so there could be a
       // chance the tdml.xsd file has been updated
-      cachedFun(Set(daffodilLibJar)).toSeq
+      cachedFun(Set(daffodilJarWithTdmlXsd)).toSeq
     }
   )
+
+lazy val `daffodil-debugger` = project
+  .in(file("."))
+  .settings(commonSettings, ratSettings)
+  .settings(publish / skip := true)
+  .aggregate(debugger.projectRefs: _*)
+
+/** Since using projectMatrix, there will be a debugger, debugger2_12 and debugger3 target. The debugger target is for
+  * Daffodil 3.11.0 and Scala 2.13. The debugger2_12 target is for Daffodil 3.10.0 abd older and Scala 2.12. The
+  * debugger3 target is for Daffodil 4.0.0 and newer and Scala 3. (only availabe when using JDK 17+)
+  *
+  * When running something like "sbt test" that will run all targets. To use a single target do one of: sbt
+  * debugger/test OR sbt debugger2_12/test OR sbt debugger3/test. Based on which version of the debugger you are
+  * targeting.
+  */
+lazy val debugger =
+  (projectMatrix in (file("debugger")))
+    .enablePlugins(BuildInfoPlugin, JavaAppPackaging, UniversalPlugin, ClasspathJarPlugin, SbtXjcPlugin)
+    .settings(commonSettings)
+    .settings(xjcSettings)
+    .settings(
+      name := "daffodil-debugger",
+      scalacOptions ++= buildScalacOptions(scalaBinaryVersion.value),
+      javacOptions ++= buildJavacOptions(scalaBinaryVersion.value),
+      libraryDependencies ++= Seq(
+        /* NOTE: To support Java 8:
+         *  logback-classic can not go above version 1.2.11.
+         *  com.microsoft.java.debug.core can not go above version 0.34.0.
+         *  jansi can not go above version 1.18.
+         */
+        // scala-steward:off
+        "ch.qos.logback" % "logback-classic" % "1.2.11",
+        "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.34.0",
+        "org.fusesource.jansi" % "jansi" % "1.18",
+        // scala-steward:on
+        "co.fs2" %% "fs2-io" % "3.12.0",
+        "com.monovore" %% "decline-effect" % "2.5.0",
+        "org.typelevel" %% "log4cats-slf4j" % "2.7.1",
+        "org.scalameta" %% "munit" % "1.1.1" % Test
+      ),
+      libraryDependencies ++= getPlatformSpecificLibraries(scalaBinaryVersion.value),
+      buildInfoPackage := "org.apache.daffodil.debugger.dap",
+      buildInfoKeys := Seq[BuildInfoKey](
+        name,
+        version,
+        scalaVersion,
+        sbtVersion
+      ),
+      packageName := s"${name.value}-${scalaBinaryVersion.value}"
+    )
+    .jvmPlatform(
+      scalaVersions =
+        Seq("2.12.20", "2.13.16") ++ (if (scala.util.Properties.isJavaAtLeast("17")) Seq("3.3.6") else Seq())
+    )
+
+def getPlatformSpecificLibraries(scalaBinaryVersion: String) =
+  scalaBinaryVersion match {
+    case "2.12" =>
+      Seq(
+        // scala-steward:off
+        "org.apache.daffodil" %% "daffodil-sapi" % "3.10.0" % "provided,test",
+        "org.apache.daffodil" %% "daffodil-runtime1" % "3.10.0" % "provided,test",
+        "org.apache.daffodil" %% "daffodil-lib" % "3.10.0" % Test,
+        // scala-steward:on
+        "org.scala-lang.modules" %% "scala-collection-compat" % "2.14.0"
+      )
+    case "2.13" =>
+      Seq(
+        // scala-steward:off
+        "org.apache.daffodil" %% "daffodil-sapi" % "3.11.0" % "provided,test",
+        "org.apache.daffodil" %% "daffodil-runtime1" % "3.11.0" % "provided,test",
+        "org.apache.daffodil" %% "daffodil-lib" % "3.11.0" % Test
+        // scala-steward:on
+      )
+    case "3" =>
+      Seq(
+        "org.apache.daffodil" %% "daffodil-core" % "4.0.0" % "provided,test"
+      )
+  }
+
+def getMinSupportedJavaVersion(scalaBinaryVersion: String): String =
+  if (scalaBinaryVersion == "3") "17"
+  else if (scala.util.Properties.isJavaAtLeast("21")) "11"
+  else "8"
+
+def buildJavacOptions(scalaBinaryVersion: String) = {
+  val jdkCompat = getMinSupportedJavaVersion(scalaBinaryVersion)
+
+  if (jdkCompat == "8")
+    Seq("-source", jdkCompat, "-target", jdkCompat)
+  else
+    Seq("--release", jdkCompat)
+}
+
+def buildScalacOptions(scalaBinaryVersion: String) = {
+  val jdkCompat = getMinSupportedJavaVersion(scalaBinaryVersion)
+
+  val commonSettings = Seq(if (scalaBinaryVersion == "2.12") "-Ypartial-unification" else "")
+
+  if (scalaBinaryVersion == "2.12" && jdkCompat == "8")
+    commonSettings ++ Seq(s"--target:jvm-${jdkCompat}")
+  else
+    commonSettings ++ Seq("--release", jdkCompat)
+}
+
+def getDaffodilJarName(scalaBinaryVersion: String) =
+  if (scalaBinaryVersion == "3") "daffodil-core"
+  else "daffodil-lib"
