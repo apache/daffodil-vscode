@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import * as fs from 'fs'
-import { parse as jsoncParse } from 'jsonc-parser'
 import { DebugSession, DebugSessionCustomEvent, debug } from 'vscode'
 import { SchemaData } from '../classes/schemaData'
 
@@ -69,10 +67,6 @@ export interface BuildInfo {
   version: string
   daffodilVersion: string
   scalaVersion: string
-}
-
-export function getDaffodilVersion(filePath: fs.PathLike) {
-  return jsoncParse(fs.readFileSync(filePath).toString())['daffodilVersion']
 }
 
 export interface IDaffodilEvent {

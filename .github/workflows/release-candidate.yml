@@ -56,7 +56,7 @@ jobs:
         uses: actions/setup-java@a7ab372554b6eb1a8eb25e7d9aec1cc9f3ea1a76 # v4.6.0
         with:
           distribution: temurin
-          java-version: 8
+          java-version: 17
 
       - name: Install Node.js
         uses: actions/setup-node@5e2628c959b9ade56971c0afcebbe5332d44b398 # v4.4.0

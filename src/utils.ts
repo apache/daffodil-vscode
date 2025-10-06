@@ -23,7 +23,9 @@ import path from 'path'
 import { VSCodeLaunchConfigArgs } from './classes/vscode-launch'
 import { InfosetOutput } from './daffodilDebugger'
 import { XMLParser } from 'fast-xml-parser'
-
+import * as unzip from 'unzip-stream'
+import { pipeline } from 'stream/promises'
+import { Transform } from 'stream'
 let currentConfig: vscode.DebugConfiguration
 
 export const terminalName = 'daffodil-debugger'
@@ -114,6 +116,37 @@ function checkInfosetFileExtension(
   }
 }
 
+function checkSettingValue<T>(target: unknown, defaults: T): T {
+  if (
+    typeof defaults !== 'object' ||
+    defaults === null ||
+    Array.isArray(defaults)
+  ) {
+    return target === undefined ? defaults : (target as T)
+  }
+
+  if (typeof target !== 'object' || target === null) {
+    return defaults
+  }
+
+  const result: Record<string, any> = {}
+
+  for (const key of Object.keys(defaults)) {
+    result[key] = checkSettingValue(
+      (target as any)[key],
+      (defaults as any)[key]
+    )
+  }
+
+  for (const key of Object.keys(target as any)) {
+    if (!(key in result)) {
+      result[key] = (target as any)[key]
+    }
+  }
+
+  return result as T
+}
+
 export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
   const launchConfigArgs: VSCodeLaunchConfigArgs = JSON.parse(
     JSON.stringify(jsonArgs)
@@ -157,6 +190,8 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
       },
     }),
     dfdlDebugger: defaultConf.get('dfdlDebugger', {
+      daffodilVersion: '3.11.0',
+      timeout: '10s',
       logging: {
         level: 'INFO',
         file: '${workspaceFolder}/daffodil-debugger.log',
@@ -164,13 +199,9 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
     }),
   }
 
-  Object.entries(defaultValues).map(
-    ([key, defaultValue]) =>
-      (launchConfigArgs[key] =
-        launchConfigArgs[key] !== undefined
-          ? launchConfigArgs[key]
-          : defaultValue)
-  )
+  for (const [key, defaults] of Object.entries(defaultValues)) {
+    launchConfigArgs[key] = checkSettingValue(launchConfigArgs[key], defaults)
+  }
 
   if (launchConfigArgs.infosetOutput?.type == 'file') {
     checkInfosetFileExtension(
@@ -277,7 +308,7 @@ export async function runScript(
   type: string = '',
   hideTerminal: boolean = false,
   port: number | undefined = undefined
-) {
+): Promise<vscode.Terminal> {
   // Get the full path to the script
   const scriptFullPath = path.join(scriptPath, 'bin', scriptName)
 
@@ -316,6 +347,7 @@ export async function runScript(
     const wait_port = require('wait-port')
     await wait_port({ host: '127.0.0.1', port: port, output: 'silent' })
   }
+
   return terminal
 }
 
@@ -443,4 +475,88 @@ export function getTDMLTestCaseItems(path: string): string[] {
       ? [parserTestCaseObjs]
       : []
   return testCaseArr.map((item) => item['@_name'])
+}
+
+/**
+ * Displays a VSCode error message as modal. In some cases such as when running tests, using modal
+ * can cause an error because the dialog service is not available. If this happens when trying
+ * to display the message, this error is grabbed and then message is displayed with modal disabled.
+ *
+ * @param message - The message to display
+ * @param items — A set of items that will be rendered as actions in the message.
+ * @returns — A thenable that resolves to the selected item or undefined when being dismissed.
+ */
+export const displayModalError = async (
+  message: string,
+  ...items: string[]
+): Promise<Thenable<string | undefined>> =>
+  vscode.window
+    .showErrorMessage(message, { modal: true }, ...items)
+    .then(undefined, () =>
+      vscode.window.showErrorMessage(message, { modal: false })
+    )
+
+/**
+ * Download and extract a files with a progress bar
+ *
+ * @param title A title to use for printing to the user what is being downloaded
+ * @param url The url to donwload the binary from
+ * @param targetDir The directory to target for extraction
+ */
+export async function downloadAndExtract(
+  title: string,
+  url: string,
+  targetDir: string
+): Promise<void> {
+  await vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: `Downloading ${title}...`,
+      cancellable: false,
+    },
+    async (progress) => {
+      progress.report({ increment: 0, message: 'Starting download...' })
+
+      const res = await fetch(url)
+      if (!res.ok || !res.body) {
+        throw new Error(
+          `Failed to download ${url}: ${res.status} ${res.statusText}`
+        )
+      }
+
+      const totalBytes = Number(res.headers.get('content-length')) || 0
+      let downloaded = 0
+      let lastPercent = 0
+
+      // Transform stream to track download progress
+      const progressStream = new Transform({
+        transform(chunk: Buffer, _encoding, callback) {
+          downloaded += chunk.length
+          if (totalBytes > 0) {
+            const percent = (downloaded / totalBytes) * 100
+            const increment = percent - lastPercent
+            lastPercent = percent
+            progress.report({
+              increment,
+              message: `${percent.toFixed(1)}%`,
+            })
+          }
+          callback(null, chunk)
+        },
+      })
+
+      await fs.promises.mkdir(targetDir, { recursive: true })
+
+      await pipeline(
+        res.body as any,
+        progressStream,
+        unzip.Extract({ path: targetDir })
+      )
+
+      progress.report({
+        increment: 100 - lastPercent,
+        message: 'Extracting complete!',
+      })
+    }
+  )
 }

@@ -19,7 +19,7 @@ import * as vscode from 'vscode'
 import * as fs from 'fs'
 
 import * as daf from '../daffodilDebugger'
-import { ensureFile, tmpFile } from '../utils'
+import { displayModalError, ensureFile, tmpFile } from '../utils'
 import { outputChannel } from './activateDaffodilDebug'
 
 export function handleDebugEvent(e: vscode.DebugSessionCustomEvent) {
@@ -33,7 +33,7 @@ export function handleDebugEvent(e: vscode.DebugSessionCustomEvent) {
     // this allows for any error event to be caught in this case
     case e.event.startsWith('daffodil.error') ? e.event : '':
       if (!e.body.message.startsWith('Schema Definition Error:')) {
-        vscode.window.showErrorMessage(e.body.message, { modal: true })
+        displayModalError(e.body.message)
       }
       outputChannel.appendLine(e.body.message)
       outputChannel.show(true)
