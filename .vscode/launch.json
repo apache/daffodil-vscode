@@ -38,7 +38,7 @@
 			"runtimeExecutable": "${execPath}",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionTestsPath=${workspaceFolder}/out/tests/suite"
+				"--extensionTestsPath=${workspaceFolder}/out/tests/suite/index"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/tests/**/*.js",

@@ -24,6 +24,7 @@ import {
   extractDaffodilEvent,
   parseErrorEvent,
 } from '../daffodilDebugger/daffodil'
+import { displayModalError } from '../utils'
 
 export const activate = () =>
   vscode.debug.onDidReceiveDebugSessionCustomEvent(async (e) => {
@@ -51,6 +52,6 @@ export const activate = () =>
     if (message !== '') {
       // Make the message have two line breaks between each line to make the message look better.
       message = message.replaceAll('\n', '\n\n')
-      vscode.window.showErrorMessage(message, { modal: true })
+      displayModalError(message)
     }
   })

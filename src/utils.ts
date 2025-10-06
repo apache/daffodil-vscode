@@ -157,6 +157,8 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
       },
     }),
     dfdlDebugger: defaultConf.get('dfdlDebugger', {
+      version: '2.13',
+      timeout: '10s',
       logging: {
         level: 'INFO',
         file: '${workspaceFolder}/daffodil-debugger.log',
@@ -444,3 +446,22 @@ export function getTDMLTestCaseItems(path: string): string[] {
       : []
   return testCaseArr.map((item) => item['@_name'])
 }
+
+/**
+ * Displays a VSCode error message as modal. In some cases such as when running tests, using modal
+ * can cause an error because the dialog service is not available. If this happens when trying
+ * to display the message, this error is grabbed and then message is displayed with modal disabled.
+ *
+ * @param message - The message to display
+ * @param items — A set of items that will be rendered as actions in the message.
+ * @returns — A thenable that resolves to the selected item or undefined when being dismissed.
+ */
+export const displayModalError = async (
+  message: string,
+  ...items: string[]
+): Promise<Thenable<string | undefined>> =>
+  vscode.window
+    .showErrorMessage(message, { modal: true }, ...items)
+    .then(undefined, () =>
+      vscode.window.showErrorMessage(message, { modal: false })
+    )

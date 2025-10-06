@@ -72,6 +72,9 @@ function getConfigValues() {
   )
   const dataEditorLogFile = document.getElementById('dataEditorLogFile').value
   const dataEditorLogLevel = document.getElementById('dataEditorLogLevel').value
+  const dfdlDebuggerVersion = document.getElementById(
+    'dfdlDebuggerVersion'
+  ).value
   const dfdlDebuggerLogFile = document.getElementById(
     'dfdlDebuggerLogFile'
   ).value
@@ -109,6 +112,7 @@ function getConfigValues() {
     dataEditorPort,
     dataEditorLogFile,
     dataEditorLogLevel,
+    dfdlDebuggerVersion,
     dfdlDebuggerLogFile,
     dfdlDebuggerLogLevel,
     daffodilDebugClasspath,
@@ -306,6 +310,7 @@ function save() {
           },
         },
         dfdlDebugger: {
+          version: configValues.dfdlDebuggerVersion,
           logging: {
             file: configValues.dfdlDebuggerLogFile,
             level: configValues.dfdlDebuggerLogLevel,
@@ -380,6 +385,7 @@ function copyConfig() {
           },
         },
         dfdlDebugger: {
+          version: configValues.dfdlDebuggerVersion,
           logging: {
             file: configValues.dfdlDebuggerLogFile,
             level: configValues.dfdlDebuggerLogLevel,
@@ -444,6 +450,8 @@ async function updateConfigValues(config) {
   document.getElementById('dataEditorLogLevel').value =
     config.dataEditor.logging.level
 
+  document.getElementById('dfdlDebuggerVersion').value =
+    config.dfdlDebugger.version
   document.getElementById('dfdlDebuggerLogFile').value =
     config.dfdlDebugger.logging.file
   document.getElementById('dfdlDebuggerLogLevel').value =

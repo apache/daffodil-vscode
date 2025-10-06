@@ -29,7 +29,7 @@ jobs:
     strategy:
       matrix:
         java_distribution: [temurin]
-        java_version: [8]
+        java_version: [17]
         os: [ubuntu-22.04]
     runs-on: ${{ matrix.os }}
     defaults:

@@ -38,7 +38,7 @@ jobs:
         node: ["20.18.3", "22.14.0"]
         vscode: ["1.90.0", "stable", "insiders"] # v1.90.0 is the first version of VSCode to use Node 18
         java_distribution: [temurin]
-        java_version: [8, 11, 17]
+        java_version: [8, 11, 17, 21]
         exclude:
           # java 8 not available on latest macos
           - os: macos-latest

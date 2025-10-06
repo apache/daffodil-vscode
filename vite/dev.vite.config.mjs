@@ -43,35 +43,47 @@ const packageData = jsoncParse(
   fs.readFileSync(path.resolve('package.json'), 'utf8')
 )
 const pkg_version = packageData['version']
-const daffodilVersion = packageData['daffodilVersion']
-const serverPackage = `daffodil-debugger-${daffodilVersion}-${pkg_version}`
-const zipFilePath = path.resolve(
-  `debugger/target/universal/${serverPackage}.zip`
-)
+const daffodilVersions = packageData['daffodilVersion']
 
 function unzipAfterBuild() {
   return {
     name: 'unzip-server-package',
     apply: 'build',
     async closeBundle() {
-      const serverPackageFolder = path.join(
-        path.resolve('dist/package'),
-        serverPackage
+      Object.entries(daffodilVersions).forEach(
+        async ([scalaVersionKey, daffodilVersion]) => {
+          const scalaVersion = scalaVersionKey.replace('_', '.')
+          const serverPackage = `daffodil-debugger-${daffodilVersion}-${pkg_version}`
+          const jvmFolderName = `jvm-${scalaVersion.replace('scala', '')}`
+          const zipFilePath = path.resolve(
+            `debugger/target/${jvmFolderName}/universal/${serverPackage}.zip`
+          )
+
+          const serverPackageFolder = path.join(
+            path.resolve('dist/package'),
+            serverPackage
+          )
+
+          // remove debugger package folder if exists
+          if (fs.existsSync(serverPackageFolder)) {
+            fs.rmSync(serverPackageFolder, { recursive: true, force: true })
+          }
+
+          // if the debugger package doesn't exist continue
+          if (!fs.existsSync(zipFilePath)) {
+            return
+          }
+
+          await new Promise((resolve, reject) => {
+            const stream = fs
+              .createReadStream(zipFilePath)
+              // @ts-ignore types for unzip-stream
+              .pipe(unzip.Extract({ path: '.' }))
+            stream.on('close', () => resolve())
+            stream.on('error', (err) => reject(err))
+          })
+        }
       )
-
-      // remove debugger package folder if exists
-      if (fs.existsSync(serverPackageFolder)) {
-        fs.rmSync(serverPackageFolder, { recursive: true, force: true })
-      }
-
-      await new Promise((resolve, reject) => {
-        const stream = fs
-          .createReadStream(zipFilePath)
-          // @ts-ignore types for unzip-stream
-          .pipe(unzip.Extract({ path: '.' }))
-        stream.on('close', () => resolve())
-        stream.on('error', (err) => reject(err))
-      })
     },
   }
 }

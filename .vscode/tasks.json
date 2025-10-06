@@ -32,7 +32,7 @@
             "type": "npm",
             "script": "watch",
             "group": "build",
-            "isBackground": true,
+            "isBackground": true
         }
     ]
 }

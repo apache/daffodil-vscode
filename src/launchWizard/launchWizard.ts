@@ -535,10 +535,21 @@ class LaunchWizard {
     })
 
     let dfdlDebugger: DFDLDebugger = defaultValues.dfdlDebugger
+
+    let debuggerVersionSelect = ''
+    let debuggerAllowedVersions = ['2', '3']
+    let debuggerVersion = dfdlDebugger.version
+    debuggerAllowedVersions.forEach((version) => {
+      if (version === debuggerVersion) {
+        debuggerVersionSelect += `<option selected value="${version}">${version}</option>`
+      } else {
+        debuggerVersionSelect += `<option value="${version}">${version}</option>`
+      }
+    })
+
     let debuggerLogLevelSelect = ''
     let debuggerLogLevelTypes = getAllowedLogLevels()
     let debuggerLogLevel = dfdlDebugger.logging.level
-
     debuggerLogLevelTypes.forEach((type) => {
       if (type === debuggerLogLevel) {
         debuggerLogLevelSelect += `<option selected value="${type}">${type}</option>`
@@ -645,6 +656,11 @@ class LaunchWizard {
 
         <p class="setting-description">Port debug server running on.</p>
         <input class="file-input" value="${defaultValues.debugServer}" id="debugServer"/>
+
+        <p id="dfdlDebuggerVersionLabel" style="margin-top: 10px;" class="setting-description">Log Level:</p>
+        <select class="file-input" style="width: 200px;" id="dfdlDebuggerVersion">
+          ${debuggerVersionSelect}
+        </select>
 
         <p id="dfdlDebuggerLogFileLabel" style="margin-top: 10px;" class="setting-description">Log File:</p>
         <input class="file-input" value="${dfdlDebugger.logging.file}" id="dfdlDebuggerLogFile">
