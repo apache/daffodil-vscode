@@ -51,9 +51,9 @@ function unzipAfterBuild() {
     apply: 'build',
     async closeBundle() {
       Object.entries(daffodilScalaVersions).forEach(
-        async ([scalaVersion, daffodilVersion]) => {
-          const serverPackage = `daffodil-debugger-${daffodilVersion}-${pkg_version}`
-          const jvmFolderName = `jvm-${scalaVersion.replace('scala', '')}`
+        async ([_, scalaVersion]) => {
+          const serverPackage = `daffodil-debugger-${scalaVersion}-${pkg_version}`
+          const jvmFolderName = `jvm-${scalaVersion}`
           const zipFilePath = path.resolve(
             `debugger/target/${jvmFolderName}/universal/${serverPackage}.zip`
           )
@@ -123,12 +123,14 @@ function copyToPkgDirPlugin() {
 
   const serverPackageFolders = {}
 
-  Object.entries(daffodilScalaVersions).forEach((_, scalaVersion) => {
-    serverPackageFolder[scalaVersion] = path.join(
-      path.resolve('dist/package'),
-      `daffodil-debugger-${scalaVersion}-${pkg_version}`
-    )
-  })
+  Object.entries(daffodilScalaVersions).forEach(
+    ([daffodilVersion, scalaVersion]) => {
+      serverPackageFolders[daffodilVersion] = path.join(
+        path.resolve('dist/package'),
+        `daffodil-debugger-${scalaVersion}-${pkg_version}`
+      )
+    }
+  )
 
   Object.entries(serverPackageFolders).forEach(([_, serverPackageFolder]) => {
     console.debug(`== [Vite] | serverPackageFolder: ${serverPackageFolder}`)
