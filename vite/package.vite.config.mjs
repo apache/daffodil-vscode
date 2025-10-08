@@ -145,9 +145,11 @@ function copyToPkgDirPlugin() {
     apply: 'build',
     async buildStart(opts) {
       if (!fs.existsSync(pkg_dir)) {
-        fs.mkdirSync(serverPackageFolders['3.10.0'], { recursive: true })
-        fs.mkdirSync(serverPackageFolders['3.11.0'], { recursive: true })
-        fs.mkdirSync(serverPackageFolders['4.0.0'], { recursive: true })
+        Object.entries(serverPackageFolders).forEach(
+          ([_, serverPackageFolder]) => {
+            fs.mkdirSync(serverPackageFolder, { recursive: true })
+          }
+        )
         fs.mkdirSync(pkg_dir + '/dist')
         fs.mkdirSync(pkg_dir + '/src/language', {
           recursive: true,

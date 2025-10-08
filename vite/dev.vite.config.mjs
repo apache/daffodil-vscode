@@ -51,7 +51,7 @@ function unzipAfterBuild() {
     apply: 'build',
     async closeBundle() {
       Object.entries(daffodilScalaVersions).forEach(
-        async ([daffodilVersion, scalaVersion]) => {
+        async ([_, scalaVersion]) => {
           const serverPackage = `daffodil-debugger-${scalaVersion}-${pkg_version}`
           const jvmFolderName = `jvm-${scalaVersion}`
           const zipFilePath = path.resolve(
