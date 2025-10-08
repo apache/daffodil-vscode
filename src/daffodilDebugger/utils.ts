@@ -23,14 +23,16 @@ import { IJavaHomeInfo } from '@viperproject/locate-java-home/js/es5/lib/interfa
 import * as semver from 'semver'
 import { LIB_VERSION } from '../version'
 import { deactivate } from '../adapter/extension'
-import { getDaffodilVersions, DaffodilVersions } from './daffodil'
+import { getDaffodilScalaVersions, DaffodilScalaVersions } from './daffodil'
 import { Artifact } from '../classes/artifact'
 import { DFDLDebugger } from '../classes/dfdlDebugger'
 import { osCheck, runScript, terminalName } from '../utils'
 import { outputChannel } from '../adapter/activateDaffodilDebug'
 
-export const daffodilVersions = (filePath: string): DaffodilVersions => {
-  return getDaffodilVersions(filePath)
+export const daffodilScalaVersions = (
+  filePath: string
+): DaffodilScalaVersions => {
+  return getDaffodilScalaVersions(filePath)
 }
 
 export const daffodilArtifact = (version: string): Artifact => {
@@ -66,9 +68,11 @@ export async function runDebugger(
   dfdlDebugger: DFDLDebugger,
   createTerminal: boolean = false
 ): Promise<vscode.Terminal> {
-  if (!['2.12', '2.13', '3'].includes(dfdlDebugger.version)) {
+  const dfdlScalaVersions = daffodilScalaVersions(filePath)
+
+  if (!Object.keys(dfdlScalaVersions).includes(dfdlDebugger.version)) {
     vscode.window.showErrorMessage(
-      `DFDL Debugger Version ${dfdlDebugger.version} not supported. Supported versions are 2.12, 2.13 and 3.`
+      `DFDL Debugger Version ${dfdlDebugger.version} not supported. Supported versions are 3.10.0, 3.11.0 and 4.0.0`
     )
   }
 
@@ -92,12 +96,11 @@ export async function runDebugger(
     `[DEBUG] Choosing java home at ${javaHome?.path}, version ${javaHome?.version}, is at least JDK 17: ${isAtLeastJdk17}`
   )
 
-  const dfdlVersions = daffodilVersions(filePath)
-
-  let dfdlVersion = dfdlVersions[`scala${dfdlDebugger.version}`]
+  let dfdlVersion = dfdlDebugger.version
+  const scalaVersion = dfdlScalaVersions[dfdlVersion]
 
   outputChannel.appendLine(
-    `[INFO] Using Scala ${dfdlDebugger.version} + Daffodil ${dfdlVersion} debugger`
+    `[INFO] Using Scala ${scalaVersion} + Daffodil ${dfdlVersion} debugger`
   )
 
   /**
@@ -105,7 +108,7 @@ export async function runDebugger(
    * being used is less than 17, fallback to the Scala 2.13 and Daffodil 3.11.0 debugger and notify the user.
    */
   if (dfdlDebugger.version == '3' && !isAtLeastJdk17) {
-    dfdlVersion = dfdlVersions.scala2_13
+    dfdlVersion = dfdlScalaVersions.d3_11_0
     const message =
       'Using the Scala 2.13+Daffodil 3.11.0 debugger as the version of JDK being used is not >= JDK 17'
     outputChannel.appendLine(`[WARN] ${message}`)
@@ -115,7 +118,7 @@ export async function runDebugger(
   const artifact = daffodilArtifact(dfdlVersion)
   const scriptPath = path.join(
     rootPath,
-    `daffodil-debugger-${dfdlVersion}-${LIB_VERSION}`
+    `daffodil-debugger-${scalaVersion}-${LIB_VERSION}`
   )
 
   // The backend's launch script honors $JAVA_HOME, but if not set it assumes java is available on the path.

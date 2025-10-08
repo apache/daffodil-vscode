@@ -71,14 +71,18 @@ export interface BuildInfo {
   scalaVersion: string
 }
 
-export interface DaffodilVersions {
-  scala2_12: string
-  scala2_13: string
-  scala3: string
+export interface DaffodilScalaVersions {
+  d3_10_0: string
+  d3_11_0: string
+  d4_0_0: string
 }
 
-export function getDaffodilVersions(filePath: fs.PathLike): DaffodilVersions {
-  return jsoncParse(fs.readFileSync(filePath).toString())['daffodilVersion']
+export function getDaffodilScalaVersions(
+  filePath: fs.PathLike
+): DaffodilScalaVersions {
+  return jsoncParse(fs.readFileSync(filePath).toString())[
+    'daffodilScalaVersions'
+  ]
 }
 
 export interface IDaffodilEvent {

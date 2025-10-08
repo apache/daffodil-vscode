@@ -34,10 +34,10 @@ suite('Daffodfil', () => {
     fs.writeFileSync(
       packageFile,
       JSON.stringify({
-        daffodilVersion: {
-          scala2_12: '0.0.0',
-          scala2_13: '0.0.0',
-          scala3: '0.0.0',
+        daffodilScalaVersions: {
+          d3_10_0: '2.12',
+          d3_11_0: '2.13',
+          d4_0_0: '3',
         },
       })
     )
@@ -175,12 +175,13 @@ suite('Daffodfil', () => {
     })
   })
 
-  suite('getDaffodilVersion', () => {
-    test('getDaffodilVersion returns same version as file', () => {
-      var daffodilVersion = daffodil.getDaffodilVersions(packageFile)
-      assert.strictEqual(daffodilVersion.scala2_12, '0.0.0')
-      assert.strictEqual(daffodilVersion.scala2_13, '0.0.0')
-      assert.strictEqual(daffodilVersion.scala3, '0.0.0')
+  suite('daffodilScalaVersions', () => {
+    test('daffodilScalaVersions returns the same versions as file', () => {
+      var daffodilScalaVersions = daffodil.getDaffodilScalaVersions(packageFile)
+      console.log(daffodilScalaVersions)
+      assert.strictEqual(daffodilScalaVersions.d3_10_0, '2.12')
+      assert.strictEqual(daffodilScalaVersions.d3_11_0, '2.13')
+      assert.strictEqual(daffodilScalaVersions.d4_0_0, '3')
     })
   })
 

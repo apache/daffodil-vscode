@@ -20,9 +20,8 @@ package org.apache.daffodil.debugger.dap
 import cats.effect.IO
 import cats.syntax.all._
 import java.nio.file.Path
-import org.apache.daffodil.sapi._
 
-trait Compiler {
+trait DAPCompiler {
   def compile(
       schema: Path,
       rootName: Option[String],
@@ -31,9 +30,9 @@ trait Compiler {
   ): IO[DataProcessor]
 }
 
-object Compiler {
-  def apply(): Compiler =
-    new Compiler {
+object DAPCompiler {
+  def apply(): DAPCompiler =
+    new DAPCompiler {
       def compile(
           schema: Path,
           rootName: Option[String],
@@ -41,17 +40,10 @@ object Compiler {
           tunables: Map[String, String]
       ): IO[DataProcessor] =
         IO.blocking(
-          Daffodil
-            .compiler()
-            .withTunables(tunables)
-            .compileFile(
-              schema.toFile(),
-              rootName,
-              rootNamespace
-            )
-        ).ensureOr(pf => CompilationFailed(pf.getDiagnostics))(!_.isError)
+          Support.getProcessorFactory(schema, rootName, rootNamespace, tunables)
+        ).ensureOr(pf => CompilationFailed(Support.parseDiagnosticList(pf.getDiagnostics)))(!_.isError())
           .map(_.onPath("/"))
     }
 
-  case class CompilationFailed(seq: Seq[Diagnostic]) extends Exception(seq.map(_.toString).mkString(", "))
+  case class CompilationFailed(seq: Seq[SDiagnostic]) extends Exception(seq.map(_.toString).mkString(", "))
 }

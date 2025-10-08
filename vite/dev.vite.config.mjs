@@ -43,18 +43,17 @@ const packageData = jsoncParse(
   fs.readFileSync(path.resolve('package.json'), 'utf8')
 )
 const pkg_version = packageData['version']
-const daffodilVersions = packageData['daffodilVersion']
+const daffodilScalaVersions = packageData['daffodilScalaVersions']
 
 function unzipAfterBuild() {
   return {
     name: 'unzip-server-package',
     apply: 'build',
     async closeBundle() {
-      Object.entries(daffodilVersions).forEach(
-        async ([scalaVersionKey, daffodilVersion]) => {
-          const scalaVersion = scalaVersionKey.replace('_', '.')
-          const serverPackage = `daffodil-debugger-${daffodilVersion}-${pkg_version}`
-          const jvmFolderName = `jvm-${scalaVersion.replace('scala', '')}`
+      Object.entries(daffodilScalaVersions).forEach(
+        async ([daffodilVersion, scalaVersion]) => {
+          const serverPackage = `daffodil-debugger-${scalaVersion}-${pkg_version}`
+          const jvmFolderName = `jvm-${scalaVersion}`
           const zipFilePath = path.resolve(
             `debugger/target/${jvmFolderName}/universal/${serverPackage}.zip`
           )

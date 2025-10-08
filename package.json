@@ -3,10 +3,10 @@
   "displayName": "Apache Daffodil™ Extension for Visual Studio Code",
   "description": "Apache Daffodil™ Extension for Visual Studio Code providing DFDL syntax highlighting, DFDL code completion, DFDL schema debugging, and data editor",
   "version": "1.4.2-SNAPSHOT",
-  "daffodilVersion": {
-    "scala2.12": "3.10.0",
-    "scala2.13": "3.11.0",
-    "scala3": "4.0.0"
+  "daffodilScalaVersions": {
+    "3.10.0": "2.12",
+    "3.11.0": "2.13",
+    "4.0.0": "3"
   },
   "publisher": "asf",
   "author": "Apache Daffodil",
@@ -689,17 +689,17 @@
               },
               "dfdlDebugger": {
                 "type": "object",
-                "description": "Configuration for debugger. Settings are version (2.12, 2.13, or 3), timeout and logging (level and file)",
+                "description": "Configuration for debugger. Settings are version (3.10.0, 3.11.0, or 4.0.0), timeout and logging (level and file)",
                 "properties": {
                   "version": {
                     "type": "string",
                     "enum": [
-                      "2.12",
-                      "2.13",
-                      "3"
+                      "3.10.0",
+                      "3.11.0",
+                      "4.0.0"
                     ],
-                    "default": "2.13",
-                    "description": "Debugger version to use. 2.12 represents Scala 2.12+Daffodil 3.10.0, 2.13 represents Scala 2.13+Daffodil 3.11.0 and 3 represents Scala 3+Daffodil 4.0.0"
+                    "default": "3.10.0",
+                    "description": "Debugger version to use. 3.10.0 represents Scala 2.12+Daffodil 3.10.0, 3.11.0 represents Scala 2.13+Daffodil 3.11.0 and 4.0.0 represents Scala 3+Daffodil 4.0.0"
                   },
                   "timeout": {
                     "type": "string",
@@ -949,9 +949,9 @@
           },
           "dfdlDebugger": {
             "type": "object",
-            "description": "Configuration for debugger. Settings are are version (2.12, 2.13 or 3), timeout and logging (level and file)",
+            "description": "Configuration for debugger. Settings are are version (3.10.0, 3.11.0 or 4.0.0), timeout and logging (level and file)",
             "default": {
-              "version": "2.13",
+              "version": "3.11.0",
               "timeout": "10s",
               "logging": {
                 "level": "INFO",

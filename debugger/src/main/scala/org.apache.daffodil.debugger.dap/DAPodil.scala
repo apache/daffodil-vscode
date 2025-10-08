@@ -38,7 +38,6 @@ import java.nio.file.Paths
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
-import scala.jdk.CollectionConverters._
 import scala.concurrent.duration._
 
 import logging._
@@ -285,7 +284,7 @@ class DAPodil(
             // format: on
           }
           response = request.respondSuccess(
-            new Responses.SetBreakpointsResponseBody(breakpoints.asJava)
+            new Responses.SetBreakpointsResponseBody(Convert.asJavaList(breakpoints))
           )
           _ <- session.sendResponse(response)
         } yield ()
@@ -301,7 +300,7 @@ class DAPodil(
           threads <- launched.threads
           _ <- session.sendResponse(
             request.respondSuccess(
-              new Responses.ThreadsResponseBody(threads.asJava)
+              new Responses.ThreadsResponseBody(Convert.asJavaList(threads))
             )
           )
         } yield ()
@@ -315,7 +314,7 @@ class DAPodil(
           stackTrace <- launched.stackTrace
           response = request.respondSuccess(
             new Responses.StackTraceResponseBody(
-              stackTrace.frames.map(_.stackFrame).asJava,
+              Convert.asJavaList(stackTrace.frames.map(_.stackFrame)),
               stackTrace.frames.size
             )
           )
@@ -379,7 +378,8 @@ class DAPodil(
               )
             ) { frame =>
               session.sendResponse(
-                request.respondSuccess(new Responses.ScopesResponseBody(frame.scopes.map(_.toDAP()).asJava))
+                request
+                  .respondSuccess(new Responses.ScopesResponseBody(Convert.asJavaList(frame.scopes.map(_.toDAP()))))
               )
             }
         } yield ()
@@ -403,7 +403,9 @@ class DAPodil(
                 )
               )
             )(variables =>
-              session.sendResponse(request.respondSuccess(new Responses.VariablesResponseBody(variables.asJava)))
+              session.sendResponse(
+                request.respondSuccess(new Responses.VariablesResponseBody(Convert.asJavaList(variables)))
+              )
             )
         } yield ()
       case s => DAPodil.InvalidState.raise(request, "Launched", s)
@@ -772,7 +774,7 @@ object DAPodil extends IOApp {
 
   object LoadedSources {
     def apply(sources: List[Source]): LoadedSources =
-      LoadedSources(sources.map(_.toDAP).asJava)
+      LoadedSources(Convert.asJavaList(sources.map(_.toDAP)))
   }
 
   /** Our own capabilities data type that is a superset of java-debug, which doesn't have

@@ -31,7 +31,7 @@ Global / lintUnusedKeysOnLoad := false
 val packageJsonStr = scala.io.Source.fromFile("package.json").mkString
 
 val daffodilVers = {
-  val daffodilVerRegex = raw""""(scala2.12|scala2.13|scala3)"\s*:\s*"([^"]+)""".r
+  val daffodilVerRegex = raw""""([^"]+)"\s*:\s*"(2.12|2.13|3)"""".r
   daffodilVerRegex
     .findAllMatchIn(packageJsonStr)
     .flatMap {
@@ -116,7 +116,7 @@ lazy val xjcSettings =
       // files from
       val daffodilLibJar = managedJars(Test, Set[String]("jar"), update.value)
         .map(_.data)
-        .find(_.getName.contains(getDaffodilJarName(scalaVersion.value)))
+        .find(_.getName.contains(getDaffodilJarName(scalaBinaryVersion.value)))
         .get
 
       // cache the results of jar extraction so we don't keep extracting files (which would
@@ -205,8 +205,8 @@ lazy val debuggers = {
     .settings(xjcSettings)
     .settings(
       name := "daffodil-debugger",
-      scalacOptions ++= buildScalacOptions(scalaVersion.value),
-      javacOptions ++= buildJavacOptions(scalaVersion.value),
+      scalacOptions ++= buildScalacOptions(scalaBinaryVersion.value),
+      javacOptions ++= buildJavacOptions(scalaBinaryVersion.value),
       libraryDependencies ++= Seq(
         /* NOTE: To support Java 8:
          *  logback-classic can not go above version 1.2.11.
@@ -229,20 +229,28 @@ lazy val debuggers = {
         version,
         scalaVersion,
         sbtVersion,
-        "daffodilVersion" -> getDaffodilVersion(scalaVersion.value)
+        "daffodilVersion" -> getDaffodilVersion(scalaBinaryVersion.value)
       ),
-      packageName := s"${name.value}-${getDaffodilVersion(scalaVersion.value)}"
+      packageName := s"${name.value}-${scalaBinaryVersion.value}",
+      // This allowed for having common code between scala 2.12 and 2.13 so its not duplicated
+      Compile / unmanagedSourceDirectories ++= {
+        val v = scalaBinaryVersion.value
+        if (v == "2.12" || v == "2.13")
+          Seq((Compile / sourceDirectory).value / "scala-2")
+        else
+          Nil
+      }
     )
     .jvmPlatform(
       scalaVersions = Seq("2.12.20"),
       settings = Seq(
-        libraryDependencies ++= getPlatformSpecificLibraries(scalaVersion.value)
+        libraryDependencies ++= getPlatformSpecificLibraries(scalaBinaryVersion.value)
       )
     )
     .jvmPlatform(
       scalaVersions = Seq("2.13.16"),
       settings = Seq(
-        libraryDependencies ++= getPlatformSpecificLibraries(scalaVersion.value)
+        libraryDependencies ++= getPlatformSpecificLibraries(scalaBinaryVersion.value)
       )
     )
 
@@ -250,16 +258,16 @@ lazy val debuggers = {
     debugger.jvmPlatform(
       scalaVersions = Seq("3.3.6"),
       settings = Seq(
-        libraryDependencies ++= getPlatformSpecificLibraries(scalaVersion.value)
+        libraryDependencies ++= getPlatformSpecificLibraries(scalaBinaryVersion.value)
       )
     )
   else debugger
 }
 
-def getPlatformSpecificLibraries(scalaVersion: String) = {
-  val daffodilVersion = getDaffodilVersion(scalaVersion)
+def getPlatformSpecificLibraries(scalaBinaryVersion: String) = {
+  val daffodilVersion = getDaffodilVersion(scalaBinaryVersion)
 
-  if (scalaVersion.startsWith("3"))
+  if (scalaBinaryVersion == "3")
     Seq("org.apache.daffodil" %% "daffodil-core" % daffodilVersion)
   else
     Seq(
@@ -269,13 +277,13 @@ def getPlatformSpecificLibraries(scalaVersion: String) = {
     )
 }
 
-def getMinSupportedJavaVersion(scalaVersion: String): String =
-  if (scalaVersion.startsWith("3")) "17"
+def getMinSupportedJavaVersion(scalaBinaryVersion: String): String =
+  if (scalaBinaryVersion == "3") "17"
   else if (scala.util.Properties.isJavaAtLeast("21")) "11"
   else "8"
 
-def buildJavacOptions(scalaVersion: String) = {
-  val jdkCompat = getMinSupportedJavaVersion(scalaVersion)
+def buildJavacOptions(scalaBinaryVersion: String) = {
+  val jdkCompat = getMinSupportedJavaVersion(scalaBinaryVersion)
 
   if (jdkCompat == "8")
     Seq("-source", jdkCompat, "-target", jdkCompat)
@@ -283,22 +291,23 @@ def buildJavacOptions(scalaVersion: String) = {
     Seq("--release", jdkCompat)
 }
 
-def buildScalacOptions(scalaVersion: String) = {
-  val jdkCompat = getMinSupportedJavaVersion(scalaVersion)
+def buildScalacOptions(scalaBinaryVersion: String) = {
+  val jdkCompat = getMinSupportedJavaVersion(scalaBinaryVersion)
 
-  val commonSettings = Seq(if (scalaVersion.startsWith("2.12")) "-Ypartial-unification" else "")
+  val commonSettings = Seq(if (scalaBinaryVersion == "2.12") "-Ypartial-unification" else "")
 
-  if (scalaVersion.startsWith("2.12") && jdkCompat == "8")
+  if (scalaBinaryVersion == "2.12" && jdkCompat == "8")
     commonSettings ++ Seq(s"--target:jvm-${jdkCompat}")
   else
     commonSettings ++ Seq("--release", jdkCompat)
 }
+def getDaffodilVersion(scalaBinaryVersion: String) = daffodilVers
+  .find { case (key, value) =>
+    value == scalaBinaryVersion
+  }
+  .map(_._1)
+  .getOrElse("")
 
-def getScalaVersionKey(scalaVersion: String) =
-  "scala" + scalaVersion.split('.').dropRight(if (scalaVersion.startsWith("3")) 2 else 1).mkString(".")
-
-def getDaffodilVersion(scalaVersion: String) = daffodilVers(getScalaVersionKey(scalaVersion))
-
-def getDaffodilJarName(scalaVersion: String) =
-  if (scalaVersion.startsWith("3")) "daffodil-core"
+def getDaffodilJarName(scalaBinaryVersion: String) =
+  if (scalaBinaryVersion == "3") "daffodil-core"
   else "daffodil-lib"

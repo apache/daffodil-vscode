@@ -33,20 +33,15 @@ import java.net.URI
 import java.nio.file._
 import org.apache.commons.io.FileUtils
 import org.apache.daffodil.debugger.dap.{BuildInfo => DAPBuildInfo}
-import org.apache.daffodil.runtime1.debugger.Debugger
 import org.apache.daffodil.runtime1.infoset.{DIDocument, DIElement, InfosetWalker}
 import org.apache.daffodil.runtime1.processors._
 import org.apache.daffodil.runtime1.processors.dfa.DFADelimiter
 import org.apache.daffodil.runtime1.processors.parsers._
 import org.apache.daffodil.lib.exceptions.SchemaFileLocation
 import org.apache.daffodil.lib.util.Misc
-import org.apache.daffodil.sapi.{Diagnostic => SDiagnostic, ValidationMode}
-import org.apache.daffodil.sapi.infoset._
-import org.apache.daffodil.sapi.io.InputSourceDataInputStream
 import org.apache.daffodil.tdml.TDML
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import scala.collection.JavaConverters._
 import scala.util.Try
 
 /** A Daffodil parse of a schema against data. */
@@ -84,20 +79,18 @@ object Parse {
       dapEvents: Channel[IO, Events.DebugEvent]
   ): IO[Parse] =
     for {
-      dp <- Compiler()
+      dp <- DAPCompiler()
         .compile(schema, rootName, rootNamespace, tunables)
-        .map(p =>
-          p.withDebugger(debugger)
-            .withDebugging(true)
-            .withExternalVariables(variables)
-            .withValidationMode(ValidationMode.Limited)
-        )
+        .map(p => Support.dataProcessorWithDebugger(p, debugger, variables))
       done <- Ref[IO].of(false)
       pleaseStop <- Deferred[IO, Unit]
     } yield new Parse {
+      // Define run function associated w/ Parse instances
       def run(): Stream[IO, Byte] =
+        // Note that .drain() and .through() being called on this do not consume data
         fs2.io
-          .readOutputStream(4096) { os =>
+          .readOutputStream(4096) { os => // Sufficiently sized 4KB chunk size for consumption process.
+
             val stopper =
               pleaseStop.get *> IO.canceled // will cancel the concurrent parse effect
 
@@ -111,16 +104,18 @@ object Parse {
             val parse =
               IO.interruptibleMany(
                 dp.parse(
-                  new InputSourceDataInputStream(data),
+                  Support.getInputSourceDataInputStream(data),
                   infosetOutputter
                 )
                 // WARNING: parse doesn't close the OutputStream, so closed below
               ).flatTap { res =>
-                if (res.isError) {
+                if (res.isError()) {
                   dapEvents
                     .send(
                       Parse.Event.Error(
-                        res.getDiagnostics.toList
+                        Convert
+                          .asScalaList(res.getDiagnostics)
+                          .toList
                           .map(d => d.toString)
                           .mkString("\n")
                       )
@@ -128,17 +123,18 @@ object Parse {
                     .void
                 } else IO.unit
               }.ensureOr { res =>
-                new Parse.Exception(res.getDiagnostics.toList)
-              }(res => !res.isError)
+                new Parse.Exception(Convert.asScalaList(res.getDiagnostics).toList)
+              }(res => !res.isError())
                 .flatMap { parseResult =>
                   val loc = parseResult.location()
-                  val leftOverBits = (dataSize - (loc.bytePos1b - 1)) * 8
+                  val leftOverBits = (dataSize - ((loc.bytePos1b()) - 1)) * 8
 
                   if (leftOverBits > 0) {
-                    val message = DataLeftOverUtils.getMessage(dataFilePath, loc.bitPos1b, loc.bytePos1b, leftOverBits)
+                    val message =
+                      DataLeftOverUtils.getMessage(dataFilePath, loc.bitPos1b(), loc.bytePos1b(), leftOverBits)
 
                     Logger[IO].error(message) *> dapEvents.send(
-                      DataLeftOverEvent(loc.bitPos1b, loc.bytePos1b, leftOverBits, message)
+                      DataLeftOverEvent(loc.bitPos1b(), loc.bytePos1b(), leftOverBits, message)
                     ) *> IO.unit
                   } else {
                     IO.unit
@@ -163,9 +159,9 @@ object Parse {
 
   class Debugee(
       schema: DAPodil.Source,
-      data: DAPodil.Source,
+      dataIn: DAPodil.Source,
       outputData: Signal[IO, DAPodil.Data],
-      events: Stream[IO, Events.DebugEvent],
+      eventsIn: Stream[IO, Events.DebugEvent],
       breakpoints: Breakpoints,
       control: Control,
       parseEvents: Channel[IO, Parse.Event]
@@ -174,13 +170,13 @@ object Parse {
       outputData
 
     def events(): Stream[IO, Events.DebugEvent] =
-      events
+      eventsIn
 
     /** We return only the "static" sources of the schema and data file, and notify the debugger of additional sources,
       * if any, via source change events, which only subsequently fetch the content directly via `sourceContent`.
       */
     def sources(): IO[List[DAPodil.Source]] =
-      IO.pure(List(schema, data))
+      IO.pure(List(schema, dataIn))
 
     def sourceContent(ref: DAPodil.Source.Ref): IO[Option[DAPodil.Source.Content]] =
       IO.pure(None) // no additional source content available; infoset and data position info sent as custom events
@@ -532,7 +528,12 @@ object Parse {
     // arguments: Launch config
     def parseVariables(arguments: JsonObject) =
       Option(arguments.getAsJsonObject("variables"))
-        .map(_.getAsJsonObject().entrySet().asScala.map(kv => kv.getKey -> kv.getValue.getAsString()).toMap)
+        .map((elem: com.google.gson.JsonElement) =>
+          Convert
+            .asScalaSet(elem.getAsJsonObject().entrySet())
+            .map { case (k, v) => k -> v.getAsString }
+            .toMap
+        )
         .getOrElse(Map.empty[String, String])
         .asRight[String]
         .toEitherNel
@@ -542,7 +543,12 @@ object Parse {
     // arguments: Launch config
     def parseTunables(arguments: JsonObject) =
       Option(arguments.getAsJsonObject("tunables"))
-        .map(_.getAsJsonObject().entrySet().asScala.map(kv => kv.getKey -> kv.getValue.getAsString()).toMap)
+        .map((elem: com.google.gson.JsonElement) =>
+          Convert
+            .asScalaSet(elem.getAsJsonObject().entrySet())
+            .map { case (k, v) => k -> v.getAsString }
+            .toMap
+        )
         .getOrElse(Map.empty[String, String])
         .asRight[String]
         .toEitherNel
@@ -616,32 +622,6 @@ object Parse {
               variables,
               tunables
             ) =>
-        // Create a LaunchArgs.Manual, run the debugee with it, and then generate the TDML file
-        debugee(
-          Debugee.LaunchArgs
-            .Manual(
-              schemaPath,
-              dataPath,
-              stopOnEntry,
-              infosetFormat,
-              infosetOutput,
-              rootName,
-              rootNamespace,
-              variables,
-              tunables
-            )
-        ).onFinalize(
-          infosetOutput match {
-            case Debugee.LaunchArgs.InfosetOutput.File(path) =>
-              IO(TDML.generate(path, schemaPath, dataPath, name, tdmlPath))
-            case _ =>
-              // This case should never be hit. Validation is being done on launch config prior to
-              //   this section of code attempting to run a DFDL operation. If the user is trying to
-              //   generate a TDML file and an infosetOutput type of 'none' | 'console' is selected,
-              //   an error will be displayed, and the execution will be aborted, before the DFDL operation begins.
-              IO.unit
-          }
-        )
         // Create a LaunchArgs.Manual, run the debugee with it, and then generate the TDML file
         debugee(
           Debugee.LaunchArgs
@@ -830,7 +810,7 @@ object Parse {
                 )
               _ <- data.send(newState.data)
             } yield newState
-          case (state, Parse.Event.EndElement(_)) => IO.pure(state.copy(data = state.data.pop))
+          case (state, Parse.Event.EndElement(_)) => IO.pure(state.copy(data = state.data.pop()))
           case (state, _: Parse.Event.Fini.type)  => IO.pure(state)
           case (state, Event.Control(DAPodil.Debugee.State.Stopped(reason))) =>
             val events =
@@ -859,7 +839,7 @@ object Parse {
       */
     def createFrame(startElement: Parse.Event.StartElement): IO[DAPodil.Frame] =
       for {
-        ids <- (frameIds.next, variableRefs.next, variableRefs.next, variableRefs.next).tupled
+        ids <- (frameIds.next(), variableRefs.next(), variableRefs.next(), variableRefs.next()).tupled
         (frameId, parseScopeId, schemaScopeId, dataScopeId) = ids
 
         stackFrame = new Types.StackFrame(
@@ -907,20 +887,22 @@ object Parse {
         ref: DAPodil.VariablesReference,
         event: Event.StartElement
     ): IO[DAPodil.Frame.Scope] =
-      (variableRefs.next, variableRefs.next, variableRefs.next, variableRefs.next, variableRefs.next).mapN {
+      (variableRefs.next(), variableRefs.next(), variableRefs.next(), variableRefs.next(), variableRefs.next()).mapN {
         (pouRef, delimiterStackRef, diagnosticsRef, diagnosticsValidationsRef, diagnosticsErrorsRef) =>
           val hidden = event.state.withinHiddenNest
           val childIndex = if (event.state.childPos != -1) Some(event.state.childPos) else None
           val groupIndex = if (event.state.groupPos != -1) Some(event.state.groupPos) else None
           val occursIndex = if (event.state.arrayIterationPos != -1) Some(event.state.arrayIterationPos) else None
-          val foundDelimiter = for {
-            dpr <- event.state.delimitedParseResult.toScalaOption
-            dv <- dpr.matchedDelimiterValue.toScalaOption
-          } yield Misc.remapStringToVisibleGlyphs(dv)
-          val foundField = for {
-            dpr <- event.state.delimitedParseResult.toScalaOption
-            f <- dpr.field.toScalaOption
-          } yield Misc.remapStringToVisibleGlyphs(f)
+          val foundDelimiter = if (event.state.delimitedParseResult.isDefined) {
+            val dpr = event.state.delimitedParseResult.get
+            val value = Misc.remapStringToVisibleGlyphs(dpr.matchedDelimiterValue.get)
+            Some(value)
+          } else None
+          val foundField = if (event.state.delimitedParseResult.isDefined) {
+            val dpr = event.state.delimitedParseResult.get
+            val value = Misc.remapStringToVisibleGlyphs(dpr.field.get)
+            Some(value)
+          } else None
 
           val pouRootVariable =
             new Types.Variable("Points of uncertainty", "", null, pouRef.value, null)
@@ -991,7 +973,7 @@ object Parse {
         .toList
         .flatTraverse { case (ns, vs) =>
           // every namespace is a DAP variable in the current scope, and links to its set of Daffodil-as-DAP variables
-          variableRefs.next.map { ref =>
+          variableRefs.next().map { ref =>
             List(scopeRef -> List(new Types.Variable(ns.toString(), "", null, ref.value, null))) ++
               List(
                 ref -> vs
@@ -1074,14 +1056,14 @@ object Parse {
         schemaLocation: SchemaFileLocation,
         pointsOfUncertainty: List[PointOfUncertainty],
         delimiterStack: List[Delimiter],
-        diagnostics: List[org.apache.daffodil.lib.api.Diagnostic],
+        diagnostics: List[Diagnostic],
         infoset: Option[InfosetEvent]
     ) extends Event {
       // PState is mutable, so we copy all the information we might need downstream.
       def this(pstate: PState, infoset: Option[InfosetEvent]) =
         this(
           pstate.copyStateForDebugger,
-          pstate.currentNode.toScalaOption.map(element => ElementName(element.name)),
+          Convert.daffodilMaybeToOption(pstate.currentNode).map(node => ElementName(node.asElement.name)),
           pstate.schemaFileLocation,
           pstate.pointsOfUncertainty.iterator.toList.map(mark =>
             PointOfUncertainty(
@@ -1094,7 +1076,7 @@ object Parse {
           pstate.mpstate.delimiters.toList.zipWithIndex.map { case (delimiter, i) =>
             Delimiter(if (i < pstate.mpstate.delimitersLocalIndexStack.top) "remote" else "local", delimiter)
           },
-          pstate.diagnostics,
+          pstate.diagnostics.toList,
           infoset
         )
     }
@@ -1317,7 +1299,7 @@ object Parse {
             nextAwaitStarted <- Deferred[IO, Unit]
             _ <- state.modify {
               case s @ AwaitingFirstAwait(waiterArrived) =>
-                s -> waiterArrived.get *> step
+                s -> waiterArrived.get *> step()
               case Running => Running -> IO.unit
               case Stopped(whenContinued, _) =>
                 Stopped(nextContinue, nextAwaitStarted) -> (
@@ -1330,7 +1312,7 @@ object Parse {
         def continue(): IO[Unit] =
           state.modify {
             case s @ AwaitingFirstAwait(waiterArrived) =>
-              s -> waiterArrived.get *> continue
+              s -> waiterArrived.get *> continue()
             case Running => Running -> IO.unit
             case Stopped(whenContinued, _) =>
               Running -> whenContinued.complete(()).void // wake up await-ers
@@ -1383,14 +1365,14 @@ object Parse {
           var node = pstate.infoset
           while (node.diParent != null) node = node.diParent
           node match {
-            case d: DIDocument if d.contents.size == 0 => None
-            case _                                     => Some(InfosetEvent(infosetFormat, node))
+            case d: DIDocument if d.numChildren == 0 => None
+            case _                                   => Some(InfosetEvent(infosetFormat, node))
           }
         }
 
         for {
           _ <- logger.debug("pre-control await")
-          isStepping <- control.await // may block until external control says to unblock, for stepping behavior
+          isStepping <- control.await() // may block until external control says to unblock, for stepping behavior
           _ <- logger.debug("post-control await")
           location = createLocation(pstate.schemaFileLocation)
           shouldBreak <- breakpoints.shouldBreak(location)
@@ -1423,7 +1405,7 @@ object Parse {
 
     override def endElement(pstate: PState, processor: Parser): Unit =
       dispatcher.unsafeRunSync {
-        control.await *> // ensure no events while debugger is paused
+        control.await() *> // ensure no events while debugger is paused
           events.send(Event.EndElement(pstate.copyStateForDebugger)).void
       }
   }

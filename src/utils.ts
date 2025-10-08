@@ -157,7 +157,7 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
       },
     }),
     dfdlDebugger: defaultConf.get('dfdlDebugger', {
-      version: '2.13',
+      version: '3.11.0',
       timeout: '10s',
       logging: {
         level: 'INFO',

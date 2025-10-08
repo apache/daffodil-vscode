@@ -43,16 +43,15 @@ const packageData = jsoncParse(
   fs.readFileSync(path.resolve('package.json'), 'utf8')
 )
 const pkg_version = packageData['version']
-const daffodilVersions = packageData['daffodilVersion']
+const daffodilScalaVersions = packageData['daffodilScalaVersions']
 
 function unzipAfterBuild() {
   return {
     name: 'unzip-server-package',
     apply: 'build',
     async closeBundle() {
-      Object.entries(daffodilVersions).forEach(
-        async ([scalaVersionKey, daffodilVersion]) => {
-          const scalaVersion = scalaVersionKey.replace('_', '.')
+      Object.entries(daffodilScalaVersions).forEach(
+        async ([scalaVersion, daffodilVersion]) => {
           const serverPackage = `daffodil-debugger-${daffodilVersion}-${pkg_version}`
           const jvmFolderName = `jvm-${scalaVersion.replace('scala', '')}`
           const zipFilePath = path.resolve(
@@ -122,20 +121,14 @@ function copyToPkgDirPlugin() {
     { from: 'src/tdmlEditor/', to: `${pkg_dir}/src/tdmlEditor` },
   ]
 
-  const serverPackageFolders = {
-    scala2_12: path.join(
+  const serverPackageFolders = {}
+
+  Object.entries(daffodilScalaVersions).forEach((_, scalaVersion) => {
+    serverPackageFolder[scalaVersion] = path.join(
       path.resolve('dist/package'),
-      `daffodil-debugger-${daffodilVersions['scala2.12']}-${pkg_version}`
-    ),
-    scala2_13: path.join(
-      path.resolve('dist/package'),
-      `daffodil-debugger-${daffodilVersions['scala2.13']}-${pkg_version}`
-    ),
-    scala3: path.join(
-      path.resolve('dist/package'),
-      `daffodil-debugger-${daffodilVersions['scala3']}-${pkg_version}`
-    ),
-  }
+      `daffodil-debugger-${scalaVersion}-${pkg_version}`
+    )
+  })
 
   Object.entries(serverPackageFolders).forEach(([_, serverPackageFolder]) => {
     console.debug(`== [Vite] | serverPackageFolder: ${serverPackageFolder}`)
@@ -150,9 +143,9 @@ function copyToPkgDirPlugin() {
     apply: 'build',
     async buildStart(opts) {
       if (!fs.existsSync(pkg_dir)) {
-        fs.mkdirSync(serverPackageFolders.scala2_12, { recursive: true })
-        fs.mkdirSync(serverPackageFolders.scala2_13, { recursive: true })
-        fs.mkdirSync(serverPackageFolders.scala3, { recursive: true })
+        fs.mkdirSync(serverPackageFolders['3.10.0'], { recursive: true })
+        fs.mkdirSync(serverPackageFolders['3.11.0'], { recursive: true })
+        fs.mkdirSync(serverPackageFolders['4.0.0'], { recursive: true })
         fs.mkdirSync(pkg_dir + '/dist')
         fs.mkdirSync(pkg_dir + '/src/language', {
           recursive: true,

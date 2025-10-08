@@ -120,9 +120,9 @@ async function getDebuggerVersionsToTest(): Promise<Array<string>> {
   const javaHome = await getJavaHome()
   const isAtLeastJdk17: boolean = parseFloat(javaHome?.version ?? '0') >= 17
 
-  const jdkVersions = ['2.12', '2.13']
-  if (isAtLeastJdk17) jdkVersions.push('3')
-  return jdkVersions
+  const dfdlVersions = ['3.10.0', '3.11.0']
+  if (isAtLeastJdk17) dfdlVersions.push('4.0.0')
+  return dfdlVersions
 }
 
 /**
