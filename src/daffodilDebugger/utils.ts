@@ -28,6 +28,7 @@ import { Artifact } from '../classes/artifact'
 import { DFDLDebugger } from '../classes/dfdlDebugger'
 import { osCheck, runScript, terminalName } from '../utils'
 import { outputChannel } from '../adapter/activateDaffodilDebug'
+import { checkIfDaffodilJarsNeeded } from './daffodilJars'
 
 export const daffodilScalaVersions = (
   filePath: string
@@ -45,6 +46,7 @@ export const stopDebugger = async (id: number | undefined = undefined) =>
 export const shellArgs = (
   port: number,
   timeout: string,
+  daffodilVersion: string,
   isAtLeastJdk17: boolean
 ) => {
   // Workaround: certain reflection (used by JAXB) isn't allowed by default in JDK 17:
@@ -55,9 +57,45 @@ export const shellArgs = (
         ['-J--add-opens', '-Jjava.base/java.lang=ALL-UNNAMED']
       )
     : []
-  return ['--listenPort', `${port}`, '--listenTimeout', `${timeout}`].concat(
-    extraArgs
-  )
+  return [
+    '--listenPort',
+    `${port}`,
+    '--listenTimeout',
+    `${timeout}`,
+    '--daffodilVersion',
+    daffodilVersion,
+  ].concat(extraArgs)
+}
+
+function compareVersions(v1: string, v2: string): number {
+  const a1 = v1.split('.').map(Number)
+  const a2 = v2.split('.').map(Number)
+  const len = Math.max(a1.length, a2.length)
+
+  for (let i = 0; i < len; i++) {
+    const n1 = a1[i] ?? 0
+    const n2 = a2[i] ?? 0
+    if (n1 < n2) return -1
+    if (n1 > n2) return 1
+  }
+
+  return 0
+}
+
+export async function getDaffodilVersionKey(
+  dfdlVersion: string
+): Promise<string> {
+  const isLessThanOrEqualTo3_10_0 = compareVersions(dfdlVersion, '3.10.0') <= 0
+  const isLessThan3_11_0 = compareVersions(dfdlVersion, '3.11.0') < 0
+  const isGreatThanOrEqualTo4_0_0 = compareVersions(dfdlVersion, '4.0.0') >= 0
+
+  if (isLessThanOrEqualTo3_10_0 && isLessThan3_11_0) {
+    return '<=3.10.0,<3.11.0'
+  } else if (isGreatThanOrEqualTo4_0_0) {
+    return '>=4.0.0'
+  } else {
+    return '>=3.11.0,<4.0.0'
+  }
 }
 
 export async function runDebugger(
@@ -69,12 +107,6 @@ export async function runDebugger(
   createTerminal: boolean = false
 ): Promise<vscode.Terminal> {
   const dfdlScalaVersions = daffodilScalaVersions(filePath)
-
-  if (!Object.keys(dfdlScalaVersions).includes(dfdlDebugger.version)) {
-    vscode.window.showErrorMessage(
-      `DFDL Debugger Version ${dfdlDebugger.version} not supported. Supported versions are 3.10.0, 3.11.0 and 4.0.0`
-    )
-  }
 
   if (
     !dfdlDebugger.timeout.endsWith('s') &&
@@ -97,7 +129,8 @@ export async function runDebugger(
   )
 
   let dfdlVersion = dfdlDebugger.version
-  const scalaVersion = dfdlScalaVersions[dfdlVersion]
+  let dfdlVersionKey = await getDaffodilVersionKey(dfdlVersion)
+  let scalaVersion = dfdlScalaVersions[dfdlVersionKey]
 
   outputChannel.appendLine(
     `[INFO] Using Scala ${scalaVersion} + Daffodil ${dfdlVersion} debugger`
@@ -107,13 +140,18 @@ export async function runDebugger(
    * The Scala 3 with Daffodil >= 4.0.0 debugger can only be ran on JDK 17 or greater. So if the java version
    * being used is less than 17, fallback to the Scala 2.13 and Daffodil 3.11.0 debugger and notify the user.
    */
-  if (dfdlDebugger.version == '3' && !isAtLeastJdk17) {
-    dfdlVersion = dfdlScalaVersions.d3_11_0
+  if (dfdlVersionKey == '>=4.0.0' && !isAtLeastJdk17) {
+    dfdlVersion = '3.11.0'
+    dfdlVersionKey = '>=3.11.0,<4.0.0'
+    scalaVersion = dfdlScalaVersions[dfdlVersionKey]
     const message =
       'Using the Scala 2.13+Daffodil 3.11.0 debugger as the version of JDK being used is not >= JDK 17'
     outputChannel.appendLine(`[WARN] ${message}`)
     vscode.window.showWarningMessage(message)
   }
+
+  // Download the daffodil CLI jars if needed
+  await checkIfDaffodilJarsNeeded(dfdlVersion)
 
   const artifact = daffodilArtifact(dfdlVersion)
   const scriptPath = path.join(
@@ -143,7 +181,7 @@ export async function runDebugger(
     scriptPath,
     artifact.scriptName,
     createTerminal,
-    shellArgs(serverPort, dfdlDebugger.timeout, isAtLeastJdk17),
+    shellArgs(serverPort, dfdlDebugger.timeout, dfdlVersion, isAtLeastJdk17),
     env,
     'daffodil'
   )

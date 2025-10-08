@@ -436,29 +436,55 @@ object DAPodil extends IOApp {
         .withDefault(4711),
       Opts
         .option[Duration]("listenTimeout", "duration to wait for a DAP client connection (default: 10s)")
-        .withDefault(10.seconds)
+        .withDefault(10.seconds),
+      Opts
+        .option[String]("daffodilVersion", "version of Daffodil to use (default: 3.11.0)")
+        .withDefault("3.11.0")
     ).mapN(Options.apply)
 
   implicit val logger: Logger[IO] = Slf4jLogger.getLogger
 
-  val header =
-    s"""|
-        |******************************************************
-        |A DAP server for debugging Daffodil schema processors.
-        |
-        |Build info:
-        |  version: ${BuildInfo.version}
-        |  daffodilVersion: ${BuildInfo.daffodilVersion}
-        |  scalaVersion: ${BuildInfo.scalaVersion}
-        |  sbtVersion: ${BuildInfo.sbtVersion}
-        |Runtime info:
-        |  JVM version: ${System.getProperty("java.version")} (${System.getProperty("java.home")})
-        |******************************************************""".stripMargin
+  def getHeader(daffodilVersion: Option[String]): String = {
+    val header =
+      s"""|
+          |******************************************************
+          |A DAP server for debugging Daffodil schema processors.
+          |
+          |Build info:
+          |  version: ${BuildInfo.version}
+          |  scalaVersion: ${BuildInfo.scalaVersion}
+          |  sbtVersion: ${BuildInfo.sbtVersion}
+          |Runtime info:
+          |  JVM version: ${System.getProperty("java.version")} (${System.getProperty("java.home")})
+          |******************************************************""".stripMargin
+
+    daffodilVersion match {
+      case Some(version) =>
+        header.replace(
+          s"Runtime info:",
+          s"Runtime info:\n  Daffodil Version: ${version}"
+        )
+      case None => header
+    }
+  }
+
+  def getDaffodilCLIJars(daffodilVersion: String): Unit = {
+    val url =
+      s"https://www.apache.org/dyn/closer.lua/download/daffodil/${daffodilVersion}/bin/apache-daffodil-${daffodilVersion}-bin.zip"
+    val dest = Paths.get(sys.props("user.home"), ".cache", "daffodil-debugger")
+
+    // If jars folder exists already, don't try downloading and unzipping
+    if (java.nio.file.Files.exists(Paths.get(dest.toString(), s"apache-daffodil-$daffodilVersion-bin"))) {
+      return
+    }
+
+    DownloadExtractUtils.downloadAndUnzip(url, dest)
+  }
 
   def run(args: List[String]): IO[ExitCode] =
     CommandIOApp.run(
       name = "DAPodil",
-      header = header,
+      header = getHeader(None),
       version = Some(BuildInfo.version)
     )(
       opts.map(run),
@@ -467,10 +493,14 @@ object DAPodil extends IOApp {
 
   def run(options: Options): IO[ExitCode] =
     for {
-      _ <- Logger[IO].info(header)
+      _ <- Logger[IO].info("Checking for Daffodil CLI JARs")
+      _ = getDaffodilCLIJars(options.daffodilVersion)
+      _ <- Logger[IO].info(getHeader(Some(options.daffodilVersion)))
       _ <- options match {
-        case Options(listenPort, listenTimeout) =>
-          Logger[IO].info(s"launched with options listenPort: $listenPort, listenTimeout: $listenTimeout")
+        case Options(listenPort, listenTimeout, daffodilVersion) =>
+          Logger[IO].info(
+            s"launched with options daffodilVersion: $daffodilVersion, listenPort: $listenPort, listenTimeout: $listenTimeout"
+          )
       }
 
       _ <- Ref[IO].of[State](State.Uninitialized) // state for the DAPodil instance
@@ -538,7 +568,7 @@ object DAPodil extends IOApp {
 
   case class Done(restart: Boolean = false)
 
-  case class Options(listenPort: Int, listenTimeout: Duration)
+  case class Options(listenPort: Int, listenTimeout: Duration, daffodilVersion: String)
 
   /** DAPodil launches the debugee which reports its state and handles debug commands. */
   trait Debugee {

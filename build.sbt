@@ -228,8 +228,7 @@ lazy val debuggers = {
         name,
         version,
         scalaVersion,
-        sbtVersion,
-        "daffodilVersion" -> getDaffodilVersion(scalaBinaryVersion.value)
+        sbtVersion
       ),
       packageName := s"${name.value}-${scalaBinaryVersion.value}",
       // This allowed for having common code between scala 2.12 and 2.13 so its not duplicated
@@ -268,11 +267,11 @@ def getPlatformSpecificLibraries(scalaBinaryVersion: String) = {
   val daffodilVersion = getDaffodilVersion(scalaBinaryVersion)
 
   if (scalaBinaryVersion == "3")
-    Seq("org.apache.daffodil" %% "daffodil-core" % daffodilVersion)
+    Seq("org.apache.daffodil" %% "daffodil-core" % daffodilVersion % "provided,test")
   else
     Seq(
-      "org.apache.daffodil" %% "daffodil-sapi" % daffodilVersion,
-      "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVersion,
+      "org.apache.daffodil" %% "daffodil-sapi" % daffodilVersion % "provided,test",
+      "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVersion % "provided,test",
       "org.apache.daffodil" %% "daffodil-lib" % daffodilVersion % Test
     )
 }
@@ -301,12 +300,16 @@ def buildScalacOptions(scalaBinaryVersion: String) = {
   else
     commonSettings ++ Seq("--release", jdkCompat)
 }
+
 def getDaffodilVersion(scalaBinaryVersion: String) = daffodilVers
   .find { case (key, value) =>
     value == scalaBinaryVersion
   }
   .map(_._1)
   .getOrElse("")
+  .replaceAll("[><=]", "")
+  .split(",")
+  .head
 
 def getDaffodilJarName(scalaBinaryVersion: String) =
   if (scalaBinaryVersion == "3") "daffodil-core"
