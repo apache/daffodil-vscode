@@ -191,8 +191,8 @@ lazy val `daffodil-debugger` = project
   .aggregate(debuggers.projectRefs: _*)
 
 /** Since using projectMatrix, there will be a debugger, debugger2_12 and debugger3 target. The debugger target is for
-  * Daffodil 3.11.0 and Scala 2.13. The debugger2_12 target is for Daffodil 3.10.0 abd older and Scala 2.12. The debugger3
-  * target is for Daffodil 4.0.0 and newer and Scala 3. (only availabe when using JDK 17+)
+  * Daffodil 3.11.0 and Scala 2.13. The debugger2_12 target is for Daffodil 3.10.0 abd older and Scala 2.12. The
+  * debugger3 target is for Daffodil 4.0.0 and newer and Scala 3. (only availabe when using JDK 17+)
   *
   * When running something like "sbt test" that will run all targets. To use a single target do one of: sbt
   * debugger/test OR sbt debugger2_12/test OR sbt debugger3/test. Based on which version of the debugger you are
@@ -230,7 +230,7 @@ lazy val debuggers = {
         scalaVersion,
         sbtVersion
       ),
-      packageName := s"${name.value}-${scalaBinaryVersion.value}",
+      packageName := s"${name.value}-${scalaBinaryVersion.value}"
     )
     .jvmPlatform(
       scalaVersions = Seq("2.12.20"),

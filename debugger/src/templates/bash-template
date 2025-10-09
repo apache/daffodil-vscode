@@ -231,12 +231,6 @@ process_args () {
     residual_args=()
     process_my_args "${myargs[@]}"
   }
-
-  # for ((i=0; i < ${#residual_args[@]}; i++)); do
-  #   if [[ ${residual_args[$i]} == "--daffodilVersion" ]]; then
-  #     daffodil_version=${residual_args[$i+1]}
-  #   fi
-  # done
 }
 
 # Actually runs the script.
@@ -357,9 +351,6 @@ Usage: $script_name [options]
   -Dkey=val          pass -Dkey=val directly to the java runtime
   -J-X               pass option -X directly to the java runtime
                      (-J is stripped)
-
-  # daffodil related options
-  --daffodilVersion  The version of Daffodil to use
 
   # special option
   --                 To stop parsing built-in commands from the rest of the command-line.
