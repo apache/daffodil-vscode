@@ -4,8 +4,8 @@
   "description": "Apache Daffodil™ Extension for Visual Studio Code providing DFDL syntax highlighting, DFDL code completion, DFDL schema debugging, and data editor",
   "version": "1.4.2-SNAPSHOT",
   "daffodilScalaVersions": {
-    "<=3.10.0,<3.11.0": "2.12",
-    ">=3.11.0,<4.0.0": "2.13",
+    "<=3.10.0": "2.12",
+    "=3.11.0": "2.13",
     ">=4.0.0": "3"
   },
   "publisher": "asf",
@@ -689,17 +689,17 @@
               },
               "dfdlDebugger": {
                 "type": "object",
-                "description": "Configuration for debugger. Settings are version (any valid Daffodil version), timeout and logging (level and file)",
+                "description": "Configuration for debugger. Settings are daffodilVersion, timeout and logging (level and file)",
                 "properties": {
-                  "version": {
+                  "daffodilVersion": {
                     "type": "string",
                     "default": "3.11.0",
-                    "description": "Debugger version to use. Any Daffodil version is valid"
+                    "description": "Daffodil version to use."
                   },
                   "timeout": {
                     "type": "string",
                     "default": "10s",
-                    "description": "Timeout in seconds(s), minutes(m) or hours(h) for the debugger."
+                    "description": "Debugger connection timeout in seconds(s), minutes(m) or hours(h)"
                   },
                   "logging": {
                     "type": "object",
@@ -774,7 +774,7 @@
               }
             },
             "dfdlDebugger": {
-              "version": "2.13",
+              "daffodilVersion": "3.11.0",
               "timeout": "10s",
               "logging": {
                 "level": "INFO",
@@ -822,7 +822,7 @@
                 }
               },
               "dfdlDebugger": {
-                "version": "2.13",
+                "daffodilVersion": "3.11.0",
                 "timeout": "10s",
                 "logging": {
                   "level": "INFO",
@@ -944,9 +944,9 @@
           },
           "dfdlDebugger": {
             "type": "object",
-            "description": "Configuration for debugger. Settings are are version (any valid Daffodil version), timeout and logging (level and file)",
+            "description": "Configuration for debugger. Settings are are daffodilVersion, timeout and logging (level and file)",
             "default": {
-              "version": "3.11.0",
+              "daffodilVersion": "3.11.0",
               "timeout": "10s",
               "logging": {
                 "level": "INFO",

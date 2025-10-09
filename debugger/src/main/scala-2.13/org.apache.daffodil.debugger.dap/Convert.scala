@@ -22,19 +22,7 @@
 
 package org.apache.daffodil.debugger.dap
 
-import scala.jdk.CollectionConverters._
-
 object Convert {
-  /* As Java wrapper methods */
-  def asJavaList[T](scalaList: List[T]): java.util.List[T] = scalaList.asJava
-  def asJavaMap[K, V](scalaMap: Map[K, V]): java.util.Map[K, V] = scalaMap.asJava
-
-  /* As Scala wrapper methods */
-  def asScalaList[T](javaList: java.util.List[T]): List[T] = javaList.asScala.toList
-  def asScalaList[T](scalaSeq: Seq[T]): List[T] = scalaSeq.toList
-  def asScalaSet[K, V](javaSet: java.util.Set[java.util.Map.Entry[K, V]]): scala.collection.mutable.Set[(K, V)] =
-    javaSet.asScala.map(entry => entry.getKey -> entry.getValue)
-
   /* Daffodil Maybe wrapper methods */
   def daffodilMaybeToOption[T <: AnyRef](maybe: org.apache.daffodil.lib.util.Maybe[T]): Option[T] = maybe.toOption
 }

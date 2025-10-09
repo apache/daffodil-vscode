@@ -23,7 +23,9 @@ import path from 'path'
 import { VSCodeLaunchConfigArgs } from './classes/vscode-launch'
 import { InfosetOutput } from './daffodilDebugger'
 import { XMLParser } from 'fast-xml-parser'
-
+import * as unzip from 'unzip-stream'
+import { pipeline } from 'stream/promises'
+import { Transform } from 'stream'
 let currentConfig: vscode.DebugConfiguration
 
 export const terminalName = 'daffodil-debugger'
@@ -157,7 +159,7 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
       },
     }),
     dfdlDebugger: defaultConf.get('dfdlDebugger', {
-      version: '3.11.0',
+      daffodilVersion: '3.11.0',
       timeout: '10s',
       logging: {
         level: 'INFO',
@@ -279,7 +281,7 @@ export async function runScript(
   type: string = '',
   hideTerminal: boolean = false,
   port: number | undefined = undefined
-) {
+): Promise<vscode.Terminal> {
   // Get the full path to the script
   const scriptFullPath = path.join(scriptPath, 'bin', scriptName)
 
@@ -318,6 +320,7 @@ export async function runScript(
     const wait_port = require('wait-port')
     await wait_port({ host: '127.0.0.1', port: port, output: 'silent' })
   }
+
   return terminal
 }
 
@@ -465,3 +468,68 @@ export const displayModalError = async (
     .then(undefined, () =>
       vscode.window.showErrorMessage(message, { modal: false })
     )
+
+/**
+ * Displays a progress bar while downloading and extracting a file
+ *
+ * @param title A title to use for printing to the user what is being downloaded
+ * @param url The url to donwload the binary from
+ * @param targetDir The directory to target for extraction
+ */
+export async function downloadAndExtract(
+  title: string,
+  url: string,
+  targetDir: string
+): Promise<void> {
+  await vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: `Downloading ${title}...`,
+      cancellable: false,
+    },
+    async (progress) => {
+      progress.report({ increment: 0, message: 'Starting download...' })
+
+      const res = await fetch(url)
+      if (!res.ok || !res.body) {
+        throw new Error(
+          `Failed to download ${url}: ${res.status} ${res.statusText}`
+        )
+      }
+
+      const totalBytes = Number(res.headers.get('content-length')) || 0
+      let downloaded = 0
+      let lastPercent = 0
+
+      // Transform stream to track download progress
+      const progressStream = new Transform({
+        transform(chunk: Buffer, _encoding, callback) {
+          downloaded += chunk.length
+          if (totalBytes > 0) {
+            const percent = (downloaded / totalBytes) * 100
+            const increment = percent - lastPercent
+            lastPercent = percent
+            progress.report({
+              increment,
+              message: `${percent.toFixed(1)}%`,
+            })
+          }
+          callback(null, chunk)
+        },
+      })
+
+      await fs.promises.mkdir(targetDir, { recursive: true })
+
+      await pipeline(
+        res.body as any,
+        progressStream,
+        unzip.Extract({ path: targetDir })
+      )
+
+      progress.report({
+        increment: 100 - lastPercent,
+        message: 'Extracting complete!',
+      })
+    }
+  )
+}

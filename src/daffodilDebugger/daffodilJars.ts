@@ -17,42 +17,45 @@
 
 import * as path from 'path'
 import * as fs from 'fs'
-import * as unzip from 'unzip-stream'
-import * as os from 'os'
-import { pipeline } from 'stream/promises'
-
+import * as vscode from 'vscode'
 import { outputChannel } from '../adapter/activateDaffodilDebug'
+import { downloadAndExtract } from '../utils'
 
-async function downloadAndExtractDaffodilCLIJars(
-  url: string,
-  targetDir: string
-): Promise<void> {
-  outputChannel.appendLine(
-    `[INFO] Daffodil CLI JARs don't exist. Downloading and extracting...`
+/**
+ * The daffodil debugger doesn't bundle any of daffodil jars because we want to support
+ * many versions of daffodil and do not want to bundle them all. The CLI zip is an official
+ * daffodil release that contains all the daffodil jars (and their transitive dependencies)
+ * that the debugger needs for a particular Daffodil version. The debugger doesn't need all
+ * the jars that it bundles (e.g. daffodil-cli.jar) but those will just be ignored.
+ */
+export async function checkIfDaffodilJarsNeeded(
+  daffodilVersion: string
+): Promise<string> {
+  const context = (await vscode.commands.executeCommand(
+    'getContext'
+  )) as vscode.ExtensionContext
+
+  /**
+   * Global storage paths:
+   *  Mac: /Users/<username>/Library/Application Support/Code/User/globalStorage/asf.apache-daffodil-vscode
+   *  Windows: %APPDATA%\Code\User\globalStorage\asf.apache-daffodil-vscode
+   *  Linux: /home/<username>/.config/Code/User/globalStorage/asf.apache-daffodil-vscode
+   */
+
+  const destFolder = path.join(
+    context.globalStorageUri.fsPath,
+    '.cache',
+    'daffodil-debugger'
+  )
+  const binFolder = path.join(
+    destFolder,
+    `apache-daffodil-${daffodilVersion}-bin`
   )
 
-  const res = await fetch(url)
-  if (!res.ok || !res.body) {
-    throw new Error(
-      `Failed to download ${url}: ${res.status} ${res.statusText}`
-    )
-  }
-
-  // Pipe the response body stream into unzip-stream and wait for completion
-  await pipeline(res.body as any, unzip.Extract({ path: targetDir }))
-}
-
-export async function checkIfDaffodilJarsNeeded(daffodilVersion: string) {
-  const destFolder = path.join(os.homedir(), '.cache', 'daffodil-debugger')
-
-  if (
-    !fs.existsSync(
-      path.join(destFolder, `apache-daffodil-${daffodilVersion}-bin`)
-    )
-  ) {
+  if (!fs.existsSync(binFolder)) {
     const url = `https://www.apache.org/dyn/closer.lua/download/daffodil/${daffodilVersion}/bin/apache-daffodil-${daffodilVersion}-bin.zip`
     try {
-      await downloadAndExtractDaffodilCLIJars(url, destFolder)
+      await downloadAndExtract('Daffodil CLI JARs', url, destFolder)
     } catch (err) {
       console.error(err)
     }
@@ -61,4 +64,6 @@ export async function checkIfDaffodilJarsNeeded(daffodilVersion: string) {
       `[INFO] Daffodil CLI JARs already exists. Skipping download.`
     )
   }
+
+  return binFolder
 }

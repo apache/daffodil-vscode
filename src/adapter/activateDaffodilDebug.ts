@@ -232,6 +232,9 @@ export function activateDaffodilDebug(
   setupViews(context)
 
   context.subscriptions.push(
+    vscode.commands.registerCommand('getContext', () => context)
+  )
+  context.subscriptions.push(
     vscode.commands.registerCommand(
       'extension.dfdl-debug.runEditorContents',
       (resource: vscode.Uri) => {

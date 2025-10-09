@@ -42,6 +42,7 @@ import org.apache.daffodil.lib.util.Misc
 import org.apache.daffodil.tdml.TDML
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 /** A Daffodil parse of a schema against data. */
@@ -94,18 +95,13 @@ object Parse {
             val stopper =
               pleaseStop.get *> IO.canceled // will cancel the concurrent parse effect
 
-            val infosetOutputter = infosetFormat match {
-              case "xml"  => new XMLTextInfosetOutputter(os, true)
-              case "json" => new JsonInfosetOutputter(os, true)
-            }
-
             val dataSize = data.available()
 
             val parse =
               IO.interruptibleMany(
                 dp.parse(
-                  Support.getInputSourceDataInputStream(data),
-                  infosetOutputter
+                  Support.getInfosetInputter(data),
+                  Support.getInfosetOutputter(infosetFormat, os)
                 )
                 // WARNING: parse doesn't close the OutputStream, so closed below
               ).flatTap { res =>
@@ -113,8 +109,8 @@ object Parse {
                   dapEvents
                     .send(
                       Parse.Event.Error(
-                        Convert
-                          .asScalaList(res.getDiagnostics)
+                        Support
+                          .parseDiagnosticList(res.getDiagnostics)
                           .toList
                           .map(d => d.toString)
                           .mkString("\n")
@@ -123,7 +119,7 @@ object Parse {
                     .void
                 } else IO.unit
               }.ensureOr { res =>
-                new Parse.Exception(Convert.asScalaList(res.getDiagnostics).toList)
+                new Parse.Exception(Support.parseDiagnosticList(res.getDiagnostics).toList)
               }(res => !res.isError())
                 .flatMap { parseResult =>
                   val loc = parseResult.location()
@@ -528,12 +524,7 @@ object Parse {
     // arguments: Launch config
     def parseVariables(arguments: JsonObject) =
       Option(arguments.getAsJsonObject("variables"))
-        .map((elem: com.google.gson.JsonElement) =>
-          Convert
-            .asScalaSet(elem.getAsJsonObject().entrySet())
-            .map { case (k, v) => k -> v.getAsString }
-            .toMap
-        )
+        .map(_.getAsJsonObject().entrySet().asScala.map(kv => kv.getKey -> kv.getValue.getAsString()).toMap)
         .getOrElse(Map.empty[String, String])
         .asRight[String]
         .toEitherNel
@@ -543,12 +534,7 @@ object Parse {
     // arguments: Launch config
     def parseTunables(arguments: JsonObject) =
       Option(arguments.getAsJsonObject("tunables"))
-        .map((elem: com.google.gson.JsonElement) =>
-          Convert
-            .asScalaSet(elem.getAsJsonObject().entrySet())
-            .map { case (k, v) => k -> v.getAsString }
-            .toMap
-        )
+        .map(_.getAsJsonObject().entrySet().asScala.map(kv => kv.getKey -> kv.getValue.getAsString()).toMap)
         .getOrElse(Map.empty[String, String])
         .asRight[String]
         .toEitherNel
@@ -1223,14 +1209,10 @@ object Parse {
 
     private def infosetToString(format: String, ie: DIElement): String = {
       val bos = new java.io.ByteArrayOutputStream()
-      val infosetOutputter = format match {
-        case "xml"  => new XMLTextInfosetOutputter(bos, true)
-        case "json" => new JsonInfosetOutputter(bos, true)
-      }
 
       val iw = InfosetWalker(
         ie.asInstanceOf[DIElement],
-        infosetOutputter,
+        Support.getInfosetOutputter(format, bos),
         walkHidden = false,
         ignoreBlocks = true,
         releaseUnneededInfoset = false

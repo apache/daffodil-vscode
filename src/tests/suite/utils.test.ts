@@ -60,7 +60,7 @@ suite('Utils Test Suite', () => {
       },
     },
     dfdlDebugger: {
-      version: '3.11.0',
+      daffodilVersion: '3.11.0',
       timeout: '10s',
       logging: {
         level: 'INFO',

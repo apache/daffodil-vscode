@@ -212,6 +212,8 @@ process_args () {
 
      -java-home) require_arg path "$1" "$2" && jre=`eval echo $2` && java_cmd="$jre/bin/java" && shift 2 ;;
 
+     --daffodilPath) daffodil_path="$2" && shift 2 ;;
+
  -D*|-agentlib*|-XX*) addJava "$1" && shift ;;
                  -J*) addJava "${1:2}" && shift ;;
                    *) addResidual "$1" && shift ;;
@@ -230,11 +232,11 @@ process_args () {
     process_my_args "${myargs[@]}"
   }
 
-  for ((i=0; i < ${#residual_args[@]}; i++)); do
-    if [[ ${residual_args[$i]} == "--daffodilVersion" ]]; then
-      daffodil_version=${residual_args[$i+1]}
-    fi
-  done
+  # for ((i=0; i < ${#residual_args[@]}; i++)); do
+  #   if [[ ${residual_args[$i]} == "--daffodilVersion" ]]; then
+  #     daffodil_version=${residual_args[$i+1]}
+  #   fi
+  # done
 }
 
 # Actually runs the script.
@@ -270,8 +272,13 @@ run() {
   fi
 
   # add daffodil jars to classpath
-  daffodil_version="${daffodil_version:-3.11.0}"
-  daffodil_jars=$(echo ~/.cache/daffodil-debugger/apache-daffodil-${daffodil_version}-bin/lib/*.jar | sed "s/ /:/g")
+  if [[ -z $daffodil_path ]]; then
+    echo "No Daffodil path provided using the --daffodilPath flag. Exiting as debugger can't run without the Daffodil path"
+    exit 1
+  fi
+
+  daffodil_lib_dir=$(echo $daffodil_path/lib | sed 's/ /\ /g')
+  daffodil_jars="$daffodil_lib_dir/"'*'
   new_classpath="$app_classpath:$daffodil_jars"
 
   if [[ "$DAFFODIL_DEBUG_CLASSPATH" != "" ]]; then

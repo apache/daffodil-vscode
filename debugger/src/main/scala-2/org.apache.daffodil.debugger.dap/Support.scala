@@ -26,6 +26,7 @@ import java.io._
 import java.nio.file.Path
 import org.apache.daffodil.sapi._
 import org.apache.daffodil.sapi.io.InputSourceDataInputStream
+import org.apache.daffodil.sapi.infoset.{JsonInfosetOutputter, XMLTextInfosetOutputter}
 
 object Support {
   /* Daffodil DataProcessor wrapper methods */
@@ -39,10 +40,13 @@ object Support {
       .withExternalVariables(variables)
       .withValidationMode(ValidationMode.Limited)
 
-  /* Daffodil InputSourceDataInputStream wrapper methods */
-  def getInputSourceDataInputStream(data: InputStream): InputSourceDataInputStream = new InputSourceDataInputStream(
-    data
-  )
+  /* Daffodil infoset wrapper methods */
+  def getInfosetInputter(data: InputStream): InputSourceDataInputStream = new InputSourceDataInputStream(data)
+  def getInfosetOutputter(infosetFormat: String, stream: OutputStream): InfosetOutputter =
+    infosetFormat match {
+      case "xml"  => new XMLTextInfosetOutputter(stream, true)
+      case "json" => new JsonInfosetOutputter(stream, true)
+    }
 
   /* Daffodil ProcessorFactory wrapper methods */
   def getProcessorFactory(

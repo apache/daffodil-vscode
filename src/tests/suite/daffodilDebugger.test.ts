@@ -68,16 +68,16 @@ suite('Daffodil Debugger', function (this: Suite) {
      * too dramatic of performance decrease and time increase.
      */
     for (var i = 0; i < dfdlDebuggerConfigs.length; i++) {
-      debuggers.push(
-        await runDebugger(
-          PROJECT_ROOT,
-          [],
-          PACKAGE_PATH,
-          dfdlDebuggerConfigs[i].port,
-          dfdlDebuggerConfigs[i].debugger,
-          true
-        )
+      let newDebugger = await runDebugger(
+        PROJECT_ROOT,
+        [],
+        PACKAGE_PATH,
+        dfdlDebuggerConfigs[i].port,
+        dfdlDebuggerConfigs[i].debugger,
+        true
       )
+
+      newDebugger ? debuggers.push(newDebugger) : true
     }
 
     await addDebuggerRunningTests(
@@ -93,7 +93,7 @@ suite('Daffodil Debugger', function (this: Suite) {
 
   test('debugger config size is correct', async () => {
     assert.strictEqual(
-      (await getDebuggerVersionsToTest()).length * 2,
+      (await getDaffodilVersionsToTest()).length * 2,
       dfdlDebuggerConfigs.length
     )
   })
@@ -106,7 +106,7 @@ suite('Daffodil Debugger', function (this: Suite) {
     }
 
     // No need to deleted the debugging server because upon re-run, webpack cleans and re-extracts it.
-    ;(await getDebuggerVersionsToTest()).forEach((version) => {
+    ;(await getDaffodilVersionsToTest()).forEach((version) => {
       const xmlPath = XML_INFOSET_PATH.replace('.xml', `${version}.xml`)
       const jsonPath = JSON_INFOSET_PATH.replace('.json', `${version}.json`)
       if (fs.existsSync(xmlPath)) fs.rmSync(xmlPath)
@@ -116,7 +116,7 @@ suite('Daffodil Debugger', function (this: Suite) {
 })
 
 // Gets all debugger version to test based on if JDK is >= 17
-async function getDebuggerVersionsToTest(): Promise<Array<string>> {
+async function getDaffodilVersionsToTest(): Promise<Array<string>> {
   const javaHome = await getJavaHome()
   const isAtLeastJdk17: boolean = parseFloat(javaHome?.version ?? '0') >= 17
 
@@ -131,7 +131,7 @@ async function getDebuggerVersionsToTest(): Promise<Array<string>> {
  * configs, one for XML and one for JSON.
  */
 async function getDebuggerConfigs() {
-  const debuggerVersionsToTest = await getDebuggerVersionsToTest()
+  const debuggerVersionsToTest = await getDaffodilVersionsToTest()
   let versionIndex = 0
 
   for (var i = 0; i < debuggerVersionsToTest.length * 2; i++) {
@@ -140,7 +140,7 @@ async function getDebuggerConfigs() {
     const port = 4711 + i
     const infosetFormat = i % 2 == 0 ? 'xml' : 'json'
     const dfdlDebugger: DFDLDebugger = {
-      version: debuggerVersionsToTest[versionIndex],
+      daffodilVersion: debuggerVersionsToTest[versionIndex],
       timeout: '60s',
       logging: {
         level: 'INFO',
@@ -221,12 +221,12 @@ async function addDebuggerRunningTests(
       debuggerConfig.infosetFormat == 'xml' ? xmlInfosetPath : jsonInfosetPath
     const infosetPath = baseInfosetPath.replace(
       `.${debuggerConfig.infosetFormat}`,
-      `${debuggerConfig.debugger.version}.${debuggerConfig.infosetFormat}`
+      `${debuggerConfig.debugger.daffodilVersion}.${debuggerConfig.infosetFormat}`
     )
 
     suite.addTest(
       new Test(
-        `should output ${debuggerConfig.infosetFormat} infoset - debugger version ${debuggerConfig.debugger.version}`,
+        `should output ${debuggerConfig.infosetFormat} infoset - debugger version ${debuggerConfig.debugger.daffodilVersion}`,
         async function () {
           await checkDebug(
             data,

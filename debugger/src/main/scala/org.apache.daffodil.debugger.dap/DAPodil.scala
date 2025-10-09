@@ -35,11 +35,12 @@ import java.io._
 import java.net._
 import java.nio.file.Path
 import java.nio.file.Paths
+import org.apache.daffodil.lib.util.Misc
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import scala.concurrent.duration._
-
+import scala.jdk.CollectionConverters._
 import logging._
 
 /** Communication interface to a DAP server while in a connected session. */
@@ -284,7 +285,7 @@ class DAPodil(
             // format: on
           }
           response = request.respondSuccess(
-            new Responses.SetBreakpointsResponseBody(Convert.asJavaList(breakpoints))
+            new Responses.SetBreakpointsResponseBody(breakpoints.asJava)
           )
           _ <- session.sendResponse(response)
         } yield ()
@@ -300,7 +301,7 @@ class DAPodil(
           threads <- launched.threads
           _ <- session.sendResponse(
             request.respondSuccess(
-              new Responses.ThreadsResponseBody(Convert.asJavaList(threads))
+              new Responses.ThreadsResponseBody(threads.asJava)
             )
           )
         } yield ()
@@ -314,7 +315,7 @@ class DAPodil(
           stackTrace <- launched.stackTrace
           response = request.respondSuccess(
             new Responses.StackTraceResponseBody(
-              Convert.asJavaList(stackTrace.frames.map(_.stackFrame)),
+              stackTrace.frames.map(_.stackFrame).asJava,
               stackTrace.frames.size
             )
           )
@@ -379,7 +380,7 @@ class DAPodil(
             ) { frame =>
               session.sendResponse(
                 request
-                  .respondSuccess(new Responses.ScopesResponseBody(Convert.asJavaList(frame.scopes.map(_.toDAP()))))
+                  .respondSuccess(new Responses.ScopesResponseBody(frame.scopes.map(_.toDAP()).asJava))
               )
             }
         } yield ()
@@ -404,7 +405,7 @@ class DAPodil(
               )
             )(variables =>
               session.sendResponse(
-                request.respondSuccess(new Responses.VariablesResponseBody(Convert.asJavaList(variables)))
+                request.respondSuccess(new Responses.VariablesResponseBody(variables.asJava))
               )
             )
         } yield ()
@@ -436,55 +437,29 @@ object DAPodil extends IOApp {
         .withDefault(4711),
       Opts
         .option[Duration]("listenTimeout", "duration to wait for a DAP client connection (default: 10s)")
-        .withDefault(10.seconds),
-      Opts
-        .option[String]("daffodilVersion", "version of Daffodil to use (default: 3.11.0)")
-        .withDefault("3.11.0")
+        .withDefault(10.seconds)
     ).mapN(Options.apply)
 
   implicit val logger: Logger[IO] = Slf4jLogger.getLogger
 
-  def getHeader(daffodilVersion: Option[String]): String = {
-    val header =
-      s"""|
-          |******************************************************
-          |A DAP server for debugging Daffodil schema processors.
-          |
-          |Build info:
-          |  version: ${BuildInfo.version}
-          |  scalaVersion: ${BuildInfo.scalaVersion}
-          |  sbtVersion: ${BuildInfo.sbtVersion}
-          |Runtime info:
-          |  JVM version: ${System.getProperty("java.version")} (${System.getProperty("java.home")})
-          |******************************************************""".stripMargin
-
-    daffodilVersion match {
-      case Some(version) =>
-        header.replace(
-          s"Runtime info:",
-          s"Runtime info:\n  Daffodil Version: ${version}"
-        )
-      case None => header
-    }
-  }
-
-  def getDaffodilCLIJars(daffodilVersion: String): Unit = {
-    val url =
-      s"https://www.apache.org/dyn/closer.lua/download/daffodil/${daffodilVersion}/bin/apache-daffodil-${daffodilVersion}-bin.zip"
-    val dest = Paths.get(sys.props("user.home"), ".cache", "daffodil-debugger")
-
-    // If jars folder exists already, don't try downloading and unzipping
-    if (java.nio.file.Files.exists(Paths.get(dest.toString(), s"apache-daffodil-$daffodilVersion-bin"))) {
-      return
-    }
-
-    DownloadExtractUtils.downloadAndUnzip(url, dest)
-  }
+  val header =
+    s"""|
+        |******************************************************
+        |A DAP server for debugging Daffodil schema processors.
+        |
+        |Build info:
+        |  version: ${BuildInfo.version}
+        |  scalaVersion: ${BuildInfo.scalaVersion}
+        |  sbtVersion: ${BuildInfo.sbtVersion}
+        |Runtime info:
+        |  JVM version: ${System.getProperty("java.version")} (${System.getProperty("java.home")})
+        |  Daffodil Version: ${Misc.getDaffodilVersion}
+        |******************************************************""".stripMargin
 
   def run(args: List[String]): IO[ExitCode] =
     CommandIOApp.run(
       name = "DAPodil",
-      header = getHeader(None),
+      header = header,
       version = Some(BuildInfo.version)
     )(
       opts.map(run),
@@ -493,13 +468,11 @@ object DAPodil extends IOApp {
 
   def run(options: Options): IO[ExitCode] =
     for {
-      _ <- Logger[IO].info("Checking for Daffodil CLI JARs")
-      _ = getDaffodilCLIJars(options.daffodilVersion)
-      _ <- Logger[IO].info(getHeader(Some(options.daffodilVersion)))
+      _ <- Logger[IO].info(header)
       _ <- options match {
-        case Options(listenPort, listenTimeout, daffodilVersion) =>
+        case Options(listenPort, listenTimeout) =>
           Logger[IO].info(
-            s"launched with options daffodilVersion: $daffodilVersion, listenPort: $listenPort, listenTimeout: $listenTimeout"
+            s"launched with options listenPort: $listenPort, listenTimeout: $listenTimeout"
           )
       }
 
@@ -568,7 +541,7 @@ object DAPodil extends IOApp {
 
   case class Done(restart: Boolean = false)
 
-  case class Options(listenPort: Int, listenTimeout: Duration, daffodilVersion: String)
+  case class Options(listenPort: Int, listenTimeout: Duration)
 
   /** DAPodil launches the debugee which reports its state and handles debug commands. */
   trait Debugee {
@@ -804,7 +777,7 @@ object DAPodil extends IOApp {
 
   object LoadedSources {
     def apply(sources: List[Source]): LoadedSources =
-      LoadedSources(Convert.asJavaList(sources.map(_.toDAP)))
+      LoadedSources(sources.map(_.toDAP).asJava)
   }
 
   /** Our own capabilities data type that is a superset of java-debug, which doesn't have

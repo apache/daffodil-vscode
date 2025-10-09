@@ -114,29 +114,35 @@ if defined CUSTOM_MAIN_CLASS (
     set MAIN_CLASS=!APP_MAIN_CLASS!
 )
 
-rem if --daffodilVersion is passed make sure to grab the value
-set "nextIsDaffodilVersion="
-for %%a in (%_APP_ARGS%) do (
-    @REM echo %%a
-    if "%%a" == "--daffodilVersion" (
-      set "nextIsDaffodilVersion=true"
-    )
+@REM rem if --daffodilVersion is passed make sure to grab the value
+@REM set "nextIsDaffodilVersion="
+@REM for %%a in (%_APP_ARGS%) do (
+@REM     @REM echo %%a
+@REM     if "%%a" == "--daffodilVersion" (
+@REM       set "nextIsDaffodilVersion=true"
+@REM     )
 
-    if defined nextIsDaffodilVersion (
-      set "DAFFODIL_VERSION=%%a"
-      break
-    )
-)
+@REM     if defined nextIsDaffodilVersion (
+@REM       set "DAFFODIL_VERSION=%%a"
+@REM       break
+@REM     )
+@REM )
 
-rem if --daffodilVersion wasn't passed default to 3.11.0
-if not defined DAFFODIL_VERSION (
-    set "DAFFODIL_VERSION=3.11.0"
-)
+@REM rem if --daffodilVersion wasn't passed default to 3.11.0
+@REM if not defined DAFFODIL_VERSION (
+@REM     set "DAFFODIL_VERSION=3.11.0"
+@REM )
 
 set NEW_CLASSPATH=%APP_CLASSPATH%
 
+rem ensure daffodil path provided
+if not defined DAFFODIL_PATH (
+  echo "No Daffodil path provided using the --daffodilPath flag. Exiting as debugger can't run without the Daffodil path"
+  exit 1
+)
+
 rem append all jars from the daffodil cli to the classpath
-for %%f in (%USERPROFILE%\.cache\daffodil-debugger\apache-daffodil-%DAFFODIL_VERSION%-bin\lib\*.jar) do (
+for %%f in (!DAFFODIL_PATH!\lib\*.jar) do (
     set NEW_CLASSPATH=!NEW_CLASSPATH!;%%f
 )
 
@@ -217,7 +223,12 @@ rem Processes incoming arguments and places them in appropriate global variables
       call set CUSTOM_MAIN_CLASS=%%2
       shift
     ) else (
-      set _APP_ARGS=!_APP_ARGS! !_PARAM1!
+      if "!_TEST_PARAM!"=="--daffodilPath" (
+        call set DAFFODIL_PATH=%%2
+        shift
+      ) else (
+        set _APP_ARGS=!_APP_ARGS! !_PARAM1!
+      )
     )
   )
   shift

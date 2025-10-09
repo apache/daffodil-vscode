@@ -26,7 +26,6 @@ package object dap {
   type Debugger = org.apache.daffodil.runtime1.debugger.Debugger
   type Diagnostic = org.apache.daffodil.lib.api.Diagnostic
   type SDiagnostic = org.apache.daffodil.sapi.Diagnostic
-  type JsonInfosetOutputter = org.apache.daffodil.sapi.infoset.JsonInfosetOutputter
-  type XMLTextInfosetOutputter = org.apache.daffodil.sapi.infoset.XMLTextInfosetOutputter
+  type InfosetOutputter = org.apache.daffodil.sapi.infoset.InfosetOutputter
   type DataProcessor = org.apache.daffodil.sapi.DataProcessor
 }

@@ -23,8 +23,8 @@ import javax.xml.bind.JAXBContext
 import javax.xml.bind.JAXBElement
 import javax.xml.bind.Marshaller
 import javax.xml.namespace.QName
-import org.apache.daffodil.debugger.dap.Convert
 import org.apache.daffodil.lib.xml.XMLUtils
+import scala.jdk.CollectionConverters._
 
 object TDML {
   def getDefaultTDMLTestCaseDescription(): String =
@@ -189,18 +189,18 @@ object TDML {
   def execute(tdmlName: String, tdmlPath: String): Option[(Path, Path)] = {
     val basePath = Paths.get(tdmlPath).toAbsolutePath().getParent().toString()
 
-    val testCaseList = Convert.asScalaList(
+    val testCaseList =
       JAXBContext
         .newInstance(classOf[TestSuite])
         .createUnmarshaller()
         .unmarshal(new File(tdmlPath))
         .asInstanceOf[TestSuite]
         .getTutorialOrParserTestCaseOrDefineSchema()
-    )
+        .asScala
 
     testCaseList.collectFirst {
       case (ptc: ParserTestCaseType) if ptc.getName() == tdmlName =>
-        Convert.asScalaList(ptc.getTutorialOrDocumentOrInfoset()).collectFirst { case doc: DocumentType =>
+        ptc.getTutorialOrDocumentOrInfoset().asScala.collectFirst { case doc: DocumentType =>
           // The right part of the tuple only takes the first DocumentPart inside the Document.
           // In the case that there are more than one, any extras will be ignored.
           val schemaPath = Paths.get(basePath + File.separator + ptc.getModel()).normalize()

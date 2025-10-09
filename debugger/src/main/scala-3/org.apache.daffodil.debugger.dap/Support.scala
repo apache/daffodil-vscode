@@ -25,7 +25,6 @@ package org.apache.daffodil.debugger.dap
 import java.io._
 import java.nio.file.Path
 import org.apache.daffodil.api._
-import org.apache.daffodil.io.InputSourceDataInputStream
 import scala.jdk.CollectionConverters._
 
 object Support {
@@ -35,8 +34,13 @@ object Support {
       .withExternalVariables(variables.asJava)
       .withValidation("daffodil")
 
-  /* Daffodil InputSourceDataInputStream wrapper methods */
-  def getInputSourceDataInputStream(data: InputStream): InputSourceDataInputStream = InputSourceDataInputStream(data)
+  /* Daffodil infoset wrapper methods */
+  def getInfosetInputter(data: InputStream): InputSourceDataInputStream = Daffodil.newInputSourceDataInputStream(data)
+  def getInfosetOutputter(infosetFormat: String, stream: OutputStream): InfosetOutputter =
+    infosetFormat match {
+      case "xml"  => Daffodil.newXMLTextInfosetOutputter(stream, true)
+      case "json" => Daffodil.newJsonInfosetOutputter(stream, true)
+    }
 
   /* Daffodil ProcessorFactory wrapper methods */
   def getProcessorFactory(
@@ -44,17 +48,11 @@ object Support {
       rootName: Option[String],
       rootNamespace: Option[String],
       tunables: Map[String, String]
-  ): ProcessorFactory = {
-    val compiler = Daffodil
+  ): ProcessorFactory =
+    Daffodil
       .compiler()
       .withTunables(tunables.asJava)
-
-    (rootName, rootNamespace) match {
-      case (Some(name), Some(ns)) => compiler.compileFile(schema.toFile(), name, ns)
-      case (Some(name), None)     => compiler.compileFile(schema.toFile(), name)
-      case _                      => compiler.compileFile(schema.toFile())
-    }
-  }
+      .compileFile(schema.toFile(), rootName.orNull, rootNamespace.orNull)
 
   /* Method to convert java list of diagnostics to a sequence of diagnostics */
   def parseDiagnosticList(

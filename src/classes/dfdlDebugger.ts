@@ -18,7 +18,7 @@
 import { LoggingConfig } from '../classes/loggingConfig'
 
 export interface DFDLDebugger {
-  version: string
+  daffodilVersion: string
   timeout: string
   logging: LoggingConfig
 }

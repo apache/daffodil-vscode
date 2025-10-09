@@ -114,7 +114,7 @@ lazy val xjcSettings =
 
       // Get the daffodil-lib or daffodil-core jar from the dependencies, this is the only jar we need to extract
       // files from
-      val daffodilLibJar = managedJars(Test, Set[String]("jar"), update.value)
+      val daffodilJarWithTdmlXsd = managedJars(Test, Set[String]("jar"), update.value)
         .map(_.data)
         .find(_.getName.contains(getDaffodilJarName(scalaBinaryVersion.value)))
         .get
@@ -124,7 +124,7 @@ lazy val xjcSettings =
       val cachedFun = FileFunction.cached(stream.cacheDirectory / "xjcSources") { _ =>
         // Extract the DFDL TDML schema file used for JAXB generation.
         IO.unzip(
-          daffodilLibJar,
+          daffodilJarWithTdmlXsd,
           xjcSourceDir,
           NameFilter.fnToNameFilter(f => f == "org/apache/daffodil/xsd/tdml.xsd")
         )
@@ -180,7 +180,7 @@ lazy val xjcSettings =
 
       // only invalidate the cache if the daffodil lib jar changed and so there could be a
       // chance the tdml.xsd file has been updated
-      cachedFun(Set(daffodilLibJar)).toSeq
+      cachedFun(Set(daffodilJarWithTdmlXsd)).toSeq
     }
   )
 
@@ -191,8 +191,8 @@ lazy val `daffodil-debugger` = project
   .aggregate(debuggers.projectRefs: _*)
 
 /** Since using projectMatrix, there will be a debugger, debugger2_12 and debugger3 target. The debugger target is for
-  * Daffodil 3.11.0 and Scala 2.13. The debugger2_12 target is for Daffodil 3.10.0 and Scala 2.12. The debugger3 target
-  * is for Daffodil 4.0.0 and Scala 3. (only availabe when using JDK 17+)
+  * Daffodil 3.11.0 and Scala 2.13. The debugger2_12 target is for Daffodil 3.10.0 abd older and Scala 2.12. The debugger3
+  * target is for Daffodil 4.0.0 and newer and Scala 3. (only availabe when using JDK 17+)
   *
   * When running something like "sbt test" that will run all targets. To use a single target do one of: sbt
   * debugger/test OR sbt debugger2_12/test OR sbt debugger3/test. Based on which version of the debugger you are
@@ -231,14 +231,6 @@ lazy val debuggers = {
         sbtVersion
       ),
       packageName := s"${name.value}-${scalaBinaryVersion.value}",
-      // This allowed for having common code between scala 2.12 and 2.13 so its not duplicated
-      Compile / unmanagedSourceDirectories ++= {
-        val v = scalaBinaryVersion.value
-        if (v == "2.12" || v == "2.13")
-          Seq((Compile / sourceDirectory).value / "scala-2")
-        else
-          Nil
-      }
     )
     .jvmPlatform(
       scalaVersions = Seq("2.12.20"),
@@ -273,7 +265,8 @@ def getPlatformSpecificLibraries(scalaBinaryVersion: String) = {
       "org.apache.daffodil" %% "daffodil-sapi" % daffodilVersion % "provided,test",
       "org.apache.daffodil" %% "daffodil-runtime1" % daffodilVersion % "provided,test",
       "org.apache.daffodil" %% "daffodil-lib" % daffodilVersion % Test
-    )
+    ) ++ (if (scalaBinaryVersion == "2.12") Seq("org.scala-lang.modules" %% "scala-collection-compat" % "2.14.0")
+          else Seq())
 }
 
 def getMinSupportedJavaVersion(scalaBinaryVersion: String): String =
@@ -308,8 +301,6 @@ def getDaffodilVersion(scalaBinaryVersion: String) = daffodilVers
   .map(_._1)
   .getOrElse("")
   .replaceAll("[><=]", "")
-  .split(",")
-  .head
 
 def getDaffodilJarName(scalaBinaryVersion: String) =
   if (scalaBinaryVersion == "3") "daffodil-core"

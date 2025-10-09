@@ -72,9 +72,9 @@ export interface BuildInfo {
 }
 
 export interface DaffodilScalaVersions {
-  d3_10_0: string
-  d3_11_0: string
-  d4_0_0: string
+  '<=3.10.0': string
+  '>=3.11.0': string
+  '>=4.0.0': string
 }
 
 export function getDaffodilScalaVersions(

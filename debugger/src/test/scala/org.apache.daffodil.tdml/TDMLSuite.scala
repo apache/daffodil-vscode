@@ -34,6 +34,7 @@ class TDMLSuite extends munit.FunSuite {
   val dataPath = Paths.get("./debugger/src/test/data/emptyData.xml").toAbsolutePath()
   val notInfosetPath = Paths.get("./debugger/src/test/data/notInfoset.xml").toAbsolutePath()
   val tdmlName = "TestTDMLName"
+  val tdmlDescription = TDML.getDefaultTDMLTestCaseDescription()
   val tdmlPath = Paths.get("./testTDML.tdml").toAbsolutePath()
   val expectedNSHashSet = HashSet[String](
     "http://www.ibm.com/xmlns/dfdl/testData"
@@ -117,6 +118,7 @@ class TDMLSuite extends munit.FunSuite {
     val testCase =
       TDML.createTestCase(infosetPath.toString(), schemaPath.toString(), dataPath.toString(), tdmlName)
 
+    assertEquals(testCase.getDescription.toString(), tdmlDescription)
     assertEquals(testCase.getName.toString(), tdmlName)
     assertEquals(testCase.getModel.toString(), schemaPath.toString())
     assertEquals(

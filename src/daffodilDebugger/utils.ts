@@ -26,7 +26,7 @@ import { deactivate } from '../adapter/extension'
 import { getDaffodilScalaVersions, DaffodilScalaVersions } from './daffodil'
 import { Artifact } from '../classes/artifact'
 import { DFDLDebugger } from '../classes/dfdlDebugger'
-import { osCheck, runScript, terminalName } from '../utils'
+import { displayModalError, osCheck, runScript, terminalName } from '../utils'
 import { outputChannel } from '../adapter/activateDaffodilDebug'
 import { checkIfDaffodilJarsNeeded } from './daffodilJars'
 
@@ -46,7 +46,7 @@ export const stopDebugger = async (id: number | undefined = undefined) =>
 export const shellArgs = (
   port: number,
   timeout: string,
-  daffodilVersion: string,
+  daffodilPath: string,
   isAtLeastJdk17: boolean
 ) => {
   // Workaround: certain reflection (used by JAXB) isn't allowed by default in JDK 17:
@@ -62,40 +62,25 @@ export const shellArgs = (
     `${port}`,
     '--listenTimeout',
     `${timeout}`,
-    '--daffodilVersion',
-    daffodilVersion,
+    '--daffodilPath',
+    `"${daffodilPath}"`,
   ].concat(extraArgs)
 }
 
-function compareVersions(v1: string, v2: string): number {
-  const a1 = v1.split('.').map(Number)
-  const a2 = v2.split('.').map(Number)
-  const len = Math.max(a1.length, a2.length)
-
-  for (let i = 0; i < len; i++) {
-    const n1 = a1[i] ?? 0
-    const n2 = a2[i] ?? 0
-    if (n1 < n2) return -1
-    if (n1 > n2) return 1
-  }
-
-  return 0
-}
-
-export async function getDaffodilVersionKey(
-  dfdlVersion: string
+export async function getScalaVersion(
+  dfdlScalaVersions: DaffodilScalaVersions,
+  daffodilVersion: string
 ): Promise<string> {
-  const isLessThanOrEqualTo3_10_0 = compareVersions(dfdlVersion, '3.10.0') <= 0
-  const isLessThan3_11_0 = compareVersions(dfdlVersion, '3.11.0') < 0
-  const isGreatThanOrEqualTo4_0_0 = compareVersions(dfdlVersion, '4.0.0') >= 0
+  let scalaVersion = ''
 
-  if (isLessThanOrEqualTo3_10_0 && isLessThan3_11_0) {
-    return '<=3.10.0,<3.11.0'
-  } else if (isGreatThanOrEqualTo4_0_0) {
-    return '>=4.0.0'
-  } else {
-    return '>=3.11.0,<4.0.0'
-  }
+  Object.entries(dfdlScalaVersions).forEach(([range, sv]) => {
+    if (semver.satisfies(daffodilVersion, range)) {
+      scalaVersion = sv
+      return
+    }
+  })
+
+  return scalaVersion
 }
 
 export async function runDebugger(
@@ -105,7 +90,7 @@ export async function runDebugger(
   serverPort: number,
   dfdlDebugger: DFDLDebugger,
   createTerminal: boolean = false
-): Promise<vscode.Terminal> {
+): Promise<vscode.Terminal | undefined> {
   const dfdlScalaVersions = daffodilScalaVersions(filePath)
 
   if (
@@ -128,9 +113,18 @@ export async function runDebugger(
     `[DEBUG] Choosing java home at ${javaHome?.path}, version ${javaHome?.version}, is at least JDK 17: ${isAtLeastJdk17}`
   )
 
-  let dfdlVersion = dfdlDebugger.version
-  let dfdlVersionKey = await getDaffodilVersionKey(dfdlVersion)
-  let scalaVersion = dfdlScalaVersions[dfdlVersionKey]
+  let dfdlVersion = dfdlDebugger.daffodilVersion
+  let scalaVersion = await getScalaVersion(
+    dfdlScalaVersions,
+    dfdlDebugger.daffodilVersion
+  )
+
+  if (scalaVersion == '') {
+    displayModalError(
+      `Daffodil Version ${dfdlDebugger.daffodilVersion} does not satisfy any version requirements`
+    )
+    return undefined
+  }
 
   outputChannel.appendLine(
     `[INFO] Using Scala ${scalaVersion} + Daffodil ${dfdlVersion} debugger`
@@ -140,18 +134,15 @@ export async function runDebugger(
    * The Scala 3 with Daffodil >= 4.0.0 debugger can only be ran on JDK 17 or greater. So if the java version
    * being used is less than 17, fallback to the Scala 2.13 and Daffodil 3.11.0 debugger and notify the user.
    */
-  if (dfdlVersionKey == '>=4.0.0' && !isAtLeastJdk17) {
-    dfdlVersion = '3.11.0'
-    dfdlVersionKey = '>=3.11.0,<4.0.0'
-    scalaVersion = dfdlScalaVersions[dfdlVersionKey]
-    const message =
-      'Using the Scala 2.13+Daffodil 3.11.0 debugger as the version of JDK being used is not >= JDK 17'
-    outputChannel.appendLine(`[WARN] ${message}`)
-    vscode.window.showWarningMessage(message)
+  if (semver.satisfies(dfdlVersion, '>=4.0.0') && !isAtLeastJdk17) {
+    displayModalError(
+      `Daffodil Version ${dfdlVersion} uses Scala 3 and required JDK >= 17`
+    )
+    return undefined
   }
 
   // Download the daffodil CLI jars if needed
-  await checkIfDaffodilJarsNeeded(dfdlVersion)
+  const daffodilPath = await checkIfDaffodilJarsNeeded(dfdlVersion)
 
   const artifact = daffodilArtifact(dfdlVersion)
   const scriptPath = path.join(
@@ -181,7 +172,7 @@ export async function runDebugger(
     scriptPath,
     artifact.scriptName,
     createTerminal,
-    shellArgs(serverPort, dfdlDebugger.timeout, dfdlVersion, isAtLeastJdk17),
+    shellArgs(serverPort, dfdlDebugger.timeout, daffodilPath, isAtLeastJdk17),
     env,
     'daffodil'
   )
