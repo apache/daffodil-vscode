@@ -276,8 +276,6 @@ run() {
 
   if [[ "$DAFFODIL_DEBUG_CLASSPATH" != "" ]]; then
     new_classpath="$new_classpath:$DAFFODIL_DEBUG_CLASSPATH"
-  else
-    new_classpath="$new_classpath"
   fi
 
   # run sbt

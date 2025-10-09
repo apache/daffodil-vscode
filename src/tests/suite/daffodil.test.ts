@@ -178,7 +178,6 @@ suite('Daffodfil', () => {
   suite('daffodilScalaVersions', () => {
     test('daffodilScalaVersions returns the same versions as file', () => {
       var daffodilScalaVersions = daffodil.getDaffodilScalaVersions(packageFile)
-      console.log(daffodilScalaVersions)
       assert.strictEqual(daffodilScalaVersions.d3_10_0, '2.12')
       assert.strictEqual(daffodilScalaVersions.d3_11_0, '2.13')
       assert.strictEqual(daffodilScalaVersions.d4_0_0, '3')

@@ -40,8 +40,6 @@ async function downloadAndExtractDaffodilCLIJars(
 
   // Pipe the response body stream into unzip-stream and wait for completion
   await pipeline(res.body as any, unzip.Extract({ path: targetDir }))
-
-  console.log(`Extracted to: ${targetDir}`)
 }
 
 export async function checkIfDaffodilJarsNeeded(daffodilVersion: string) {
