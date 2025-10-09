@@ -35,9 +35,9 @@ suite('Daffodfil', () => {
       packageFile,
       JSON.stringify({
         daffodilScalaVersions: {
-          d3_10_0: '2.12',
-          d3_11_0: '2.13',
-          d4_0_0: '3',
+          '<=3.10.0,<3.11.0': '2.12',
+          '>=3.11.0,<4.0.0': '2.13',
+          '>=4.0.0': '3',
         },
       })
     )
@@ -178,9 +178,9 @@ suite('Daffodfil', () => {
   suite('daffodilScalaVersions', () => {
     test('daffodilScalaVersions returns the same versions as file', () => {
       var daffodilScalaVersions = daffodil.getDaffodilScalaVersions(packageFile)
-      assert.strictEqual(daffodilScalaVersions.d3_10_0, '2.12')
-      assert.strictEqual(daffodilScalaVersions.d3_11_0, '2.13')
-      assert.strictEqual(daffodilScalaVersions.d4_0_0, '3')
+      assert.strictEqual(daffodilScalaVersions['<=3.10.0,<3.11.0'], '2.12')
+      assert.strictEqual(daffodilScalaVersions['>=3.11.0,<4.0.0'], '2.13')
+      assert.strictEqual(daffodilScalaVersions['>=4.0.0'], '3')
     })
   })
 
