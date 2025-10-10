@@ -535,10 +535,10 @@ class LaunchWizard {
     })
 
     let dfdlDebugger: DFDLDebugger = defaultValues.dfdlDebugger
+
     let debuggerLogLevelSelect = ''
     let debuggerLogLevelTypes = getAllowedLogLevels()
     let debuggerLogLevel = dfdlDebugger.logging.level
-
     debuggerLogLevelTypes.forEach((type) => {
       if (type === debuggerLogLevel) {
         debuggerLogLevelSelect += `<option selected value="${type}">${type}</option>`
@@ -645,6 +645,12 @@ class LaunchWizard {
 
         <p class="setting-description">Port debug server running on.</p>
         <input class="file-input" value="${defaultValues.debugServer}" id="debugServer"/>
+
+        <p id="dfdlDaffodilVersionLabel" style="margin-top: 10px;" class="setting-description">Version (Daffodil Version):</p>
+        <input class="file-input" value="${dfdlDebugger.daffodilVersion}" id="dfdlDaffodilVersion">
+
+        <p id="dfdlDebuggerTimeoutLabel" style="margin-top: 10px;" class="setting-description">Timeout (should end with s, m or h):</p>
+        <input class="file-input" value="${dfdlDebugger.timeout}" id="dfdlDebuggerTimeout">
 
         <p id="dfdlDebuggerLogFileLabel" style="margin-top: 10px;" class="setting-description">Log File:</p>
         <input class="file-input" value="${dfdlDebugger.logging.file}" id="dfdlDebuggerLogFile">

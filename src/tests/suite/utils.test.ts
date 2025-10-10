@@ -60,6 +60,8 @@ suite('Utils Test Suite', () => {
       },
     },
     dfdlDebugger: {
+      daffodilVersion: '3.11.0',
+      timeout: '10s',
       logging: {
         level: 'INFO',
         file: '${workspaceFolder}/daffodil-debugger.log',

@@ -114,12 +114,19 @@ if defined CUSTOM_MAIN_CLASS (
     set MAIN_CLASS=!APP_MAIN_CLASS!
 )
 
-if defined DAFFODIL_DEBUG_CLASSPATH (
-    set NEW_CLASSPATH="%APP_CLASSPATH%;%DAFFODIL_DEBUG_CLASSPATH%"
-) else (
-    set NEW_CLASSPATH="%APP_CLASSPATH%"
+set NEW_CLASSPATH=%APP_CLASSPATH%
+
+rem ensure daffodil path provided
+if not defined DAFFODIL_PATH (
+  echo "No Daffodil path provided using the --daffodilPath flag. Exiting as debugger can't run without the Daffodil path"
+  exit 1
 )
 
+set NEW_CLASSPATH=%NEW_CLASSPATH%;!DAFFODIL_PATH!\lib\*
+
+if defined DAFFODIL_DEBUG_CLASSPATH (
+    set NEW_CLASSPATH="%NEW_CLASSPATH%;%DAFFODIL_DEBUG_CLASSPATH%"
+)
 
 rem Call the application and pass all arguments unchanged.
 "%_JAVACMD%" !_JAVA_OPTS! !DAFFODIL_DEBUGGER_OPTS! -cp "%NEW_CLASSPATH%" %MAIN_CLASS% !_APP_ARGS!
@@ -194,7 +201,12 @@ rem Processes incoming arguments and places them in appropriate global variables
       call set CUSTOM_MAIN_CLASS=%%2
       shift
     ) else (
-      set _APP_ARGS=!_APP_ARGS! !_PARAM1!
+      if "!_TEST_PARAM!"=="--daffodilPath" (
+        call set DAFFODIL_PATH=%%2
+        shift
+      ) else (
+        set _APP_ARGS=!_APP_ARGS! !_PARAM1!
+      )
     )
   )
   shift

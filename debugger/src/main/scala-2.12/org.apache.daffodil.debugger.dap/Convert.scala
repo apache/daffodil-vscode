@@ -14,25 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-{
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "type": "npm",
-            "script": "compile",
-            "isBackground": false,
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": "$tsc-watch"
-        },
-        {
-            "type": "npm",
-            "script": "watch",
-            "group": "build",
-            "isBackground": true
-        }
-    ]
+
+/** This file contains support code for making a majority of Scala shareable between different versions of Scala and
+  * Daffodil. The main difference comes in package names, converting certain variables, etc. This file has all the
+  * helper code for that for Scala 2.13.
+  */
+
+package org.apache.daffodil.debugger.dap
+
+object Convert {
+  /* Daffodil Maybe wrapper methods */
+  def daffodilMaybeToOption[T <: AnyRef](maybe: org.apache.daffodil.lib.util.Maybe[T]): Option[T] = maybe.toScalaOption
 }

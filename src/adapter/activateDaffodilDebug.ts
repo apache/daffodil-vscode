@@ -8,13 +8,13 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as vscode from 'vscode'
-import * as infoset from 'infoset'
-import * as launchWizard from 'launchWizard'
-import * as dfdlLang from 'language/dfdl'
-import * as dfdlExt from 'language/semantics/dfdlExt'
-import * as dataEditClient from 'dataEditor'
-import * as tdmlEditor from 'tdmlEditor'
-import * as rootCompletion from 'rootCompletion'
+import * as infoset from '../infoset'
+import * as launchWizard from '../launchWizard/launchWizard'
+import * as dfdlLang from '../language/dfdl'
+import * as dfdlExt from '../language/semantics/dfdlExt'
+import * as dataEditClient from '../dataEditor'
+import * as tdmlEditor from '../tdmlEditor'
+import * as rootCompletion from '../rootCompletion'
 import { tmpdir } from 'os'
 
 import {
@@ -34,11 +34,11 @@ import {
   getTmpTDMLFilePath,
   copyTestCase,
   TMP_TDML_FILENAME,
-} from 'tdmlEditor/utilities/tdmlXmlUtils'
+} from '../tdmlEditor/utilities/tdmlXmlUtils'
 import xmlFormat from 'xml-formatter'
 import { CommandsProvider } from '../views/commands'
 import * as daffodilDebugErrors from './daffodilDebugErrors'
-import { TDMLProvider } from 'tdmlEditor/TDMLProvider'
+import { TDMLProvider } from '../tdmlEditor/TDMLProvider'
 
 export const outputChannel: vscode.OutputChannel =
   vscode.window.createOutputChannel('Daffodil')
@@ -217,6 +217,9 @@ export function activateDaffodilDebug(
 ) {
   setupViews(context)
 
+  context.subscriptions.push(
+    vscode.commands.registerCommand('getContext', () => context)
+  )
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'extension.dfdl-debug.runEditorContents',

@@ -17,7 +17,7 @@
 
 package org.apache.daffodil.debugger.dap
 
-import java.io.RandomAccessFile
+import java.io._
 import java.nio.ByteBuffer
 import java.nio.file.Path
 import org.apache.daffodil.io.DataDumper

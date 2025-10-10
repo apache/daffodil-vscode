@@ -33,16 +33,12 @@ import java.net.URI
 import java.nio.file._
 import org.apache.commons.io.FileUtils
 import org.apache.daffodil.debugger.dap.{BuildInfo => DAPBuildInfo}
-import org.apache.daffodil.runtime1.debugger.Debugger
 import org.apache.daffodil.runtime1.infoset.{DIDocument, DIElement, InfosetWalker}
 import org.apache.daffodil.runtime1.processors._
 import org.apache.daffodil.runtime1.processors.dfa.DFADelimiter
 import org.apache.daffodil.runtime1.processors.parsers._
 import org.apache.daffodil.lib.exceptions.SchemaFileLocation
 import org.apache.daffodil.lib.util.Misc
-import org.apache.daffodil.sapi.{Diagnostic => SDiagnostic, ValidationMode}
-import org.apache.daffodil.sapi.infoset._
-import org.apache.daffodil.sapi.io.InputSourceDataInputStream
 import org.apache.daffodil.tdml.TDML
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -86,12 +82,7 @@ object Parse {
     for {
       dp <- DAPCompiler()
         .compile(schema, rootName, rootNamespace, tunables)
-        .map(p =>
-          p.withDebugger(debugger)
-            .withDebugging(true)
-            .withExternalVariables(variables)
-            .withValidationMode(ValidationMode.Limited)
-        )
+        .map(p => Support.dataProcessorWithDebugger(p, debugger, variables))
       done <- Ref[IO].of(false)
       pleaseStop <- Deferred[IO, Unit]
     } yield new Parse {
@@ -104,18 +95,13 @@ object Parse {
             val stopper =
               pleaseStop.get *> IO.canceled // will cancel the concurrent parse effect
 
-            val infosetOutputter = infosetFormat match {
-              case "xml"  => new XMLTextInfosetOutputter(os, true)
-              case "json" => new JsonInfosetOutputter(os, true)
-            }
-
             val dataSize = data.available()
 
             val parse =
               IO.interruptibleMany(
                 dp.parse(
-                  new InputSourceDataInputStream(data),
-                  infosetOutputter
+                  Support.getInputSourceDataInputStream(data),
+                  Support.getInfosetOutputter(infosetFormat, os)
                 )
                 // WARNING: parse doesn't close the OutputStream, so closed below
               ).flatTap { res =>
@@ -123,7 +109,9 @@ object Parse {
                   dapEvents
                     .send(
                       Parse.Event.Error(
-                        res.getDiagnostics.toList
+                        Support
+                          .parseDiagnosticList(res.getDiagnostics)
+                          .toList
                           .map(d => d.toString)
                           .mkString("\n")
                       )
@@ -131,7 +119,7 @@ object Parse {
                     .void
                 } else IO.unit
               }.ensureOr { res =>
-                new Parse.Exception(res.getDiagnostics.toList)
+                new Parse.Exception(Support.parseDiagnosticList(res.getDiagnostics).toList)
               }(res => !res.isError())
                 .flatMap { parseResult =>
                   val loc = parseResult.location()
@@ -167,9 +155,9 @@ object Parse {
 
   class Debugee(
       schema: DAPodil.Source,
-      data: DAPodil.Source,
+      dataIn: DAPodil.Source,
       outputData: Signal[IO, DAPodil.Data],
-      events: Stream[IO, Events.DebugEvent],
+      eventsIn: Stream[IO, Events.DebugEvent],
       breakpoints: Breakpoints,
       control: Control,
       parseEvents: Channel[IO, Parse.Event]
@@ -178,13 +166,13 @@ object Parse {
       outputData
 
     def events(): Stream[IO, Events.DebugEvent] =
-      events
+      eventsIn
 
     /** We return only the "static" sources of the schema and data file, and notify the debugger of additional sources,
       * if any, via source change events, which only subsequently fetch the content directly via `sourceContent`.
       */
     def sources(): IO[List[DAPodil.Source]] =
-      IO.pure(List(schema, data))
+      IO.pure(List(schema, dataIn))
 
     def sourceContent(ref: DAPodil.Source.Ref): IO[Option[DAPodil.Source.Content]] =
       IO.pure(None) // no additional source content available; infoset and data position info sent as custom events
@@ -1054,14 +1042,14 @@ object Parse {
         schemaLocation: SchemaFileLocation,
         pointsOfUncertainty: List[PointOfUncertainty],
         delimiterStack: List[Delimiter],
-        diagnostics: List[org.apache.daffodil.lib.api.Diagnostic],
+        diagnostics: List[Diagnostic],
         infoset: Option[InfosetEvent]
     ) extends Event {
       // PState is mutable, so we copy all the information we might need downstream.
       def this(pstate: PState, infoset: Option[InfosetEvent]) =
         this(
           pstate.copyStateForDebugger,
-          pstate.currentNode.toOption.map(element => ElementName(element.name)),
+          Convert.daffodilMaybeToOption(pstate.currentNode).map(node => ElementName(node.asElement.name)),
           pstate.schemaFileLocation,
           pstate.pointsOfUncertainty.iterator.toList.map(mark =>
             PointOfUncertainty(
@@ -1074,7 +1062,7 @@ object Parse {
           pstate.mpstate.delimiters.toList.zipWithIndex.map { case (delimiter, i) =>
             Delimiter(if (i < pstate.mpstate.delimitersLocalIndexStack.top) "remote" else "local", delimiter)
           },
-          pstate.diagnostics,
+          pstate.diagnostics.toList,
           infoset
         )
     }
@@ -1168,7 +1156,7 @@ object Parse {
         }
     }
 
-    case class BuildInfo(version: String, daffodilVersion: String, scalaVersion: String)
+    case class BuildInfo(version: String, scalaVersion: String)
 
     def apply(launchArgs: Debugee.LaunchArgs): ConfigEvent =
       ConfigEvent(
@@ -1201,7 +1189,6 @@ object Parse {
         },
         BuildInfo(
           DAPBuildInfo.version,
-          DAPBuildInfo.daffodilVersion,
           DAPBuildInfo.scalaVersion
         )
       )
@@ -1222,14 +1209,10 @@ object Parse {
 
     private def infosetToString(format: String, ie: DIElement): String = {
       val bos = new java.io.ByteArrayOutputStream()
-      val infosetOutputter = format match {
-        case "xml"  => new XMLTextInfosetOutputter(bos, true)
-        case "json" => new JsonInfosetOutputter(bos, true)
-      }
 
       val iw = InfosetWalker(
         ie.asInstanceOf[DIElement],
-        infosetOutputter,
+        Support.getInfosetOutputter(format, bos),
         walkHidden = false,
         ignoreBlocks = true,
         releaseUnneededInfoset = false

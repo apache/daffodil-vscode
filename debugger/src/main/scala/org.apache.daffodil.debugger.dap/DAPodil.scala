@@ -35,12 +35,12 @@ import java.io._
 import java.net._
 import java.nio.file.Path
 import java.nio.file.Paths
+import org.apache.daffodil.lib.util.Misc
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
-import scala.jdk.CollectionConverters._
 import scala.concurrent.duration._
-
+import scala.jdk.CollectionConverters._
 import logging._
 
 /** Communication interface to a DAP server while in a connected session. */
@@ -379,7 +379,8 @@ class DAPodil(
               )
             ) { frame =>
               session.sendResponse(
-                request.respondSuccess(new Responses.ScopesResponseBody(frame.scopes.map(_.toDAP()).asJava))
+                request
+                  .respondSuccess(new Responses.ScopesResponseBody(frame.scopes.map(_.toDAP()).asJava))
               )
             }
         } yield ()
@@ -403,7 +404,9 @@ class DAPodil(
                 )
               )
             )(variables =>
-              session.sendResponse(request.respondSuccess(new Responses.VariablesResponseBody(variables.asJava)))
+              session.sendResponse(
+                request.respondSuccess(new Responses.VariablesResponseBody(variables.asJava))
+              )
             )
         } yield ()
       case s => DAPodil.InvalidState.raise(request, "Launched", s)
@@ -435,7 +438,7 @@ object DAPodil extends IOApp {
       Opts
         .option[Duration]("listenTimeout", "duration to wait for a DAP client connection (default: 10s)")
         .withDefault(10.seconds)
-    ).mapN(Options)
+    ).mapN(Options.apply)
 
   implicit val logger: Logger[IO] = Slf4jLogger.getLogger
 
@@ -446,11 +449,11 @@ object DAPodil extends IOApp {
         |
         |Build info:
         |  version: ${BuildInfo.version}
-        |  daffodilVersion: ${BuildInfo.daffodilVersion}
         |  scalaVersion: ${BuildInfo.scalaVersion}
         |  sbtVersion: ${BuildInfo.sbtVersion}
         |Runtime info:
         |  JVM version: ${System.getProperty("java.version")} (${System.getProperty("java.home")})
+        |  Daffodil Version: ${Misc.getDaffodilVersion}
         |******************************************************""".stripMargin
 
   def run(args: List[String]): IO[ExitCode] =
@@ -468,7 +471,9 @@ object DAPodil extends IOApp {
       _ <- Logger[IO].info(header)
       _ <- options match {
         case Options(listenPort, listenTimeout) =>
-          Logger[IO].info(s"launched with options listenPort: $listenPort, listenTimeout: $listenTimeout")
+          Logger[IO].info(
+            s"launched with options listenPort: $listenPort, listenTimeout: $listenTimeout"
+          )
       }
 
       _ <- Ref[IO].of[State](State.Uninitialized) // state for the DAPodil instance

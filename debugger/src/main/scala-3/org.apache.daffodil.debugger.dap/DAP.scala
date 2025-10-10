@@ -14,25 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-{
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "type": "npm",
-            "script": "compile",
-            "isBackground": false,
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": "$tsc-watch"
-        },
-        {
-            "type": "npm",
-            "script": "watch",
-            "group": "build",
-            "isBackground": true
-        }
-    ]
+
+package org.apache.daffodil.debugger
+
+/** The dap package object allows other files inside of the package to be able to use specific classes and types without
+  * directly importing them. This help us with the different versions of Daffodil where the classes have the same name
+  * but have moved to different import paths.
+  */
+
+package object dap {
+  type Debugger = org.apache.daffodil.api.debugger.Debugger
+  type Diagnostic = org.apache.daffodil.api.Diagnostic
+  type SDiagnostic = org.apache.daffodil.api.Diagnostic
+  type InfosetOutputter = org.apache.daffodil.api.infoset.InfosetOutputter
+  type DataProcessor = org.apache.daffodil.api.DataProcessor
 }
