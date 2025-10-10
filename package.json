@@ -3,11 +3,6 @@
   "displayName": "Apache Daffodil™ Extension for Visual Studio Code",
   "description": "Apache Daffodil™ Extension for Visual Studio Code providing DFDL syntax highlighting, DFDL code completion, DFDL schema debugging, and data editor",
   "version": "1.4.2-SNAPSHOT",
-  "daffodilScalaVersions": {
-    "<=3.10.0": "2.12",
-    "=3.11.0": "2.13",
-    ">=4.0.0": "3"
-  },
   "publisher": "asf",
   "author": "Apache Daffodil",
   "license": "Apache-2.0",
@@ -944,7 +939,7 @@
           },
           "dfdlDebugger": {
             "type": "object",
-            "description": "Configuration for debugger. Settings are are daffodilVersion, timeout and logging (level and file)",
+            "description": "Configuration for debugger. Settings are daffodilVersion, timeout and logging (level and file)",
             "default": {
               "daffodilVersion": "3.11.0",
               "timeout": "10s",

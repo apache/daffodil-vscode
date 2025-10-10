@@ -100,7 +100,7 @@ object Parse {
             val parse =
               IO.interruptibleMany(
                 dp.parse(
-                  Support.getInfosetInputter(data),
+                  Support.getInputSourceDataInputStream(data),
                   Support.getInfosetOutputter(infosetFormat, os)
                 )
                 // WARNING: parse doesn't close the OutputStream, so closed below

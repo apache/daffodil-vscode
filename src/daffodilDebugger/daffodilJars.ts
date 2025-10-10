@@ -42,11 +42,7 @@ export async function checkIfDaffodilJarsNeeded(
    *  Linux: /home/<username>/.config/Code/User/globalStorage/asf.apache-daffodil-vscode
    */
 
-  const destFolder = path.join(
-    context.globalStorageUri.fsPath,
-    '.cache',
-    'daffodil-debugger'
-  )
+  const destFolder = path.join(context.globalStorageUri.fsPath, 'daffodil')
   const binFolder = path.join(
     destFolder,
     `apache-daffodil-${daffodilVersion}-bin`

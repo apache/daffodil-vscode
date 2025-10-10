@@ -116,6 +116,37 @@ function checkInfosetFileExtension(
   }
 }
 
+function checkSettingValue<T>(target: unknown, defaults: T): T {
+  if (
+    typeof defaults !== 'object' ||
+    defaults === null ||
+    Array.isArray(defaults)
+  ) {
+    return target === undefined ? defaults : (target as T)
+  }
+
+  if (typeof target !== 'object' || target === null) {
+    return defaults
+  }
+
+  const result: Record<string, any> = {}
+
+  for (const key of Object.keys(defaults)) {
+    result[key] = checkSettingValue(
+      (target as any)[key],
+      (defaults as any)[key]
+    )
+  }
+
+  for (const key of Object.keys(target as any)) {
+    if (!(key in result)) {
+      result[key] = (target as any)[key]
+    }
+  }
+
+  return result as T
+}
+
 export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
   const launchConfigArgs: VSCodeLaunchConfigArgs = JSON.parse(
     JSON.stringify(jsonArgs)
@@ -168,13 +199,9 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
     }),
   }
 
-  Object.entries(defaultValues).map(
-    ([key, defaultValue]) =>
-      (launchConfigArgs[key] =
-        launchConfigArgs[key] !== undefined
-          ? launchConfigArgs[key]
-          : defaultValue)
-  )
+  for (const [key, defaults] of Object.entries(defaultValues)) {
+    launchConfigArgs[key] = checkSettingValue(launchConfigArgs[key], defaults)
+  }
 
   if (launchConfigArgs.infosetOutput?.type == 'file') {
     checkInfosetFileExtension(

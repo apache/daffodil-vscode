@@ -18,36 +18,13 @@
 import * as vscode from 'vscode'
 import * as assert from 'assert'
 import * as daffodil from '../../daffodilDebugger'
-import * as fs from 'fs'
 import * as path from 'path'
 import { Artifact } from '../../classes/artifact'
 import { LIB_VERSION } from '../../version'
-import { before, after } from 'mocha'
-import { PROJECT_ROOT, TDML_PATH, TEST_SCHEMA } from './common'
+import { TDML_PATH, TEST_SCHEMA } from './common'
 import { osCheck } from '../../utils'
 
 suite('Daffodfil', () => {
-  const packageFile = path.join(PROJECT_ROOT, 'package-test.json')
-
-  // Create test package.json before anything else happens
-  before(() => {
-    fs.writeFileSync(
-      packageFile,
-      JSON.stringify({
-        daffodilScalaVersions: {
-          '<=3.10.0': '2.12',
-          '>=3.11.0': '2.13',
-          '>=4.0.0': '3',
-        },
-      })
-    )
-  })
-
-  // Delete test package.json after all tests are done
-  after(() => {
-    fs.unlinkSync(packageFile)
-  })
-
   // suite to test all functions work properly
   suite('interfaces', () => {
     test('DaffodilData functions properly', () => {
@@ -172,15 +149,6 @@ suite('Daffodfil', () => {
 
     test('configEvent set properly', () => {
       assert.strictEqual(daffodil.configEvent, 'daffodil.config')
-    })
-  })
-
-  suite('daffodilScalaVersions', () => {
-    test('daffodilScalaVersions returns the same versions as file', () => {
-      var daffodilScalaVersions = daffodil.getDaffodilScalaVersions(packageFile)
-      assert.strictEqual(daffodilScalaVersions['<=3.10.0'], '2.12')
-      assert.strictEqual(daffodilScalaVersions['>=3.11.0'], '2.13')
-      assert.strictEqual(daffodilScalaVersions['>=4.0.0'], '3')
     })
   })
 
