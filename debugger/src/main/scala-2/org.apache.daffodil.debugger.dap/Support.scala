@@ -41,7 +41,9 @@ object Support {
       .withValidationMode(ValidationMode.Limited)
 
   /* Daffodil infoset wrapper methods */
-  def getInputSourceDataInputStream(data: InputStream): InputSourceDataInputStream = new InputSourceDataInputStream(data)
+  def getInputSourceDataInputStream(data: InputStream): InputSourceDataInputStream = new InputSourceDataInputStream(
+    data
+  )
   def getInfosetOutputter(infosetFormat: String, stream: OutputStream): InfosetOutputter =
     infosetFormat match {
       case "xml"  => new XMLTextInfosetOutputter(stream, true)
