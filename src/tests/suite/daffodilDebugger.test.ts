@@ -141,7 +141,7 @@ async function getDebuggerConfigs() {
     const infosetFormat = i % 2 == 0 ? 'xml' : 'json'
     const dfdlDebugger: DFDLDebugger = {
       daffodilVersion: debuggerVersionsToTest[versionIndex],
-      timeout: '60s',
+      timeout: '4m',
       logging: {
         level: 'INFO',
         file: path.join(os.tmpdir(), `yarn-test-daffodil-debugger-${port}.log`),

@@ -57,8 +57,6 @@ function unzipAfterBuild() {
           `debugger/target/${jvmFolderName}/universal/${serverPackage}.zip`
         )
 
-        console.log(zipFilePath)
-
         const serverPackageFolder = path.join(
           path.resolve('dist/package'),
           serverPackage

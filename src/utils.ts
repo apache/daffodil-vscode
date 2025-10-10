@@ -497,7 +497,7 @@ export const displayModalError = async (
     )
 
 /**
- * Displays a progress bar while downloading and extracting a file
+ * Download and extract a files with a progress bar
  *
  * @param title A title to use for printing to the user what is being downloaded
  * @param url The url to donwload the binary from
