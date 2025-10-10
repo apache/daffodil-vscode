@@ -85,7 +85,7 @@
     "chai": "^6.0.1",
     "concurrently": "^9.2.1",
     "css-loader": "^6.8.1",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.25.10",
     "fast-xml-parser": "^5.2.5",
     "glob": "8.1.0",
     "mocha": "11.5.0",
