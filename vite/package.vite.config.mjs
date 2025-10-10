@@ -119,18 +119,18 @@ function copyToPkgDirPlugin() {
     { from: 'src/tdmlEditor/', to: `${pkg_dir}/src/tdmlEditor` },
   ]
 
-  const serverPackageFolders = {}
+  const serverPackageFolders = []
 
-  Object.entries(daffodilScalaVersions).forEach(
-    ([daffodilVersion, scalaVersion]) => {
-      serverPackageFolders[daffodilVersion] = path.join(
+  scalaVersions.forEach((scalaVersion) => {
+    serverPackageFolders.push(
+      path.join(
         path.resolve('dist/package'),
         `daffodil-debugger-${scalaVersion}-${pkg_version}`
       )
-    }
-  )
+    )
+  })
 
-  Object.entries(serverPackageFolders).forEach(([_, serverPackageFolder]) => {
+  serverPackageFolders.forEach((serverPackageFolder) => {
     console.debug(`== [Vite] | serverPackageFolder: ${serverPackageFolder}`)
     // remove debugger package folder if exists
     if (fs.existsSync(serverPackageFolder)) {
@@ -143,11 +143,9 @@ function copyToPkgDirPlugin() {
     apply: 'build',
     async buildStart(opts) {
       if (!fs.existsSync(pkg_dir)) {
-        Object.entries(serverPackageFolders).forEach(
-          ([_, serverPackageFolder]) => {
-            fs.mkdirSync(serverPackageFolder, { recursive: true })
-          }
-        )
+        serverPackageFolders.forEach((serverPackageFolder) => {
+          fs.mkdirSync(serverPackageFolder, { recursive: true })
+        })
         fs.mkdirSync(pkg_dir + '/dist')
         fs.mkdirSync(pkg_dir + '/src/language', {
           recursive: true,
