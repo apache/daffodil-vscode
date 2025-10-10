@@ -50,7 +50,7 @@ function unzipAfterBuild() {
     name: 'unzip-server-package',
     apply: 'build',
     async closeBundle() {
-      for (var scalaVersion in scalaVersions) {
+      scalaVersions.forEach(async (scalaVersion) => {
         const serverPackage = `daffodil-debugger-${scalaVersion}-${pkg_version}`
         const jvmFolderName = `jvm-${scalaVersion}`
         const zipFilePath = path.resolve(
@@ -80,7 +80,7 @@ function unzipAfterBuild() {
           stream.on('close', () => resolve())
           stream.on('error', (err) => reject(err))
         })
-      }
+      })
     },
   }
 }
