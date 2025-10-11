@@ -22,20 +22,15 @@ on:
       - "update/**" # scala-steward branches
   pull_request:
     types: [opened, synchronize, reopened]
-  workflow_dispatch:
-    inputs:
-      pr:
-        description: 'PR number to verify (e.g., 1400)'
-        required: true
-        type: number
 
 permissions:
   contents: read
   pull-requests: read
 
+# Cancel CI runs in progress when a pull request is updated.
 concurrency:
-  group: ci-${{ github.event_name }}-${{ inputs.pr || github.ref }}
-  cancel-in-progress: false
+  group: ci-${{ github.head_ref || ((github.ref_name != 'main' && github.ref_name) || github.run_id) }}-${{ github.workflow }}
+  cancel-in-progress: true
 
 jobs:
   single-commit:
@@ -74,63 +69,8 @@ jobs:
       ############################################################
       # Setup
       ############################################################
-      - name: Resolve PR metadata
-        id: meta
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
-        with:
-          script: |
-            // Handle workflow_dispatch, pull_request, and fallback (push/other)
-            if (context.eventName === 'workflow_dispatch') {
-              const raw = (context.payload.inputs && context.payload.inputs.pr) || '';
-              const prNumber = Number(raw);
-              if (!Number.isFinite(prNumber) || prNumber <= 0) {
-                core.setFailed("Missing or invalid 'pr' input for workflow_dispatch.");
-                return;
-              }
-              const { data: pr } = await github.rest.pulls.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: prNumber
-              });
-              if (pr.state !== 'open') {
-                core.setFailed(`PR #${prNumber} is not open (state=${pr.state}).`);
-                return;
-              }
-              core.setOutput('head_repo', pr.head.repo.full_name);
-              core.setOutput('head_ref',  pr.head.ref);
-              core.setOutput('head_sha',  pr.head.sha);
-              core.info(`Verifying PR #${prNumber} from ${pr.head.repo.full_name}:${pr.head.ref} @ ${pr.head.sha}`);
-              return;
-            }
-
-            if (context.eventName === 'pull_request') {
-              const prNumber = context.issue.number;
-              const { data: pr } = await github.rest.pulls.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: prNumber
-              });
-              core.setOutput('head_repo', pr.head.repo.full_name);
-              core.setOutput('head_ref',  pr.head.ref);
-              core.setOutput('head_sha',  pr.head.sha);
-              core.info(`Resolved PR #${prNumber} from ${pr.head.repo.full_name}:${pr.head.ref} @ ${pr.head.sha}`);
-              return;
-            }
-
-            // Fallback for push/other events
-            core.setOutput('head_repo', `${context.repo.owner}/${context.repo.repo}`);
-            core.setOutput('head_ref',  process.env.GITHUB_REF || context.ref || '');
-            core.setOutput('head_sha',  context.sha);
-            core.info(`Non-PR event; using ${context.repo.owner}/${context.repo.repo}:${process.env.GITHUB_REF || context.ref} @ ${context.sha}`);
-
-      - name: Check out repository (PR head or repo)
+      - name: Check out repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-        with:
-          repository: ${{ steps.meta.outputs.head_repo }}
-          ref: ${{ steps.meta.outputs.head_sha || steps.meta.outputs.head_ref || github.ref }}
-          fetch-depth: 0
-          persist-credentials: false
-          clean: true
 
       - name: Setup Java
         uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
@@ -184,63 +124,8 @@ jobs:
       ############################################################
       # Setup
       ############################################################
-      - name: Resolve PR metadata
-        id: meta
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
-        with:
-          script: |
-            // Handle workflow_dispatch, pull_request, and fallback (push/other)
-            if (context.eventName === 'workflow_dispatch') {
-              const raw = (context.payload.inputs && context.payload.inputs.pr) || '';
-              const prNumber = Number(raw);
-              if (!Number.isFinite(prNumber) || prNumber <= 0) {
-                core.setFailed("Missing or invalid 'pr' input for workflow_dispatch.");
-                return;
-              }
-              const { data: pr } = await github.rest.pulls.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: prNumber
-              });
-              if (pr.state !== 'open') {
-                core.setFailed(`PR #${prNumber} is not open (state=${pr.state}).`);
-                return;
-              }
-              core.setOutput('head_repo', pr.head.repo.full_name);
-              core.setOutput('head_ref',  pr.head.ref);
-              core.setOutput('head_sha',  pr.head.sha);
-              core.info(`Verifying PR #${prNumber} from ${pr.head.repo.full_name}:${pr.head.ref} @ ${pr.head.sha}`);
-              return;
-            }
-
-            if (context.eventName === 'pull_request') {
-              const prNumber = context.issue.number;
-              const { data: pr } = await github.rest.pulls.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: prNumber
-              });
-              core.setOutput('head_repo', pr.head.repo.full_name);
-              core.setOutput('head_ref',  pr.head.ref);
-              core.setOutput('head_sha',  pr.head.sha);
-              core.info(`Resolved PR #${prNumber} from ${pr.head.repo.full_name}:${pr.head.ref} @ ${pr.head.sha}`);
-              return;
-            }
-
-            // Fallback for push/other events
-            core.setOutput('head_repo', `${context.repo.owner}/${context.repo.repo}`);
-            core.setOutput('head_ref',  process.env.GITHUB_REF || context.ref || '');
-            core.setOutput('head_sha',  context.sha);
-            core.info(`Non-PR event; using ${context.repo.owner}/${context.repo.repo}:${process.env.GITHUB_REF || context.ref} @ ${context.sha}`);
-
-      - name: Check out repository (PR head or repo)
+      - name: Check out repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-        with:
-          repository: ${{ steps.meta.outputs.head_repo }}
-          ref: ${{ steps.meta.outputs.head_sha || steps.meta.outputs.head_ref || github.ref }}
-          fetch-depth: 0
-          persist-credentials: false
-          clean: true
 
       - name: Setup Java
         uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
