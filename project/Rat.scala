@@ -78,6 +78,7 @@ object Rat {
     file(".github/ISSUE_TEMPLATE/bug_report.md"),
     file(".github/ISSUE_TEMPLATE/feature_request.md"),
     file(".github/ISSUE_TEMPLATE/enhancement_request.md"),
+    file(".github/ISSUE_TEMPLATE/task.md"),
     file(".github/pull_request_template.md")
   ) ++ {
     // images
