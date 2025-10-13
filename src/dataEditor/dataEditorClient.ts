@@ -157,11 +157,6 @@ export class DataEditorClient implements vscode.Disposable {
     this.panel = panel
     this.panel.webview.onDidReceiveMessage(this.messageReceiver, this)
 
-    this.panel.onDidDispose(async () => {
-      await this.dispose()
-      await removeActiveSession(this.omegaSessionId)
-    })
-
     this.disposables = [
       this.panel,
       vscode.debug.onDidReceiveDebugSessionCustomEvent(async (e) => {
@@ -229,6 +224,7 @@ export class DataEditorClient implements vscode.Disposable {
       await removeActiveSession(editor.sessionId())
       await editor.dispose()
     })
+
     if (isDFDLDebugSessionActive()) {
       editor.addDisposable(
         vscode.debug.onDidTerminateDebugSession(async () => {
