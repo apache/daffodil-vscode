@@ -394,7 +394,7 @@ Likewise, you can use the Inspect tool to click on items in the UI to see the co
 
 ![ui-debug4](https://github.com/user-attachments/assets/27c407f7-ded2-4780-b8e8-e5d6bb8d1f40)
 
-##### Debugging the JavaScript 
+##### Debugging the JavaScript
 
 To debug the JavaScript, add a `debugger` statement to the source code where you want to debug. The debugger statement acts like a breakpoint and pauses execution when reached.
 
@@ -538,6 +538,17 @@ Another important issue to note when choosing working directories is that VSCode
 
 Type in `git clean -fdx`. Then run `yarn && yarn package && yarn test && echo "All good!"`.
 If issues persist, you may want to uninstall Node and reinstall it. If that doesn’t remedy the issue, you may have to create a fresh VM.
+
+## Development Specific
+
+### Dependency Licensing Information
+
+The extension has a pipeline for ensuring that `yarn` packages and other relevant dependencies are in compliance with accepted licenses. Licenses that are not compliant or don't have their licenses noted in the repository will be flagged in CI.
+
+Dependencies' licensing information is compiled under `./build/package`. Contents of the dependencies' LICENSE, NONOTICE, NOTICE files are to be appended to the corresponding file in following the existing
+licensing file's format. Refer to the prior appended entries as a guideline for the formatting.
+
+Developers may have to modify contents of the files under `./build/package` in events where dependencies may be affected, such as package updates, additions, etc.
 
 ## Building the Documentation
 
