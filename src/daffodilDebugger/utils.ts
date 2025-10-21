@@ -71,7 +71,6 @@ export async function getScalaVersion(
 export async function runDebugger(
   rootPath: string,
   daffodilDebugClasspath: Array<string>,
-  filePath: string,
   serverPort: number,
   dfdlDebugger: DFDLDebugger,
   createTerminal: boolean = false
