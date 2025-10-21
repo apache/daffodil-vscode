@@ -20,7 +20,7 @@ import * as assert from 'assert'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
-import { PROJECT_ROOT, PACKAGE_PATH, TEST_SCHEMA } from './common'
+import { PROJECT_ROOT, TEST_SCHEMA } from './common'
 import { getConfig, killProcess } from '../../utils'
 import { runDebugger, stopDebugging } from '../../daffodilDebugger'
 import { before, after, Suite, Test } from 'mocha'
@@ -69,9 +69,8 @@ suite('Daffodil Debugger', function (this: Suite) {
      */
     for (var i = 0; i < dfdlDebuggerConfigs.length; i++) {
       let newDebugger = await runDebugger(
-        PROJECT_ROOT,
+        path.join(PROJECT_ROOT, 'dist/debuggers'),
         [],
-        PACKAGE_PATH,
         dfdlDebuggerConfigs[i].port,
         dfdlDebuggerConfigs[i].debugger,
         true

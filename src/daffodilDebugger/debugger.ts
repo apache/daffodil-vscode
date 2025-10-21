@@ -211,9 +211,8 @@ export async function getDebugger(
 
     if (!config.useExistingServer) {
       let newDebugger = await runDebugger(
-        context.asAbsolutePath('./'),
+        context.asAbsolutePath('./dist/debuggers'),
         daffodilDebugClasspath,
-        context.asAbsolutePath('./package.json'),
         config.debugServer,
         config.dfdlDebugger
       )

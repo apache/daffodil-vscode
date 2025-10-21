@@ -17,7 +17,6 @@
 
 import { defineConfig } from 'vite'
 import path from 'node:path'
-import unzip from 'unzip-stream'
 import fs from 'node:fs'
 import { builtinModules } from 'node:module'
 import { parse as jsoncParse } from 'jsonc-parser'
@@ -25,10 +24,10 @@ import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const pkg_dir = path.resolve('dist/package')
+const pkg_dir = 'dist/package'
 
 const localModulePath = (moduleName) =>
-  path.resolve(__dirname, '../', 'src', moduleName)
+  path.resolve(__dirname, 'src', moduleName)
 
 const localModuleAliases = {
   dataEditor: localModulePath('dataEditor'),
@@ -43,49 +42,45 @@ const packageData = jsoncParse(
   fs.readFileSync(path.resolve('package.json'), 'utf8')
 )
 const pkg_version = packageData['version']
-const scalaVersions = ['2.12', '2.13', '3']
 
-function unzipAfterBuild() {
+function getScalaVersions() {
+  const scalaVersions = ['2.12', '2.13']
+
+  // The scala 3 version of the debugger should only exist if JDK >= 17 is being used
+  if (fs.existsSync(`debugger/target/jvm-3/universal/stage`)) {
+    scalaVersions.push('3')
+  }
+
+  return scalaVersions
+}
+
+function copyDebuggerOutAfterBuild() {
   return {
-    name: 'unzip-server-package',
+    name: 'copy-debugger-package',
     apply: 'build',
-    async closeBundle() {
-      scalaVersions.forEach(async (scalaVersion) => {
+    async buildStart() {
+      getScalaVersions().forEach(async (scalaVersion) => {
         const serverPackage = `daffodil-debugger-${scalaVersion}-${pkg_version}`
         const jvmFolderName = `jvm-${scalaVersion}`
-        const zipFilePath = path.resolve(
-          `debugger/target/${jvmFolderName}/universal/${serverPackage}.zip`
+        const stageFilePath = path.resolve(
+          `debugger/target/${jvmFolderName}/universal/stage`
         )
 
-        const serverPackageFolder = path.join(
-          path.resolve('dist/package'),
-          serverPackage
-        )
+        const serverPackageFolder = path.join('dist/debuggers', serverPackage)
 
         // remove debugger package folder if exists
         if (fs.existsSync(serverPackageFolder)) {
           fs.rmSync(serverPackageFolder, { recursive: true, force: true })
         }
 
-        // if the debugger package doesn't exist continue
-        if (!fs.existsSync(zipFilePath)) {
-          return
-        }
-
-        await new Promise((resolve, reject) => {
-          const stream = fs
-            .createReadStream(zipFilePath)
-            // @ts-ignore types for unzip-stream
-            .pipe(unzip.Extract({ path: 'dist/package' }))
-          stream.on('close', () => resolve())
-          stream.on('error', (err) => reject(err))
-        })
+        // Copy staged debugger files to desired location
+        fs.cpSync(stageFilePath, serverPackageFolder, { recursive: true })
       })
     },
   }
 }
 
-function copyToPkgDirPlugin() {
+async function copyToPkgDirPlugin() {
   const patterns = [
     { from: 'README.md', to: `${pkg_dir}/README.md` },
     { from: 'build/package/LICENSE', to: `${pkg_dir}/LICENSE` },
@@ -117,97 +112,77 @@ function copyToPkgDirPlugin() {
     },
     { from: 'src/styles/styles.css', to: `${pkg_dir}/src/styles/styles.css` },
     { from: 'src/tdmlEditor/', to: `${pkg_dir}/src/tdmlEditor` },
+    { from: 'dist/debuggers', to: `${pkg_dir}/dist/debuggers` },
   ]
-
-  const serverPackageFolders = []
-
-  scalaVersions.forEach((scalaVersion) => {
-    serverPackageFolders.push(
-      path.join(
-        path.resolve('dist/package'),
-        `daffodil-debugger-${scalaVersion}-${pkg_version}`
-      )
-    )
-  })
-
-  serverPackageFolders.forEach((serverPackageFolder) => {
-    console.debug(`== [Vite] | serverPackageFolder: ${serverPackageFolder}`)
-    // remove debugger package folder if exists
-    if (fs.existsSync(serverPackageFolder)) {
-      fs.rmSync(serverPackageFolder, { recursive: true })
-    }
-  })
 
   return {
     name: 'copy-patterns-plugin',
     apply: 'build',
     async buildStart(opts) {
-      if (!fs.existsSync(pkg_dir)) {
-        serverPackageFolders.forEach((serverPackageFolder) => {
-          fs.mkdirSync(serverPackageFolder, { recursive: true })
-        })
-        fs.mkdirSync(pkg_dir + '/dist')
-        fs.mkdirSync(pkg_dir + '/src/language', {
-          recursive: true,
-        })
-        fs.mkdirSync(pkg_dir + '/src/language/providers', {
-          recursive: true,
-        })
-        fs.mkdirSync(pkg_dir + '/src/language/providers/intellisense/', {
-          recursive: true,
-        })
-        fs.mkdirSync(pkg_dir + '/src/launchWizard', {
-          recursive: true,
-        })
-        fs.mkdirSync(pkg_dir + '/src/styles', {
-          recursive: true,
-        })
-        fs.mkdirSync(pkg_dir + '/src/tdmlEditor', {
-          recursive: true,
-        })
-      }
+      ;[
+        pkg_dir + '/dist',
+        pkg_dir + '/src/language',
+        pkg_dir + '/src/language/providers',
+        pkg_dir + '/src/language/providers/intellisense/',
+        pkg_dir + '/src/launchWizard',
+        pkg_dir + '/src/styles',
+        pkg_dir + '/src/tdmlEditor',
+      ].forEach((folder) => {
+        if (!fs.existsSync(folder)) {
+          fs.mkdirSync(folder, { recursive: true })
+        }
+      })
 
       for (const { from, to } of patterns) {
-        from.includes('.')
+        fs.statSync(from).isFile()
           ? fs.copyFileSync(from, to)
           : fs.cpSync(from, to, { recursive: true })
       }
     },
   }
 }
+
 const shouldMinify = process.env.MINIFY === '1'
-export default defineConfig({
-  resolve: {
-    alias: {
-      ...localModuleAliases,
-    },
-    extensions: ['.ts', '.js'],
-  },
 
-  build: {
-    sourcemap: true,
-
-    minify: shouldMinify ? 'esbuild' : false,
-
-    outDir: path.resolve(__dirname, '../dist/package/dist/ext'),
-    emptyOutDir: true,
-
-    rollupOptions: {
-      input: {
-        extension: path.resolve(__dirname, '../src/adapter/extension.ts'),
+export default defineConfig(({ mode }) => {
+  return {
+    resolve: {
+      preserveSymlinks: true,
+      alias: {
+        ...localModuleAliases,
       },
-      external: ['vscode', ...builtinModules, /^node:.*/],
-      output: {
-        entryFileNames: 'extension.js',
-        format: 'cjs',
-        exports: 'auto',
-        sourcemap: true,
-      },
-      preserveEntrySignatures: 'strict',
+      extensions: ['.ts', '.js'],
     },
 
-    target: 'node18',
-  },
+    build: {
+      sourcemap: true,
 
-  plugins: [copyToPkgDirPlugin(), unzipAfterBuild()],
+      minify: shouldMinify ? 'esbuild' : false,
+      outDir: path.resolve(
+        __dirname,
+        mode == 'production' ? `${pkg_dir}/dist/ext` : 'dist/ext'
+      ),
+      emptyOutDir: true,
+
+      rollupOptions: {
+        input: {
+          extension: path.resolve(__dirname, 'src/adapter/extension.ts'),
+        },
+        external: ['vscode', ...builtinModules, /^node:.*/],
+        output: {
+          entryFileNames: 'extension.js',
+          format: 'cjs',
+          exports: 'auto',
+        },
+        preserveEntrySignatures: 'strict',
+      },
+
+      target: 'node18',
+    },
+
+    plugins:
+      mode == 'production'
+        ? [copyDebuggerOutAfterBuild(), copyToPkgDirPlugin()]
+        : [copyDebuggerOutAfterBuild()],
+  }
 })
