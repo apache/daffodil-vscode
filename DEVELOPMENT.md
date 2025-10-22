@@ -78,7 +78,7 @@
   - [Testing Information](#testing-information)
   - [Monitoring Project Status](#monitoring-project-status)
   - [DFDL Intellisense Suggestion Cross Reference](#dfdl-intellisense-suggestion-cross-reference)
-  - [DFDL Intellisense Schema Definition Error Listing](#dfdl-schema-definition-errors-listing)
+  - [DFDL Schema Definition Error Listing](#dfdl-schema-definition-errors-listing)
   - [Thank you for your interest in contributing to this project!](#thank-you-for-your-interest-in-contributing-to-this-project)
 
 ## Welcome
