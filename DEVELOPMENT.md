@@ -592,7 +592,7 @@ Milestone-level project status can be monitored using the [Projects tab](https:/
 Documents exist that attempt to map the DFDL schema elements and attributes in the [Apache DFDL Specification](https://daffodil.apache.org/docs/dfdl/) that can be used as a guide to determine the intellisense suggestions that the extension should make based on the element or attribute marked by the cursor when intellisense is triggered. The documents include an excel spreadsheet, markdown file exports of the spreadsheets, and html exports of the spreadsheets. These files can be found in the source code at src/language/dfdl-xref and src/language/dfdl-xref/html.
 
 
-## DFDL Schema Definition Errors
+## DFDL Schema Definition Error Listing
 
 A document exists that shows possible schema definition errors that can occur when developing DFDL schemas and the conditions that create those errors. This file can be found in the source code at src/language/dfdl-xref/DFDL_Schema_Defintion_Errors.md.
 
