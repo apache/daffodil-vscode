@@ -180,11 +180,27 @@ object Parse {
     def sourceChanges(): Stream[IO, DAPodil.Source] =
       Stream.empty
 
-    def step(): IO[Unit] =
-      control.step() *> parseEvents
+    def stepOver(): IO[Unit] =
+      control.stepOver() *> parseEvents
         .send(
           Parse.Event
-            .Control(DAPodil.Debugee.State.Stopped.step)
+            .Control(DAPodil.Debugee.State.Stopped.stepOver)
+        )
+        .void
+
+    def stepIn(): IO[Unit] =
+      control.stepIn() *> parseEvents
+        .send(
+          Parse.Event
+            .Control(DAPodil.Debugee.State.Stopped.stepIn)
+        )
+        .void
+
+    def stepOut(): IO[Unit] =
+      control.stepOut() *> parseEvents
+        .send(
+          Parse.Event
+            .Control(DAPodil.Debugee.State.Stopped.stepOut)
         )
         .void
 
@@ -736,7 +752,7 @@ object Parse {
 
       startup = dapEvents.send(ConfigEvent(args)) *>
         (if (args.stopOnEntry)
-           control.step() *>
+           control.stepIn() *>
              events.send(Parse.Event.Control(DAPodil.Debugee.State.Stopped.entry))
          // don't use debugee.step as we need to send Stopped.entry, not Stopped.step
          else debugee.continue())
@@ -806,8 +822,12 @@ object Parse {
                     new Events.StoppedEvent("entry", 1L)
                   case DAPodil.Debugee.State.Stopped.Reason.Pause =>
                     new Events.StoppedEvent("pause", 1L)
-                  case DAPodil.Debugee.State.Stopped.Reason.Step =>
+                  case DAPodil.Debugee.State.Stopped.Reason.StepOver =>
                     new Events.StoppedEvent("step", 1L)
+                  case DAPodil.Debugee.State.Stopped.Reason.StepIn =>
+                    new Events.StoppedEvent("stepIn", 1L)
+                  case DAPodil.Debugee.State.Stopped.Reason.StepOut =>
+                    new Events.StoppedEvent("stepOut", 1L)
                   case DAPodil.Debugee.State.Stopped.Reason.BreakpointHit(location) =>
                     new Events.StoppedEvent("breakpoint", 1L, false, show"Breakpoint hit at $location", null)
                 },
@@ -1231,6 +1251,16 @@ object Parse {
       */
     def await(): IO[Boolean]
 
+    /** Update the control with the current element depth (set by the parser thread before awaiting). Depth is used to
+      * implement step/stepOut semantics.
+      */
+    def setCurrentDepth(depth: Int): IO[Unit]
+
+    /** Indicate the kind of the upcoming await (e.g. "start" or "end"). Parser hooks should set this before calling
+      * await().
+      */
+    def setAwaitingKind(kind: String): IO[Unit]
+
     /** Start running. */
     def continue(): IO[Unit]
 
@@ -1239,7 +1269,9 @@ object Parse {
       * IMPORTANT: Shouldn't return until any work blocked by an `await` completes, otherwise the update that was
       * waiting will race with the code that sees the `step` complete.
       */
-    def step(): IO[Unit]
+    def stepOver(): IO[Unit]
+    def stepIn(): IO[Unit]
+    def stepOut(): IO[Unit]
 
     /** Stop running. */
     def pause(): IO[Unit]
@@ -1258,6 +1290,9 @@ object Parse {
       for {
         waiterArrived <- Deferred[IO, Unit]
         state <- Ref[IO].of[State](AwaitingFirstAwait(waiterArrived))
+        currentDepth <- Ref[IO].of[Int](0)
+        awaitingKind <- Ref[IO].of[String]("")
+        stopTarget <- Ref[IO].of[Option[(Int, String)]](None)
       } yield new Control {
         def await(): IO[Boolean] =
           for {
@@ -1269,26 +1304,67 @@ object Parse {
                   .complete(()) *> nextContinue.get.as(true)
               case Running => Running -> IO.pure(false)
               case s @ Stopped(whenContinued, nextAwaitStarted) =>
-                s -> nextAwaitStarted.complete(()) *> // signal next await happened
-                  whenContinued.get.as(true) // block
+                s -> nextAwaitStarted.complete(()) *>
+                  // Decide whether to block or let parser continue
+                  stopTarget.get.flatMap {
+                    case None => whenContinued.get.as(true)
+                    case Some((targetDepth, mode)) =>
+                      for {
+                        cur <- currentDepth.get
+                        kind <- awaitingKind.get
+                        res <- mode match {
+                          // Allow running while deeper than target.
+                          // When at or above target and we're at an end-element, block once then clear target
+                          case "stepOut" =>
+                            if (cur > targetDepth) IO.pure(false)
+                            else if (kind == "end") whenContinued.get.flatMap(_ => stopTarget.set(None).as(true))
+                            else IO.pure(false)
+
+                          // Allow running until we reach a deeper depth, then pause at the start-element and clear target
+                          case "stepIn" =>
+                            if (cur < targetDepth) IO.pure(false)
+                            else if (kind == "start") whenContinued.get.flatMap(_ => stopTarget.set(None).as(true))
+                            else IO.pure(false)
+
+                          // Block once and clear the stopTarget so subsequent awaits don't re-trigger
+                          case _ => whenContinued.get.flatMap(_ => stopTarget.set(None).as(true))
+                        }
+                      } yield res
+                  }
             }.flatten
           } yield awaited
 
-        def step(): IO[Unit] =
+        def performStep(stepType: String, addedDepth: Int): IO[Unit] =
           for {
             nextContinue <- Deferred[IO, Unit]
             nextAwaitStarted <- Deferred[IO, Unit]
             _ <- state.modify {
               case s @ AwaitingFirstAwait(waiterArrived) =>
-                s -> waiterArrived.get *> step()
+                s -> waiterArrived.get *> (stepType match {
+                  case "stepOver" => stepOver()
+                  case "stepIn"   => stepIn()
+                  case "stepOut"  => stepOut()
+                })
               case Running => Running -> IO.unit
               case Stopped(whenContinued, _) =>
                 Stopped(nextContinue, nextAwaitStarted) -> (
-                  whenContinued.complete(()) *> // wake up await-ers
-                    nextAwaitStarted.get // block until next await is invoked
+                  for {
+                    d <- currentDepth.get
+                    _ <- stopTarget.set(Some((d + addedDepth, stepType)))
+                    _ <- whenContinued.complete(())
+                    _ <- nextAwaitStarted.get
+                  } yield ()
                 )
             }.flatten
           } yield ()
+
+        def stepOver(): IO[Unit] = performStep("stepOver", 0)
+        def stepIn(): IO[Unit] = performStep("stepIn", 1)
+        def stepOut(): IO[Unit] = performStep("stepOut", -1)
+
+        def setCurrentDepth(depth: Int): IO[Unit] = currentDepth.set(depth)
+
+        def setAwaitingKind(kind: String): IO[Unit] = awaitingKind.set(kind)
 
         def continue(): IO[Unit] =
           state.modify {
@@ -1296,7 +1372,7 @@ object Parse {
               s -> waiterArrived.get *> continue()
             case Running => Running -> IO.unit
             case Stopped(whenContinued, _) =>
-              Running -> whenContinued.complete(()).void // wake up await-ers
+              Running -> (stopTarget.set(None) *> whenContinued.complete(())).void // wake up await-ers
           }.flatten
 
         def pause(): IO[Unit] =
@@ -1353,7 +1429,21 @@ object Parse {
 
         for {
           _ <- logger.debug("pre-control await")
-          isStepping <- control.await() // may block until external control says to unblock, for stepping behavior
+          _ <- control.setCurrentDepth(
+            pstate.currentNode.toOption
+              .map { node =>
+                var depth = 0
+                var n = node
+                while (n.diParent != null) {
+                  depth += 1
+                  n = n.diParent
+                }
+                depth
+              }
+              .getOrElse(0)
+          )
+          _ <- control.setAwaitingKind("start")
+          isStepping <- control.await()
           _ <- logger.debug("post-control await")
           location = createLocation(pstate.schemaFileLocation)
           shouldBreak <- breakpoints.shouldBreak(location)
@@ -1386,7 +1476,21 @@ object Parse {
 
     override def endElement(pstate: PState, processor: Parser): Unit =
       dispatcher.unsafeRunSync {
-        control.await() *> // ensure no events while debugger is paused
+        val depth = pstate.currentNode.toOption
+          .map { node =>
+            var d = 0
+            var n = node
+            while (n.diParent != null) {
+              d += 1
+              n = n.diParent
+            }
+            d
+          }
+          .getOrElse(0)
+
+        control.setCurrentDepth(depth) *>
+          control.setAwaitingKind("end") *>
+          control.await() *>
           events.send(Event.EndElement(pstate.copyStateForDebugger)).void
       }
   }
