@@ -17,7 +17,6 @@
 
 import * as assert from 'assert'
 import { attributeCompletion } from '../../../language/providers/intellisense/attributeItems'
-import { commonCompletion } from '../../../language/providers/intellisense/commonItems'
 import { elementCompletion } from '../../../language/providers/intellisense/elementItems'
 
 suite('Items Test Suite', () => {
@@ -78,6 +77,8 @@ suite('Items Test Suite', () => {
     'minOccurs',
     'maxOccurs',
     'nillable',
+    'type',
+    'base',
     'dfdl:occursCount',
     'dfdl:byteOrder',
     'dfdl:bitOrder',
@@ -187,12 +188,6 @@ suite('Items Test Suite', () => {
     'schemaLocation',
     'namespace',
   ]
-
-  test('all commonItems available', async () => {
-    let itemNames: string[] = []
-    commonCompletion('').items.forEach((r) => itemNames.push(r.item))
-    assert.strictEqual(itemNames.includes('type'), true)
-  })
 
   test('all elementItems available', async () => {
     elementCompletion('', '').items.forEach((item) => {

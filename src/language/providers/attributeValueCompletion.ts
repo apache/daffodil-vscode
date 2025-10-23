@@ -22,12 +22,11 @@ import {
   cursorWithinBraces,
   cursorWithinQuotes,
   getNsPrefix,
+  insertSnippet,
 } from './utils'
 import { getDefinedTypes } from './attributeCompletion'
-import {
-  attributeValues,
-  noChoiceAttributes,
-} from './intellisense/attributeValueItems'
+import { attributeCompletion } from './intellisense/attributeItems'
+import { noChoiceAttributes } from './intellisense/attributeValueItems'
 
 export function getAttributeValueCompletionProvider() {
   return vscode.languages.registerCompletionItemProvider(
@@ -77,7 +76,37 @@ export function getAttributeValueCompletionProvider() {
             editBuilder.replace(range, replaceValue)
           })
 
-          attributeValues(attributeName, startPosition, additionalItems)
+          function getAttributeValues(attributeName: string) {
+            type AttributeItem = {
+              item: string
+              snippetString: string
+              markdownString: string
+            }
+            const attributeItems: AttributeItem[] = []
+
+            attributeCompletion(
+              additionalItems,
+              '',
+              'dfdl',
+              '',
+              ''
+            ).items.forEach((r) => attributeItems.push(r))
+
+            const foundItem = attributeItems.find((attributeItem) =>
+              attributeItem.item.includes(attributeName)
+            )
+
+            if (foundItem?.item.includes(attributeName)) {
+              let parts = foundItem.snippetString.split('=')
+              let snippet = parts.slice(1).toString()
+              if (snippet != null) {
+                return insertSnippet(snippet, startPosition)
+              } else {
+                return undefined
+              }
+            }
+          }
+          getAttributeValues(attributeName)
         }
         return undefined
       },
@@ -132,7 +161,37 @@ export function getTDMLAttributeValueCompletionProvider() {
             editBuilder.replace(range, replaceValue)
           })
 
-          attributeValues(attributeName, startPosition, additionalItems)
+          function getAttributeValues(attributeName: string) {
+            type AttributeItem = {
+              item: string
+              snippetString: string
+              markdownString: string
+            }
+            const attributeItems: AttributeItem[] = []
+
+            attributeCompletion(
+              additionalItems,
+              '',
+              'dfdl',
+              '',
+              ''
+            ).items.forEach((r) => attributeItems.push(r))
+
+            const foundItem = attributeItems.find((attributeItem) =>
+              attributeItem.item.includes(attributeName)
+            )
+
+            if (foundItem?.item.includes(attributeName)) {
+              let parts = foundItem.snippetString.split('=')
+              let snippet = parts.slice(1).toString()
+              if (snippet != null) {
+                return insertSnippet(snippet, startPosition)
+              } else {
+                return undefined
+              }
+            }
+          }
+          getAttributeValues(attributeName)
         }
         return undefined
       },

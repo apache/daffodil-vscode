@@ -25,7 +25,6 @@ import {
   isInXPath,
   lineCount,
   createCompletionItem,
-  getCommonItems,
   getItemsOnLineCount,
   cursorWithinQuotes,
   cursorWithinBraces,
@@ -44,12 +43,7 @@ function getCompletionItems(
   spacingChar: string,
   afterChar: string
 ) {
-  let compItems: vscode.CompletionItem[] = getCommonItems(
-    itemsToUse,
-    preVal,
-    additionalItems,
-    nsPrefix
-  )
+  let compItems: vscode.CompletionItem[] = []
 
   attributeCompletion(
     additionalItems,
@@ -779,10 +773,6 @@ function getDefineVariableCompletionItems(
     completionItem.insertText = new vscode.SnippetString(e.snippetString)
 
     compItems.push(completionItem)
-  })
-
-  getCommonItems(['type'], '', additionalItems, nsPrefix).forEach((ci) => {
-    compItems.push(ci)
   })
 
   return compItems
