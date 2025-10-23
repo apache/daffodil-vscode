@@ -25,7 +25,6 @@ import {
   isTagEndTrigger,
   nearestOpen,
   createCompletionItem,
-  getCommonItems,
   nearestTag,
   getAttributeNames,
   getItemsOnLineCount,
@@ -186,12 +185,7 @@ function getElementCompletionItems(
   definedVariables: string = '',
   nsPrefix: string
 ) {
-  let compItems: vscode.CompletionItem[] = getCommonItems(
-    itemsToUse,
-    preVal,
-    definedVariables,
-    nsPrefix
-  )
+  let compItems: vscode.CompletionItem[] = []
 
   elementCompletion(definedVariables, nsPrefix).items.forEach((e) => {
     for (let i = 0; i < itemsToUse.length; ++i) {

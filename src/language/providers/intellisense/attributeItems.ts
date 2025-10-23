@@ -28,12 +28,12 @@ export const attributeCompletion = (
       {
         item: 'name',
         snippetString: spacingChar + 'name="$1"$0' + afterChar,
-        markdownString: 'specify name',
+        markdownString: 'specifies the name of this item',
       },
       {
         item: 'ref',
         snippetString: spacingChar + 'ref="$1"$0' + afterChar,
-        markdownString: 'Specifies the name of an element in this schema'
+        markdownString: 'Refers to the name of a defined item'
       },
       {
         item: 'default',
@@ -59,6 +59,20 @@ export const attributeCompletion = (
         item: 'nillable',
         snippetString: spacingChar + 'nillable="${true|false|}"$0' + afterChar,
         markdownString: 'Allows for the concept of an element having no value',
+      },
+      {
+        item: 'type',
+        snippetString: spacingChar + 'type="${1|xs:string,xs:decimal,xs:float,xs:double,xs:integer,xs:nonNegativeInteger,xs:int,xs:unsignedInt,xs:short,xs:unsignedShort,xs:long,xs:unsignedLong,xs:byte,xs:unsignedByte,xs:hexBinary,xs:boolean' +
+          additionalItems +
+          '|}"$0' + afterChar,
+        markdownString: 'The name of a built in data type, or the name of a simpleType or complexType element defined in this schema',
+      },
+      {
+        item: 'base',
+        snippetString: spacingChar + 'type="${1|xs:string,xs:decimal,xs:float,xs:double,xs:integer,xs:nonNegativeInteger,xs:int,xs:unsignedInt,xs:short,xs:unsignedShort,xs:long,xs:unsignedLong,xs:byte,xs:unsignedByte,xs:hexBinary,xs:boolean' +
+          additionalItems +
+          '|}"$0' + afterChar,
+        markdownString: 'The name of a built in data type, or the name of a simpleType or complexType element defined in this schema',
       },
       {
         item: 'dfdl:occursCount',

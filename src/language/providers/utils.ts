@@ -16,7 +16,6 @@
  */
 
 import * as vscode from 'vscode'
-import { commonCompletion } from './intellisense/commonItems'
 import { isXPath } from '../semantics/dfdlExt'
 import { xml2js } from 'xml-js'
 
@@ -278,6 +277,10 @@ export function checkTagOpen(
   // start tag assume it is a multi-line tag
   if (
     itemsOnLine < 2 &&
+    !document
+      .lineAt(triggerLine + 1)
+      .text.trim()
+      .startsWith('<') &&
     triggerText.trim().startsWith('<' + nsPrefix + tag) &&
     triggerText.indexOf('>', tagPos) < 0 //if tag ending character is missing will return -1
   ) {
@@ -288,7 +291,7 @@ export function checkTagOpen(
     const nextTagPos = triggerText.indexOf('<', tagPos + 1)
     let tagEndPos = triggerText.indexOf('>', tagPos)
 
-    if (tagPos > -1 && itemsOnLine > 1) {
+    if (tagPos > -1 && itemsOnLine >= 1) {
       if (
         triggerPos > tagPos &&
         ((triggerPos <= tagEndPos &&
@@ -489,12 +492,14 @@ export function getAttributeNames(
   let currentText = document.lineAt(currentLine).text
   let closeText = currentText
 
-  //if mulit-line tag
+  //if multi-line tag
   if (
-    !(
-      currentText.trim().startsWith('<' + nsPrefix + tag) &&
-      currentText.endsWith('>')
-    )
+    currentText.trim().startsWith('<' + nsPrefix + tag) &&
+    !currentText.endsWith('>') &&
+    !document
+      .lineAt(currentLine + 1)
+      .text.trim()
+      .startsWith('<')
   ) {
     //Get the opening tag
     while (
@@ -524,14 +529,15 @@ export function getAttributeNames(
   }
 
   let attributeNames: string[] = []
-  const xmljs = xml2js(currentText, {})
-  const attributes = xmljs.elements?.[0].attributes
-  if (attributes) {
-    const attributeSet: Set<string> = new Set(Object.keys(attributes))
-    attributeNames = [...attributeSet]
-    return attributeNames
+  if (currentText.includes('>')) {
+    const xmljs = xml2js(currentText, {})
+    const attributes = xmljs.elements?.[0].attributes
+    if (attributes) {
+      const attributeSet: Set<string> = new Set(Object.keys(attributes))
+      attributeNames = [...attributeSet]
+      return attributeNames
+    }
   }
-
   return attributeNames
 }
 
@@ -819,22 +825,4 @@ export function createCompletionItem(
   }
 
   return completionItem
-}
-
-export function getCommonItems(
-  itemsToUse: string[],
-  preVal: string = '',
-  additionalItems: string = '',
-  nsPrefix: string
-) {
-  let compItems: vscode.CompletionItem[] = []
-
-  commonCompletion(additionalItems).items.forEach((e) => {
-    if (itemsToUse.includes(e.item)) {
-      const completionItem = createCompletionItem(e, preVal, nsPrefix)
-      compItems.push(completionItem)
-    }
-  })
-
-  return compItems
 }
