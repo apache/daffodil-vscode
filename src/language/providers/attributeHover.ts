@@ -16,7 +16,6 @@
  */
 
 import * as vscode from 'vscode'
-import { attributeHoverValues } from './intellisense/attributeHoverItems'
 import { attributeCompletion } from './intellisense/attributeItems'
 
 export function getAttributeHoverProvider() {
@@ -27,25 +26,35 @@ export function getAttributeHoverProvider() {
       token: vscode.CancellationToken
     ) {
       const range = document.getWordRangeAtPosition(position)
-      const word = document.getText(range)
+      if (!range) {
+        return undefined // No word found at the position
+      }
+      let hoverItem = document.getText(range)
+      type AttributeItem = {
+        item: string
+        snippetString: string
+        markdownString: string
+      }
 
-      let itemNames: string[] = []
+      const attributeItems: AttributeItem[] = []
+
       attributeCompletion('', '', 'dfdl', '', '').items.forEach((r) =>
-        itemNames.push(r.item)
+        attributeItems.push(r)
       )
-      let testWord = ''
-      if (word.length > 0) {
-        if (!word.includes('dfdl:')) {
-          testWord = 'dfdl:' + word
-        } else {
-          testWord = word
-        }
-        if (itemNames.includes(testWord)) {
-          return new vscode.Hover({
-            language: 'dfdl',
-            value: attributeHoverValues(testWord),
-          })
-        }
+
+      let foundItem = attributeItems.find(
+        (attributeItem) => attributeItem.item === hoverItem
+      )
+
+      if (foundItem == undefined) {
+        hoverItem = 'dfdl:' + hoverItem
+        foundItem = attributeItems.find(
+          (attributeItem) => attributeItem.item === hoverItem
+        )
+      }
+
+      if (foundItem?.item === hoverItem) {
+        return new vscode.Hover(foundItem.markdownString)
       }
     },
   })

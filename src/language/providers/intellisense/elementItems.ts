@@ -29,7 +29,7 @@ export const elementCompletion = (definedVariables, nsPrefix) => {
       },
       {
         item: nsPrefix + 'element',
-        snippetString: '<' + nsPrefix + 'element $1"$0',
+        snippetString: '<' + nsPrefix + 'element$0',
         markdownString: 'Defines an xs element',
       },
       {
