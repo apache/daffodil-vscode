@@ -595,11 +595,11 @@ class DaffodilConfigurationProvider
    * Massage a debug configuration just before a debug session is being launched,
    * e.g. add all missing attributes to the debug configuration.
    */
-  resolveDebugConfiguration(
+  async resolveDebugConfiguration(
     folder: WorkspaceFolder | undefined,
     config: DebugConfiguration,
     token?: CancellationToken
-  ): ProviderResult<DebugConfiguration> {
+  ): Promise<DebugConfiguration | undefined> {
     // if launch.json is missing or empty
     if (!config.type && !config.request && !config.name) {
       config = getConfig({ name: 'Launch', request: 'launch', type: 'dfdl' })
@@ -609,12 +609,28 @@ class DaffodilConfigurationProvider
       config.debugServer = 4711
     }
 
-    if (!config.schema) {
-      return vscode.window
-        .showInformationMessage('Cannot find a schema to debug')
-        .then((_) => {
-          return undefined // abort launch
-        })
+    if (!config.schema || config.schema.path == '') {
+      const schemaPath = await vscode.commands.executeCommand(
+        'extension.dfdl-debug.getSchemaName'
+      )
+
+      if (!schemaPath) {
+        return undefined
+      }
+
+      config.schema.path = schemaPath
+    }
+
+    if (!config.data || config.data == '') {
+      const dataPath = await vscode.commands.executeCommand<string>(
+        'extension.dfdl-debug.getDataName'
+      )
+
+      if (!dataPath) {
+        return undefined
+      }
+
+      config.data = dataPath
     }
 
     let dataFolder = config.data
