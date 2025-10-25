@@ -167,7 +167,7 @@ class DAPodil(
   def handle(request: Request): IO[Unit] =
     // TODO: java-debug doesn't seem to support the Restart request
     request match {
-      case extract(Command.INITIALIZE, _) => initialize(request)
+      case extract(Command.INITIALIZE, _)        => initialize(request)
       case extract(Command.CONFIGURATIONDONE, _) =>
         session.sendResponse(request.respondSuccess())
       case extract(Command.LAUNCH, _) =>
@@ -180,15 +180,15 @@ class DAPodil(
         source(request, args)
       case extract(Command.SETBREAKPOINTS, args: SetBreakpointArguments) =>
         setBreakpoints(request, args)
-      case extract(Command.THREADS, _)    => threads(request)
-      case extract(Command.STACKTRACE, _) => stackTrace(request)
+      case extract(Command.THREADS, _)                    => threads(request)
+      case extract(Command.STACKTRACE, _)                 => stackTrace(request)
       case extract(Command.SCOPES, args: ScopesArguments) =>
         scopes(request, args)
       case extract(Command.VARIABLES, args: VariablesArguments) =>
         variables(request, args)
-      case extract(Command.NEXT, _)     => next(request)
-      case extract(Command.CONTINUE, _) => continue(request)
-      case extract(Command.PAUSE, _)    => pause(request)
+      case extract(Command.NEXT, _)                               => next(request)
+      case extract(Command.CONTINUE, _)                           => continue(request)
+      case extract(Command.PAUSE, _)                              => pause(request)
       case extract(Command.DISCONNECT, args: DisconnectArguments) =>
         disconnect(request, args)
       case extract(Command.EVALUATE, args: EvaluateArguments) =>
