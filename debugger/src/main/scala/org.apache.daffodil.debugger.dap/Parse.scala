@@ -180,11 +180,27 @@ object Parse {
     def sourceChanges(): Stream[IO, DAPodil.Source] =
       Stream.empty
 
-    def step(): IO[Unit] =
-      control.step() *> parseEvents
+    def stepOver(): IO[Unit] =
+      control.stepOver() *> parseEvents
         .send(
           Parse.Event
-            .Control(DAPodil.Debugee.State.Stopped.step)
+            .Control(DAPodil.Debugee.State.Stopped.stepOver)
+        )
+        .void
+
+    def stepIn(): IO[Unit] =
+      control.stepIn() *> parseEvents
+        .send(
+          Parse.Event
+            .Control(DAPodil.Debugee.State.Stopped.stepIn)
+        )
+        .void
+
+    def stepOut(): IO[Unit] =
+      control.stepOut() *> parseEvents
+        .send(
+          Parse.Event
+            .Control(DAPodil.Debugee.State.Stopped.stepOut)
         )
         .void
 
@@ -736,7 +752,7 @@ object Parse {
 
       startup = dapEvents.send(ConfigEvent(args)) *>
         (if (args.stopOnEntry)
-           control.step() *>
+           control.stepIn() *>
              events.send(Parse.Event.Control(DAPodil.Debugee.State.Stopped.entry))
          // don't use debugee.step as we need to send Stopped.entry, not Stopped.step
          else debugee.continue())
@@ -806,8 +822,12 @@ object Parse {
                     new Events.StoppedEvent("entry", 1L)
                   case DAPodil.Debugee.State.Stopped.Reason.Pause =>
                     new Events.StoppedEvent("pause", 1L)
-                  case DAPodil.Debugee.State.Stopped.Reason.Step =>
-                    new Events.StoppedEvent("step", 1L)
+                  case DAPodil.Debugee.State.Stopped.Reason.StepOver =>
+                    new Events.StoppedEvent("stepOver", 1L)
+                  case DAPodil.Debugee.State.Stopped.Reason.StepIn =>
+                    new Events.StoppedEvent("stepIn", 1L)
+                  case DAPodil.Debugee.State.Stopped.Reason.StepOut =>
+                    new Events.StoppedEvent("stepOut", 1L)
                   case DAPodil.Debugee.State.Stopped.Reason.BreakpointHit(location) =>
                     new Events.StoppedEvent("breakpoint", 1L, false, show"Breakpoint hit at $location", null)
                 },
@@ -1239,7 +1259,9 @@ object Parse {
       * IMPORTANT: Shouldn't return until any work blocked by an `await` completes, otherwise the update that was
       * waiting will race with the code that sees the `step` complete.
       */
-    def step(): IO[Unit]
+    def stepOver(): IO[Unit]
+    def stepIn(): IO[Unit]
+    def stepOut(): IO[Unit]
 
     /** Stop running. */
     def pause(): IO[Unit]
@@ -1274,13 +1296,17 @@ object Parse {
             }.flatten
           } yield awaited
 
-        def step(): IO[Unit] =
+        def performStep(stepType: String): IO[Unit] =
           for {
             nextContinue <- Deferred[IO, Unit]
             nextAwaitStarted <- Deferred[IO, Unit]
             _ <- state.modify {
               case s @ AwaitingFirstAwait(waiterArrived) =>
-                s -> waiterArrived.get *> step()
+                s -> waiterArrived.get *> (stepType match {
+                  case "stepOver" => stepOver()
+                  case "stepIn"   => stepIn()
+                  case "stepOut"  => stepOut()
+                })
               case Running => Running -> IO.unit
               case Stopped(whenContinued, _) =>
                 Stopped(nextContinue, nextAwaitStarted) -> (
@@ -1289,6 +1315,10 @@ object Parse {
                 )
             }.flatten
           } yield ()
+
+        def stepOver(): IO[Unit] = performStep("stepOver")
+        def stepIn(): IO[Unit] = performStep("stepIn")
+        def stepOut(): IO[Unit] = performStep("stepOut")
 
         def continue(): IO[Unit] =
           state.modify {
