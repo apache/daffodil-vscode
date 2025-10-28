@@ -595,11 +595,11 @@ class DaffodilConfigurationProvider
    * Massage a debug configuration just before a debug session is being launched,
    * e.g. add all missing attributes to the debug configuration.
    */
-  resolveDebugConfiguration(
+  async resolveDebugConfiguration(
     folder: WorkspaceFolder | undefined,
     config: DebugConfiguration,
     token?: CancellationToken
-  ): ProviderResult<DebugConfiguration> {
+  ): Promise<DebugConfiguration | undefined> {
     // if launch.json is missing or empty
     if (!config.type && !config.request && !config.name) {
       config = getConfig({ name: 'Launch', request: 'launch', type: 'dfdl' })
@@ -609,12 +609,57 @@ class DaffodilConfigurationProvider
       config.debugServer = 4711
     }
 
-    if (!config.schema) {
-      return vscode.window
-        .showInformationMessage('Cannot find a schema to debug')
-        .then((_) => {
-          return undefined // abort launch
-        })
+    const schemaMissing = !config.schema?.path || config.schema.path === ''
+    const dataMissing = !config.data || config.data === ''
+
+    let schemaPath: string | undefined
+    let dataPath: string | undefined
+
+    // --- If either is missing, always prompt in the correct order ---
+    if (schemaMissing || dataMissing) {
+      // Always prompt for schema first
+      schemaPath = await vscode.commands.executeCommand<string>(
+        'extension.dfdl-debug.getSchemaName'
+      )
+      if (!schemaPath) {
+        return undefined
+      }
+      config.schema.path = schemaPath
+
+      dataPath = await vscode.commands.executeCommand<string>(
+        'extension.dfdl-debug.getDataName'
+      )
+      if (!dataPath) {
+        return undefined
+      }
+      config.data = dataPath
+    }
+
+    // --- Clean up placeholders safely (no accidental empty strings) ---
+    if (config.schema?.path?.includes('${command:AskForSchemaName}')) {
+      if (schemaPath && schemaPath.trim() !== '') {
+        config.schema.path = schemaPath
+      } else {
+        config.schema.path = config.schema.path.replace(
+          '${command:AskForSchemaName}',
+          ''
+        )
+        console.warn(
+          'Schema placeholder removed but no schema file was selected.'
+        )
+      }
+    }
+
+    if (
+      typeof config.data === 'string' &&
+      config.data.includes('${command:AskForDataName}')
+    ) {
+      if (dataPath && dataPath.trim() !== '') {
+        config.data = dataPath
+      } else {
+        config.data = config.data.replace('${command:AskForDataName}', '')
+        console.warn('Data placeholder removed but no data file was selected.')
+      }
     }
 
     let dataFolder = config.data
