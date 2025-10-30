@@ -22,11 +22,17 @@ import { outputChannel } from '../adapter/activateDaffodilDebug'
 import { downloadAndExtract } from '../utils'
 
 /**
- * The daffodil debugger doesn't bundle any of daffodil jars because we want to support
- * many versions of daffodil and do not want to bundle them all. The CLI zip is an official
- * daffodil release that contains all the daffodil jars (and their transitive dependencies)
- * that the debugger needs for a particular Daffodil version. The debugger doesn't need all
- * the jars that it bundles (e.g. daffodil-cli.jar) but those will just be ignored.
+ * Only the default version of Daffodil is bundled with the extension, all other versions are
+ * downloaded. The CLI zip is an official daffodil release that contains all the daffodil jars
+ * (and their transitive dependencies) that the debugger needs for a particular Daffodil version.
+ * The debugger doesn't need all the jars that it bundles (e.g. daffodil-cli.jar) but those will
+ * just be ignored.
+ *
+ * If - The bundled version of the Daffodil CLI matches the Daffodil version wanting to be used
+ * then default to use that path.
+ * If - The global storage path for the Daffodil version already exists, use that path.
+ * Else - Download and extract the Daffodil CLI that matches the version desired to the global
+ * storage path.
  */
 export async function checkIfDaffodilJarsNeeded(
   daffodilVersion: string
@@ -35,21 +41,37 @@ export async function checkIfDaffodilJarsNeeded(
     'getContext'
   )) as vscode.ExtensionContext
 
+  // If the Daffodil Version desired is bundled in the extension, use that path
+  const extensionPath = path.join(
+    context.asAbsolutePath('./dist'),
+    `daffodil/apache-daffodil-${daffodilVersion}-bin`
+  )
+  if (fs.existsSync(extensionPath)) {
+    outputChannel.appendLine(`[INFO] Using bundled Daffodil CLI JARs.`)
+    return extensionPath
+  }
+
+  // downloadAndExtractToGlobalStorage only tries to download the Daffodil CLI release file if
+  // the desired version's bin folder doesn't already exists.
+  return await downloadAndExtractToGlobalStorage(context, daffodilVersion)
+}
+
+export async function downloadAndExtractToGlobalStorage(
+  context: vscode.ExtensionContext,
+  daffodilVersion: string
+): Promise<string> {
   /**
    * Global storage paths:
    *  Mac: /Users/<username>/Library/Application Support/Code/User/globalStorage/asf.apache-daffodil-vscode
    *  Windows: %APPDATA%\Code\User\globalStorage\asf.apache-daffodil-vscode
    *  Linux: /home/<username>/.config/Code/User/globalStorage/asf.apache-daffodil-vscode
    */
-
   const destFolder = path.join(context.globalStorageUri.fsPath, 'daffodil')
-  const binFolder = path.join(
-    destFolder,
-    `apache-daffodil-${daffodilVersion}-bin`
-  )
+  const binName = `apache-daffodil-${daffodilVersion}-bin`
+  const binFolder = path.join(destFolder, binName)
 
   if (!fs.existsSync(binFolder)) {
-    const url = `https://www.apache.org/dyn/closer.lua/download/daffodil/${daffodilVersion}/bin/apache-daffodil-${daffodilVersion}-bin.zip`
+    const url = `https://www.apache.org/dyn/closer.lua/download/daffodil/${daffodilVersion}/bin/${binName}.zip`
     try {
       await downloadAndExtract('Daffodil CLI JARs', url, destFolder)
     } catch (err) {
