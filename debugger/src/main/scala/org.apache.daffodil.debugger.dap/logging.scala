@@ -38,8 +38,8 @@ object logging {
   }
 
   implicit val eventShow: Show[DebugEvent] = {
-    case event: Events.StoppedEvent => s"${event.`type`} ${event.reason} ${event.description}"
-    case event: Events.ThreadEvent  => s"${event.`type`} ${event.reason}"
+    case event: Events.StoppedEvent       => s"${event.`type`} ${event.reason} ${event.description}"
+    case event: Events.ThreadEvent        => s"${event.`type`} ${event.reason}"
     case event: DAPodil.LoadedSourceEvent =>
       s"${event.`type`} ${event.reason} ${JsonUtils.toJson(event.source)}"
     case event: Parse.DataEvent =>
