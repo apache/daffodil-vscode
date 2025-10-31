@@ -494,10 +494,10 @@ object Parse {
     //              is set to True, and the type field is set to a value other than file
     def parseInfosetOutput(arguments: JsonObject, requireFile: Boolean = false) =
       Option(arguments.getAsJsonObject("infosetOutput")) match {
-        case None => Right(LaunchArgs.InfosetOutput.Console).toEitherNel
+        case None                => Right(LaunchArgs.InfosetOutput.Console).toEitherNel
         case Some(infosetOutput) =>
           Option(infosetOutput.getAsJsonPrimitive("type")) match {
-            case None => Right(LaunchArgs.InfosetOutput.Console).toEitherNel
+            case None      => Right(LaunchArgs.InfosetOutput.Console).toEitherNel
             case Some(typ) =>
               typ.getAsString() match {
                 case "none" =>
@@ -800,7 +800,7 @@ object Parse {
     def deliver(events: Stream[IO, Event]): Stream[IO, Nothing] =
       events
         .evalScan(Delivery.State.empty) {
-          case (state, Parse.Event.Init(_)) => IO.pure(state.copy(data = DAPodil.Data.empty))
+          case (state, Parse.Event.Init(_))   => IO.pure(state.copy(data = DAPodil.Data.empty))
           case (state, e: Event.StartElement) =>
             for {
               frame <- createFrame(e)
@@ -1169,8 +1169,8 @@ object Parse {
 
       def apply(that: Debugee.LaunchArgs.InfosetOutput): InfosetOutput =
         that match {
-          case Debugee.LaunchArgs.InfosetOutput.None    => None
-          case Debugee.LaunchArgs.InfosetOutput.Console => Console
+          case Debugee.LaunchArgs.InfosetOutput.None       => None
+          case Debugee.LaunchArgs.InfosetOutput.Console    => Console
           case Debugee.LaunchArgs.InfosetOutput.File(path) =>
             File(path.toString)
         }
@@ -1289,7 +1289,7 @@ object Parse {
               case AwaitingFirstAwait(waiterArrived) =>
                 Stopped(nextContinue, nextAwaitStarted) -> waiterArrived
                   .complete(()) *> nextContinue.get.as(true)
-              case Running => Running -> IO.pure(false)
+              case Running                                      => Running -> IO.pure(false)
               case s @ Stopped(whenContinued, nextAwaitStarted) =>
                 s -> nextAwaitStarted.complete(()) *> // signal next await happened
                   whenContinued.get.as(true) // block
@@ -1307,7 +1307,7 @@ object Parse {
                   case "stepIn"   => stepIn()
                   case "stepOut"  => stepOut()
                 })
-              case Running => Running -> IO.unit
+              case Running                   => Running -> IO.unit
               case Stopped(whenContinued, _) =>
                 Stopped(nextContinue, nextAwaitStarted) -> (
                   whenContinued.complete(()) *> // wake up await-ers
@@ -1324,7 +1324,7 @@ object Parse {
           state.modify {
             case s @ AwaitingFirstAwait(waiterArrived) =>
               s -> waiterArrived.get *> continue()
-            case Running => Running -> IO.unit
+            case Running                   => Running -> IO.unit
             case Stopped(whenContinued, _) =>
               Running -> whenContinued.complete(()).void // wake up await-ers
           }.flatten
