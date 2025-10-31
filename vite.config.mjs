@@ -21,6 +21,11 @@ import fs from 'node:fs'
 import { builtinModules } from 'node:module'
 import { parse as jsoncParse } from 'jsonc-parser'
 import { fileURLToPath } from 'node:url'
+import unzip from 'unzip-stream'
+import { pipeline } from 'stream/promises'
+import { Transform } from 'stream'
+import cliProgress from 'cli-progress'
+import pc from 'picocolors' // same color lib used by Vite
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -42,6 +47,10 @@ const packageData = jsoncParse(
   fs.readFileSync(path.resolve('package.json'), 'utf8')
 )
 const pkg_version = packageData['version']
+const defaultDaffodilVersion =
+  packageData['contributes']['debuggers'][0]['configurationAttributes'][
+    'launch'
+  ]['properties']['dfdlDebugger']['properties']['daffodilVersion']['default']
 
 function getScalaVersions() {
   const scalaVersions = ['2.12', '2.13']
@@ -76,6 +85,78 @@ function copyDebuggerOutAfterBuild() {
         // Copy staged debugger files to desired location
         fs.cpSync(stageFilePath, serverPackageFolder, { recursive: true })
       })
+    },
+  }
+}
+
+// Helper function to download and extract with a progress bar. This was specifically designed to match the output
+// style of vite.
+async function downloadAndExtract(title, url, targetDir) {
+  console.log(pc.cyan(`\n▶ Starting download for ${title}...\n`))
+
+  const res = await fetch(url)
+  if (!res.ok || !res.body) {
+    throw new Error(
+      `Failed to download ${url}: ${res.status} ${res.statusText}`
+    )
+  }
+
+  const totalBytes = Number(res.headers.get('content-length')) || 0
+  let downloaded = 0
+
+  // Create a CLI progress bar (Vite aesthetic)
+  const bar = new cliProgress.SingleBar(
+    {
+      format: `${pc.bold(title)} ${pc.cyan('[{bar}]')} ${pc.green('{percentage}%')} | {value}/{total} bytes`,
+      barCompleteChar: '█',
+      barIncompleteChar: '░',
+      hideCursor: true,
+    },
+    cliProgress.Presets.shades_classic
+  )
+
+  if (totalBytes > 0) {
+    bar.start(totalBytes, 0)
+  } else {
+    console.log(pc.dim('Downloading (unknown size)...'))
+  }
+
+  // Track download progress
+  const progressStream = new Transform({
+    transform(chunk, _encoding, callback) {
+      downloaded += chunk.length
+      if (totalBytes > 0) {
+        bar.update(downloaded)
+      } else if (downloaded % 5_000_000 < chunk.length) {
+        process.stdout.write('.')
+      }
+      callback(null, chunk)
+    },
+  })
+
+  await fs.promises.mkdir(targetDir, { recursive: true })
+
+  // Stream download → progress tracker → unzipper
+  await pipeline(res.body, progressStream, unzip.Extract({ path: targetDir }))
+
+  if (totalBytes > 0) bar.update(totalBytes)
+  bar.stop()
+
+  const check = pc.green(pc.bold('✓'))
+  console.log(
+    `${check} ${pc.bold(pc.green(title))} successfully extracted to ${pc.dim(targetDir)}\n`
+  )
+}
+
+function downloadAndExtractDefaultVersionOfDaffodil(mode) {
+  return {
+    name: 'download-extract-default-version-of-daffodil',
+    apply: 'build',
+    async buildStart() {
+      const url = `https://www.apache.org/dyn/closer.lua/download/daffodil/${defaultDaffodilVersion}/bin/apache-daffodil-${defaultDaffodilVersion}-bin.zip`
+      const destFolder =
+        mode == 'production' ? `${pkg_dir}/dist/daffodil` : 'dist/daffodil'
+      await downloadAndExtract('Daffodil CLI JARs', url, destFolder)
     },
   }
 }
@@ -182,7 +263,11 @@ export default defineConfig(({ mode }) => {
 
     plugins:
       mode == 'production'
-        ? [copyDebuggerOutAfterBuild(), copyToPkgDirPlugin()]
+        ? [
+            copyDebuggerOutAfterBuild(),
+            copyToPkgDirPlugin(),
+            downloadAndExtractDefaultVersionOfDaffodil(mode),
+          ]
         : [copyDebuggerOutAfterBuild()],
   }
 })
