@@ -55,7 +55,7 @@
   },
   "dependencies": {
     "@omega-edit/client": "^1.0.1",
-    "@viperproject/locate-java-home": "1.1.15",
+    "@viperproject/locate-java-home": "1.1.17",
     "@vscode/debugadapter": "1.67.0",
     "@vscode/webview-ui-toolkit": "^1.2.2",
     "await-notify": "1.0.1",
