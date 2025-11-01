@@ -15,6 +15,29 @@
  * limitations under the License.
  */
 
+/**
+ * Attribute Value Completion Provider for DFDL and TDML Documents
+ *
+ * This module provides intelligent completion suggestions for attribute values in DFDL schemas
+ * and TDML test files. It offers context-aware value suggestions based on:
+ * - The attribute name (e.g., different values for dfdl:representation, dfdl:length, etc.)
+ * - Valid enumerated values from the DFDL specification
+ * - Previously defined types (for type references)
+ * - Previously defined variables (for variable references)
+ * - Boolean values (true/false, yes/no) for boolean attributes
+ * - Standard values like encoding names, byte orders, etc.
+ *
+ * Features:
+ * - Enumerated value completion for DFDL properties with fixed value sets
+ * - Type name completion (references to xs:simpleType or xs:complexType definitions)
+ * - Variable name completion (references to dfdl:defineVariable declarations)
+ * - Custom completion items for attributes requiring user input
+ * - Filtering based on attribute context (element type, namespace, etc.)
+ * - Integration with DFDL and TDML specification data
+ *
+ * The provider is triggered when the user types opening quotes (\" or ') for an attribute value.
+ */
+
 import * as vscode from 'vscode'
 
 import {
@@ -28,6 +51,19 @@ import { getDefinedTypes } from './attributeCompletion'
 import { attributeCompletion } from './intellisense/attributeItems'
 import { noChoiceAttributes } from './intellisense/attributeValueItems'
 
+/**
+ * Registers the attribute value completion provider for DFDL documents.
+ * This provider suggests valid values for DFDL attributes based on the attribute name
+ * and context.
+ *
+ * The provider:
+ * 1. Identifies the attribute being edited
+ * 2. Looks up valid values for that attribute from the intellisense data
+ * 3. Includes user-defined types and variables as applicable
+ * 4. Provides completion items with appropriate snippets
+ *
+ * @returns A VS Code Disposable for the registered completion provider
+ */
 export function getAttributeValueCompletionProvider() {
   return vscode.languages.registerCompletionItemProvider(
     'dfdl',
@@ -36,6 +72,9 @@ export function getAttributeValueCompletionProvider() {
         document: vscode.TextDocument,
         position: vscode.Position
       ) {
+        // Don't provide completion in these contexts:
+        // - Inside curly braces (DFDL expression language)
+        // - Outside of quoted strings (not in an attribute value)
         if (
           checkBraceOpen(document, position) ||
           cursorWithinBraces(document, position) ||
@@ -76,6 +115,23 @@ export function getAttributeValueCompletionProvider() {
             editBuilder.replace(range, replaceValue)
           })
 
+          /**
+           * Generates appropriate completion snippets for attribute values based on the attribute name.
+           *
+           * This function is called by the completion provider when the cursor is positioned in an
+           * attribute value context. It uses a switch statement to map attribute names to their
+           * corresponding value snippets and inserts them at the specified position.
+           *
+           * @param attributeName - The name of the attribute being completed (without namespace prefix for most cases)
+           *
+           * Implementation Notes:
+           * ---------------------
+           * - Uses insertSnippet() utility to insert snippets at the cursor position
+           * - Snippet syntax: ${1|choice1,choice2|} for dropdowns, "$1" for free text
+           * - Expression attributes use "{$1}" to include required curly braces
+           * - Some attributes have default values (e.g., "0" for numeric properties)
+           * - Type attribute merges XSD primitive types with custom types from the schema
+           */
           function getAttributeValues(attributeName: string) {
             type AttributeItem = {
               item: string
@@ -115,6 +171,16 @@ export function getAttributeValueCompletionProvider() {
   )
 }
 
+/**
+ * Registers the attribute value completion provider for TDML test documents.
+ * This provider suggests valid values for TDML-specific attributes such as:
+ * - Test types (parser, unparser, negative)
+ * - Validation modes (on, limited, off)
+ * - Encoding names (UTF-8, ASCII, ISO-8859-1, etc.)
+ * - Boolean values (true, false)
+ *
+ * @returns A VS Code Disposable for the registered completion provider
+ */
 export function getTDMLAttributeValueCompletionProvider() {
   return vscode.languages.registerCompletionItemProvider(
     'dfdl',
@@ -123,6 +189,7 @@ export function getTDMLAttributeValueCompletionProvider() {
         document: vscode.TextDocument,
         position: vscode.Position
       ) {
+        // Don't provide completion inside curly braces (expressions)
         if (
           checkBraceOpen(document, position) ||
           cursorWithinBraces(document, position)
@@ -200,6 +267,24 @@ export function getTDMLAttributeValueCompletionProvider() {
   )
 }
 
+/**
+ * Extracts details about the attribute being edited at the cursor position.
+ * Identifies the attribute name and the position range of its value (between quotes).
+ *
+ * The function:
+ * 1. Searches backwards to find the '=' sign and attribute name
+ * 2. Searches for the opening quote (' or ") after the '=' sign
+ * 3. Searches for the closing quote
+ * 4. Returns the attribute name and value range
+ *
+ * This information is used to provide context-appropriate attribute value completions
+ * and to replace the existing value when a completion is selected.
+ *
+ * @param document - The VS Code text document
+ * @param position - Current cursor position
+ * @returns Tuple of [attribute name, start position of value, end position of value]
+ *          Returns ['none', 0, 0] if not in an attribute value context
+ */
 function getAttributeDetails(
   document: vscode.TextDocument,
   position: vscode.Position

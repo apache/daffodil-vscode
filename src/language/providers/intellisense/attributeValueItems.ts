@@ -15,6 +15,17 @@
  * limitations under the License.
  */
 
+/**
+ * List of attribute names that should NOT show completion choices.
+ * These are typically free-form text attributes where showing predefined
+ * options would not be helpful, such as:
+ * - Names and references (name, ref, namespace)
+ * - Expressions and patterns (inputValueCalc, outputValueCalc, test, testPattern)
+ * - Numeric values (length, occursCount, textOutputMinLength)
+ * - Custom strings (separator, terminator, initiator, nilValue)
+ * - Type names (prefixLengthType)
+ * - Escape characters and patterns
+ */
 export const noChoiceAttributes = [
   'name',
   'ref',

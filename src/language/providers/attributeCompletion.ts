@@ -15,6 +15,27 @@
  * limitations under the License.
  */
 
+/**
+ * Attribute Completion Provider for DFDL and TDML Documents
+ *
+ * This module provides intelligent attribute name completion for XML elements in DFDL schemas
+ * and TDML test files. It offers context-aware suggestions based on:
+ * - The current XML element type (xs:element, xs:sequence, dfdl:format, etc.)
+ * - The namespace being used (XSD, DFDL, TDML)
+ * - Previously entered attributes (to avoid suggesting duplicates)
+ * - The cursor position within the element tag
+ *
+ * Features:
+ * - Suggests valid DFDL attributes for DFDL-specific elements
+ * - Suggests XSD attributes for XML Schema elements
+ * - Suggests TDML attributes for TDML test elements
+ * - Filters out already-present attributes to avoid duplicates
+ * - Handles both space-triggered and equals-triggered completion
+ * - Provides appropriate snippets with placeholders for attribute values
+ *
+ * The provider is triggered when the user types ' ' (space) or '=' within an XML element tag.
+ */
+
 import * as vscode from 'vscode'
 import { xml2js } from 'xml-js'
 import {
@@ -34,6 +55,19 @@ import {
 
 import { attributeCompletion } from './intellisense/attributeItems'
 
+/**
+ * Builds a list of completion items for attributes based on the element context.
+ * Combines common items with element-specific attribute suggestions from the intellisense data.
+ *
+ * @param itemsToUse - Array of attribute names that are valid for the current element
+ * @param preVal - Prefix value to prepend to completion text
+ * @param additionalItems - The element name for which to get attribute suggestions
+ * @param nsPrefix - The XML Schema namespace prefix (e.g., 'xs:', 'xsd:')
+ * @param dfdlPrefix - The DFDL namespace prefix (typically 'dfdl:')
+ * @param spacingChar - Character for spacing in the completion snippet
+ * @param afterChar - Character to insert after the attribute value
+ * @returns Array of VS Code completion items for attributes
+ */
 function getCompletionItems(
   itemsToUse: string[],
   preVal: string = '',
@@ -43,8 +77,10 @@ function getCompletionItems(
   spacingChar: string,
   afterChar: string
 ) {
+  // array for completion item that will be returned
   let compItems: vscode.CompletionItem[] = []
 
+  // Add element-specific attribute completion items from intellisense data
   attributeCompletion(
     additionalItems,
     nsPrefix,
@@ -61,36 +97,45 @@ function getCompletionItems(
   return compItems
 }
 
-/** Retrieves relevant lines of the document for use in prunedDuplicateAttributes
- * Format of return is as follows [relevant parts of the string, index representing the location of the cursor in the string]
+/**
+ * Retrieves the relevant text of the current XML element for attribute parsing.
+ * Extracts the portion of the document that contains the element tag being edited,
+ * which may span multiple lines. This text is used to identify existing attributes
+ * and determine what new attributes can be suggested.
  *
- * @param position
- * @param document
- * @returns
+ * The function searches backwards to find the opening '<' of the element and forwards
+ * to find where the element ends (either '>' or '/>').
+ *
+ * @param position - The current cursor position
+ * @param document - The VS Code text document
+ * @returns A tuple of [element text, cursor index within that text]
  */
-
 function getPotentialAttributeText(
   position: vscode.Position,
   document: vscode.TextDocument
 ): [string, number] {
-  // Overall strategy: Find the lines that are relevant to the XML element we're looking at. The element can be incomplete and not closed.
+  // Overall strategy: Find the lines that are relevant to the XML element we're looking at.
+  // The element can be incomplete and not yet closed.
   let lowerLineBound: number = position.line
   let upperLineBound: number = position.line
 
-  // Determining the lowerbound strategy: Traverse backwards line-by-line until we encounter an opening character (<)
+  // Determining the lower bound strategy: Traverse backwards line-by-line until we encounter
+  // an opening character (<), which marks the start of the current element.
 
-  //handle edge case if there's an element closing on the same line or if there is a closing tag after the cursor on the same line
+  // Handle edge case if there's an element closing on the same line or if there is a
+  // closing tag after the cursor on the same line
   if (lowerLineBound > 0) {
     lowerLineBound--
   }
   while (
     lowerLineBound > 0 && // Make sure we aren't going to negative line indexes
-    document.lineAt(lowerLineBound).text.indexOf('<') == -1 // continue going up the document if there is no <
+    document.lineAt(lowerLineBound).text.indexOf('<') == -1 // Continue going up if no '<' found
   ) {
-    lowerLineBound-- // traverse backwards via decrementing line index
+    lowerLineBound-- // Traverse backwards via decrementing line index
   }
 
-  // Upperbound strategy: Increment the upperLineBound 1 line downward to avoid the edge case it's equal to the lowerLineBound and there's more content beyond lowerLineBound
+  // Upper bound strategy: Increment the upperLineBound 1 line downward to avoid the edge case
+  // where it's equal to the lowerLineBound and there's more content beyond lowerLineBound
   if (upperLineBound != document.lineCount - 1) {
     upperLineBound++
   }
@@ -205,6 +250,20 @@ function prunedDuplicateAttributes(
   return originalAttributeSuggestions
 }
 
+/**
+ * Registers the attribute completion provider for DFDL documents.
+ * This provider suggests valid attribute names when the user types within an XML element tag.
+ *
+ * The provider:
+ * 1. Determines the current element context (which element the cursor is inside)
+ * 2. Gets the list of valid attributes for that element
+ * 3. Filters out attributes that are already present
+ * 4. Returns context-appropriate attribute suggestions
+ *
+ * Triggered by: space (' ') and newline ('\n') characters
+ *
+ * @returns A VS Code Disposable for the registered completion provider
+ */
 export function getAttributeCompletionProvider() {
   return vscode.languages.registerCompletionItemProvider(
     { language: 'dfdl' },
@@ -271,6 +330,15 @@ export function getAttributeCompletionProvider() {
   )
 }
 
+/**
+ * Registers the attribute completion provider for TDML test documents.
+ * Similar to the DFDL provider but tailored for TDML-specific attributes
+ * like test types, validation modes, and TDML configuration options.
+ *
+ * Triggered by: space (' ') and newline ('\n') characters
+ *
+ * @returns A VS Code Disposable for the registered completion provider
+ */
 export function getTDMLAttributeCompletionProvider() {
   return vscode.languages.registerCompletionItemProvider(
     { language: 'tdml' },
@@ -327,6 +395,18 @@ export function getTDMLAttributeCompletionProvider() {
   )
 }
 
+/**
+ * Scans the entire document to find all user-defined type names.
+ * Searches for xs:simpleType and xs:complexType declarations and extracts
+ * their names, which can then be used for type attribute completion.
+ *
+ * This allows users to get completion suggestions for their custom-defined
+ * types when specifying the 'type' attribute on elements.
+ *
+ * @param document - The VS Code text document to scan
+ * @param nsPrefix - The namespace prefix for schema elements (e.g., 'xs:')
+ * @returns Comma-separated string of defined type names
+ */
 export function getDefinedTypes(
   document: vscode.TextDocument,
   nsPrefix: string
@@ -357,6 +437,29 @@ export function getDefinedTypes(
   return additionalTypes
 }
 
+/**
+ * Determines which completion items to show based on the nearest open element.
+ * Matches the element name against known DFDL elements and returns appropriate
+ * attribute suggestions for that element type.
+ *
+ * The function handles special cases for different element types:
+ * - Schema root elements
+ * - Element declarations
+ * - Sequence/choice/group definitions
+ * - Format definitions
+ * - Variables and assertions
+ * - TDML test case elements
+ *
+ * @param nearestOpenItem - The name of the current enclosing element
+ * @param attributeNames - Array of attributes already present on the element
+ * @param triggerText - The text of the current line up to the cursor
+ * @param nsPrefix - The namespace prefix being used
+ * @param preVal - Prefix value to add before attribute (for formatting)
+ * @param additionalItems - String of additional items (types/variables) to include
+ * @param charBeforeTrigger - Character immediately before the cursor
+ * @param charAfterTrigger - Character immediately after the cursor
+ * @returns Array of completion items appropriate for the element, or undefined
+ */
 function checkNearestOpenItem(
   nearestOpenItem: string,
   attributeNames: string[],
@@ -748,6 +851,20 @@ function checkNearestOpenItem(
   }
 }
 
+/**
+ * Creates completion items specifically for dfdl:defineVariable elements.
+ * Provides attribute suggestions for variable declarations including:
+ * - external: Whether the variable is externally provided
+ * - defaultValue: Default value for the variable
+ * - type: Data type of the variable (with custom type suggestions)
+ *
+ * @param preVal - Prefix value for formatting
+ * @param additionalItems - Comma-separated list of user-defined types
+ * @param nsPrefix - The namespace prefix
+ * @param spacingChar - Character for spacing before the attribute
+ * @param afterChar - Character to insert after the attribute value
+ * @returns Array of completion items for defineVariable attributes
+ */
 function getDefineVariableCompletionItems(
   preVal: string,
   additionalItems: string,
