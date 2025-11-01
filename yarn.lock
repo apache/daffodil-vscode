@@ -1027,10 +1027,10 @@
     https-proxy-agent "^7.0.0"
     tslib "^2.6.2"
 
-"@viperproject/locate-java-home@1.1.15":
-  version "1.1.15"
-  resolved "https://registry.yarnpkg.com/@viperproject/locate-java-home/-/locate-java-home-1.1.15.tgz#7ba323dff906c179b37a56015a4660a83445f4e7"
-  integrity sha512-ZTyIulVHqCOwe7wcZ7h6qkmziBB5SgSlDv1ssbvf5s1oHmH9OVJXtBNARnbXIr2gvH5L4yCr2EHPxb21Uyg67A==
+"@viperproject/locate-java-home@1.1.17":
+  version "1.1.17"
+  resolved "https://registry.yarnpkg.com/@viperproject/locate-java-home/-/locate-java-home-1.1.17.tgz#1b69c2d53deacd5c61275e41d7c1082efb075257"
+  integrity sha512-X4mXZl8wb1sbsEc/5coflVaryt23eVSOjaLaoT6pc78nVdVRpAmqyTpdOFuUF1Qhj3aLwG06pSBn7ksL96gC9w==
   dependencies:
     async "^3.2.5"
     semver "^7.5.4"
