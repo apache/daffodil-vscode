@@ -59,7 +59,7 @@ jobs:
           java-version: 17
 
       - name: Install Node.js
-        uses: actions/setup-node@5e2628c959b9ade56971c0afcebbe5332d44b398 # v4.4.0
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v4.4.0
         with:
           node-version: 20
           cache: yarn
