@@ -146,7 +146,11 @@ suite('Data Editor Test Suite', () => {
         await vscode.commands.executeCommand(DATA_EDITOR_COMMAND, TEST_SCHEMA)
       assert.ok(dataEditWebView)
       assert.strictEqual(dataEditWebView.panel.active, true)
-      assert.strictEqual(dataEditWebView.panel.title, 'Data Editor')
+      assert.strictEqual(
+        // Check if data editor panel has the basename of the file
+        dataEditWebView.panel.title,
+        path.basename(TEST_SCHEMA)
+      )
 
       // Listen for the dispose event
       let isDisposed = false

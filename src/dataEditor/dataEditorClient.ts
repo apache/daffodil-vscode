@@ -198,7 +198,8 @@ export class DataEditorClient implements vscode.Disposable {
     configVars: editor_config.IConfig,
     fileToEdit: string = ''
   ): Promise<DataEditorClient | undefined> {
-    const title = 'Data Editor'
+    const title = !fileToEdit ? 'Data Editor' : path.basename(fileToEdit)
+
     const column =
       fileToEdit !== '' ? vscode.ViewColumn.Two : vscode.ViewColumn.Active
 
@@ -903,6 +904,28 @@ async function createDataEditorWebviewPanel(
   launchConfigVars: editor_config.IConfig,
   fileToEdit: string
 ): Promise<DataEditorClient | undefined> {
+  //prompt file prompt first.
+  if (!fileToEdit) {
+    const fileUri = await vscode.window.showOpenDialog({
+      canSelectMany: false,
+      openLabel: 'Select',
+      canSelectFiles: true,
+      canSelectFolders: false,
+      title: 'Select Data File',
+    })
+
+    // If user cancels file prompt, display info message
+    if (!fileUri || !fileUri[0]) {
+      vscode.window.showInformationMessage(
+        'Data Editor file opening cancelled.'
+      )
+      return
+    }
+
+    // file was selected by user, note file path to selected file
+    fileToEdit = fileUri[0].fsPath
+  }
+
   // Ensure the app data path exists
   fs.mkdirSync(APP_DATA_PATH, { recursive: true })
   assert(fs.existsSync(APP_DATA_PATH), 'app data path does not exist')
