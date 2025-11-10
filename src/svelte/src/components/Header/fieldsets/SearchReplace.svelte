@@ -137,7 +137,7 @@ limitations under the License.
   }
 
   function replaceStart() {
-    if (replaceable) {
+    if (replaceable && !replaceErr) {
       matchOffset = -1
       replaceStarted = true
       searchStarted = false
