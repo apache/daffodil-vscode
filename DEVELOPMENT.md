@@ -71,9 +71,11 @@
         - [Variable Values Not Displaying in VSCode Debugger](#variable-values-not-displaying-in-vscode-debugger)
         - [Using Symlink Paths](#using-symlink-paths)
       - [Re-trying Verification After Errors](#re-trying-verification-after-errors)
+      - [Inspecting the Log Files](#inspecting-the-log-files)
   - [Building the Documentation](#building-the-documentation)
     - [Install Pandoc](#install-pandoc)
     - [Command to build the Documentation](#command-to-build-the-documentation)
+  - [Adding Release Candidate Information to Apache Daffodil Site](#adding-release-candidate-information-to-apache-daffodil-site)
   - [Reviewing and Verifying Dependency Bot Updates](#reviewing-and-verifying-dependency-bot-updates)
   - [Testing Information](#testing-information)
   - [Monitoring Project Status](#monitoring-project-status)
@@ -540,6 +542,12 @@ Another important issue to note when choosing working directories is that VSCode
 Type in `git clean -fdx`. Then run `yarn && yarn package && yarn test && echo "All good!"`.
 If issues persist, you may want to uninstall Node and reinstall it. If that doesn’t remedy the issue, you may have to create a fresh VM.
 
+#### Inspecting the Log Files
+
+For issues not mentioned in this section, the log files for the debugger are located in your OS temp directory (e.g. `/tmp` for Ubuntu 24.04.2). The log file for the debugger should be named `daffodil-debugger-<port>.log` when debugging the extension or `yarn-test-daffodil-debugger-<port>.log` when running yarn test.
+
+The log files for the data editor are located in your OS app data path (e.g. `/home/<user>/.local/share/omega_edit`). The log files for the data editor should be named `serv-<port>.log` for the server logs and `dataEditor-<port>.log` for the data editor logs when using the data editor or `test-serv-<port>.log` and `test-dataEditor-<port>.log` when running yarn test.
+
 ## Development Specific
 
 ### Dependency Licensing Information
@@ -564,6 +572,49 @@ To build `docx` (Word formatted) documentation, from the top of the cloned repos
 ```shell
 cd docs && make all
 ```
+
+## Adding Release Candidate Information to Apache Daffodil Site
+
+On every release candidate the following process needs to be done on the [apache/daffodil-site](https://github.com/apache/daffodil-site):
+
+- Create a new file under `site/_vscode` with the release version as the name, e.g. `1.4.1.md` using the following example. Look at the closed tickets for the milestone version to add bullets to the `New Features & Fixes` section.
+```Markdown
+---
+
+title: <version>
+release: rc1 (replace with current rc version or "final" if rc moved to final release)
+apache: true
+date: <date-rc-was-created-and-put-out-for-vote>
+summary: >
+    <summary of release candidate>
+
+source-dist:
+    - "apache-daffodil-vscode-<version>-src.zip"
+
+binary-dist:
+    - "apache-daffodil-vscode-<version>.vsix"
+---
+
+This release contains new features and fixes listed below.
+
+# New Features & Fixes
+
+* <category>: (Debugger, Data Editor, etc.)
+    * <bulleted list of features/fixes>
+* <category>: (Debugger, Data Editor, etc.)
+    * <bulleted list of features/fixes>
+* Known Issues:
+    * <bulleted list of known issues>
+
+# Closed Issues
+
+[GitHub v<version> Closed Issues](<link to milestone's closed issues>)
+
+```
+
+- Create a PR to the daffodil-site repository
+  - After each RC and and when an RC is promoted to final release, the file needs to be updated to keep track of where the release process is.
+  - Once that initial PR is merged that release page will not be shown unless the value released: is set to final which is done after promoting a RC to final release.
 
 ## Reviewing and Verifying Dependency Bot Updates
 
