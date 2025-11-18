@@ -20,6 +20,7 @@ import * as fs from 'fs'
 import * as vscode from 'vscode'
 import { outputChannel } from '../adapter/activateDaffodilDebug'
 import { downloadAndExtract } from '../utils'
+import { parseStringPromise } from 'xml2js'
 
 /**
  * Only the default version of Daffodil is bundled with the extension, all other versions are
@@ -46,15 +47,54 @@ export async function checkIfDaffodilJarsNeeded(
     context.asAbsolutePath('./dist'),
     `daffodil/apache-daffodil-${daffodilVersion}-bin`
   )
+
   if (fs.existsSync(extensionPath)) {
     outputChannel.appendLine(`[INFO] Using bundled Daffodil CLI JARs.`)
     return extensionPath
+  }
+
+  // If not a valid daffodil version provided and it doesn't exist already in cache then throw error
+  if (!(await checkIfValidDaffodilVersion(daffodilVersion))) {
+    throw new Error(
+      'Invalid Daffodil Version provided. Make sure dfdlDebugger.daffodilVersion is a valid version of Daffodil'
+    )
   }
 
   // downloadAndExtractToGlobalStorage only tries to download the Daffodil CLI release file if
   // the desired version's bin folder doesn't already exists.
   return await downloadAndExtractToGlobalStorage(context, daffodilVersion)
 }
+
+// Helper function to get the list of valid Daffodil versions
+async function getValidDaffodilVersions(): Promise<string[]> {
+  const url = 'https://daffodil.apache.org/doap.rdf'
+
+  const resp = await fetch(url)
+  if (!resp.ok) {
+    throw new Error(
+      `Failed to fetch DOAP RDF: ${resp.status} ${resp.statusText}`
+    )
+  }
+
+  const xmlText = await resp.text()
+  const data = await parseStringPromise(xmlText, { explicitArray: false })
+
+  const project = data['rdf:RDF']['Project']
+  const releases = project['release']
+
+  const releaseArray = Array.isArray(releases) ? releases : [releases]
+
+  return releaseArray
+    .filter((rel) => rel['Version']['name'] == 'Apache Daffodil') // only look at Daffodil releases
+    .map((rel: any) => rel['Version']['revision'] ?? '')
+    .filter((s) => s != '') // make sure no empty strings are saved
+}
+
+// Helper function to check if the given daffodil version is a valid version or not
+const checkIfValidDaffodilVersion = async (
+  daffodilVersion: string
+): Promise<boolean> =>
+  (await getValidDaffodilVersions()).includes(daffodilVersion)
 
 export async function downloadAndExtractToGlobalStorage(
   context: vscode.ExtensionContext,
@@ -75,7 +115,10 @@ export async function downloadAndExtractToGlobalStorage(
     try {
       await downloadAndExtract('Daffodil CLI JARs', url, destFolder)
     } catch (err) {
-      console.error(err)
+      /**
+       * If error hit trying to download and extract throw the error
+       */
+      throw `[ERROR] downloading and extracting Daffodil CLI JARs for ${daffodilVersion}: ${err}`
     }
   } else {
     outputChannel.appendLine(
