@@ -121,6 +121,15 @@ export async function runDebugger(
   // Download the daffodil CLI jars if needed
   const daffodilPath = await checkIfDaffodilJarsNeeded(dfdlVersion)
 
+  /**
+   * If 'error' returned from checkIfDaffodilJarsNeeded then there was an error hit somewhere inside of that
+   * function, most likely downloading/extracting the JARS. Whenever any error is hit from that function, the
+   * extension shouldn't run the debugger.
+   */
+  if (daffodilPath === 'error') {
+    return undefined
+  }
+
   const artifact = daffodilArtifact(dfdlVersion)
   const scriptPath = path.join(
     rootPath,
