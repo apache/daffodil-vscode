@@ -85,7 +85,7 @@ Place the cursor at line 68 column 98, within the double quotes containing the v
 - [ ] Verify the dropdown contains binary an text. Select "text" as the value.
 - [ ] verify that "binary" is replaced with "text".
 
-Place the cursor at line 68 column 252 at the end of the line. Backspace over the last 2 characters "/>". The cursor shoul;d be directly after dfdl:length="{../../Length - fn:string-length(../Keyword) - 2}". Type a / (slash '/').
+Place the cursor at line 68 column 252 at the end of the line. Backspace over the last 2 characters "/>". The cursor shoulld be directly after dfdl:length="{../../Length - fn:string-length(../Keyword) - 2}". Type a / (slash '/').
 
 - [ ] Verify that the self closing tag "/> was added to the end of the line.
 
@@ -100,7 +100,7 @@ Place a cursor at line 71 column 20, after </xs:element>. Backspace until the cl
 
 Place the cursor at line 73 column 129, before <xs:annotation>. Type CTRL+space.
 
-- [ ] Verify the dropdown contains xs:annotation, xs:complexType, xs:complexType name=,xs:simpleType, and xs:simpleType name=.
+- [ ] Verify the dropdown contains xs:annotation, xs:complexType, xs:complexType name, xs:simpleType, and xs:simpleType name.
 
 Place the cursor at line 73 column 263, after </xs:annotation>. Backspace to remove the annoation closing tag. With your cursor just after the </xs:appinfo> tag, type > (the greater than symbol).
 
@@ -121,14 +121,14 @@ Place the cursor at line 31 column 39, after ref="GeneralFormat". Type a space.
 
 - [ ] Verify the dropdown doesnot contain ref,dfdl:encoding,dfdl:alignment,dfdl:lengthKind,dfdl:representation
 
-Select alignment from the dropdown. select 1 as the value for alignment.
+Place the cursor at line 31 column 39, after alignment="1". Backspace until alignment="1" is erased. Type ctrl+space. Select alignment from the dropdown. select 1 as the value for alignment.
 
 - [ ] Verify that alignment="1" is inserted.
 - [ ] Verfiy that alignment does not have the dfdl: prefix.
 
 Place the cursor at line 33 column 1. Type CTRL+space.
 
-- [ ] Verify the dropdown contains dfdl:defineEscapeScheme,dfdl:defineFormat,dfdl:defineVariable,dfdl:format.
+- [ ] Verify the dropdown contains dfdl:defineEscapeScheme,dfdl:defineFormat,dfdl:defineVariable,dfdl:definbeVariable name,dfdl:format.
 
 Place the cursor at line 52 column 56 at the end of the line. Backspace over the last two characters "/>". The cursor should be directly after encoding="ascii". Type a / (slash '/').
 
@@ -141,7 +141,7 @@ Place the cursor at line 59, column 46, after representation="text". Type a spac
 
 - [ ] Verify the dropdown does not contain dfdl:encoding,dfdl:alignment,dfdl:initiator,dfdl:lengthKind,dfdl:representation,dfdl:textNumberRep
 
-Select dfdl:alignment from the dropdown. select 1 as the value.
+Place the cursor after alignment="1". Backspace until alignment="1" is erased. Type ctrl+space. Select dfdl:alignment from the dropdown. select 1 as the value.
 
 - [ ] Verify that alignment="1" was inserted.
 - [ ] Verify that alignment does not contian the dfdl: prefix.

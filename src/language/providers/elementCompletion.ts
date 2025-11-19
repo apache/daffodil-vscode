@@ -270,7 +270,7 @@ function nearestOpenTagChildElements(
       )
     case 'complexType':
       return getElementCompletionItems(
-        ['sequence', 'group', 'choice'],
+        ['sequence', 'group', 'choice', 'annotation'],
         '',
         '',
         nsPrefix
