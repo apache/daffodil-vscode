@@ -397,6 +397,7 @@ export function checkMultiLineTag(
   if (itemsOnLine > 1) {
     return [false, isDfdlTag, attributeNames]
   }
+  let triggerLine = position.line
   let currentLine = position.line
   let openTagLine = position.line
   let closeTagLine = position.line
@@ -448,7 +449,8 @@ export function checkMultiLineTag(
 
     if (
       currentText.includes('<' + nsPrefix + tag) &&
-      currentText.includes('>')
+      currentText.includes('>') &&
+      closeTagLine >= triggerLine
     ) {
       attributeNames = getAttributeNames(document, position, nsPrefix, tag)
       return [true, isDfdlTag, attributeNames]
