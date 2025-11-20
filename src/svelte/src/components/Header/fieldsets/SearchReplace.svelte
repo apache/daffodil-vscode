@@ -137,7 +137,7 @@ limitations under the License.
   }
 
   function replaceStart() {
-    if (replaceable && !replaceErr) {
+    if (replaceable && !replaceErrDisplay) {
       matchOffset = -1
       replaceStarted = true
       searchStarted = false
@@ -403,7 +403,7 @@ limitations under the License.
           <Button
             fn={replace}
             description="Replace the current match"
-            disabledBy={!replaceable}
+            disabledBy={!replaceable || replaceErrDisplay}
           >
             <span slot="left" class="btn-icon material-symbols-outlined"
               >find_replace</span
