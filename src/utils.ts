@@ -210,6 +210,18 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
     )
   }
 
+  // VVVVVVVVVVVVVVVVVVVVVVVV COMPARTMENTALIZED FIX FOR THIRD BULLET POINT OF https://github.com/apache/daffodil-vscode/issues/1540 VVVVVVVVVVVVVVVVVVVVVVVV
+  // Handle setting test case name for TDML Execute action if it's not specified.
+  // This resolves the issue of always defualting to `Default Test Case` even thought a test case name isn't specified when we click on `Execute TDML` when we have opened TDML file
+  const args = jsonArgs as VSCodeLaunchConfigArgs // cast needed b/c of VS Code Typescript errors
+  if (
+    args.tdmlConfig?.action === 'execute' &&
+    args.tdmlConfig?.name === undefined
+  ) {
+    launchConfigArgs.tdmlConfig.name = undefined
+  }
+  // ^^^^^^^^^^^^^^^^^^^^^^^^ COMPARTMENTALIZED FIX FOR THIRD BULLET POINT OF https://github.com/apache/daffodil-vscode/issues/1540 ^^^^^^^^^^^^^^^^^^^^^^^^
+
   return JSON.parse(JSON.stringify(launchConfigArgs))
 }
 

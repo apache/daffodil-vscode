@@ -221,17 +221,17 @@
         },
         {
           "command": "tdml-editor.openInTextEditor",
-          "when": "activeEditor == 'tdml-editor.editor'",
+          "when": "activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor'",
           "group": "navigation@1"
         },
         {
           "command": "tdml-editor.openPreview",
-          "when": "editorLangId == 'tdml' && editorTextFocus",
+          "when": "editorLangId == 'tdml'",
           "group": "navigation@1"
         },
         {
           "command": "tdml-editor.openInTdmlEditor",
-          "when": "editorLangId == 'tdml' && editorTextFocus",
+          "when": "editorLangId == 'tdml'",
           "group": "navigation@1"
         }
       ],
@@ -256,11 +256,11 @@
         },
         {
           "command": "extension.dfdl-debug.appendTDML",
-          "when": "!inDebugMode && ((editorLangId == 'tdml' && editorTextFocus) || activeEditor == 'tdml-editor.editor')"
+          "when": "!inDebugMode && (editorLangId == 'tdml' || activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor')"
         },
         {
           "command": "extension.dfdl-debug.executeTDML",
-          "when": "!inDebugMode && ((editorLangId == 'tdml' && editorTextFocus) || activeEditor == 'tdml-editor.editor')"
+          "when": "!inDebugMode && (editorLangId == 'tdml' || activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor')"
         }
       ],
       "commandPalette": [
@@ -274,11 +274,11 @@
         },
         {
           "command": "extension.dfdl-debug.appendTDML",
-          "when": "!inDebugMode && ((editorLangId == 'tdml' && editorTextFocus) || activeEditor == 'tdml-editor.editor')"
+          "when": "!inDebugMode && (editorLangId == 'tdml' || activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor')"
         },
         {
           "command": "extension.dfdl-debug.executeTDML",
-          "when": "!inDebugMode && ((editorLangId == 'tdml' && editorTextFocus) || activeEditor == 'tdml-editor.editor')"
+          "when": "!inDebugMode && (editorLangId == 'tdml' || activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor')"
         },
         {
           "command": "extension.dfdl-debug.createTDML",
@@ -302,15 +302,15 @@
         },
         {
           "command": "tdml-editor.openInTextEditor",
-          "when": "activeEditor == 'tdml-editor.editor'"
+          "when": "activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor'"
         },
         {
           "command": "tdml-editor.openPreview",
-          "when": "editorLangId == 'tdml' && editorTextFocus"
+          "when": "editorLangId == 'tdml'"
         },
         {
           "command": "tdml-editor.openInTdmlEditor",
-          "when": "editorLangId == 'tdml' && editorTextFocus"
+          "when": "editorLangId == 'tdml'"
         }
       ],
       "debug/variables/context": [
@@ -356,13 +356,13 @@
         "command": "extension.dfdl-debug.appendTDML",
         "title": "Append TDML",
         "category": "Daffodil Debug",
-        "enablement": "!inDebugMode && ((editorLangId == 'tdml' && editorTextFocus) || activeEditor == 'tdml-editor.editor')"
+        "enablement": "!inDebugMode && (editorLangId == 'tdml' || activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor')"
       },
       {
         "command": "extension.dfdl-debug.executeTDML",
         "title": "Execute TDML",
         "category": "Daffodil Debug",
-        "enablement": "!inDebugMode && ((editorLangId == 'tdml' && editorTextFocus) || activeEditor == 'tdml-editor.editor')"
+        "enablement": "!inDebugMode && (editorLangId == 'tdml' || activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor')"
       },
       {
         "command": "extension.dfdl-debug.createTDML",
@@ -432,21 +432,21 @@
         "title": "Open in Text Editor",
         "category": "TDML Editor",
         "icon": "$(notebook-open-as-text)",
-        "enablement": "activeEditor == 'tdml-editor.editor'"
+        "enablement": "activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor'" 
       },
       {
         "command": "tdml-editor.openPreview",
         "title": "Open Preview",
         "category": "TDML Editor",
         "icon": "$(open-preview)",
-        "enablement": "editorLangId == 'tdml' && editorTextFocus"
+        "enablement": "editorLangId == 'tdml'" 
       },
       {
         "command": "tdml-editor.openInTdmlEditor",
         "title": "Open in TDML Editor",
         "category": "TDML Editor",
         "icon": "$(notebook-render-output)",
-        "enablement": "editorLangId == 'tdml' && editorTextFocus"
+        "enablement": "editorLangId == 'tdml'"
       }
     ],
     "keybindings": [

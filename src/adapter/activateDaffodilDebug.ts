@@ -256,8 +256,15 @@ export function activateDaffodilDebug(
 
         let targetResource = resource
 
-        if (!targetResource && vscode.window.activeTextEditor) {
-          targetResource = vscode.window.activeTextEditor.document.uri
+        if (!targetResource) {
+          if (vscode.window.activeTextEditor) {
+            targetResource = vscode.window.activeTextEditor.document.uri
+          } else {
+            const tdmlUri = TDMLProvider.getDocumentUri()
+            if (tdmlUri) {
+              targetResource = tdmlUri
+            }
+          }
         }
         if (targetResource) {
           appendTestCase(getTmpTDMLFilePath(), targetResource.fsPath)
