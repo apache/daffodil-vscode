@@ -63,18 +63,33 @@ export class TDMLProvider implements vscode.CustomTextEditorProvider {
     webviewPanel.webview.html = this._getWebviewContent(webviewPanel.webview)
     webviewPanel.onDidChangeViewState((e) => {
       this.currentPanel = e.webviewPanel
-
+      // Create a custom context key 'dfdl-debug.tdml-editor-active' to diplay appropriate commands on menu/editor/title bar and command pallet.
       if (e.webviewPanel.active) {
         TDMLProvider.currentUri = document.uri
+        vscode.commands.executeCommand(
+          'setContext',
+          'dfdl-debug.tdml-editor-active',
+          TDMLProvider.viewType
+        )
       } else if (
         TDMLProvider.currentUri?.toString() === document.uri.toString()
       ) {
         TDMLProvider.currentUri = undefined
+        vscode.commands.executeCommand(
+          'setContext',
+          'dfdl-debug.tdml-editor-active',
+          undefined
+        )
       }
     })
 
     if (webviewPanel.active) {
       TDMLProvider.currentUri = document.uri
+      vscode.commands.executeCommand(
+        'setContext',
+        'dfdl-debug.tdml-editor-active',
+        TDMLProvider.viewType
+      )
     }
 
     try {
@@ -148,6 +163,11 @@ export class TDMLProvider implements vscode.CustomTextEditorProvider {
 
       if (TDMLProvider.currentUri?.toString() === document.uri.toString()) {
         TDMLProvider.currentUri = undefined
+        vscode.commands.executeCommand(
+          'setContext',
+          'dfdl-debug.tdml-editor-active',
+          undefined
+        )
       }
     })
 
