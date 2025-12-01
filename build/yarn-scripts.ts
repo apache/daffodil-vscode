@@ -19,7 +19,7 @@
 //                 but with some TypeScript niceness baked in
 const path = require('path')
 const fs = require('fs')
-const glob = require('glob')
+const { glob } = require('glob')
 const concurrently = require('concurrently')
 const child_process = require('child_process')
 
@@ -56,28 +56,12 @@ export const LIB_VERSION = ${version}
   )
 }
 
-const nodeclean = () => {
-  ;['out', 'dist'].forEach((dir) => rmFileOrDirectory(dir))
-  glob('daffodil-debugger-*', { cwd: '.' }, (err, files) => {
-    if (err) {
-      console.log(err)
-      return
-    }
+const nodeclean = () => ['out', 'dist'].forEach((dir) => rmFileOrDirectory(dir))
 
-    files.forEach((dir) => rmFileOrDirectory(dir))
-  })
-}
-
-const scalaclean = () => {
-  glob('**/target', { cwd: '.' }, (err, files) => {
-    if (err) {
-      console.log(err)
-      return
-    }
-
-    files.forEach((dir) => rmFileOrDirectory(dir))
-  })
-}
+const scalaclean = () =>
+  glob('**/target', { cwd: '.' })
+    .then((files) => files.forEach((dir) => rmFileOrDirectory(dir)))
+    .catch((err) => console.log(err))
 
 function watch() {
   concurrently(
