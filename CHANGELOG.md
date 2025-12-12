@@ -24,8 +24,64 @@
 
 </div>
 
-## 1.4.1
+This file outlines the release notes and known issues for the "daffodil-vscode" extension.
 
+## 1.5.0
+  ### Debugger:
+  - Added support for multiple versions of the Daffodil parser (i.e., Daffodil 3.10.0, 3.11.0, and 4.0.0). 
+	  - This enhancement allows users to configure their preferred version of the Daffodil parser.
+  - Added functionality to only display commands in the Daffodil command Explorer window appropriate to the opened file in the active window.
+  - The Daffodil parse command now terminates properly if the user cancels prompts before the backend startup, allowing for improved user control and a streamlined workflow.
+  -	Disabled popup for Schema Definition Errors, instead all schema definition errors now displayed on the terminal window.
+  - Improved error messaging when the extension unable to communicate with backend daffodil parser.
+  - Fixed an issue where the generated Infoset would open automatically when initiating a debug session from the command palette but not when started from a launch configuration. Now, the Infoset no longer opens automatically; instead, a popup appears at the bottom, prompting users to click an "Open" button to access the Infoset once the debug session ends.
+  - Resolved an issue where the terminal would crash when exiting or cancelling file prompts for Schema and data files.
+  ### Data Editor:
+  - Fixed issue with premature shutdown of the data editor server when multiple data editor tabs are open.
+    - When one of the multiple opened data editor window closes, the data editing functionality of the opened data editor window(s) work as expected.
+  - Fixed inconsistent data editor server startups and shutdowns.
+  - Fixed inconsistent light/dark mode theme for data editor.
+  - Fixed an issue allowing users to open multiple data editors for the same file. Now, if a user attempts to open another editor for an already opened file, a dialog box will notify them of the existing session, preventing confusion and ensuring a smoother editing experience.
+  - Updated several dependencies to enhance data editor front end including svelte5.
+  ### IntelliSense:
+  - Fixed an issue when tooltips do not appear when hovering over attributes.
+  -	Improved completion for several DFDL elements and attributes suggestions.
+  -	Created a DFDL elements and attributes cross reference document.
+  -	Created a listing of schema definition errors.
+  -	Fixed an issue with the behavior when an XML tag is spread across multiple lines.
+    -	Fixed issue where a cursor after an end tag is not recognized correctly in some instances
+  -	Fixed following issues with attribute value completion:
+    -	Modified suggestions so that newVaribleInstance is not available for a group element with a name attribute.
+    -	Added missing ref attribute suggestions.
+    -	Fixed code completion logic that presented element suggestions instead of attribute suggestions in some instances.
+  -	Prevented suggesting attributes if they already exist in an element.
+  ### TDML:
+  - Improved error messages for various TDML operations.
+  -	Simplified TDML configuration.
+  -	Fixed several launch configuration related issues for TDML configuration
+    -	Fixed default TDML configuration for path, name and description in launch configuration.
+    - Removed path from TDML configuration for Generate operation.
+    -	Fixed TDML execute configuration parameters in launch configuration.
+    -	Removed Append as an action for TDML in the launch wizard.
+  -	Added TDML file extension when saving the generated TDML file in case the .tdml extension is not automatically appended when selected within the dialog.
+  -	Breakpoints set in the schema now work during TDML test case execution, like the normal debugging session.
+  -	Fixed Visibility/Enablement for extension TDML commands and unify conditions.
+  -	Updated “Copy TDML File” to “Create TDML File” and changed the hover over message to “Create TDML file from last daffodil parse”.
+  -	Created a dropdown menu for users to select a test case name and description when executing a test case from TDML file.
+  -	Fixed TDML Copy, Execute, and Append functionality on the MacOS Platform.
+  -	Removed a description from being needed in the TDML configuration to perform TDML execute operation.
+  ### Documentation:
+  - Updated the readme file to display relevant information for VS Code extension marketplace. 
+  -	Added Changelog.md file for VS Code marketplace.
+  -	Improved wiki documentation to reflect user improvement changes made in this version.
+  ### Known Issues:
+  -	“Step in" action is temporarily replicated for the "Step over" and "Step out" actions. Support for “Step over” and “Step out” will be added in a future release.
+  -	Some nightly tests are still failing intermittently due to GitHub runners.
+  - Byte highlighting doesn't always work when scrolling through the results in the Data Editor  
+  -	If debug session is active with the data editor open, another instance of the data editor cannot be opened.
+  -	VS Code application may leave a background process running if the application is closed while the data editor window is open. This can prevent the data editor from opening properly afterward. To restore functionality, either stop the lingering process from task manager or reboot the system.
+
+## 1.4.1
   ### Debugger:
   - Added appropriate warning or error messages when data is left over after the parse operation is completed.
       - After a parse operation is completed, the debugger will check if data is left over. When data is left over the debugger will log an error message to the console.
