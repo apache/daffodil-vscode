@@ -81,7 +81,7 @@
     "@types/vscode": "^1.90.0",
     "@types/vscode-webview": "^1.57.5",
     "@vscode/debugadapter-testsupport": "1.68.0",
-    "@vscode/test-electron": "2.3.8",
+    "@vscode/test-electron": "2.5.2",
     "@vscode/vsce": "^3.5.0",
     "chai": "^6.0.1",
     "cli-progress": "^3.12.0",
