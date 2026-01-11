@@ -156,28 +156,28 @@ limitations under the License.
       },
     })
   }
-  
+
   let lastProfileTarget: 'editor' | 'disk' | null = null
   let lastRequestedTarget: 'editor' | 'disk' = 'editor'
   function requestSessionProfile(startOffset: number, length: number) {
-  lastRequestedTarget = profileTarget
-  setStatusMessage(
-    `Profiling bytes from ${startOffset} to ${startOffset + length}...`,
-    0
-  )
-  vscode.postMessage({
-    command: MessageCommand.profile,
-    data: {
-      startOffset,
-      length,
-      target: profileTarget === 'disk' ? 'disk' : undefined,
-    },
-  })
-}
-$: if (profileTarget !== lastProfileTarget) {
-  lastProfileTarget = profileTarget
-  requestSessionProfile(startOffset, length)
-}
+    lastRequestedTarget = profileTarget
+    setStatusMessage(
+      `Profiling bytes from ${startOffset} to ${startOffset + length}...`,
+      0
+    )
+    vscode.postMessage({
+      command: MessageCommand.profile,
+      data: {
+        startOffset,
+        length,
+        target: profileTarget === 'disk' ? 'disk' : undefined,
+      },
+    })
+  }
+  $: if (profileTarget !== lastProfileTarget) {
+    lastProfileTarget = profileTarget
+    requestSessionProfile(startOffset, length)
+  }
   function handleInputEnter(e: CustomEvent) {
     switch (e.detail.id) {
       case 'start-offset-input':
@@ -290,7 +290,7 @@ $: if (profileTarget !== lastProfileTarget) {
     window.addEventListener('message', (msg) => {
       switch (msg.data.command) {
         case MessageCommand.profile:
-          if(msg.data.data?.target && msg.data.data.target !== profileTarget) {
+          if (msg.data.data?.target && msg.data.data.target !== profileTarget) {
             // ignore messages not for the current profile target
             break
           }
@@ -329,14 +329,14 @@ $: if (profileTarget !== lastProfileTarget) {
 
 <div class="container">
   <div class="input-container">
-  <label>
-    Profile source:
-    <select bind:value={profileTarget}>
-      <option value="editor">Current editor</option>
-      <option value="disk">On-disk file</option>
-    </select>
-  </label>
-</div>
+    <label>
+      Profile source:
+      <select bind:value={profileTarget}>
+        <option value="editor">Current editor</option>
+        <option value="disk">On-disk file</option>
+      </select>
+    </label>
+  </div>
   {#if title.length > 0}
     <div class="header">
       <h3>{title}</h3>
