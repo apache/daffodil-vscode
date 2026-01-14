@@ -48,6 +48,13 @@
     - [Cloning the Project to Local Environment](#cloning-the-project-to-local-environment)
       - [Setting up SSH Keys](#setting-up-ssh-keys)
     - [General Workflow](#general-workflow)
+    - [Pull Request Approval and Merge Process](#pull-request-approval-and-merge-process)
+      - [Approval Requirements](#approval-requirements)
+      - [Review Cycle](#review-cycle)
+      - [Merging Process](#merging-process)
+      - [Post-Merge Actions](#post-merge-actions)
+      - [Before Starting Work](#before-starting-work)
+      - [Additional Resources](#additional-resources)
     - [Opening the Repository in VSCode](#opening-the-repository-in-vscode)
       - [Recommended VSCode Extensions](#recommended-vscode-extensions)
     - [Verifying Setup Can Build](#verifying-setup-can-build)
@@ -209,6 +216,53 @@ If any changes were made while you were working on yours, you will need to pull 
 Once changes are pushed, you can make pull requests with completed changes back to the main daffodil-vscode branch. You can use the contribute drop down to create a pull request back to the main branch.
 
 ![image](https://github.com/ctc-oss/daffodil-vscode/assets/131286323/76d83f38-d39c-49b3-a872-95cb281f0956)
+
+### Pull Request Approval and Merge Process
+
+Once you've created a pull request to the main daffodil-vscode branch, it must go through the Apache Daffodil project's approval process before it can be merged.
+
+#### Approval Requirements
+
+**All pull requests require at least two +1 votes (green approvals) from PMC members or committers before they can be merged.** This ensures that changes are properly reviewed and meet the project's quality standards. The approvals must come from committers with write access to the repository.
+
+#### Review Cycle
+
+The review process typically follows this workflow:
+
+1. **Submit Pull Request**: Create your PR with your proposed changes to the main branch
+2. **Reviewer Feedback**: PMC members, committers, and other contributors will review your code and provide feedback
+3. **Address Feedback**: Add new commits to address review comments
+   - **Important**: Do not squash previously reviewed commits during the review cycle
+   - Each review iteration should involve a separate, distinct commit to preserve the review commentary
+   - The pull request will automatically update with new commits pushed to your branch
+4. **Approval**: Once reviewers are satisfied, they will provide +1 votes (approvals)
+5. **Merge**: After receiving at least two +1 votes from PMC members or committers, your PR is ready to be merged. **Squash all of your commits on your branch into one commit** before the final merge, as our PR pipeline has a check that only allows for PRs with a single commit
+
+#### Merging Process
+
+Only committers with merged GitHub and ASF (Apache Software Foundation) accounts have the authority to merge pull requests.
+
+**Merge Method**: When merging, committers must:
+- Click the "Merge pull request" dropdown
+- Select **"Rebase and merge"**
+- Do **not** use "Squash and merge" or "Create a merge commit"
+
+This maintains a clean, linear commit history while preserving individual commits from the pull request.
+
+#### Post-Merge Actions
+
+After a pull request is merged, the committer who performed the merge should mark the associated GitHub issue as "Closed" and/or move it to the appropriate project board status.
+
+#### Before Starting Work
+
+To signal to the community that you are actively working on an issue and avoid duplicate efforts:
+- **Assign the GitHub issue to yourself** before beginning development
+- Add a comment on the issue to let others know you're working on it
+- If the issue is part of a milestone project board, move it to "In Progress"
+
+#### Additional Resources
+
+The [Apache Daffodil Code Contributor Workflow](https://cwiki.apache.org/confluence/display/DAFFODIL/Code+Contributor+Workflow) documentation provides additional context about the broader Apache Daffodil contribution process. While the daffodil-vscode workflow is similar in many respects, there are some differences specific to this project, such as the merge method and commit requirements described above.
 
 ### Opening the Repository in VSCode
 
