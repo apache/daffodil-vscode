@@ -41,6 +41,8 @@ This document contains an overview of how Intellisense works, as well as a gener
           - [attributeCompletion.ts](#attributecompletionts)
           - [attributeHover.ts](#attributehoverts)
           - [attributeValueCompletion.ts](#attributevaluecompletionts)
+          - [closeElementSlash.ts](#closeelementslashts)
+          - [closeUtils.ts](#closeutilsts)
         - [Intellisense Data Files (intellisense subdirectory)](#intellisense-data-files-intellisense-subdirectory)
           - [attributeItems.ts](#attributeitemsts)
           - [attributeValueItems.ts](#attributevalueitemsts)
@@ -195,6 +197,119 @@ Hover tooltips can be found under `attributeHoverValues()` in `attributeHoverIte
 - `getAttributeDetails()`: Extracts attribute name and value range for completion context
 
 **Trigger:** Space (` `)
+
+###### closeElementSlash.ts
+
+**Purpose:** Completion provider that handles auto-closing XML/DFDL elements when the user types a forward slash '/' character, determining whether to insert self-closing tags (`/>`) or full closing tags (`</tag>`).
+
+**Key Functionality:**
+
+- Provides intelligent slash-based auto-completion for both DFDL and TDML files
+- Determines whether to insert self-closing (`/>$0`) or full closing tags (`</ns:tag>$0`) based on context
+- Prevents inappropriate completion inside XPath expressions, quoted strings, braces, or after equals signs
+- Handles complex multi-tag lines by analyzing tag positions and existing closing tags
+- Special case handling for variable-related tags (`defineVariable`, `setVariable`) with added newlines for readability
+- Direct document manipulation using snippet insertion rather than traditional completion suggestions
+
+**Key Functions:**
+
+- `getCloseElementSlashProvider()`: Main DFDL completion provider registration
+- `getTDMLCloseElementSlashProvider()`: TDML-specific completion provider registration
+- `checkItemsOnLine()`: Core logic determining what to insert based on tag count, namespace, and context
+
+**Trigger:** Forward slash (`/`)
+
+**Architecture Notes:**
+
+- Uses **guard clauses** for early returns in inappropriate contexts
+- Implements **dual strategy**: simpler TDML provider vs. more robust DFDL provider
+- Follows VS Code provider pattern but uses **direct edits** (`insertSnippet`) instead of completion lists
+- Separation of concerns: context validation in providers, insertion logic in `checkItemsOnLine()`
+
+**Dependencies:**
+
+- `closeUtils.checkMissingCloseTag()`: Determines if a tag needs closing
+- `utils.insertSnippet()`: Performs the actual text insertion
+- Multiple context validators: `checkBraceOpen()`, `cursorWithinBraces()`, `cursorWithinQuotes()`, `cursorAfterEquals()`, `isInXPath()`, `isNotTriggerChar()`
+- Namespace utilities: `getNsPrefix()`, `getItemPrefix()`, `getItemsOnLineCount()`
+
+**Flow:**
+
+1. User types '/' at cursor position
+2. Provider validates context (not in XPath, quotes, braces, etc.)
+3. `checkMissingCloseTag()` scans document to find nearest unclosed tag
+4. If tag needs closing, removes the trigger '/' to prevent duplicates
+5. `checkItemsOnLine()` decides: self-closing tag, full closing tag, or nothing
+6. Inserts appropriate snippet at the correct position
+
+###### closeUtils.ts
+
+**Purpose:** Core utility module providing tag state analysis functions for the auto-completion system. Determines whether XML/DFDL tags are properly closed and identifies unclosed tags that need completion.
+
+**Key Functionality:**
+
+- **Tag State Analysis**: `checkMissingCloseTag()` is the primary function that scans documents to find opened-but-unclosed tags
+- **Dual Strategy Implementation**: Uses different algorithms for single-tag lines vs. multi-tag lines:
+  - `getItemsForLineGT1()`: Array-based position tracking for complex multi-tag scenarios
+  - `getItemsForLineLT2()`: Bidirectional document scanning for simpler single-tag situations
+- **Nested Tag Awareness**: Properly tracks nesting levels to handle complex XML structures with same-named nested elements
+- **Multi-line Tag Support**: Extensive logic for tags spanning multiple lines (common in DFDL with many attributes)
+- **Namespace Prefix Management**: Dynamically adjusts namespace prefixes based on tag types and document context
+- **Closing Tag Location**: `getCloseTag()` finds exact positions of closing tags for document structure analysis
+- **Cursor Context Validation**: `cursorInsideCloseTag()` prevents interference when user is manually typing closing tags
+
+**Key Functions:**
+
+- `checkMissingCloseTag()`: Main entry point - returns name of unclosed tag or 'none'
+- `checkItemsForLineGT1()`: Multi-tag line analysis using opening/closing position arrays
+- `checkItemsForLineLT2()`: Single-tag line analysis with forward/backward scanning
+- `getCloseTag()`: Locates closing tag positions with nested tag tracking
+- `cursorInsideCloseTag()`: Checks if cursor is positioned inside a closing tag
+- `getItemsForLineGT1()`: Complex multi-tag line parser
+- `getItemsForLineLT2()`: Simple single-tag line parser
+
+**Algorithm Details:**
+
+**`getItemsForLineGT1()` (Multi-tag lines):**
+
+1. Builds arrays of all opening and closing tag positions on the line
+2. Filters out self-closing tags from the opening array
+3. Compares array lengths - more opens than closes = unclosed tag
+4. Efficient for complex scenarios but requires careful position tracking
+
+**`getItemsForLineLT2()` (Single-tag lines):**
+
+1. Scans backwards to find the opening tag
+2. Scans both directions (backwards and forwards) to collect all opening/closing tags
+3. Handles multi-line tags by traversing until finding closing `>`
+4. Removes self-closing tags from tracking
+5. Compares open/close counts across the entire document context
+
+**`getCloseTag()` (Closing tag locator):**
+
+1. Tracks `nestedTagCount` for proper nested element handling
+2. Skips comment blocks (`<!-- -->`) to avoid false positives
+3. Handles multi-line tags by aggregating text across lines
+4. Returns precise line and character position of closing tags
+
+**Dependencies:**
+
+- `utils.getItemsOnLineCount()`: Counts XML items on a line
+- `utils.getItemPrefix()`: Determines correct namespace prefix for tags
+- `utils.getItems()`: Gets list of all DFDL/XSD tag names
+
+**Integration:**
+
+- Called exclusively by `closeElementSlash.ts` providers
+- Provides the "brains" of the auto-completion system
+- Returns tag names that drive snippet insertion decisions
+
+**Performance Considerations:**
+
+- Early returns when tag is found
+- Avoids full document parsing by scanning only relevant sections
+- Skips complex multi-tag lines in single-tag mode
+- Uses efficient string search methods (`indexOf`, `lastIndexOf`)
 
 ##### Intellisense Data Files (intellisense subdirectory)
 
