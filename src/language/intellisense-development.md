@@ -39,6 +39,7 @@ This document contains an overview of how Intellisense works, as well as a gener
       - [Individual File Deep-Dives](#individual-file-deep-dives)
         - [Core Provider Files](#core-provider-files)
           - [attributeCompletion.ts](#attributecompletionts)
+          - [attributeHover.ts](#attributehoverts)
           - [attributeValueCompletion.ts](#attributevaluecompletionts)
         - [Intellisense Data Files (intellisense subdirectory)](#intellisense-data-files-intellisense-subdirectory)
           - [attributeItems.ts](#attributeitemsts)
@@ -149,6 +150,30 @@ Hover tooltips can be found under `attributeHoverValues()` in `attributeHoverIte
 - `prunedDuplicateAttributes()`: Removes attributes already present on the element
 
 **Trigger:** Space (` `) or newline (`\n`)
+
+##### attributeHover.ts
+
+**Purpose:** Hover provider that displays documentation tooltips when users hover over DFDL/XSD attribute names. The attribute's tooltips are obtained from `attributeItems.ts`
+
+**Key Functionality:**
+
+- Provides rich formatted documentation for DFDL properties and XSD attributes
+- Displays attribute descriptions, valid values, usage examples, and spec references
+- Handles both prefixed (dfdl:property) and unprefixed attribute names
+- Quick reference without leaving the editor
+
+**Documentation Categories:**
+
+- XSD Core Attributes (name, ref, minOccurs, maxOccurs)
+- DFDL Length Properties (dfdl:length, dfdl:lengthKind, dfdl:lengthUnits)
+- DFDL Encoding (dfdl:encoding, dfdl:utf16Width)
+- DFDL Binary/Text Properties (dfdl:binaryNumberRep, dfdl:textNumberPattern)
+- DFDL Delimiters (dfdl:separator, dfdl:terminator, dfdl:initiator)
+- DFDL Assertions (testKind, test, testPattern)
+
+**Provider Registered:**
+
+- `getAttributeHoverProvider()`: For DFDL documents
 
 ###### attributeValueCompletion.ts
 
