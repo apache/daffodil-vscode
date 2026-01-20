@@ -106,17 +106,23 @@ object Parse {
                 // WARNING: parse doesn't close the OutputStream, so closed below
               ).flatTap { res =>
                 if (res.isError()) {
-                  dapEvents
-                    .send(
-                      Parse.Event.Error(
-                        Support
-                          .parseDiagnosticList(res.getDiagnostics)
-                          .toList
-                          .map(d => d.toString)
-                          .mkString("\n")
-                      )
-                    )
-                    .void
+                  val fullMessage =
+                    Support
+                      .parseDiagnosticList(res.getDiagnostics)
+                      .toList
+                      .map(_.toString)
+                      .mkString("\n")
+
+                  // Truncate for popup only
+                  val popupMessage =
+                    if (fullMessage.length <= 200) fullMessage
+                    else
+                      fullMessage.take(200) + " \nTo see all the errors, please look at the daffodil-debugger.log file"
+
+                  // Send short message to popup
+                  dapEvents.send(Parse.Event.Error(popupMessage)).void *>
+                    // Keep full message in log
+                    Logger[IO].error(fullMessage)
                 } else IO.unit
               }.ensureOr { res =>
                 new Parse.Exception(Support.parseDiagnosticList(res.getDiagnostics).toList)
