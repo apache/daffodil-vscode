@@ -76,7 +76,7 @@ lazy val extraJvmOptions: Seq[String] =
 lazy val xjcSettings =
   Seq(
     libraryDependencies ++= Seq(
-      "com.sun.xml.bind" % "jaxb-impl" % "2.3.9",
+      "com.sun.xml.bind" % "jaxb-impl" % "4.0.6",
       "javax.activation" % "activation" % "1.1.1",
       "org.glassfish.jaxb" % "jaxb-xjc" % "2.3.9"
     ),
@@ -87,7 +87,7 @@ lazy val xjcSettings =
     xjcCommandLine += "-no-header",
     xjcJvmOpts ++= extraJvmOptions,
     xjcLibs := Seq(
-      "com.sun.xml.bind" % "jaxb-impl" % "2.3.9",
+      "com.sun.xml.bind" % "jaxb-impl" % "4.0.6",
       "org.glassfish.jaxb" % "jaxb-xjc" % "2.3.9",
       "javax.activation" % "activation" % "1.1.1"
     ),
