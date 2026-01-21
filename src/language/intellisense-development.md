@@ -41,6 +41,7 @@ This document contains an overview of how Intellisense works, as well as a gener
           - [attributeCompletion.ts](#attributecompletionts)
           - [attributeHover.ts](#attributehoverts)
           - [attributeValueCompletion.ts](#attributevaluecompletionts)
+          - [closeElement.ts](#closeelementts)
           - [closeElementSlash.ts](#closeelementslashts)
           - [closeUtils.ts](#closeutilsts)
         - [Intellisense Data Files (intellisense subdirectory)](#intellisense-data-files-intellisense-subdirectory)
@@ -197,6 +198,77 @@ Hover tooltips can be found under `attributeHoverValues()` in `attributeHoverIte
 - `getAttributeDetails()`: Extracts attribute name and value range for completion context
 
 **Trigger:** Space (` `)
+
+###### closeElement.ts
+
+**Purpose:** Completion provider that handles auto-completion of XML element structures when the user types a `>` character. Unlike `closeElementSlash.ts` which handles closing tags with `/`, this provider completes the element opening and provides the corresponding closing tag structure.
+
+**Key Functionality:**
+
+- Provides intelligent element completion for both DFDL and TDML files when `>` is typed
+- Determines whether to insert simple closing tags or full container structures based on context
+- Prevents inappropriate completion inside XPath expressions, quoted strings, braces, or after equals signs
+- **Special trigger patterns:**
+  - `>`: Standard trigger for multi-line completion with indentation
+  - `>>`: Inline completion without extra whitespace
+  - `.=>`: Alternative trigger pattern for special cases
+- **Tag-specific formatting:**
+  - `schema` tag: Gets unique multi-line formatting with proper XML document structure
+  - Variable tags (`defineVariable`, `setVariable`): Multi-line snippets with newlines for readability
+  - Assertion tags (`assert`, `discriminator`): Inline snippets with tab stops for test expressions
+  - Default: Multi-line container format with indentation for child elements
+- Handles complex multi-tag lines by analyzing tag positions and existing closing tags
+- **Progressive completion workflow:** Supports tab-stop navigation ($0, $1) for seamless content insertion
+- Direct document manipulation using snippet insertion rather than traditional completion suggestions
+
+**Key Functions:**
+
+- `getCloseElementProvider()`: Main DFDL completion provider registration
+- `getTDMLCloseElementProvider()`: TDML-specific completion provider registration
+- `checkItemsOnLine()`: Core logic determining what to insert based on item count and context
+- `checkNearestTagNotClosed()`: Handles tag-specific snippet patterns for single-item lines
+- `checkTriggerText()`: Manages insertion for complex multi-tag lines
+
+**Trigger:** Greater-than sign (`>`)
+
+**Architecture Notes:**
+
+- Uses **guard clauses** for early returns in inappropriate contexts (same pattern as `closeElementSlash.ts`)
+- Implements **dual strategy**: DFDL provider with full validation vs. simpler TDML provider
+- Follows VS Code provider pattern but uses **direct edits** (`insertSnippet`) instead of completion lists
+- **Snippet complexity:** Uses multi-tab-stop patterns ($1 for content, $0 for final position) enabling progressive workflow
+- Separation of concerns: Context validation in providers, insertion logic delegated to helper functions
+
+**Dependencies:**
+
+- `closeUtils.checkMissingCloseTag()`: Determines which tag needs closing
+- `utils.insertSnippet()`: Performs the actual text insertion with tab stops
+- Multiple context validators: `checkBraceOpen()`, `cursorWithinBraces()`, `cursorWithinQuotes()`, `cursorAfterEquals()`, `isInXPath()`, `isNotTriggerChar()`
+- Namespace utilities: `getNsPrefix()`, `getItemPrefix()`, `getItemsOnLineCount()`
+
+**Flow:**
+
+1. User types `>` at cursor position
+2. Provider validates context (not in XPath, quotes, braces, etc.) and verifies `>` is the trigger char
+3. `checkMissingCloseTag()` scans document to find the nearest unclosed tag
+4. If tag needs closing, checks trigger pattern (`>`, `>>`, or `.=>`) and items on line
+5. Deletes the typed trigger character(s) to prevent duplication
+6. `checkItemsOnLine()` delegates to specialized handlers:
+   - `checkNearestTagNotClosed()` for single-item lines (tag-specific formatting)
+   - `checkTriggerText()` for multi-tag lines (ensures no duplicate closing tags)
+7. Inserts appropriate snippet with proper formatting and tab stops
+
+**Comparison with `closeElementSlash.ts`:**
+
+| Feature                | `closeElement.ts` (This File)                    | `closeElementSlash.ts`                        |
+| ---------------------- | ------------------------------------------------ | --------------------------------------------- |
+| **Trigger**            | `>` character                                    | `/` character                                 |
+| **Primary Action**     | Completes element opening with closing structure | Closes element (self-closing or full closing) |
+| **Snippet Complexity** | Multi-tab-stop ($0, $1) for progressive workflow | Single tab-stop ($0) only                     |
+| **Special Patterns**   | `>`, `>>`, `.=>` triggers                        | `/` only                                      |
+| **Schema Handling**    | Special multi-line formatting with indentation   | Standard completion                           |
+| **Content Insertion**  | Yes (between opening and closing tags)           | No (cursor after closing)                     |
+| **Use Case**           | Creating new elements with content               | Closing existing elements                     |
 
 ###### closeElementSlash.ts
 
