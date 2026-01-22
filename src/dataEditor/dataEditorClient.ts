@@ -1339,6 +1339,11 @@ async function serverStart() {
     throw new Error(`Log config file '${logConfigFile}' not found`)
   }
 
+  const x = OMEGA_EDIT_HOST
+  const y = getPidFile(omegaEditPort)
+  const z = logConfigFile
+
+  console.log(x, y, z)
   // Start the server and wait up to 10 seconds for it to start
   const serverPid = (await Promise.race([
     startServer(
