@@ -22,9 +22,6 @@
 
 # Apache Daffodil™ Extension for Visual Studio Code
 
-[![CI](https://github.com/apache/daffodil-vscode/workflows/CI/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/CI.yml)
-[![Nightly Tests](https://github.com/apache/daffodil-vscode/actions/workflows/nightly.yml/badge.svg)](https://github.com/apache/daffodil-vscode/actions/workflows/nightly.yml)
-
 </div>
 
 The Apache Daffodil™ Extension for Visual Studio Code is an extension to the Microsoft® Visual Studio Code (VS Code) editor, designed for Data Format Description Language<sup><a href="#footnotes">1</a></sup> [(DFDL)](https://daffodil.apache.org/docs/dfdl/) Schema developers. 
