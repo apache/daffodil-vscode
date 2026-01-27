@@ -43,10 +43,12 @@ This document contains an overview of how Intellisense works, as well as a gener
           - [attributeValueCompletion.ts](#attributevaluecompletionts)
           - [closeElement.ts](#closeelementts)
           - [closeElementSlash.ts](#closeelementslashts)
+          - [elementCompletion.ts](#elementcompletionts)
           - [closeUtils.ts](#closeutilsts)
         - [Intellisense Data Files (intellisense subdirectory)](#intellisense-data-files-intellisense-subdirectory)
           - [attributeItems.ts](#attributeitemsts)
           - [attributeValueItems.ts](#attributevalueitemsts)
+          - [elementItems.ts](#elementitemsts)
         - [src/language/dfdl.ts](#srclanguagedfdlts)
     - [TDML](#tdml)
 
@@ -314,6 +316,77 @@ Hover tooltips can be found under `attributeHoverValues()` in `attributeHoverIte
 5. `checkItemsOnLine()` decides: self-closing tag, full closing tag, or nothing
 6. Inserts appropriate snippet at the correct position
 
+###### elementCompletion.ts
+
+**Purpose:** Element name completion provider for XML elements in DFDL schemas and TDML test files. Suggests valid child elements when the user presses newline inside an XML element.
+
+**Key Functionality:**
+
+- Provides context-aware element suggestions based on DFDL schema hierarchy and TDML structure
+- Respects DFDL schema relationships (e.g., inside `sequence` suggests `element`, `choice`, etc.)
+- Special handling for annotation/appinfo contexts to provide DFDL-specific elements based on parent type
+- Scans document for user-defined variables to populate `dfdl:setVariable` completion choices
+- Prevents suggestions when cursor is in inappropriate contexts (XPath, quotes, braces, after equals, inside open elements with no missing close tags)
+- Handles multi-item lines with complex cursor positioning logic
+- Dynamic namespace prefix handling (xs:, xsd:, dfdl:)
+- Separate provider implementations for DFDL (full validation) and TDML (simpler logic)
+
+**Key Functions:**
+
+- `getElementCompletionProvider()`: Main DFDL document provider registration
+- `getTDMLElementCompletionProvider()`: TDML document provider registration
+- `getElementCompletionItems()`: Creates completion items from elementItems.ts data based on context
+- `getDefinedVariables()`: Scans document for `dfdl:defineVariable` declarations to extract variable names
+- `nearestOpenTagChildElements()`: Core logic determining which child elements are valid for a given parent (main DFDL hierarchy switch statement)
+- `getAnnotationParent()`: Finds the parent element of an annotation to provide correct DFDL format elements in appinfo context
+- `getTagNearestTrigger()`: Complex algorithm to find the nearest tag to cursor position, handling single-line and multi-line scenarios
+
+**Trigger:** Newline (`\n`)
+
+**Architecture Notes:**
+
+- Uses **guard clauses** for early returns in invalid contexts
+- Implements **dual strategy**: robust DFDL provider vs. simpler TDML provider
+- **Complex multi-tag line handling**: Extensive logic for scenarios with multiple tags per line
+- **Appinfo context chaining**: Traverses annotation → appinfo → parent element to determine valid DFDL elements
+- **Dynamic completion construction**: Variable names dynamically added to `dfdl:setVariable` suggestions
+- **Provider pattern**: Registers as standard VS Code completion provider
+- **Progressive tab-stop navigation**: Uses `$1`, `$2`, `$0` for guided element construction
+
+**Dependencies:**
+
+- `closeUtils`: `checkMissingCloseTag()` for determining tag closure state
+- `utils`: Extensive use including `checkBraceOpen()`, `cursorWithinBraces()`, `cursorWithinQuotes()`, `cursorAfterEquals()`, `isInXPath()`, `isTagEndTrigger()`, `nearestOpen()`, `nearestTag()`, `getAttributeNames()`, `getItemsOnLineCount()`, `getNsPrefix()`, `createCompletionItem()`
+- `intellisense/elementItems`: `elementCompletion()` factory function for completion data
+- `XmlItem` class from utils for encapsulating parsed element data
+
+**DFDL Hierarchy Rules (from `nearestOpenTagChildElements()`):**
+
+The function implements the complete DFDL Schema hierarchy through a large switch statement:
+
+- `element` → `complexType`, `simpleType`, `annotation`
+- `sequence` → `element`, `sequence`, `choice`, `annotation`
+- `choice` → `element`, `sequence`, `group`, `annotation`
+- `group` → `sequence`, `annotation`
+- `complexType` → `sequence`, `group`, `choice`, `annotation`
+- `simpleType` → `annotation`, `restriction`
+- `annotation` → `appinfo`
+- `appinfo` → DFDL elements based on annotation parent (`dfdl:format`, `dfdl:element`, `dfdl:sequence`, etc.)
+- `assert/discriminator` → `CDATA`, `{}`
+- `schema` root → `sequence`, `element`, `choice`, `group`, `complexType`, `simpleType`, `annotation`, `include`, `import`, `defineVariable`
+- `emptySchema` → `xml version` declaration
+
+**Flow:**
+
+1. User presses newline inside an XML element
+2. Guard clauses validate context (not XPath, quotes, braces, after equals, inside properly closed element)
+3. Extract namespace prefix and scan for user-defined variables
+4. `nearestOpen()` finds the parent element at cursor position
+5. `getTagNearestTrigger()` determines which tag should trigger completion (handles multi-item lines)
+6. `nearestOpenTagChildElements()` uses switch statement to determine valid child elements for parent
+7. `getElementCompletionItems()` filters elementItems.ts data for valid elements only
+8. Returns completion items with proper namespace prefixes and documentation
+
 ###### closeUtils.ts
 
 **Purpose:** Core utility module providing tag state analysis functions for the auto-completion system. Determines whether XML/DFDL tags are properly closed and identifies unclosed tags that need completion.
@@ -406,8 +479,8 @@ Hover tooltips can be found under `attributeHoverValues()` in `attributeHoverIte
 **Attribute Categories:**
 
 - XSD Core Attributes (name, ref, type, minOccurs, maxOccurs)
-- DFDL Length Properties (dfdl: length, dfdl:lengthKind, dfdl:lengthUnits)
-- DFDL Encoding Properties (dfdl: encoding, dfdl:encodingErrorPolicy)
+- DFDL Length Properties (dfdl:length, dfdl:lengthKind, dfdl:lengthUnits)
+- DFDL Encoding Properties (dfdl:encoding, dfdl:encodingErrorPolicy)
 - DFDL Text/Binary Representation
 - DFDL Separators/Delimiters
 - DFDL Calendar/Date
@@ -449,16 +522,71 @@ Hover tooltips can be found under `attributeHoverValues()` in `attributeHoverIte
 - `noChoiceAttributes`: List of attributes without predefined choices
 - `attributeValues(attributeName, startPos, additionalTypes)`: Inserts appropriate snippet at cursor
 
+###### elementItems.ts
+
+**Purpose:** Static completion data for XML elements used in DFDL/XSD documents. Provides a complete catalog of XML/DFDL elements that can be suggested in different schema contexts, along with their snippet templates and documentation.
+
+**Data Structure:**
+
+- Factory function `elementCompletion(definedVariables, nsPrefix)` that returns an object with an `items` array
+- Each item contains:
+  - `item`: Element name (can include namespace prefix)
+  - `snippetString`: VS Code snippet with tab stops, placeholders, and default values
+  - `markdownString`: Documentation shown in completion tooltip
+
+**Snippet Features:**
+
+- **Tab stops**: `$1`, `$2`, `$0` for progressive navigation
+- **Choice placeholders**: `${1|option1,option2|}` for dropdown selections
+- **Dynamic variable insertion**: Uses `definedVariables` parameter to populate `dfdl:setVariable` ref attribute choices
+- **Namespace prefix handling**: Accepts `nsPrefix` parameter to customize snippets with correct namespace (xs:, xsd:, etc.)
+- **Multi-line templates**: Many elements include proper indentation and structure
+
+**Element Categories:**
+
+- **XML Declaration**: `xml version` - XML prolog with UTF-8 encoding
+- **XSD Core Elements**: `schema`, `element` (name/ref variants), `complexType`, `simpleType`, `sequence`, `choice`, `group`, `annotation`, `appinfo`, `restriction`, `include`, `import`
+- **DFDL Property Elements**: `dfdl:format`, `dfdl:property`, `dfdl:assert`, `dfdl:discriminator`, `dfdl:escapeScheme`
+- **DFDL Variable Elements**: `dfdl:defineVariable`, `dfdl:setVariable`, `dfdl:newVariableInstance`
+- **DFDL Format Definition Elements**: `dfdl:defineFormat`, `dfdl:defineEscapeScheme`
+- **DFDL Container Elements**: `dfdl:element`, `dfdl:sequence`, `dfdl:choice`, `dfdl:group`
+- **XSD Restriction Elements**: `minInclusive`, `minExclusive`, `maxInclusive`, `maxExclusive`, `pattern`, `totalDigits`, `fractionDigits`, `enumeration`
+- **Special Constructs**: `CDATA`, `{}` DFDL expression wrapper
+
+**Key Export:**
+
+- `elementCompletion(definedVariables, nsPrefix)`: **Factory function** that generates completion data dynamically based on:
+  - `definedVariables`: Comma-separated string of variable names for `dfdl:setVariable` dropdown
+  - `nsPrefix`: Namespace prefix to use for XSD elements (typically "xs:" or "xsd:")
+
+**Dynamic Behavior:**
+
+Unlike static attribute files, `elementItems.ts` is a **factory function** that constructs completion data at runtime. This enables:
+
+- Dynamic population of variable names from the document
+- Customizable namespace prefixes based on document context
+- Flexible snippet construction that adapts to schema conventions
+
+**Example Usage:**
+
+```typescript
+// In elementCompletion.ts
+const definedVariables = getDefinedVariables(document) // "var1,var2,var3"
+const nsPrefix = getNsPrefix(document, position) // "xs:"
+const elementData = elementCompletion(definedVariables, nsPrefix)
+// elementData.items now contains customized snippets with proper vars and prefixes
+```
+
 ##### src/language/dfdl.ts
 
 **Purpose:** The central registration file for all DFDL language features.
 
 **Key Functionality:**
 
-- **Starting Point:** It is executed during extension activation and registers the completion and hover providers with VS Code. This file is the “entry point” for Language features. If you want to add providers, this is the place to update.
-- **Central Rgistration Point:**It imports provider modules (element, attribute, attributeValue, closeElement, attributeHover, etc.) and registers them with appropriate trigger characters (e.g., `<`, `:`, `"`, `=`, `/`, `whitespace`).
-- **Wiring:**It does not perform completion logic itself — rather it wires VS Code events to the exported provider objects/functions in the provider modules.
-- **DFDL Language Provider:**When VS Code triggers a provider callback for the DFDL language, the registered provider function from the corresponding module is invoked.
+- **Starting Point:** It is executed during extension activation and registers the completion and hover providers with VS Code. This file is the "entry point" for Language features. If you want to add providers, this is the place to update.
+- **Central Registration Point:** It imports provider modules (element, attribute, attributeValue, closeElement, attributeHover, etc.) and registers them with appropriate trigger characters (e.g., `<`, `:`, `"`, `=`, `/`, `whitespace`).
+- **Wiring:** It does not perform completion logic itself — rather it wires VS Code events to the exported provider objects/functions in the provider modules.
+- **DFDL Language Provider:** When VS Code triggers a provider callback for the DFDL language, the registered provider function from the corresponding module is invoked.
 
 ##### src\language\providers\utils.ts
 
