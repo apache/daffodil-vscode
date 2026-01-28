@@ -208,7 +208,7 @@ lazy val debugger =
         "co.fs2" %% "fs2-io" % "3.12.2",
         "com.monovore" %% "decline-effect" % "2.5.0",
         "org.typelevel" %% "log4cats-slf4j" % "2.7.1",
-        "org.scalameta" %% "munit" % "1.2.1" % Test
+        "org.scalameta" %% "munit" % "1.2.2" % Test
       ),
       libraryDependencies ++= getPlatformSpecificLibraries(scalaBinaryVersion.value),
       buildInfoPackage := "org.apache.daffodil.debugger.dap",
