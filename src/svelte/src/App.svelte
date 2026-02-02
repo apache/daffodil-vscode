@@ -64,6 +64,7 @@ limitations under the License.
   } from './components/DataDisplays/CustomByteDisplay/BinaryData'
   import { byte_count_divisible_offset } from './utilities/display'
   import Help from './components/layouts/Help.svelte'
+  import { viewportByteIndicators } from 'utilities/highlights'
 
   function requestEditedData() {
     if ($requestable) {
@@ -253,6 +254,8 @@ limitations under the License.
     $selectionDataStore = new SelectionData_t()
     $editorSelection = ''
     $editedDataSegment = new Uint8Array(0)
+    viewportByteIndicators.clearIndication('replacement')
+    viewportByteIndicators.clearIndication('searchresult')
   }
 
   function clearQueryableData() {
