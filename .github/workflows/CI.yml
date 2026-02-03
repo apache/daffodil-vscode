@@ -54,6 +54,7 @@ jobs:
   code-format:
     name: TypeScript/Scala/Svelte Formatting
     strategy:
+      max-parallel: 1
       matrix:
         java_distribution: [temurin]
         java_version: [17]
@@ -107,6 +108,7 @@ jobs:
   build-test-package:
     name: "Build, Test, and Package (OS: ${{ matrix.os }}, Node: ${{ matrix.node }}, Java: ${{ matrix.java_version }}, VS Code: ${{ matrix.vscode }})"
     strategy:
+      max-parallel: 15
       matrix:
         java_distribution: [temurin]
         java_version: [8, 11, 17, 21]

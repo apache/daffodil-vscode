@@ -27,6 +27,7 @@ jobs:
   rat-check:
     name: Rat Check
     strategy:
+      max-parallel: 1
       matrix:
         java_distribution: [temurin]
         java_version: [17]
@@ -63,6 +64,7 @@ jobs:
   node-missing-license-data-check:
     name: Node Missing LICENSE Data Check
     strategy:
+      max-parallel: 1
       matrix:
         os: [ubuntu-22.04]
         node: ["22.14.0"]
@@ -100,6 +102,7 @@ jobs:
   node-license-compatibility:
     name: Node LICENSE Compatibility Check
     strategy:
+      max-parallel: 1
       matrix:
         os: [ubuntu-22.04]
         node: ["22.14.0"]
