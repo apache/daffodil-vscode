@@ -96,7 +96,7 @@
     "prettier-plugin-svelte": "3.2.6",
     "rollup-plugin-strip-code": "^0.2.8",
     "run-func": "^3.0.0",
-    "sass": "^1.89.2",
+    "sass": "^1.97.3",
     "svelte": "^5.43.4",
     "svelte-check": "^4.1.4",
     "svelte-loader": "^3.2.4",
