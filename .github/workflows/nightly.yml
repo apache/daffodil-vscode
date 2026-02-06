@@ -25,6 +25,7 @@ jobs:
   build-test-package:
     name: "Build, Test, and Package (OS: ${{ matrix.os }}, Node: ${{ matrix.node }}, Java: ${{ matrix.java_version }}, VS Code: ${{ matrix.vscode }})"
     strategy:
+      max-parallel: 15
       matrix:
         os:
           [
