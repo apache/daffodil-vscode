@@ -469,6 +469,37 @@ export class DataEditorClient implements vscode.Disposable {
     })
   }
 
+  private async runProfile(
+    sessionId: string,
+    startOffset: number,
+    length: number
+  ) {
+    const byteProfile = await profileSession(sessionId, startOffset, length)
+    const characterCount = await countCharacters(sessionId, startOffset, length)
+    const contentType = await getContentType(sessionId, startOffset, length)
+    const language = await getLanguage(
+      sessionId,
+      startOffset,
+      length,
+      characterCount.getByteOrderMark()
+    )
+
+    return {
+      byteProfile,
+      numAscii: numAscii(byteProfile),
+      language: language.getLanguage(),
+      contentType: contentType.getContentType(),
+      characterCount: {
+        byteOrderMark: characterCount.getByteOrderMark(),
+        byteOrderMarkBytes: characterCount.getByteOrderMarkBytes(),
+        singleByteCount: characterCount.getSingleByteChars(),
+        doubleByteCount: characterCount.getDoubleByteChars(),
+        tripleByteCount: characterCount.getTripleByteChars(),
+        quadByteCount: characterCount.getQuadByteChars(),
+        invalidBytes: characterCount.getInvalidBytes(),
+      },
+    }
+  }
   // handle messages from the webview
   private async messageReceiver(message: EditorMessage) {
     switch (message.command) {
@@ -544,53 +575,48 @@ export class DataEditorClient implements vscode.Disposable {
         })
         break
 
-      case MessageCommand.profile:
-        {
-          const startOffset: number = message.data.startOffset
-          const length: number = message.data.length
-          const byteProfile: number[] = await profileSession(
-            this.omegaSessionId,
+      case MessageCommand.profile: {
+        const startOffset: number = message.data.startOffset
+        const length: number = message.data.length
+        const target: string | undefined = message.data.target
+
+        let sessionId = this.omegaSessionId
+        let isDiskProfile = false
+
+        try {
+          if (target === 'disk') {
+            const tempSession = await createSession(
+              this.fileToEdit,
+              undefined,
+              checkpointPath
+            )
+            sessionId = tempSession.getSessionId()
+            addActiveSession(sessionId)
+            isDiskProfile = true
+          }
+
+          const profileData = await this.runProfile(
+            sessionId,
             startOffset,
             length
           )
-          const characterCount = await countCharacters(
-            this.omegaSessionId,
-            startOffset,
-            length
-          )
-          const contentTypeResponse = await getContentType(
-            this.omegaSessionId,
-            startOffset,
-            length
-          )
-          const languageResponse = await getLanguage(
-            this.omegaSessionId,
-            startOffset,
-            length,
-            characterCount.getByteOrderMark()
-          )
+
           await this.panel.webview.postMessage({
             command: MessageCommand.profile,
             data: {
-              startOffset: startOffset,
-              length: length,
-              byteProfile: byteProfile,
-              numAscii: numAscii(byteProfile),
-              language: languageResponse.getLanguage(),
-              contentType: contentTypeResponse.getContentType(),
-              characterCount: {
-                byteOrderMark: characterCount.getByteOrderMark(),
-                byteOrderMarkBytes: characterCount.getByteOrderMarkBytes(),
-                singleByteCount: characterCount.getSingleByteChars(),
-                doubleByteCount: characterCount.getDoubleByteChars(),
-                tripleByteCount: characterCount.getTripleByteChars(),
-                quadByteCount: characterCount.getQuadByteChars(),
-                invalidBytes: characterCount.getInvalidBytes(),
-              },
+              startOffset,
+              length,
+              ...profileData,
             },
           })
+        } finally {
+          if (isDiskProfile) {
+            await removeActiveSession(sessionId)
+          }
         }
+
         break
+      }
 
       case MessageCommand.clearChanges:
         if (
