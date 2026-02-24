@@ -410,7 +410,7 @@ conditions of the following licenses.
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
-- src/svelte/src/resources/fonts/RedHatMono-Regular.woff2
+- src/svelte/resources/fonts/RedHatMono-Regular.woff2
   This product bundles the above files from the 'RedHatFont' repo. (https://github.com/RedHatOfficial/RedHatFont)
   These files are available under the SIL Open Font License, Version 1.1:
     Copyright 2021 Red Hat, Inc.,
@@ -508,7 +508,7 @@ conditions of the following licenses.
     FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
     OTHER DEALINGS IN THE FONT SOFTWARE.
 
-- src/svelte/src/resources/fonts/SpaceGrotesk-Variable.woff2
+- src/svelte/resources/fonts/SpaceGrotesk-Variable.woff2
   This product bundles the above files from the 'space-grotesk' repo. (https://github.com/floriankarsten/space-grotesk)
   These files are available under the SIL Open Font License, Version 1.1:
     Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)
