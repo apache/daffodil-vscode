@@ -44,7 +44,7 @@
     "package": "run-func build/yarn-scripts.ts package && yarn --cwd dist/package install && yarn --cwd dist/package vsce package --out ../../",
     "pretest": "yarn compile && yarn vite:dev",
     "test": "sbt test && yarn test:svelte && node ./out/tests/runTest.js",
-    "test:svelte": "mocha -r ts-node/register ./src/svelte/tests/**/*.test.ts",
+    "test:svelte": "mocha --import=tsx ./src/svelte/tests/**/*.test.ts",
     "sbt": "sbt Universal/stage",
     "svelte:check": "svelte-check --tsconfig ./src/svelte/tsconfig.json",
     "svelte:build": "cd src/svelte && vite build --config ./vite.config.mjs --mode production --emptyOutDir",
@@ -104,6 +104,7 @@
     "ts-loader": "9.4.4",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.21.0",
     "typescript": "5.2.2",
     "vite": "^6.4.1",
     "vscode-extension-tester": "5.9.1"
@@ -432,14 +433,14 @@
         "title": "Open in Text Editor",
         "category": "TDML Editor",
         "icon": "$(notebook-open-as-text)",
-        "enablement": "activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor'" 
+        "enablement": "activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor'"
       },
       {
         "command": "tdml-editor.openPreview",
         "title": "Open Preview",
         "category": "TDML Editor",
         "icon": "$(open-preview)",
-        "enablement": "editorLangId == 'tdml'" 
+        "enablement": "editorLangId == 'tdml'"
       },
       {
         "command": "tdml-editor.openInTdmlEditor",
