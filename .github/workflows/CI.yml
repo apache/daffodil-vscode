@@ -119,6 +119,16 @@ jobs:
           # java 8 not available on macos-15
           - os: macos-15
             java_version: 8
+          ## Reduce number of macos runs by only testing latest node, java and vscode versions on macos.
+          ## NOTE: Usually if something works on ubuntu it works on macos.
+          - os: macos-15
+            java_version: 11
+          - os: macos-15
+            java_version: 17
+          - os: macos-15
+            node: "20.19.4"
+          - os: macos-15
+            vscode: "1.90.0"
       fail-fast: false # don't immediately fail all other jobs if a single job fails
     runs-on: ${{ matrix.os }}
     defaults:
