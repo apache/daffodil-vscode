@@ -339,11 +339,10 @@ export async function runScript(
   const terminal = getTerminal(hideTerminal, env, createTerminal)
 
   // Create debugger run command
-  const fullPathToScript = path
-    .join(scriptPath, 'bin', scriptName)
-    // fix pathing as emtpy space needs a \ before it to not cause errors
-    .replace(' ', '\\ ')
-  const debuggerRunCommand = `${fullPathToScript} ${shellArgs.join(' ')}`
+  const fullPathToScript = path.join(scriptPath, 'bin', scriptName)
+
+  // Surround path to script with quotes to account for spaces
+  const debuggerRunCommand = `"${fullPathToScript}" ${shellArgs.join(' ')}`
 
   // Send debugger run command to terminal, when exists terminal will stay open
   terminal.sendText(debuggerRunCommand)
