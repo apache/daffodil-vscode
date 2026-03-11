@@ -15,6 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
+  let profileTarget: 'editor' | 'disk' = 'editor'
   import Button from '../Inputs/Buttons/Button.svelte'
   import { vscode } from '../../utilities/vscode'
   import { MessageCommand } from '../../utilities/message'
@@ -73,7 +74,6 @@ limitations under the License.
   let errorMessageTimeout: NodeJS.Timeout | null = null
   let asciiOverlay: boolean = true
   let logScale: boolean = false
-
   $: {
     sum = byteProfile.reduce((a, b) => a + b, 0)
     mean = sum / byteProfile.length
@@ -157,7 +157,10 @@ limitations under the License.
     })
   }
 
+  let lastProfileTarget: 'editor' | 'disk' | null = null
+  let lastRequestedTarget: 'editor' | 'disk' = 'editor'
   function requestSessionProfile(startOffset: number, length: number) {
+    lastRequestedTarget = profileTarget
     setStatusMessage(
       `Profiling bytes from ${startOffset} to ${startOffset + length}...`,
       0
@@ -165,12 +168,16 @@ limitations under the License.
     vscode.postMessage({
       command: MessageCommand.profile,
       data: {
-        startOffset: startOffset,
-        length: length,
+        startOffset,
+        length,
+        target: profileTarget === 'disk' ? 'disk' : undefined,
       },
     })
   }
-
+  $: if (profileTarget !== lastProfileTarget) {
+    lastProfileTarget = profileTarget
+    requestSessionProfile(startOffset, length)
+  }
   function handleInputEnter(e: CustomEvent) {
     switch (e.detail.id) {
       case 'start-offset-input':
@@ -283,6 +290,10 @@ limitations under the License.
     window.addEventListener('message', (msg) => {
       switch (msg.data.command) {
         case MessageCommand.profile:
+          if (msg.data.data?.target && msg.data.data.target !== profileTarget) {
+            // ignore messages not for the current profile target
+            break
+          }
           numAscii = msg.data.data.numAscii as number
           byteProfile = msg.data.data.byteProfile as number[]
           language = msg.data.data.language as string
@@ -313,11 +324,19 @@ limitations under the License.
       }
     })
     endOffset = startOffset + length
-    requestSessionProfile(startOffset, length)
   })
 </script>
 
 <div class="container">
+  <div class="input-container">
+    <label>
+      Profile source:
+      <select bind:value={profileTarget}>
+        <option value="editor">Current editor</option>
+        <option value="disk">On-disk file</option>
+      </select>
+    </label>
+  </div>
   {#if title.length > 0}
     <div class="header">
       <h3>{title}</h3>
