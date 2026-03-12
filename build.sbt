@@ -207,7 +207,7 @@ lazy val debugger =
         // scala-steward:on
         "co.fs2" %% "fs2-io" % "3.12.2",
         "com.monovore" %% "decline-effect" % "2.6.0",
-        "org.typelevel" %% "log4cats-slf4j" % "2.7.1",
+        "org.typelevel" %% "log4cats-slf4j" % "2.8.0",
         "org.scalameta" %% "munit" % "1.2.2" % Test
       ),
       libraryDependencies ++= getPlatformSpecificLibraries(scalaBinaryVersion.value),
