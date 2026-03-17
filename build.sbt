@@ -196,12 +196,12 @@ lazy val debugger =
       javacOptions ++= buildJavacOptions(scalaBinaryVersion.value),
       libraryDependencies ++= Seq(
         /* NOTE: To support Java 8:
-         *  logback-classic can not go above version 1.2.11.
+         *  logback-classic can not go above version 1.2.13.
          *  com.microsoft.java.debug.core can not go above version 0.34.0.
          *  jansi can not go above version 1.18.
          */
         // scala-steward:off
-        "ch.qos.logback" % "logback-classic" % "1.2.11",
+        "ch.qos.logback" % "logback-classic" % "1.2.13",
         "com.microsoft.java" % "com.microsoft.java.debug.core" % "0.34.0",
         "org.fusesource.jansi" % "jansi" % "1.18",
         // scala-steward:on
@@ -210,6 +210,7 @@ lazy val debugger =
         "org.typelevel" %% "log4cats-slf4j" % "2.7.1",
         "org.scalameta" %% "munit" % "1.2.4" % Test
       ),
+      dependencyOverrides += "commons-io" % "commons-io" % "[2.14.0,)",
       libraryDependencies ++= getPlatformSpecificLibraries(scalaBinaryVersion.value),
       buildInfoPackage := "org.apache.daffodil.debugger.dap",
       buildInfoKeys := Seq[BuildInfoKey](
