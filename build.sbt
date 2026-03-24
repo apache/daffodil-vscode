@@ -210,7 +210,7 @@ lazy val debugger =
         "org.typelevel" %% "log4cats-slf4j" % "2.7.1",
         "org.scalameta" %% "munit" % "1.2.4" % Test
       ),
-      dependencyOverrides += "commons-io" % "commons-io" % "[2.14.0,)",
+      dependencyOverrides += "commons-io" % "commons-io" % "2.21.0",
       libraryDependencies ++= getPlatformSpecificLibraries(scalaBinaryVersion.value),
       buildInfoPackage := "org.apache.daffodil.debugger.dap",
       buildInfoKeys := Seq[BuildInfoKey](
