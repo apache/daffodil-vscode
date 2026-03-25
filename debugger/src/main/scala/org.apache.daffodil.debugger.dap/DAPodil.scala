@@ -127,7 +127,7 @@ object DAPSession {
 class DAPodil(
     session: DAPSession[Request, Response, DebugEvent],
     state: Ref[IO, DAPodil.State],
-    hotswap: Hotswap[IO, DAPodil.State], // manages those states that have their own resource management
+    hotswap: NonEmptyHotswap[IO, DAPodil.State], // manages those states that have their own resource management
     debugee: Request => EitherNel[String, Resource[IO, DAPodil.Debugee]],
     whenDone: Deferred[IO, DAPodil.Done]
 ) {
@@ -229,7 +229,7 @@ class DAPodil(
           case Right(dbgee) =>
             for {
               launched <- hotswap.swap {
-                DAPodil.State.Launched.resource(session, dbgee)
+                DAPodil.State.Launched.resource(session, dbgee).evalTap(state.set)
               }.attempt
 
               _ <- launched match {
@@ -239,9 +239,8 @@ class DAPodil(
                       .FailedToLaunch(request, NonEmptyList.of("couldn't launch from created debuggee"), Some(t))
                   ) *>
                     session.abort(ErrorEvent.RequestError(t.getMessage), show"couldn't launch, request $request", t)
-                case Right(launchedState) =>
-                  state.set(launchedState) *>
-                    session.sendResponse(request.respondSuccess())
+                case Right(_) => // launchedState is now Unit, so we just send the success response
+                  session.sendResponse(request.respondSuccess())
               }
             } yield ()
         }
@@ -362,7 +361,7 @@ class DAPodil(
     session
       .sendResponse(request.respondSuccess())
       .guarantee {
-        hotswap.clear *> whenDone.complete(DAPodil.Done(args.restart)).void
+        whenDone.complete(DAPodil.Done(args.restart)).void
       }
 
   def scopes(request: Request, args: ScopesArguments): IO[Unit] =
@@ -545,8 +544,7 @@ object DAPodil extends IOApp {
   ): Resource[IO, IO[Done]] =
     for {
       state <- Ref[IO].of[State](State.Uninitialized).toResource
-      hotswap <- Hotswap
-        .create[IO, State]
+      hotswap <- NonEmptyHotswap[IO, State](Resource.pure(State.Uninitialized))
         .onFinalizeCase(ec => Logger[IO].debug(s"hotswap: $ec"))
       whenDone <- Deferred[IO, Done].toResource
       dapodil = new DAPodil(
