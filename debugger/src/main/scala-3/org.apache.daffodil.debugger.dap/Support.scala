@@ -41,6 +41,7 @@ object Support {
     infosetFormat match {
       case "xml"  => Daffodil.newXMLTextInfosetOutputter(stream, true)
       case "json" => Daffodil.newJsonInfosetOutputter(stream, true)
+      case other  => throw new IllegalArgumentException(s"unsupported infosetFormat: $other")
     }
 
   /* Daffodil ProcessorFactory wrapper methods */

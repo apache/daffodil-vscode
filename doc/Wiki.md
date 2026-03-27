@@ -61,9 +61,8 @@ The purpose of Apache Daffodil™ Extension for Visual Studio Code is to ease th
 - [Data Editor](#data-editor-1)
    * [Navigation](#navigation)
    * [Keyboard Shortcuts](#keyboard-shortcuts)
-- [Known Issues in v1.4.1](#known-issues-in-v141)
+- [Known Issues in v1.6.0](#known-issues-in-v160)
    * [General Issues](#general-issues)
-   * [Debugger Issues Originating from 1.4.0](#debugger-issues-originating-from-140)
 - [Reporting Problems and Requesting New Features](#reporting-problems-and-requesting-new-features)
 - [Getting Help](#getting-help)
 - [Contributing](#contributing)
@@ -520,7 +519,16 @@ The original default test case from the temp directory will be appended to the s
 
 </details>
 
-Once the Daffodil Parse has finished, an infoset will be created, and a test case will be added to the existing TDML file. To create an archive for a TDML file with multiple test cases, the same guidelines for creating an archive from a TDML file created from a 'Generate TDML' operation should be followed. All DFDL schema files, input data files, the TDML file, and, optionally, the infosets should be added to the archive. Additionally, any directory structure should be preserved in the archive to allow for the relative paths in the TDML file to be resolved.
+### Zipping the TDML file & associated files
+
+To generate a compressed archive of the TDML test cases, you simply need to have the TDML file opened (and in the active tab) in either the TDML editor or a text editor. Then, you can open the command palette and find the "Zip TDML file" command and execute it.
+The system will automatically collect the appropriate files: first the TDML file itself, then the files specified by the test case(s) in the file. Each test case will have its associated schema, data, and infoset files placed into a folder with the name of the test case. The TDML file contents will be automatically edited to show the updated location of these files. 
+
+The zip file created will be in the same location as the TDML file and will have the same name as the TDML file with the added extension ".zip". This file can then be transmitted to other users.
+
+If the execution of the test case contained an error or failed to complete parsing for any reason, the associated infoset will be a zero length file.
+
+**Note:** The TDML function does not currently support other, local, schema files included into a primary or base schema. Further development will be required to scan the primary schema file to identify these types of files so that they are included into the TDML file and any zipped archive created for that TDML file.
 
 When running a zip archive created by another user, extract the archive into your workspace folder. If there is an infoset in the zip archive that you wish to compare with your infoset, make sure that the infoset from the zip archive is not located at the same place as the default infoset for the Daffodil Parse that will be run when executing a test case from the TDML file. This is because the Daffodil Parse run by executing the TDML test case uses the default location for its infoset and will overwrite anything that already exists there.
 
@@ -676,15 +684,12 @@ When using `Single Byte Editing Mode`, `CTRL-ENTER` will insert a byte to the le
 
 When browsing the data in the `Physical` or `Logical` viewports, `Home` will take you to the top of the edited file, `End` will take you to the end of the edited file, `Page-Up` will give you the previous page of the edited file, `Page-Down` will give you the next page of the edited file, `Arrow-Up` will give you the previous line of the edited file, and `Arrow-Down` will give you the next line of the edited file. 
 
-# Known Issues in v1.4.1
+# Known Issues in v1.6.0
 
 ## General Issues
 * Some nightly tests are still failing intermittently due to GitHub runners. 
-* TDML Copy, Execute, and Append Functionality is currently not working on the MacOS Platform 
-
-## Debugger Issues Originating from 1.4.0
-
-* At this time the debugger step into and step out actions have no code behind them, using either button results in an unrecoverable error. We have not found a way to disable the step into and step out buttons. This problem occurs in all Operating Systems. This is [noted as a GitHub Issue](https://github.com/apache/daffodil-vscode/issues/5).
+* TDML Zipping does not support nested/included schema files.
+* TDML cannot handle files that are located on a different drive (Windows). For example, don't run off of C:, then use data or infoset files from D:
 
 # Reporting Problems and Requesting New Features
 
