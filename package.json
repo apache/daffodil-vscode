@@ -68,7 +68,8 @@
     "wait-port": "1.1.0",
     "xdg-app-paths": "8.3.0",
     "xml-formatter": "^3.7.0",
-    "xml-js": "^1.6.11"
+    "xml-js": "^1.6.11",
+    "jszip": "^3.10.1"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "3.0.8",
@@ -267,6 +268,10 @@
         {
           "command": "extension.dfdl-debug.executeTDML",
           "when": "!inDebugMode && (editorLangId == 'tdml' || activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor')"
+        },
+        {
+          "command": "extension.dfdl-debug.zipTDML",
+          "when": "!inDebugMode && (editorLangId == 'tdml' || activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor')"
         }
       ],
       "commandPalette": [
@@ -288,6 +293,10 @@
         },
         {
           "command": "extension.dfdl-debug.createTDML",
+          "when": "true"
+        },
+        {
+          "command": "extension.dfdl-debug.zipTDML",
           "when": "true"
         },
         {
@@ -367,6 +376,12 @@
       {
         "command": "extension.dfdl-debug.executeTDML",
         "title": "Execute TDML",
+        "category": "Daffodil Debug",
+        "enablement": "!inDebugMode && (editorLangId == 'tdml' || activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor')"
+      },
+      {
+        "command": "extension.dfdl-debug.zipTDML",
+        "title": "Zip TDML File",
         "category": "Daffodil Debug",
         "enablement": "!inDebugMode && (editorLangId == 'tdml' || activeEditor == 'tdml-editor.editor' || dfdl-debug.tdml-editor-active == 'tdml-editor.editor')"
       },
