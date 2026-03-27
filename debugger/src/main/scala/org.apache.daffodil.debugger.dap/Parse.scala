@@ -1230,6 +1230,7 @@ object Parse {
         format match {
           case "xml"  => "text/xml"
           case "json" => "application/json"
+          case other  => throw new IllegalArgumentException(s"unsupported infoset format: $other")
         }
       )
 
@@ -1276,6 +1277,13 @@ object Parse {
   object Control {
     implicit val logger: Logger[IO] = Slf4jLogger.getLogger
 
+    sealed trait StepType
+    object StepType {
+      case object StepOver extends StepType
+      case object StepIn extends StepType
+      case object StepOut extends StepType
+    }
+
     sealed trait State
     case class AwaitingFirstAwait(waiterArrived: Deferred[IO, Unit]) extends State
     case object Running extends State
@@ -1302,16 +1310,16 @@ object Parse {
             }.flatten
           } yield awaited
 
-        def performStep(stepType: String): IO[Unit] =
+        def performStep(stepType: StepType): IO[Unit] =
           for {
             nextContinue <- Deferred[IO, Unit]
             nextAwaitStarted <- Deferred[IO, Unit]
             _ <- state.modify {
               case s @ AwaitingFirstAwait(waiterArrived) =>
                 s -> waiterArrived.get *> (stepType match {
-                  case "stepOver" => stepOver()
-                  case "stepIn"   => stepIn()
-                  case "stepOut"  => stepOut()
+                  case StepType.StepOver => stepOver()
+                  case StepType.StepIn   => stepIn()
+                  case StepType.StepOut  => stepOut()
                 })
               case Running                   => Running -> IO.unit
               case Stopped(whenContinued, _) =>
@@ -1322,9 +1330,9 @@ object Parse {
             }.flatten
           } yield ()
 
-        def stepOver(): IO[Unit] = performStep("stepOver")
-        def stepIn(): IO[Unit] = performStep("stepIn")
-        def stepOut(): IO[Unit] = performStep("stepOut")
+        def stepOver(): IO[Unit] = performStep(StepType.StepOver)
+        def stepIn(): IO[Unit] = performStep(StepType.StepIn)
+        def stepOut(): IO[Unit] = performStep(StepType.StepOut)
 
         def continue(): IO[Unit] =
           state.modify {
