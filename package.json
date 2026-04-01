@@ -74,7 +74,7 @@
     "@sveltejs/adapter-static": "3.0.8",
     "@sveltejs/kit": "^2.53.3",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
-    "@tsconfig/svelte": "^5.0.4",
+    "@tsconfig/svelte": "^5.0.8",
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.3",
     "@types/node": "^24.0.8",
