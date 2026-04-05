@@ -206,7 +206,7 @@ lazy val debugger =
         "org.fusesource.jansi" % "jansi" % "1.18",
         // scala-steward:on
         "co.fs2" %% "fs2-io" % "3.13.0",
-        "com.monovore" %% "decline-effect" % "2.6.1",
+        "com.monovore" %% "decline-effect" % "2.6.2",
         "org.typelevel" %% "log4cats-slf4j" % "2.8.0",
         "org.scalameta" %% "munit" % "1.2.4" % Test
       ),
