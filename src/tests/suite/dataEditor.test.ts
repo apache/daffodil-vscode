@@ -36,42 +36,13 @@ import {
   OMEGA_EDIT_HOST,
   SERVER_START_TIMEOUT,
 } from '../../dataEditor/dataEditorClient'
+import { writeLogbackConfigFile } from '../../dataEditor/include/server/LogbackConfig'
 
 const testPort = 9009 // use a different port than the default for testing to avoid conflicts with running servers
 const logLevel = 'debug'
 
 function getTestPidFile(serverPort: number) {
   return path.join(APP_DATA_PATH, `test-serv-${serverPort}.pid`)
-}
-
-function generateTestLogbackConfigFile(
-  logFile: string,
-  logLevel: string
-): string {
-  const dirname = path.dirname(logFile)
-  if (!fs.existsSync(dirname)) {
-    fs.mkdirSync(dirname, { recursive: true })
-  }
-  logLevel = logLevel.toUpperCase()
-  const logbackConfig = `<?xml version="1.0" encoding="UTF-8"?>\n
-<configuration>
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${logFile}</file>
-        <encoder>
-            <pattern>[%date{ISO8601}] [%level] [%logger] [%marker] [%thread] - %msg MDC: {%mdc}%n</pattern>
-        </encoder>
-    </appender>
-    <root level="${logLevel}">
-        <appender-ref ref="FILE" />
-    </root>
-</configuration>
-`
-  const logbackConfigFile = path.join(
-    APP_DATA_PATH,
-    `test-serv-${testPort}.logconf.xml`
-  )
-  fs.writeFileSync(logbackConfigFile, logbackConfig)
-  return logbackConfigFile // Return the path to the logback config file
 }
 
 suite('Data Editor Test Suite', () => {
@@ -86,13 +57,18 @@ suite('Data Editor Test Suite', () => {
   suite('Editor Service', () => {
     const pidFile = getTestPidFile(testPort)
     const serverLogFile = path.join(APP_DATA_PATH, `test-serv-${testPort}.log`)
-    const logConfigFile = generateTestLogbackConfigFile(serverLogFile, logLevel)
     const logFile = path.join(APP_DATA_PATH, `test-dataEditor-${testPort}.log`)
+    let logConfigFile = ''
     setLogger(createSimpleFileLogger(logFile, logLevel))
 
     before(async () => {
+      logConfigFile = writeLogbackConfigFile(
+        path.join(APP_DATA_PATH, `test-serv-${testPort}.logconf.xml`),
+        serverLogFile,
+        logLevel
+      )
       const serverPid = (await Promise.race([
-        startServer(testPort, OMEGA_EDIT_HOST, pidFile, logConfigFile),
+        startServer(testPort, OMEGA_EDIT_HOST, pidFile, { logConfigFile }),
         new Promise((resolve, reject) => {
           setTimeout(
             () =>
@@ -115,6 +91,9 @@ suite('Data Editor Test Suite', () => {
       const pid = parseInt(fs.readFileSync(pidFile).toString())
       console.log(pid)
       assert.strictEqual(await stopProcessUsingPID(pid), true)
+      if (fs.existsSync(logConfigFile)) {
+        fs.rmSync(logConfigFile, { force: true })
+      }
     })
 
     test('is running', async () => {
@@ -161,6 +140,7 @@ suite('Data Editor Test Suite', () => {
 
       // Close the data editor panel
       await dataEditWebView.panel.dispose()
+      await dataEditWebView.waitForDisposeCleanup()
 
       // Verify that the panel has been disposed
       assert.strictEqual(isDisposed, true)

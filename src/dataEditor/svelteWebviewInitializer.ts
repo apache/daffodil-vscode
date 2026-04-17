@@ -40,17 +40,12 @@ export class SvelteWebviewInitializer {
       return webView.asWebviewUri(uri)
     })
     const indexPath = this.getResourceUri('index', context)
-    let indexHTML = this.injectNonce(
-      this.getIndexHTML(context),
-      webView,
-      nonce,
-      scriptUri
-    )!
-    indexHTML = fs
+    let indexHTML = fs
       .readFileSync(indexPath!.fsPath, 'utf-8')
       .replace(/src="\.\/index.js"/, `src="${scriptUri.toString()}"`)
       .replace(/href="\.\/style.css"/, `href="${stylesUri.toString()}"`)
-      .replaceAll(/nonce="__nonce__"/g, `nonce="${nonce}""`)
+      .replaceAll(/nonce="__nonce__"/g, `nonce="${nonce}"`)
+    indexHTML = this.injectNonce(indexHTML, webView, nonce, scriptUri)!
     return indexHTML
   }
   private injectNonce(
@@ -64,17 +59,6 @@ export class SvelteWebviewInitializer {
       `<head><meta http-equiv="Content-Security-Policy" content="default-src ${webView.cspSource}; font-src ${webView.cspSource}; style-src 'self' 'unsafe-inline' ${webView.cspSource}; img-src ${webView.cspSource}; script-src 'nonce-${nonce}' ${webView.cspSource};">`
     )
     return ret
-  }
-  private getIndexHTML(context: vscode.ExtensionContext) {
-    const indexFile = vscode.Uri.joinPath(
-      context.extensionUri,
-      'dist',
-      'views',
-      'dataEditor',
-      'index.html'
-    )
-    const indexContent = fs.readFileSync(indexFile.fsPath).toString()
-    return indexContent
   }
   // get a nonce for use in a content security policy
   private getNonce(): string {

@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 import { Uri, workspace } from 'vscode'
-import { Config, ConfigJSON, IConfig } from './Config'
+import {
+  Config,
+  ConfigJSON,
+  IConfig,
+  getDefaultCheckpointPath,
+  getDefaultLogFilePath,
+} from './Config'
 import XDGAppPaths from 'xdg-app-paths'
 import path from 'path'
 import { substituteVSCodeEnvVariables } from '../../utils'
@@ -57,9 +63,10 @@ export function extractConfigurationVariables(): IConfig {
           substituteVSCodeEnvVariables(
             workspaceConfig.dataEditor?.logging?.file,
             APP_DATA_PATH
-          ).replaceAll(ServerPortKeyword, port)
+          ).replaceAll(ServerPortKeyword, port.toString())
         )
-      : Config.Default.logFile, // Get logging file path from settings.json if exists
+      : getDefaultLogFilePath(port), // Get logging file path from settings.json if exists
+    checkpointPath: getDefaultCheckpointPath(port),
   }
 
   if (configObjArray === undefined || configObjArray.length === 0)

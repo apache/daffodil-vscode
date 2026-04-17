@@ -186,7 +186,7 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
       port: 9000,
       logging: {
         level: 'info',
-        file: '${workspaceFolder}/dataEditor-${omegaEditPort}.log',
+        file: '',
       },
     }),
     dfdlDebugger: defaultConf.get('dfdlDebugger', {

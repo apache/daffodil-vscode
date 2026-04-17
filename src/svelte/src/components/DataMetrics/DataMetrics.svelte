@@ -20,7 +20,7 @@ limitations under the License.
   import { MessageCommand } from '../../utilities/message'
   import { onMount } from 'svelte'
   import Input from '../Inputs/Input/Input.svelte'
-  import { addressRadix, viewport } from '../../stores'
+  import { addressRadix, fileMetrics, viewport } from '../../stores'
   import { DATA_PROFILE_MAX_LENGTH } from '../../stores/configuration'
   import { radixToString, regexEditDataTest } from '../../utilities/display'
   import ISO6391 from 'iso-639-1'
@@ -162,11 +162,21 @@ limitations under the License.
       `Profiling bytes from ${startOffset} to ${startOffset + length}...`,
       0
     )
+    length = length === $fileMetrics.diskSize ? Math.max(0, length - 1) : length
+
+    if (length < 0) {
+      vscode.postMessage({
+        command: MessageCommand.showMessage,
+        data: `Invalid data length ${length}. Cannot profile data.`,
+      })
+      return
+    }
+
     vscode.postMessage({
       command: MessageCommand.profile,
       data: {
         startOffset: startOffset,
-        length: length,
+        length: length <= 0 ? DATA_PROFILE_MAX_LENGTH : length,
       },
     })
   }

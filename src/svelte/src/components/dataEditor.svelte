@@ -223,8 +223,8 @@ limitations under the License.
       command: MessageCommand.applyChanges,
       data: {
         offset: editedOffset,
-        originalSegment: originalData,
-        editedSegment: editedData,
+        originalSegment: Array.from(originalData),
+        editedSegment: Array.from(editedData),
       },
     })
     clearDataDisplays()
@@ -283,10 +283,13 @@ limitations under the License.
 
       case MessageCommand.requestEditedData:
         $editorSelection = msg.data.data.dataDisplay
+        const editedBytes = Array.isArray(msg.data.data.data)
+          ? msg.data.data.data
+          : [msg.data.data.data]
         if ($editMode === EditByteModes.Multiple) {
-          $editedDataSegment = new Uint8Array(msg.data.data.data)
+          $editedDataSegment = new Uint8Array(editedBytes)
         } else {
-          $editedDataSegment[0] = msg.data.data.data
+          $editedDataSegment = new Uint8Array([editedBytes[0] ?? 0])
         }
         $selectionDataStore.endOffset =
           $selectionDataStore.startOffset + $editedDataSegment.byteLength - 1
@@ -298,10 +301,10 @@ limitations under the License.
       case MessageCommand.viewportRefresh:
         // the viewport has been refreshed, so the editor views need to be updated
         $viewport = {
-          data: msg.data.data.viewportData,
-          fileOffset: msg.data.data.viewportOffset,
-          length: msg.data.data.viewportLength,
-          bytesLeft: msg.data.data.viewportFollowingByteCount,
+          data: new Uint8Array(msg.data.data.data ?? []),
+          fileOffset: msg.data.data.fileOffset,
+          length: msg.data.data.length,
+          bytesLeft: msg.data.data.bytesLeft,
         } as ViewportData_t
 
         break

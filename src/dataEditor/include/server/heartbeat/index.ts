@@ -14,26 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getServerHeartbeat, IServerHeartbeat } from '@omega-edit/client'
+import {
+  IServerHeartbeat,
+  type ServerHeartbeatLoop,
+  startServerHeartbeatLoop,
+} from '@omega-edit/client'
 import { HeartbeatInfo } from './HeartBeatInfo'
 
 const HEARTBEAT_INTERVAL_MS: number = 1000 // 1 second (1000 ms)
 let heartbeatInfo: IServerHeartbeat = new HeartbeatInfo()
-let getHeartbeatIntervalId: NodeJS.Timeout | number | undefined = undefined
+let heartbeatLoop: ServerHeartbeatLoop | undefined = undefined
 
 export function updateHeartbeatInterval(activeSessions: string[]) {
-  if (getHeartbeatIntervalId) {
-    clearInterval(getHeartbeatIntervalId)
+  heartbeatLoop?.stop()
+  heartbeatLoop = undefined
+
+  if (activeSessions.length === 0) {
+    heartbeatInfo = new HeartbeatInfo()
+    return
   }
-  getHeartbeatIntervalId =
-    activeSessions.length > 0
-      ? setInterval(async () => {
-          heartbeatInfo = await getServerHeartbeat(
-            activeSessions,
-            HEARTBEAT_INTERVAL_MS * activeSessions.length
-          )
-        })
-      : undefined
+
+  heartbeatLoop = startServerHeartbeatLoop({
+    intervalMs: HEARTBEAT_INTERVAL_MS * activeSessions.length,
+    getSessionIds: () => [...activeSessions],
+    onHeartbeat: (nextHeartbeatInfo) => {
+      heartbeatInfo = nextHeartbeatInfo
+    },
+    onError: () => {
+      heartbeatInfo = new HeartbeatInfo()
+    },
+  })
 }
 
 export function getCurrentHeartbeatInfo() {

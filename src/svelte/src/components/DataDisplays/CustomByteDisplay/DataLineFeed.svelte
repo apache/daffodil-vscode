@@ -457,7 +457,7 @@ limitations under the License.
       command: MessageCommand.editorOnChange,
       data: {
         fileOffset: $selectionDataStore.startOffset + viewportData.fileOffset,
-        selectionData: $editedDataSegment,
+        selectionData: Array.from($editedDataSegment),
         encoding: forcedEncoding ? forcedEncoding : $editorEncoding,
         selectionSize: $selectionSize,
         editMode: $editMode,

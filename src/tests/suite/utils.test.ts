@@ -55,7 +55,7 @@ suite('Utils Test Suite', () => {
     dataEditor: {
       port: 9000,
       logging: {
-        file: '${workspaceFolder}/dataEditor-${omegaEditPort}.log',
+        file: '',
         level: 'info',
       },
     },

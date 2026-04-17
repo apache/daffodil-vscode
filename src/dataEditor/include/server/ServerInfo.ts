@@ -24,33 +24,36 @@ export class ServerInfo implements IServerInfo {
   serverHostname: string = 'unknown'
   serverProcessId: number = 0
   serverVersion: string = 'unknown'
-  jvmVersion: string = 'unknown'
-  jvmVendor: string = 'unknown'
-  jvmPath: string = 'unknown'
+  runtimeKind: string = 'unknown'
+  runtimeName: string = 'unknown'
+  platform: string = 'unknown'
   availableProcessors: number = 0
+  compiler: string = 'unknown'
+  buildType: string = 'unknown'
+  cppStandard: string = 'unknown'
 }
 
 const OMEGA_EDIT_MAX_PORT: number = 65535
 const OMEGA_EDIT_MIN_PORT: number = 1024
+
 export function configureOmegaEditPort(configVars: editor_config.Config): void {
-  let omegaEditPort = configVars.port
-  if (omegaEditPort === 0) {
-    if (
-      omegaEditPort <= OMEGA_EDIT_MIN_PORT ||
-      omegaEditPort > OMEGA_EDIT_MAX_PORT
-    ) {
-      const message = `Invalid port ${omegaEditPort} for Ωedit. Use a port between ${OMEGA_EDIT_MIN_PORT} and ${OMEGA_EDIT_MAX_PORT}`
-      omegaEditPort = 0
-      throw new Error(message)
-    }
-    if (!fs.existsSync(configVars.checkpointPath)) {
-      fs.mkdirSync(configVars.checkpointPath, { recursive: true })
-    }
-    assert(
-      fs.existsSync(configVars.checkpointPath),
-      'checkpoint path does not exist'
+  const omegaEditPort = configVars.port
+  if (
+    omegaEditPort <= OMEGA_EDIT_MIN_PORT ||
+    omegaEditPort > OMEGA_EDIT_MAX_PORT
+  ) {
+    throw new Error(
+      `Invalid port ${omegaEditPort} for Ωedit. Use a port between ${OMEGA_EDIT_MIN_PORT} and ${OMEGA_EDIT_MAX_PORT}`
     )
-    assert(omegaEditPort !== 0, 'omegaEditPort is not set')
   }
+
+  if (!fs.existsSync(configVars.checkpointPath)) {
+    fs.mkdirSync(configVars.checkpointPath, { recursive: true })
+  }
+  assert(
+    fs.existsSync(configVars.checkpointPath),
+    'checkpoint path does not exist'
+  )
 }
+
 export type ServerStopPredicate = (context?: any) => boolean
