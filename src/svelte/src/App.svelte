@@ -17,6 +17,7 @@ limitations under the License.
 
 <script lang="ts">
   import './app.css'
+  import { onMount } from 'svelte'
 
   import {
     bytesPerRow,
@@ -65,6 +66,12 @@ limitations under the License.
   import { byte_count_divisible_offset } from './utilities/display'
   import Help from './components/layouts/Help.svelte'
   import { viewportByteIndicators } from 'utilities/highlights'
+
+  onMount(() => {
+    vscode.postMessage({
+      command: MessageCommand.webviewReady,
+    })
+  })
 
   function requestEditedData() {
     if ($requestable) {
@@ -224,8 +231,8 @@ limitations under the License.
       command: MessageCommand.applyChanges,
       data: {
         offset: editedOffset,
-        originalSegment: originalData,
-        editedSegment: editedData,
+        originalSegment: Array.from(originalData),
+        editedSegment: Array.from(editedData),
       },
     })
     clearDataDisplays()
@@ -286,10 +293,13 @@ limitations under the License.
 
       case MessageCommand.requestEditedData:
         $editorSelection = msg.data.data.dataDisplay
+        const editedBytes = Array.isArray(msg.data.data.data)
+          ? msg.data.data.data
+          : [msg.data.data.data]
         if ($editMode === EditByteModes.Multiple) {
-          $editedDataSegment = new Uint8Array(msg.data.data.data)
+          $editedDataSegment = new Uint8Array(editedBytes)
         } else {
-          $editedDataSegment[0] = msg.data.data.data
+          $editedDataSegment = new Uint8Array([editedBytes[0] ?? 0])
         }
         $selectionDataStore.endOffset =
           $selectionDataStore.startOffset + $editedDataSegment.byteLength - 1
@@ -305,7 +315,7 @@ limitations under the License.
         // the viewport has been refreshed, so the editor views need to be updated
         const { data, fileOffset, length, bytesLeft } = msg.data.data
         $viewport = {
-          data: data,
+          data: new Uint8Array(data ?? []),
           fileOffset: fileOffset,
           length: length,
           bytesLeft: bytesLeft,

@@ -95,11 +95,234 @@ function package() {
 # limitations under the License.
 
 **/node_modules/**/*
-!node_modules/@omega-edit/server/bin
-!node_modules/@omega-edit/server/lib
-!node_modules/@vscode/webview-ui-toolkit/**/*
+!node_modules/
+!node_modules/**/*
 `
   )
+}
+
+function packageNamePath(packageName) {
+  return path.join(...packageName.split('/'))
+}
+
+function readPackageVersion(packageRoot) {
+  const packageJsonPath = path.join(packageRoot, 'package.json')
+  if (!fs.existsSync(packageJsonPath)) return undefined
+
+  try {
+    return JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')).version
+  } catch (err) {
+    console.warn(
+      `[omega-edit] Unable to read package version for ${packageRoot}: ${String(
+        err
+      )}`
+    )
+    return undefined
+  }
+}
+
+function shouldPatchOmegaEditPackage(packageRoot, expectedVersion, label) {
+  const version = readPackageVersion(packageRoot)
+  if (version === expectedVersion) {
+    return true
+  }
+
+  const versionLabel = version ?? 'unknown'
+  console.warn(
+    `[omega-edit] Skipping ${label} patch for ${packageRoot}; expected ${expectedVersion}, found ${versionLabel}.`
+  )
+  return false
+}
+
+function patchOmegaEditClientLogger(
+  packageRoot = 'node_modules/@omega-edit/client'
+) {
+  if (!shouldPatchOmegaEditPackage(packageRoot, '2.0.0', 'client logger')) {
+    return
+  }
+
+  const loggerTargets = [
+    path.join(packageRoot, 'dist/cjs/logger.js'),
+    path.join(packageRoot, 'dist/esm/logger.js'),
+  ]
+  const transportPattern =
+    /setLogger\(buildLogger\(pino(?:_1\.default)?\.transport\(\{[\s\S]*?\}\)\)\);/
+
+  loggerTargets.forEach((loggerPath) => {
+    if (!fs.existsSync(loggerPath)) {
+      console.warn(`[omega-edit] Client logger not found: ${loggerPath}`)
+      return
+    }
+
+    const source = fs.readFileSync(loggerPath, 'utf-8')
+    const patched = source.replace(
+      transportPattern,
+      'setLogger(buildLogger(process.stderr));'
+    )
+
+    if (patched === source) {
+      if (!source.includes('setLogger(buildLogger(process.stderr));')) {
+        console.warn(
+          `[omega-edit] Unable to patch OmegaEdit client logger at ${loggerPath}; leaving upstream source unchanged.`
+        )
+      }
+      return
+    }
+
+    fs.writeFileSync(loggerPath, patched, 'utf-8')
+  })
+}
+
+function patchOmegaEditServerLocator(searchRoot = 'node_modules') {
+  const serverTargets = glob.sync('**/@omega-edit/server/out/index.js', {
+    cwd: searchRoot,
+    absolute: true,
+    nodir: true,
+  })
+  const buggyLocator = '.replace("node_modules","")'
+  const knownFixedLocators = [
+    '.slice(0,-"node_modules".length)',
+    '.slice(0,-12)',
+  ]
+
+  if (serverTargets.length === 0) {
+    return
+  }
+
+  serverTargets.forEach((serverPath) => {
+    const packageRoot = path.dirname(path.dirname(serverPath))
+    if (!shouldPatchOmegaEditPackage(packageRoot, '2.0.0', 'server locator')) {
+      return
+    }
+
+    const source = fs.readFileSync(serverPath, 'utf-8')
+    const patched = source.replaceAll(buggyLocator, knownFixedLocators[0])
+
+    if (patched === source) {
+      if (!knownFixedLocators.some((locator) => source.includes(locator))) {
+        console.warn(
+          `[omega-edit] Unable to patch OmegaEdit server locator at ${serverPath}; leaving upstream source unchanged.`
+        )
+      }
+      return
+    }
+
+    fs.writeFileSync(serverPath, patched, 'utf-8')
+  })
+}
+
+function patchOmegaEditRuntime(
+  packageRoot = 'node_modules/@omega-edit/client',
+  searchRoot = 'node_modules'
+) {
+  patchOmegaEditClientLogger(packageRoot)
+  patchOmegaEditServerLocator(searchRoot)
+}
+
+function copyPackageRuntimeTree(
+  packageName,
+  sourcePackageDir,
+  destinationPackageDir,
+  seen = new Set()
+) {
+  const visitKey = `${sourcePackageDir}|${destinationPackageDir}`
+  if (seen.has(visitKey)) return
+  seen.add(visitKey)
+
+  if (!fs.existsSync(sourcePackageDir)) {
+    throw new Error(
+      `Package source not found for ${packageName}: ${sourcePackageDir}`
+    )
+  }
+
+  rmFileOrDirectory(destinationPackageDir)
+  fs.mkdirSync(path.dirname(destinationPackageDir), { recursive: true })
+  fs.cpSync(sourcePackageDir, destinationPackageDir, {
+    recursive: true,
+    force: true,
+  })
+
+  const packageJsonPath = path.join(sourcePackageDir, 'package.json')
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
+  const dependencies = Object.keys(packageJson.dependencies || {})
+
+  if (dependencies.length === 0) return
+
+  const destinationNodeModulesDir = path.join(
+    destinationPackageDir,
+    'node_modules'
+  )
+
+  dependencies.forEach((dependencyName) => {
+    const sourceDependencyDirCandidates = [
+      path.join(
+        sourcePackageDir,
+        'node_modules',
+        packageNamePath(dependencyName)
+      ),
+      path.join('node_modules', packageNamePath(dependencyName)),
+    ]
+    const sourceDependencyDir = sourceDependencyDirCandidates.find(
+      (candidate) => fs.existsSync(candidate)
+    )
+
+    if (!sourceDependencyDir) {
+      throw new Error(
+        `Unable to resolve runtime dependency ${dependencyName} for ${packageName}`
+      )
+    }
+
+    copyPackageRuntimeTree(
+      dependencyName,
+      sourceDependencyDir,
+      path.join(destinationNodeModulesDir, packageNamePath(dependencyName)),
+      seen
+    )
+  })
+}
+
+function syncOmegaEditClientRuntime() {
+  const clientPackageName = '@omega-edit/client'
+  const sourceClientDir = path.join(
+    'node_modules',
+    packageNamePath(clientPackageName)
+  )
+  const destinationClientDir = path.join(
+    'dist/package/node_modules',
+    packageNamePath(clientPackageName)
+  )
+
+  patchOmegaEditRuntime(sourceClientDir, 'node_modules')
+  copyPackageRuntimeTree(
+    clientPackageName,
+    sourceClientDir,
+    destinationClientDir
+  )
+  patchOmegaEditRuntime(destinationClientDir, 'dist/package/node_modules')
+}
+
+function packageVsix() {
+  const vsceCommand =
+    process.platform === 'win32'
+      ? path.resolve('node_modules', '.bin', 'vsce.cmd')
+      : path.resolve('node_modules', '.bin', 'vsce')
+
+  const result = child_process.spawnSync(
+    vsceCommand,
+    ['package', '--out', '../../'],
+    {
+      cwd: 'dist/package',
+      stdio: 'inherit',
+      shell: process.platform === 'win32',
+    }
+  )
+
+  if (result.error) {
+    console.error(result.error)
+    process.exit(1)
+  }
+
+  process.exit(result.status === null ? 1 : result.status)
 }
 
 /* START SECTION: Update version */
@@ -257,6 +480,11 @@ module.exports = {
   updateVersion: updateVersion,
   watch: watch,
   package: package,
+  patchOmegaEditClientLogger: patchOmegaEditClientLogger,
+  patchOmegaEditServerLocator: patchOmegaEditServerLocator,
+  patchOmegaEditRuntime: patchOmegaEditRuntime,
+  syncOmegaEditClientRuntime: syncOmegaEditClientRuntime,
+  packageVsix: packageVsix,
   checkMissingLicenseData: checkMissingLicenseData,
   checkLicenseCompatibility: checkLicenseCompatibility,
 }

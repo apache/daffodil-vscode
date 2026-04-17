@@ -14,11 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { destroySession, getLogger, getSessionCount } from '@omega-edit/client'
+import { destroySession, getLogger, resetClient } from '@omega-edit/client'
 import { updateHeartbeatInterval } from './heartbeat'
-import { serverStop } from '../../dataEditorClient'
 
 let activeSessions: string[] = []
+
+function isServerUnavailableError(err: unknown): boolean {
+  if (!(err instanceof Error)) {
+    return false
+  }
+
+  const message = err.message.toLowerCase()
+  return (
+    message.includes('unavailable') ||
+    message.includes('econnrefused') ||
+    message.includes('connection refused') ||
+    message.includes('channel closed') ||
+    message.includes('socket closed')
+  )
+}
 
 export function addActiveSession(sessionId: string): void {
   if (!activeSessions.includes(sessionId)) {
@@ -28,17 +42,32 @@ export function addActiveSession(sessionId: string): void {
   }
 }
 export async function removeActiveSession(sessionId: string) {
+  if (!sessionId) {
+    return
+  }
+
   const index = activeSessions.indexOf(sessionId)
+  if (index === -1) {
+    return
+  }
+
   activeSessions.splice(index, 1)
   updateHeartbeatInterval(activeSessions)
-  await destroySession(sessionId)
 
-  // Only stop the server if there are no active sessions
-  if ((await getSessionCount()) === 0) {
-    getLogger().info(
-      { fn: 'DataEditorClient::removeActiveSession' },
-      'Stopping server!'
-    )
-    await serverStop()
+  try {
+    await destroySession(sessionId)
+    if (activeSessions.length === 0) {
+      resetClient()
+    }
+  } catch (err) {
+    if (isServerUnavailableError(err)) {
+      resetClient()
+      getLogger().info(
+        { fn: 'DataEditorClient::removeActiveSession', sessionId },
+        'Omega Edit server was already stopped during session cleanup'
+      )
+      return
+    }
+    throw err
   }
 }

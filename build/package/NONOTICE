@@ -33,6 +33,12 @@ The following binary components distributed with this project are licensed under
   This package is available under the Apache License v2 without a NOTICE:
         Repository at: https://github.com/dcodeIO/long.js
 
+- '@protobuf-ts/runtime-rpc' in extension/dist/ext/extension.js
+- '@protobuf-ts/runtime-rpc' in node_modules/@omega-edit/client
+  This product bundles '@protobuf-ts/runtime-rpc' from the above files.
+  This package is available under the Apache License v2 without a NOTICE:
+        Repository at: https://github.com/timostamm/protobuf-ts
+
 - com.fasterxml.woodstox.woodstox-core-<VERSION>.jar in daffodil-debugger-<VERSION>.zip
   This product bundles 'woodstox-core' from the above files.
   These packages are available under the Apache License v2 without a NOTICE:

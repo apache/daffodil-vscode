@@ -23,16 +23,21 @@ limitations under the License.
     serverCpuLoadAverage: 0,
     serverTimestamp: 0,
     serverUptime: 0,
-    serverUsedMemory: 0,
+    serverResidentMemoryBytes: 0,
+    serverVirtualMemoryBytes: 0,
+    serverPeakResidentMemoryBytes: 0,
     sessionCount: 0,
     omegaEditPort: 0,
     serverVersion: 'Unknown',
     serverHostname: 'Unknown',
     serverProcessId: 0,
-    jvmVersion: 'Unknown',
-    jvmVendor: 'Unknown',
-    jvmPath: 'Unknown',
+    runtimeKind: 'Unknown',
+    runtimeName: 'Unknown',
+    platform: 'Unknown',
     availableProcessors: 0,
+    compiler: 'Unknown',
+    buildType: 'Unknown',
+    cppStandard: 'Unknown',
   }
   let timerId: NodeJS.Timeout
 
@@ -62,9 +67,10 @@ limitations under the License.
       uptimeString +=
         minutes === 1 ? `${minutes} minute, ` : `${minutes} minutes, `
     }
-    return uptimeString + (seconds === 1)
-      ? `${seconds} second`
-      : `${seconds} seconds`
+    return (
+      uptimeString +
+      (seconds === 1 ? `${seconds} second` : `${seconds} seconds`)
+    )
   }
 
   window.addEventListener('message', (msg) => {
@@ -74,17 +80,25 @@ limitations under the License.
         heartbeat.serverCpuLoadAverage = msg.data.data.serverCpuLoadAverage
         heartbeat.serverTimestamp = msg.data.data.serverTimestamp
         heartbeat.serverUptime = msg.data.data.serverUptime
-        heartbeat.serverUsedMemory = msg.data.data.serverUsedMemory
+        heartbeat.serverResidentMemoryBytes =
+          msg.data.data.serverResidentMemoryBytes ?? 0
+        heartbeat.serverVirtualMemoryBytes =
+          msg.data.data.serverVirtualMemoryBytes ?? 0
+        heartbeat.serverPeakResidentMemoryBytes =
+          msg.data.data.serverPeakResidentMemoryBytes ?? 0
         heartbeat.sessionCount = msg.data.data.sessionCount
         heartbeat.omegaEditPort = msg.data.data.serverInfo.omegaEditPort
         heartbeat.serverVersion = msg.data.data.serverInfo.serverVersion
         heartbeat.serverHostname = msg.data.data.serverInfo.serverHostname
         heartbeat.serverProcessId = msg.data.data.serverInfo.serverProcessId
-        heartbeat.jvmVersion = msg.data.data.serverInfo.jvmVersion
-        heartbeat.jvmVendor = msg.data.data.serverInfo.jvmVendor
-        heartbeat.jvmPath = msg.data.data.serverInfo.jvmPath
+        heartbeat.runtimeKind = msg.data.data.serverInfo.runtimeKind
+        heartbeat.runtimeName = msg.data.data.serverInfo.runtimeName
+        heartbeat.platform = msg.data.data.serverInfo.platform
         heartbeat.availableProcessors =
           msg.data.data.serverInfo.availableProcessors
+        heartbeat.compiler = msg.data.data.serverInfo.compiler
+        heartbeat.buildType = msg.data.data.serverInfo.buildType
+        heartbeat.cppStandard = msg.data.data.serverInfo.cppStandard
 
         // set the serverTimestamp to 0 after 5 seconds of no heartbeat to indicate that no heartbeat has been received
         clearTimeout(timerId)
@@ -135,21 +149,21 @@ limitations under the License.
           <b>CPU Load Avg:</b>
           {heartbeat.serverCpuLoadAverage.toFixed(2)},
         {/if}
-        {#if heartbeat.serverUsedMemory > 0}
-          <b>Memory Usage:</b>
-          {heartbeat.serverUsedMemory},
+        {#if heartbeat.serverResidentMemoryBytes > 0}
+          <b>Resident Memory:</b>
+          {heartbeat.serverResidentMemoryBytes},
         {/if}
         {#if heartbeat.serverProcessId > 0}
           <b>Process ID:</b>
           {heartbeat.serverProcessId},
         {/if}
-        {#if heartbeat.jvmVersion.length > 0}
-          <b>JVM Version:</b>
-          {heartbeat.jvmVersion}
+        {#if heartbeat.runtimeName.length > 0}
+          <b>Runtime:</b>
+          {heartbeat.runtimeName}
         {/if}
-        {#if heartbeat.jvmVendor.length > 0}
-          <b>JVM Vendor:</b>
-          {heartbeat.jvmVendor}
+        {#if heartbeat.platform.length > 0}
+          <b>Platform:</b>
+          {heartbeat.platform}
         {/if}
       </div>
     </FlexContainer>

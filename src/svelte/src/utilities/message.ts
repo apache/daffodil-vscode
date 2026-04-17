@@ -37,6 +37,7 @@ export enum MessageCommand {
   undoChange,
   updateLogicalDisplay,
   viewportRefresh,
+  webviewReady,
 }
 
 export enum MessageLevel {
