@@ -41,6 +41,8 @@ function getConfigIndex() {
 }
 
 function getConfigValues() {
+  const tunables = getTunablesFromTable()
+  const variables = getVariablesFromTable()
   var configSelectionBox = document.getElementById('configSelected')
   var configSelectedValue =
     configSelectionBox.options[configSelectionBox.selectedIndex].value
@@ -85,16 +87,16 @@ function getConfigValues() {
     'dfdlDebuggerLogLevel'
   ).value
   const rootName =
-    document.getElementById('rootName').value == 'null'
+    document.getElementById('rootName').value.trim() === ''
       ? null
       : document.getElementById('rootName').value
+
   const rootNamespace =
-    document.getElementById('rootNamespace').value == 'null'
+    document.getElementById('rootNamespace').value.trim() === ''
       ? null
       : document.getElementById('rootNamespace').value
 
   const daffodilDebugClasspath = getDaffodilDebugClasspathArray()
-
   return {
     name,
     data,
@@ -122,6 +124,8 @@ function getConfigValues() {
     daffodilDebugClasspath,
     rootName,
     rootNamespace,
+    tunables,
+    variables,
   }
 }
 
@@ -275,6 +279,8 @@ function save() {
     configSelectedValue === 'New Config' ? 'create' : 'update'
 
   const configValues = getConfigValues()
+  const tunables = getTunablesFromTable()
+  const variables = getVariablesFromTable()
 
   var obj = {
     version: '0.2.0',
@@ -295,6 +301,8 @@ function save() {
           type: configValues.infosetOutputType,
           path: configValues.infosetOutputFilePath,
         },
+        tunables: tunables,
+        variables: variables,
         tdmlConfig: {
           action: configValues.tdmlAction,
           // Additional fields are added below
@@ -346,6 +354,115 @@ function save() {
     updateOrCreate: updateOrCreate,
   })
 }
+// Function for adding row to tunables table
+function addTunableRow() {
+  const tableBody = document.getElementById('tunablesTableBody')
+
+  const row = document.createElement('tr')
+
+  row.innerHTML = `
+    <td><input class="file-input" /></td>
+    <td><input class="file-input" /></td>
+    <td><button onclick="this.closest('tr').remove()">X</button></td>
+  `
+
+  tableBody.appendChild(row)
+}
+
+function getTunablesFromTable() {
+  const rows = document.querySelectorAll('#tunablesTableBody tr')
+  const tunables = {}
+
+  rows.forEach((row) => {
+    const key = row.children[0].querySelector('input')?.value?.trim()
+    const value = row.children[1].querySelector('input')?.value
+
+    if (!key) return
+
+    tunables[key] = value
+  })
+
+  return tunables
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+// function to pull tunables from config and render them in the tunables table, if there are any
+function renderTunables(tunables = {}) {
+  const tableBody = document.getElementById('tunablesTableBody')
+  tableBody.innerHTML = ''
+
+  Object.entries(tunables).forEach(([key, value]) => {
+    const row = document.createElement('tr')
+
+    row.innerHTML = `
+      <td><input class="file-input" value="${escapeHtml(key)}" /></td>
+      <td><input class="file-input" value="${escapeHtml(value)}" /></td>
+      <td><button onclick="this.closest('tr').remove()">X</button></td>
+    `
+
+    tableBody.appendChild(row)
+  })
+}
+
+// Function for adding row to variables table
+function addVariableRow() {
+  const tableBody = document.getElementById('variablesTableBody')
+
+  const row = document.createElement('tr')
+
+  row.innerHTML = `
+    <td><input class="file-input" /></td>
+    <td><input class="file-input" /></td>
+    <td><button onclick="this.closest('tr').remove()">X</button></td>
+  `
+
+  tableBody.appendChild(row)
+}
+
+function getVariablesFromTable() {
+  const rows = document.querySelectorAll('#variablesTableBody tr')
+  const variables = {}
+
+  rows.forEach((row) => {
+    const key = row.children[0].querySelector('input')?.value?.trim()
+    const value = row.children[1].querySelector('input')?.value
+
+    if (!key) return
+
+    variables[key] = value
+  })
+
+  return variables
+}
+
+// function to pull variables from config and render them in the tunables table, if there are any.
+
+function renderVariables(variables = {}) {
+  const tableBody = document.getElementById('variablesTableBody')
+
+  // Clear existing UI
+  tableBody.innerHTML = ''
+
+  Object.entries(variables).forEach(([key, value]) => {
+    const row = document.createElement('tr')
+
+    row.innerHTML = `
+      <td><input class="file-input" value="${escapeHtml(key)}" /></td>
+      <td><input class="file-input" value="${escapeHtml(value)}" /></td>
+      <td><button onclick="this.closest('tr').remove()">X</button></td>
+    `
+
+    tableBody.appendChild(row)
+  })
+}
 
 // Function to copy selected config
 function copyConfig() {
@@ -370,6 +487,8 @@ function copyConfig() {
           type: configValues.infosetOutputType,
           path: configValues.infosetOutputFilePath,
         },
+        tunables: configValues.tunables,
+        variables: configValues.variables,
         tdmlConfig: {
           action: configValues.tdmlAction,
           name: configValues.tdmlName,
@@ -465,6 +584,8 @@ async function updateConfigValues(config) {
   document.getElementById('dfdlDebuggerLogLevel').value =
     config.dfdlDebugger.logging.level
 
+  renderTunables(config.tunables || {})
+  renderVariables(config.variables || {})
   updateInfosetOutputType()
   updateTDMLAction()
 
@@ -506,6 +627,22 @@ async function updateDaffodilDebugClasspath(message) {
       case 'daffodilDebugClasspathUpdate':
         await updateDaffodilDebugClasspath(message)
         break
+    }
+  })
+
+  // Wait for the webview to signal readiness before sending config.
+  // Prevents the initial config message from being lost, ensuring launch.json
+  // values are rendered on load.
+  window.addEventListener('DOMContentLoaded', () => {
+    // vscode is injected by extension
+    if (typeof vscode !== 'undefined') {
+      const configIndex = getConfigIndex()
+      vscode.postMessage({
+        command: 'updateConfigValue',
+        configIndex: configIndex,
+      })
+    } else {
+      console.error('vscode API not found')
     }
   })
 })()
