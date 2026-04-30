@@ -136,7 +136,8 @@ Leave the `${command:AskForSchemaName}`/`${command:AskForDataName}` values and y
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
 |***Configuring for First Use***<br>*Launch Config Wizard*||
-|*Root Element*<br>For simple schemas, this field may be left set to `undefined` |![](images/new_users/Root_Element.png)|
+|*Root and RootNameSpace Element*<br>For simple schemas, this field should be left empty. Unless specified no string should be in either field, so that they can default to null value not string. |<img width="519" height="240" alt="image" src="https://github.com/user-attachments/assets/5d395a41-1592-4f1c-ac24-c66165198f99" />
+|
 
 
 

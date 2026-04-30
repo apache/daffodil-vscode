@@ -35,7 +35,7 @@ jobs:
             const prBody = context.payload.pull_request?.body || "";
             const checkbox1Text = "- [x] I have determined that no documentation updates are needed for these changes";
             const checkbox2Text = "- [x] I have added the following documentation for these changes";
-
+ 
             if (!prBody.includes(checkbox1Text) && !prBody.includes(checkbox2Text)) {
               core.setFailed("❌ Required documentation checkbox not checked. Please check one of the boxes before merging.");
             } else {
