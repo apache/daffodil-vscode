@@ -332,6 +332,37 @@ Referenced Links:
 * https://sematext.com/blog/logging-levels/
 * https://www.crowdstrike.com/en-us/cybersecurity-101/next-gen-siem/logging-levels/
 
+## Variable Configuration
+
+Variables are configured using **Key** and **Value** fields in the launch configuration wizard.
+
+- **Key**: The variable name  
+- **Value**: The value assigned to the variable  
+
+Use the **“+ Add Variable”** button to add additional entries. Each row can be removed using the **“X”** button.
+
+<img width="790" height="186" alt="variables_gui" src="https://github.com/user-attachments/assets/0bd03842-4fe9-41e9-985b-272c0a80e48d" />
+
+<img width="470" height="152" alt="variables_launchjson" src="https://github.com/user-attachments/assets/09ce477c-1026-4d6c-9922-a31459e7b0e1" />
+
+## Tunable Configuration
+
+Tunables are configured using **Key** and **Value** fields in the launch configuration wizard.
+
+- **Key**: The tunable name  
+- **Value**: The value assigned to the tunable  
+
+Use the **“+ Add Tunable”** button to add additional entries. Each row can be removed using the **“X”** button.
+
+Tunables control runtime behavior and performance characteristics. Most tunables have default values, so you only need to specify a value if you want to override them.
+
+<img width="790" height="176" alt="tunables_gui" src="https://github.com/user-attachments/assets/f78d5471-bfff-4cfb-b6cf-62c787a8e31b" />
+
+<img width="360" height="177" alt="tunables_launchjson" src="https://github.com/user-attachments/assets/0d70044d-d04c-4f47-958c-175c6e67f3f9" />
+
+### Reference
+- https://daffodil.apache.org/tunables/
+
 ## Root element and namespace auto suggestions/finding
 In the launch.json file, there's a new suggestion mode that gives you suggestions to fill in for the rootname. If you specify the specific schema path, and then save the file, and reopen it. Go to rootname and delete whatever value is set-- it will show you various suggestions.
 
