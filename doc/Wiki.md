@@ -51,6 +51,7 @@ The purpose of Apache Daffodil™ Extension for Visual Studio Code is to ease th
    * [Root element and namespace auto suggestions/finding](#root-element-and-namespace-auto-suggestionsfinding)
    * [Launch a DFDL Parse Debugging Session](#launch-a-dfdl-parse-debugging-session)
    * [Other Options for Launching a DFDL Parse Debugging Session](#other-options-for-launching-a-dfdl-parse-debugging-session)
+   * [Debug Execution](#debug-execution)
    * [Setting Breakpoints in the schema](#setting-breakpoints-in-the-schema)
    * [Custom DFDL Debugger Views](#custom-dfdl-debugger-views)
       + [Infoset Tools](#infoset-tools)
@@ -360,10 +361,39 @@ The DFDL Schema file will also be loaded in VS Code and there should be a visibl
     * Option 1 = `Debug File` - This will allow the user to fully step through the schema (WIP).  Once fully completed, it will produce an infoset to a file named `SCHEMA-infoset.xml` which it then opens as well.
     * Option 2 = `Run File` - This will run the DFDL Schema, producing the infoset to a file named `SCHEMA-infoset.xml` which it then opens as well.
 
+## Debug Execution
+Once you start the debug operation, a small panel opens near the top of the screen that provides icons/buttons to control the execution of the Daffodil parser. These buttons control parsing operations in the same manner that the IDE controls execution of software being developed or debugged.
+<img width="156" height="28" alt="image" src="https://github.com/user-attachments/assets/c5beac92-5278-49f4-a3e4-05ee6ea60a55" />
+From left to right, the icons indicate the following functions: Continue, Step Over, Step Into, Step Out, Restart, Stop.
+* The Continue button will trigger execution until completion unless it encounters an enabled breakpoint.
+* The Step Over button will process the entire next element, then pause (unless a breakpoint is encountered), similar to calling a software subroutine and stopping upon return from that subroutine.
+* The Step Into button is similar to going into a subroutine and pausing immediately.
+* The Step Out button will parse the remainder of the current element and then pause, similar to continuing a subroutine and halting upon the return from that routine.
+* The Restart button will stop the current execution and begin again from the beginning.
+* The Stop button will immediately terminate and abort all processing.
+
+<details>
+<summary>Debug Control Examples</summary>
+If you were parsing a JPEG file and reached the APP0 Marker, your temporary infoset file would look like this:
+<img width="496" height="75" alt="image" src="https://github.com/user-attachments/assets/1c05af7d-2637-48ac-b922-74739191ca99" />
+From this point, if you clicked the Step Over button, the entire APP0 element would be parsed and parsing would then pause.
+<img width="344" height="292" alt="image" src="https://github.com/user-attachments/assets/2d388c1c-de38-4c6d-8bfc-24c69db2e8ab" />
+If, instead, you clicked the Step Into button, you would be looking at the first element inside the APP0:
+<img width="187" height="96" alt="image" src="https://github.com/user-attachments/assets/99929037-b282-45ca-888e-d5f299e58acb" />
+A couple more clicks of Step Into button would show more of the elements within the APP0:
+<img width="351" height="151" alt="image" src="https://github.com/user-attachments/assets/2e42b86e-3f3d-4beb-ba49-f8f1095bd4eb" />
+At this point, you could decide you didn't need to step through the rest of the APP0 and click the Step Out button -- causing execution to continue until the APP0 is complete, at which point the execution would again pause:
+<img width="352" height="302" alt="image" src="https://github.com/user-attachments/assets/bc45d84a-20e2-4c31-9d15-9c6eb4b8bc4c" />
+
+**Note:** If you click on the Step Over button or the Step Out button, where execution stops if you have the **Stop On Entry** option enabled (and no breakpoint is encountered), the entire contents of the data file will be parsed without any additional pauses.
+  
+</details>
+
 ## Setting Breakpoints in the schema
 If you want to be able to set breakpoints in the schema file, make sure that the language mode is set to DFDL. If not, it will not allow you to set breakpoints in the file. To change the language mode, click on the language on the bottom right where DFDL is, and the command palette will allow you to select various languages. 
 
 ![{2559195A-206E-4051-97DD-630850F0A4DC}](https://github.com/user-attachments/assets/6eaeecaa-1f16-4cd8-b6d7-c60cd01a2838)
+
 
 ## Custom DFDL Debugger Views
 
