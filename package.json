@@ -107,7 +107,7 @@
     "tsx": "^4.21.0",
     "typescript": "5.2.2",
     "vite": "^6.4.2",
-    "vscode-extension-tester": "5.9.1"
+    "vscode-extension-tester": "8.23.0"
   },
   "resolutions": {
     "cookie": ">=0.7.0",
