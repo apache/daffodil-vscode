@@ -16,6 +16,8 @@ import * as dataEditClient from '../dataEditor'
 import * as tdmlEditor from '../tdmlEditor'
 import * as rootCompletion from '../rootCompletion'
 import { tmpdir } from 'os'
+import JSZip from 'jszip'
+import { rm } from 'node:fs/promises'
 
 import {
   CancellationToken,
@@ -31,6 +33,7 @@ import { handleDebugEvent } from './daffodilEvent'
 import { InlineDebugAdapterFactory } from './extension'
 import {
   appendTestCase,
+  readTDMLFileContents,
   getTmpTDMLFilePath,
   copyTestCase,
   TMP_TDML_FILENAME,
@@ -39,9 +42,34 @@ import xmlFormat from 'xml-formatter'
 import { CommandsProvider } from '../views/commands'
 import * as daffodilDebugErrors from './daffodilDebugErrors'
 import { TDMLProvider } from '../tdmlEditor/TDMLProvider'
+import { getTestCaseDisplayData } from '../tdmlEditor/utilities/tdmlXmlUtils'
 
 export const outputChannel: vscode.OutputChannel =
   vscode.window.createOutputChannel('Daffodil')
+
+async function createDirectory(directoryPath: string): Promise<void> {
+  try {
+    await fs.promises.mkdir(directoryPath, { recursive: true })
+    console.log(`Directory created successfully at ${directoryPath}`)
+  } catch (error) {
+    console.error(`Error creating directory:`, error)
+    throw error
+  }
+}
+
+async function copyFileAsync(src: string, dest: string): Promise<void> {
+  try {
+    // Ensure directory exists first
+    await fs.promises.mkdir(path.dirname(dest), { recursive: true })
+
+    await fs.promises.copyFile(src, dest)
+    console.log(`'${src}' was copied to '${dest}'`)
+  } catch (err) {
+    console.error('Error copying file:', err)
+    // Propagate the error so callers awaiting this function observe failures
+    throw err
+  }
+}
 
 /** Method to file path for schema and data
  * Details:
@@ -153,8 +181,11 @@ async function createDebugRunFileConfigs(
   if (!targetResource) {
     if (vscode.window.activeTextEditor) {
       targetResource = vscode.window.activeTextEditor.document.uri
-    } else if (TDMLProvider.getDocumentUri()) {
-      targetResource = TDMLProvider.getDocumentUri()
+    } else {
+      const tdmlUri = TDMLProvider.getDocumentUri()
+      if (tdmlUri) {
+        targetResource = tdmlUri
+      }
     }
   }
 
@@ -323,12 +354,148 @@ export function activateDaffodilDebug(
               console.log(reason)
             })
         }
+      }
+    ),
+    vscode.commands.registerCommand(
+      'extension.dfdl-debug.zipTDML',
+      async (resource: vscode.Uri) => {
+        let targetResource: vscode.Uri | undefined = resource
+        if (vscode.window.activeTextEditor) {
+          targetResource = vscode.window.activeTextEditor.document.uri
+        } else {
+          const tdmlUri = TDMLProvider.getDocumentUri()
+          if (tdmlUri) {
+            targetResource = tdmlUri
+          }
+        }
 
-        // fs.copyFile(
-        //   getTmpTDMLFilePath(),
-        //   targetResource as unknown as string,
-        //   (_) => {}
-        // )
+        const resolvedResource = targetResource
+
+        // create temp zip folder
+        let tmpDir = path.dirname(getTmpTDMLFilePath())
+        const zipDir = path.posix.join(tmpDir, '_zipdir')
+        await createDirectory(zipDir)
+
+        // copy TDML file to zip folder
+        await copyFileAsync(
+          resolvedResource.fsPath,
+          path.posix.join(zipDir, path.basename(resolvedResource.fsPath))
+        )
+
+        // read TDML file to see what files are required...
+        await readTDMLFileContents(
+          path.posix.join(zipDir, path.basename(resolvedResource.fsPath))
+        ).then(async (xmlBuffer) => {
+          await getTestCaseDisplayData(xmlBuffer).then(
+            async (testSuiteData) => {
+              // Use for..of so we can await async operations (createDirectory, copies, etc.)
+              for (const testCase of testSuiteData.testCases) {
+                // create subdir for testcase and wait for it to complete
+                const testCaseDir = path.posix.join(
+                  zipDir,
+                  testCase.testCaseName
+                )
+                await createDirectory(testCaseDir)
+                // copy schema file
+                let xsdFile = testCase.testCaseModel
+                let xsdFileSrc = path.posix.join(
+                  path.dirname(resolvedResource.fsPath),
+                  xsdFile
+                )
+                let xsdFileDest = path.posix.join(
+                  testCaseDir,
+                  path.basename(xsdFile)
+                )
+                await copyFileAsync(xsdFileSrc, xsdFileDest)
+
+                // edit path in copied TDML file
+                let updatedBuffer = xmlBuffer.replace(
+                  `model="${xsdFile}"`,
+                  `model="${path.posix.join(testCase.testCaseName, path.basename(xsdFile))}"`
+                )
+                xmlBuffer = updatedBuffer
+
+                // copy data file
+                for (const dataDocuments of testCase.dataDocuments) {
+                  const dataFile = path.basename(dataDocuments.trim())
+                  const dataFileSrc = path.posix.join(
+                    path.dirname(resolvedResource.fsPath),
+                    dataDocuments.trim()
+                  )
+                  const dataFileDest = path.posix.join(
+                    testCaseDir,
+                    path.basename(dataFile)
+                  )
+                  await copyFileAsync(dataFileSrc, dataFileDest)
+
+                  // edit path in copied TDML file
+                  xmlBuffer = xmlBuffer.replace(
+                    dataDocuments.trim(),
+                    path.posix.join(testCase.testCaseName, dataFile)
+                  )
+                }
+                // copy infoset files (await each copy)
+                for (const dfdlInfosets of testCase.dfdlInfosets) {
+                  const infoFile = path.basename(dfdlInfosets.trim())
+                  const infoSrc = path.posix.join(
+                    path.dirname(resolvedResource.fsPath),
+                    dfdlInfosets.trim()
+                  )
+                  const infoDest = path.posix.join(
+                    testCaseDir,
+                    path.basename(dfdlInfosets.trim())
+                  )
+                  await copyFileAsync(infoSrc, infoDest)
+
+                  // edit path in copied TDML file
+                  xmlBuffer = xmlBuffer.replace(
+                    dfdlInfosets.trim(),
+                    path.posix.join(testCase.testCaseName, infoFile)
+                  )
+                }
+              }
+            }
+          )
+          // write updated info back to TDML file
+          try {
+            // Synchronously writes data to a file, replacing it if it already exists
+            fs.writeFileSync(
+              path.posix.join(zipDir, path.basename(resolvedResource.fsPath)),
+              xmlBuffer,
+              { encoding: 'utf8' }
+            )
+            console.log('Updated schema file written successfully')
+          } catch (err) {
+            console.error('Error writing updated schema file:', err)
+          }
+        })
+
+        // zip folders
+        const zip = new JSZip()
+
+        // Add the folder content recursively
+        console.log('adding folder to zip')
+        addFolderToZip(zipDir, zip)
+
+        // Generate, save, and then clean up
+        let targetZip = targetResource.fsPath.replace(/tdml$/, 'tdml.zip')
+        try {
+          const content = await zip.generateAsync({ type: 'nodebuffer' })
+          fs.writeFileSync(targetZip, content)
+          console.log(`Zip file written successfully: '${targetZip}'`)
+          vscode.window.showInformationMessage(
+            `Zip file successfully created: '${targetZip}'`
+          )
+          await rm(zipDir, { recursive: true, force: true })
+          console.log(`Temp directory successfully removed: '${zipDir}'`)
+        } catch (err) {
+          console.error(
+            `Error while creating zip file '${targetZip}' or deleting temp directory '${zipDir}': ${err}`
+          )
+          vscode.window.showErrorMessage(
+            `Failed to create zip file: '${targetZip}'`
+          )
+        }
       }
     ),
     vscode.commands.registerCommand(
@@ -676,4 +843,30 @@ export const workspaceFileAccessor: FileAccessor = {
       }
     }
   },
+}
+
+/**
+ * Recursively adds files and folders to a JSZip instance.
+ * @param dirPath The folder to add
+ * @param zip The JSZip instance
+ */
+function addFolderToZip(dirPath: string, zip: JSZip) {
+  const files = fs.readdirSync(dirPath)
+
+  for (const file of files) {
+    const filePath = path.posix.join(dirPath, file)
+    const stats = fs.statSync(filePath)
+
+    if (stats.isDirectory()) {
+      // Create a subfolder in the ZIP and recurse
+      const subFolder = zip.folder(file)
+      if (subFolder) {
+        addFolderToZip(filePath, subFolder)
+      }
+    } else {
+      // Read file data and add to current zip/folder
+      const fileData = fs.readFileSync(filePath)
+      zip.file(file, fileData)
+    }
+  }
 }
