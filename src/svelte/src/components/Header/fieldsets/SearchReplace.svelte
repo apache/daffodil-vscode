@@ -32,9 +32,6 @@ limitations under the License.
     seekOffsetSearchType,
     seekOffset,
   } from '../../../stores'
-  import { vscode } from '../../../utilities/vscode'
-  import { MessageCommand } from '../../../utilities/message'
-
   import Error from '../../Error/Error.svelte'
   import Button from '../../Inputs/Buttons/Button.svelte'
   import Input from '../../Inputs/Input/Input.svelte'
@@ -42,11 +39,13 @@ limitations under the License.
   import { createEventDispatcher } from 'svelte'
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import ToggleableButton from '../../Inputs/Buttons/ToggleableButton.svelte'
-  import { EditActionRestrictions } from '../../../stores/configuration'
+  import { EditActionRestrictions } from 'ext_types'
   import { OffsetSearchType, clear_queryable_results } from './SearchReplace'
   import Tooltip from '../../layouts/Tooltip.svelte'
+  import { getUIMessegnerCtx } from 'utilities/messageContext.svelte'
 
   const eventDispatcher = createEventDispatcher()
+  const { addListener, postMessage } = getUIMessegnerCtx()
 
   type SearchDirection = 'Home' | 'End' | 'Forward' | 'Backward'
 
@@ -88,17 +87,14 @@ limitations under the License.
     isReverse: boolean
   ) {
     $searchQuery.processing = true
-    vscode.postMessage({
-      command: MessageCommand.search,
-      data: {
-        searchData: $searchQuery.input,
-        caseInsensitive: caseInsensitive,
-        isReverse: isReverse,
-        encoding: $editorEncoding,
-        searchOffset: searchOffset,
-        searchLength: searchLength,
-        limit: 1,
-      },
+    postMessage('search', {
+      searchStr: $searchQuery.input,
+      is_case_insensitive: caseInsensitive,
+      is_reverse: isReverse,
+      encoding: $editorEncoding,
+      offset: searchOffset,
+      length: searchLength,
+      limit: 1,
     })
   }
 
@@ -123,7 +119,7 @@ limitations under the License.
   function searchPrev() {
     // start search from the match offset to the beginning of the file
     direction = 'Backward'
-    search(0, matchOffset, true)
+    search(0, matchOffset + $searchQuery.byteLength - 1, true)
   }
 
   function searchStart() {
@@ -147,20 +143,17 @@ limitations under the License.
 
   function replace() {
     $replaceQuery.processing = true
-    vscode.postMessage({
-      command: MessageCommand.replace,
-      data: {
-        searchData: $searchQuery.input,
-        caseInsensitive: caseInsensitive,
-        isReverse: false,
-        replaceData: $replaceQuery.input,
-        encoding: $editorEncoding,
-        overwriteOnly:
-          $editorActionsAllowed === EditActionRestrictions.OverwriteOnly,
-        searchOffset: matchOffset,
-        searchLength: 0,
-        limit: 1,
-      },
+    postMessage('replace', {
+      searchStr: $searchQuery.input,
+      is_case_insensitive: caseInsensitive,
+      is_reverse: false,
+      replaceStr: $replaceQuery.input,
+      encoding: $editorEncoding,
+      overwriteOnly:
+        $editorActionsAllowed === EditActionRestrictions.OverwriteOnly,
+      offset: matchOffset,
+      length: 0,
+      limit: 1,
     })
     eventDispatcher('clearDataDisplays')
   }
@@ -189,7 +182,6 @@ limitations under the License.
       eventDispatcher('seek')
     }
   }
-
   function cancel() {
     showSearchOptions = false
     showReplaceOptions = false
@@ -201,74 +193,67 @@ limitations under the License.
     eventDispatcher('clearDataDisplays')
   }
 
-  window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
-      // handle search results
-      case MessageCommand.searchResults:
-        if (msg.data.data.searchResults.length > 0) {
-          searchQuery.updateSearchResults(msg.data.data)
-          switch (direction) {
-            case 'Home':
-              hasNext = $searchQuery.overflow
-              hasPrev = false
-              break
-            case 'End':
-              hasNext = false
-              hasPrev = $searchQuery.overflow
-              break
-            case 'Forward':
-              hasNext = $searchQuery.overflow
-              hasPrev = justReplaced ? preReplaceHasPrev : true
-              justReplaced = false
-              break
-            case 'Backward':
-              hasNext = true
-              hasPrev = $searchQuery.overflow
-              break
-          }
-          matchOffset = $searchQuery.searchResults[0]
-          scrollToMatch()
-          if (searchStarted) {
-            showReplaceOptions = false
-            showSearchOptions = true
-          } else if (replaceStarted) {
-            showReplaceOptions = true
-            showSearchOptions = false
-          }
-        } else {
-          matchOffset = -1
-          $searchQuery.overflow = showSearchOptions = showReplaceOptions = false
-          searchQuery.clear()
-        }
-        searchStarted = replaceStarted = false
-        $searchQuery.processing = false
+  addListener('replaceResults', (data) => {
+    searchStarted = replaceStarted = false
+    if (data.replacementsCount > 0) {
+      // subtract 1 from the next offset because search next will add 1
+      matchOffset = data.nextOffset - 1
+      replaceQuery.addResult({
+        byteLength: data.replaceDataBytesLength,
+        offset: data.nextOffset - data.replaceDataBytesLength,
+      })
+      preReplaceHasPrev = hasPrev
+      justReplaced = true
+      searchNext()
+    } else {
+      matchOffset = -1
+      showReplaceOptions = false
+    }
+    $replaceQuery.processing = false
+  })
+  addListener('search', (data) => {
+    const { results } = data
+    if (results.length <= 0) {
+      $searchQuery.overflow = showSearchOptions = showReplaceOptions = false
+      matchOffset = -1
+      searchQuery.clear()
+      return
+    }
+    searchQuery.updateSearchResults(data)
+    switch (direction) {
+      case 'Home':
+        hasNext = $searchQuery.overflow
+        hasPrev = false
         break
-
-      // handle replace results
-      case MessageCommand.replaceResults:
-        searchStarted = replaceStarted = false
-        if (msg.data.data.replacementsCount > 0) {
-          // subtract 1 from the next offset because search next will add 1
-          matchOffset = msg.data.data.nextOffset - 1
-          replaceQuery.addResult({
-            byteLength: msg.data.data.replaceDataBytesLength,
-            offset:
-              msg.data.data.nextOffset - msg.data.data.replaceDataBytesLength,
-          })
-          preReplaceHasPrev = hasPrev
-          justReplaced = true
-          searchNext()
-        } else {
-          matchOffset = -1
-          showReplaceOptions = false
-        }
-        $replaceQuery.processing = false
+      case 'End':
+        hasNext = false
+        hasPrev = $searchQuery.overflow
         break
-
-      case MessageCommand.clearChanges:
-        cancel()
+      case 'Forward':
+        hasNext = $searchQuery.overflow
+        hasPrev = justReplaced ? preReplaceHasPrev : true
+        justReplaced = false
+        break
+      case 'Backward':
+        hasNext = true
+        hasPrev = $searchQuery.overflow
         break
     }
+    matchOffset = $searchQuery.searchResults[0]
+    scrollToMatch()
+    if (searchStarted) {
+      showReplaceOptions = false
+      showSearchOptions = true
+    } else if (replaceStarted) {
+      showReplaceOptions = true
+      showSearchOptions = false
+    }
+
+    searchStarted = replaceStarted = false
+    $searchQuery.processing = false
+  })
+  addListener('clearChanges', () => {
+    cancel()
   })
 </script>
 
@@ -298,7 +283,7 @@ limitations under the License.
         display={$seekOffsetInput.length > 0 && !$seekable.valid}
       />
       <Button
-        disabledBy={!$seekable.valid}
+        isDisabled={!$seekable.valid}
         fn={() => {
           eventDispatcher('seek')
         }}
@@ -341,7 +326,7 @@ limitations under the License.
       {/if}
       <Error err={searchErr} display={searchErrDisplay} />
       <Button
-        disabledBy={!$searchable}
+        isDisabled={!$searchable}
         fn={searchStart}
         width={searchReplaceButtonWidth}
         description="Start search"
@@ -363,7 +348,7 @@ limitations under the License.
       />
       <Error err={replaceErr} display={replaceErrDisplay} />
       <Button
-        disabledBy={!$replaceable}
+        isDisabled={!$replaceable}
         fn={replaceStart}
         width={searchReplaceButtonWidth}
         description="Start replacement"
@@ -380,7 +365,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchFirst}
-          disabledBy={!hasPrev || !$searchable}
+          isDisabled={!hasPrev || !$searchable}
           description="Seek to the first match"
         >
           <span slot="left" class="btn-icon material-symbols-outlined"
@@ -391,7 +376,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchPrev}
-          disabledBy={!hasPrev || !$searchable}
+          isDisabled={!hasPrev || !$searchable}
           description="Seek to the previous match"
         >
           <span slot="left" class="btn-icon material-symbols-outlined"
@@ -403,7 +388,7 @@ limitations under the License.
           <Button
             fn={replace}
             description="Replace the current match"
-            disabledBy={!replaceable || replaceErrDisplay}
+            isDisabled={!replaceable || replaceErrDisplay}
           >
             <span slot="left" class="btn-icon material-symbols-outlined"
               >find_replace</span
@@ -414,7 +399,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchNext}
-          disabledBy={!hasNext || !$searchable}
+          isDisabled={!hasNext || !$searchable}
           description="Seek to the next match"
         >
           <span slot="default">Next&nbsp;</span>
@@ -425,7 +410,7 @@ limitations under the License.
         <Button
           width={searchNavButtonWidth}
           fn={searchLast}
-          disabledBy={!hasNext || !$searchable}
+          isDisabled={!hasNext || !$searchable}
           description="Seek to the last match"
         >
           <span slot="default">Last&nbsp;</span>

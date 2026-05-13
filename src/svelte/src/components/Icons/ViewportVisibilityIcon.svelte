@@ -86,14 +86,14 @@ limitations under the License.
           ? 'white'
           : ''}
         class="viewport physical"
-      />
+      ></span>
       <span
         style:background-color={$visableViewports === 'all' ||
         $visableViewports === 'logical'
           ? 'white'
           : ''}
         class="viewport logical"
-      />
+      ></span>
     </span>
   </Tooltip>
   {#if selectionsDisplay.viewports}

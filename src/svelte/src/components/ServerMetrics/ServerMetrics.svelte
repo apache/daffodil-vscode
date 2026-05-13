@@ -15,9 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { MessageCommand } from '../../utilities/message'
   import FlexContainer from '../layouts/FlexContainer.svelte'
 
+  import { getUIMessegnerCtx } from 'utilities/messageContext.svelte'
+
+  const { addListener } = getUIMessegnerCtx()
   let heartbeat = {
     latency: 0,
     serverCpuLoadAverage: 0,
@@ -73,9 +75,9 @@ limitations under the License.
     )
   }
 
-  window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
-      case MessageCommand.heartbeat:
+  addListener('heartbeat', (data) => {
+    // switch (msg.data.command) {
+    //   case MessageCommand.heartbeat:
         heartbeat.latency = msg.data.data.latency
         heartbeat.serverCpuLoadAverage = msg.data.data.serverCpuLoadAverage
         heartbeat.serverTimestamp = msg.data.data.serverTimestamp
@@ -105,18 +107,47 @@ limitations under the License.
         timerId = setTimeout(() => {
           heartbeat.serverTimestamp = 0
         }, 5000)
-        break
-    }
-  })
+    })
+  // addListener('heartbeat', (data) => {
+  //   const {
+  //     latency,
+  //     port,
+  //     serverCpuLoadAverage,
+  //     serverTimestamp,
+  //     serverUptime,
+  //     serverUsedMemory,
+  //     sessionCount,
+  //     serverInfo,
+  //   } = data
+  //   heartbeat.latency = latency
+  //   heartbeat.omegaEditPort = port
+  //   heartbeat.serverCpuLoadAverage = serverCpuLoadAverage
+  //   heartbeat.serverTimestamp = serverTimestamp
+  //   heartbeat.serverUptime = serverUptime
+  //   heartbeat.serverUsedMemory = serverUsedMemory
+  //   heartbeat.sessionCount = sessionCount
+  //   heartbeat.availableProcessors = serverInfo.availableProcessors
+  //   heartbeat.serverHostname = serverInfo.serverHostname
+  //   heartbeat.serverProcessId = serverInfo.serverProcessId
+  //   heartbeat.serverVersion = serverInfo.serverVersion
+  //   heartbeat.jvmVersion = serverInfo.jvmVersion
+  //   heartbeat.jvmVendor = serverInfo.jvmVendor
+  //   heartbeat.jvmPath = serverInfo.jvmPath
+  //   clearTimeout(timerId)
+  //   timerId = setTimeout(() => {
+  //     heartbeat.serverTimestamp = 0
+  //   }, 5000)
+  // })
 </script>
 
 <FlexContainer --height="25pt" --align-items="center">
   {#if heartbeat.serverTimestamp !== 0}
     <div class="info">
-      &#9889; Powered by Ωedit™ v{heartbeat.serverVersion} on port {heartbeat.omegaEditPort}
+      &#9889; Powered by Ωedit™ v{heartbeat.serverVersion} on port {heartbeat.port}
       &nbsp;
     </div>
     <FlexContainer>
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <svg
         class="latency-indicator"
         on:mouseenter={() => showHeartbeatInfo(true)}

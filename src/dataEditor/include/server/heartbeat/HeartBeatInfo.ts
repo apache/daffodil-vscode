@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IServerHeartbeat } from '@omega-edit/client'
+import { IServerHeartbeat, IServerInfo } from '@omega-edit/client'
 
 export class HeartbeatInfo implements IServerHeartbeat {
   latency: number = 0 // latency in ms
@@ -26,4 +26,28 @@ export class HeartbeatInfo implements IServerHeartbeat {
   serverUptime: number = 0 // uptime in ms
   serverVirtualMemoryBytes?: number = 0 // virtual memory in bytes
   sessionCount: number = 0 // session count
+  
+// export type ServerHeartbeat = IServerHeartbeat & { serverInfo: IServerInfo }
+
+// export class HeartbeatInfo {
+//   serverHeartbeat: ServerHeartbeat = {
+//     latency: 0,
+//     sessionCount: 0,
+//     serverTimestamp: 0,
+//     serverUptime: 0,
+//     serverCpuCount: 0,
+//     serverCpuLoadAverage: 0,
+//     serverMaxMemory: 0,
+//     serverCommittedMemory: 0,
+//     serverUsedMemory: 0,
+//     serverInfo: {
+//       serverHostname: '',
+//       serverProcessId: 0,
+//       serverVersion: '',
+//       jvmVersion: '',
+//       jvmVendor: '',
+//       jvmPath: '',
+//       availableProcessors: 0,
+//     },
+//   }
 }

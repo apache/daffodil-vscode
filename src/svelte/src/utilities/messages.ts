@@ -14,31 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { type MessageResponseMap } from 'ext_types'
+import {
+  isEditorMessageId,
+  isEditorResponseId,
+} from '../../../ext_types/messageIds'
 
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
-import { sveltePreprocess } from 'svelte-preprocess'
-
-/** @type {import('@sveltejs/vite-plugin-svelte').SvelteConfig} */
-export default {
-  preprocess: [
-    vitePreprocess(),
-    sveltePreprocess({ sourceMap: true, typescript: true }),
-  ],
-  compilerOptions: {
-    runes: undefined,
-    css: 'external',
-    rootDir: '.',
-  },
-
-  onwarn(w, defaultHandler) {
-    if (
-      ![
-        'a11y_no_static_element_interactions',
-        'a11y_click_events_have_key_events',
-        'css_unused_selector',
-      ].includes(w.code)
-    ) {
-      defaultHandler(w)
-    }
-  },
+export type IncomingMessage = {
+  command: keyof MessageResponseMap
+  id: string
+  data: MessageResponseMap[keyof MessageResponseMap]
 }
+
+function isEditorResponse(msg: any): msg is IncomingMessage {
+  return msg && isEditorResponseId(msg.command)
+}
+function dispatchEditorEvent(event: MessageEvent) {
+  const msg = event.data
+  if (!isEditorResponse(msg)) return
+
+  window.dispatchEvent(
+    new CustomEvent(msg.command, { detail: { id: msg.id, data: msg.data } })
+  )
+}
+window.addEventListener('message', dispatchEditorEvent)

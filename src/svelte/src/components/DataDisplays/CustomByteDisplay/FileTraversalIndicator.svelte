@@ -69,7 +69,7 @@ limitations under the License.
     : 'enabled'}"
   bind:this={indicatorContainer}
 >
-  <div class="traversal-thumb" style:width="{percentageTraversed}%" />
+  <div class="traversal-thumb" style:width="{percentageTraversed}%"></div>
 </div>
 
 <style lang="scss">

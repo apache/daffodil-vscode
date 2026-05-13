@@ -1,81 +1,60 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Licensed to the Apache Software Foundation (ASF) under one or more
+// contributor license agreements.  See the NOTICE file distributed with
+// this work for additional information regarding copyright ownership.
+// The ASF licenses this file to You under the Apache License, Version 2.0
+// (the "License"); you may not use this file except in compliance with
+// the License.  You may obtain a copy of the License at
 
-import { defineConfig } from 'vite'
-import { svelte } from '@sveltejs/vite-plugin-svelte'
-import path from 'path'
-import strip from 'rollup-plugin-strip-code'
-import { fileURLToPath } from 'url'
+//     http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import { defineConfig, mergeConfig } from 'vitest/config'
 import { loadEnvFile } from 'node:process'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
+import { fileURLToPath } from 'node:url'
+import strip from 'rollup-plugin-strip-code'
 import * as fs from 'fs'
+import path from 'path'
+
 const r = (p) => fileURLToPath(new URL(p, import.meta.url))
 const envFilePath = path.resolve(__dirname, '.env')
+const projectRoot = r('.')
+const distDir = path.resolve(__dirname, '../../', 'dist/views/dataEditor')
 
-/** @type {import('vite').UserConfig} */
+const htmlNoncePlugin = () => {
+  return {
+    name: 'nonce',
+    transformIndexHtml(html) {
+      html = html.replace(
+        /<link rel="stylesheet" crossorigin href="\/style.css">/g,
+        `<link rel="stylesheet" crossorigin href="/style.css" nonce="__nonce__"/> `
+      )
+
+      return html.replace(
+        /<script type="module" src="\/src\/main.ts"><\/script>/g,
+        `<script type="module" src="\/index.js" nonce="__nonce__"></script>`
+      )
+    },
+  }
+}
+
+/// <reference types="vitest/config"/>
 export default defineConfig(({ mode }) => {
   if (fs.existsSync(envFilePath)) loadEnvFile(envFilePath)
   const debugDataEditor =
     process.env.DEBUG_DATAEDITOR == 'on' && mode === 'development'
-
   return {
-    define: {
-      __DEBUG_DATAEDITOR__: JSON.stringify(debugDataEditor),
-    },
-
-    base: '',
-    resolve: {
-      alias: {
-        $root: debugDataEditor
-          ? r('./src/App.debug.svelte')
-          : r('./src/App.svelte'),
-        utilities: path.resolve(__dirname, 'src/utilities'),
-        layout: path.resolve(__dirname, 'src/components/layouts'),
-        HTMLWrappers: path.resolve(__dirname, 'src/components/html'),
-        editor_components: path.resolve(__dirname, 'src/components/sections'),
-      },
-    },
-    plugins: [
-      svelte({ configFile: './svelte.config.mjs' }),
-      {
-        name: 'nonce',
-        transformIndexHtml(html) {
-          html = html.replace(
-            /<link rel="stylesheet" crossorigin href="\/style.css">/g,
-            `<link rel="stylesheet" crossorigin href="/style.css" nonce="__nonce__"/> `
-          )
-
-          return html.replace(
-            /<script type="module" src="\/src\/main.ts"><\/script>/g,
-            `<script type="module" src="\/index.js" nonce="__nonce__"></script>`
-          )
-        },
-      },
-      !debugDataEditor &&
-        strip({
-          include: ['**/*.svelte', '**/*.ts', '**/*.js'],
-          start_comment: 'DEBUG_ONLY_START',
-          end_comment: 'DEBUG_ONLY_END',
-        }),
-    ],
-    mode: 'development',
-    dev: true,
+    base: './',
+    root: projectRoot,
     build: {
       sourcemap: true,
-      minify: false,
+      minify: debugDataEditor ? true : false,
+      outDir: distDir,
       cssCodeSplit: false,
       rollupOptions: {
         output: {
@@ -95,8 +74,37 @@ export default defineConfig(({ mode }) => {
           entryFileNames: 'index.js', // Name of the final output file
         },
       },
-      outDir: '../../dist/views/dataEditor',
     },
-    server: { watch: { cwd: '.' } },
+    plugins: [
+      htmlNoncePlugin(),
+      svelte({ configFile: r('./svelte.config.mjs') }),
+      !debugDataEditor &&
+        strip({
+          include: ['**/*.svelte', '**/*.ts', '**/*.js'],
+          start_comment: 'DEBUG_ONLY_START',
+          end_comment: 'DEBUG_ONLY_END',
+        }),
+    ],
+    resolve: {
+      tsconfigPaths: true,
+      alias: {
+        $root: debugDataEditor
+          ? r('./src/App.debug.svelte')
+          : r('./src/App.svelte'),
+        '@': fileURLToPath(new URL('./src', import.meta.url)),
+        utilities: fileURLToPath(new URL('./src/utilities', import.meta.url)),
+        layout: fileURLToPath(
+          new URL('./src/components/layouts', import.meta.url)
+        ),
+        HTMLWrappers: fileURLToPath(
+          new URL('./src/components/html', import.meta.url)
+        ),
+        editor_components: fileURLToPath(
+          new URL('./src/components', import.meta.url)
+        ),
+        ext_types: fileURLToPath(new URL('../ext_types', import.meta.url)),
+        stores: fileURLToPath(new URL('./src/stores', import.meta.url)),
+      },
+    },
   }
 })

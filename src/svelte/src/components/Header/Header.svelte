@@ -21,7 +21,7 @@ limitations under the License.
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import Tooltip from '../layouts/Tooltip.svelte'
   import FileMetrics from './fieldsets/FileMetrics.svelte'
-  import { fileMetrics } from '../../stores'
+  import { fileMetricsState } from './fieldsets/FileMetrics.svelte.ts'
 
   let hideChildren = false
 </script>
@@ -31,7 +31,7 @@ limitations under the License.
     <FlexContainer --justify-content="space-between" --align-items="center">
       <div class="filename-display">
         <b>File:</b>
-        {$fileMetrics.name}
+        {fileMetricsState.name}
       </div>
       <Tooltip alwaysEnabled={true} description={'Maximize header'}>
         <button

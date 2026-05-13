@@ -24,6 +24,12 @@ import { HeartbeatInfo } from './HeartBeatInfo'
 const HEARTBEAT_INTERVAL_MS: number = 1000 // 1 second (1000 ms)
 let heartbeatInfo: IServerHeartbeat = new HeartbeatInfo()
 let heartbeatLoop: ServerHeartbeatLoop | undefined = undefined
+// import { getServerHeartbeat, getServerInfo } from '@omega-edit/client'
+// import { HeartbeatInfo } from './HeartBeatInfo'
+
+// const HEARTBEAT_INTERVAL_MS: number = 1000 // 1 second (1000 ms)
+// let heartbeatInfo = new HeartbeatInfo()
+// let getHeartbeatIntervalId: NodeJS.Timeout | number | undefined = undefined
 
 export function updateHeartbeatInterval(activeSessions: string[]) {
   heartbeatLoop?.stop()
@@ -44,6 +50,24 @@ export function updateHeartbeatInterval(activeSessions: string[]) {
       heartbeatInfo = new HeartbeatInfo()
     },
   })
+  // const intervalTimeMs =
+  //   activeSessions.length > 0
+  //     ? activeSessions.length * HEARTBEAT_INTERVAL_MS
+  //     : HEARTBEAT_INTERVAL_MS
+  // getHeartbeatIntervalId =
+  //   activeSessions.length > 0
+  //     ? setInterval(async () => {
+  //         const heartbeat = await getServerHeartbeat(
+  //           activeSessions,
+  //           intervalTimeMs
+  //         )
+  //         const info = await getServerInfo()
+  //         heartbeatInfo.serverHeartbeat = {
+  //           ...heartbeat,
+  //           serverInfo: { ...info },
+  //         }
+  //       }, intervalTimeMs)
+  //     : undefined
 }
 
 export function getCurrentHeartbeatInfo() {

@@ -17,7 +17,10 @@
 
 import type { ValidationResponse } from '../utilities/display'
 import { ThemeType } from '../utilities/colorScheme'
-import { FileMetrics } from '../components/Header/fieldsets/FileMetrics'
+import {
+  fileMetricsState,
+  isRegularSizedFile,
+} from '../components/Header/fieldsets/FileMetrics.svelte.ts'
 import { derived, writable } from 'svelte/store'
 import { SimpleWritable } from './localStore'
 import { ErrorComponentType, ErrorStore } from '../components/Error/Error'
@@ -39,12 +42,12 @@ import {
 } from '../components/Header/fieldsets/SearchReplace'
 import {
   EditByteModes,
-  UNPRINTABLE_CHAR_STAND_IN,
   type RadixValues,
   type BytesPerRow,
   EditActionRestrictions,
-} from './configuration'
+} from 'ext_types'
 import type { AvailableHelpSections } from '../components/layouts/Help'
+import { UNPRINTABLE_CHAR_STAND_IN } from './configuration'
 
 export class SelectionData_t {
   startOffset = -1
@@ -159,9 +162,6 @@ export const selectedByte = writable({
   value: -1,
 } as ByteValue)
 
-// Omega Edit and Data Editor file information
-export const fileMetrics = new FileMetrics()
-
 export const searchQuery = new SearchQuery()
 export const replaceQuery = new ReplaceQuery()
 
@@ -194,9 +194,6 @@ export const dfdlBytePos = writable(-1)
 /*                          Derived Stores                                */
 /**************************************************************************/
 // Can the user's selection derive both edit modes?
-export const regularSizedFile = derived(fileMetrics, ($fileMetrics) => {
-  return $fileMetrics.computedSize >= 2
-})
 
 export const dataFeedLineTopOffset = derived(
   [dataFeedLineTop, viewport, bytesPerRow],
@@ -257,9 +254,9 @@ export const replaceable = derived(
 
 // derived readable enumeration that indicates the edit mode (single byte or multiple bytes)
 export const editMode = derived(
-  [selectionDataStore, regularSizedFile],
-  ([$selectionData, $regularSizedFile]) => {
-    if (!$regularSizedFile) return EditByteModes.Multiple
+  [selectionDataStore],
+  ([$selectionData]) => {
+    if (!isRegularSizedFile()) return EditByteModes.Multiple
 
     return $selectionData.originalEndOffset - $selectionData.startOffset === 0
       ? EditByteModes.Single
@@ -349,11 +346,6 @@ export const allowCaseInsensitiveSearch = derived(
   }
 )
 
-// derived readable boolean that indicates if the file is saveable (there are outstanding changes)
-export const saveable = derived([fileMetrics], ([$fileMetrics]) => {
-  return $fileMetrics.changeCount > 0
-})
-
 export const requestable = derived(
   [editorSelection, focusedViewportId, editorEncoding, editMode, displayRadix],
   ([
@@ -379,10 +371,10 @@ export const requestable = derived(
 )
 
 export const originalDataSegment = derived(
-  [viewport, selectionDataStore, regularSizedFile],
-  ([$viewport, $selectionData, $regularSizedFile]) => {
+  [viewport, selectionDataStore],
+  ([$viewport, $selectionData]) => {
     if (!$viewport.data) return []
-    if (!$regularSizedFile) return $viewport.data
+    if (!isRegularSizedFile()) return $viewport.data
 
     return $viewport.data.slice(
       $selectionData.startOffset,
@@ -404,7 +396,6 @@ export const applicable = derived(
     editMode,
     editedByteIsOriginalByte,
     editorActionsAllowed,
-    regularSizedFile,
   ],
   ([
     $requestable,
@@ -417,9 +408,8 @@ export const applicable = derived(
     $editMode,
     $editedByteIsOriginalByte,
     $editorActionsAllowed,
-    $regularSizedFile,
   ]) => {
-    if (!$regularSizedFile) {
+    if (!isRegularSizedFile()) {
       if ($viewport.length < 0) return false
       return $viewport.data.length !=
         $editorSelection.length / radixBytePad($displayRadix) &&

@@ -22,7 +22,7 @@ limitations under the License.
   import { tooltipsEnabled } from '../../../stores'
   import { shouldCollapseContent } from '../../../utilities/display'
   export let fn: (event?: Event) => void
-  export let disabledBy = false
+  export let isDisabled = false
   export let width = ''
   export let fixedWidth = ''
 
@@ -50,8 +50,8 @@ limitations under the License.
   {#if collapseContent}
     <button
       class={$UIThemeCSSClass + ' collapsed'}
-      disabled={disabledBy}
-      on:click={!disabledBy ? fn : () => {}}
+      disabled={isDisabled}
+      on:click={!isDisabled ? fn : () => {}}
       style:width={fixedWidth}
     >
       <FlexContainer
@@ -68,8 +68,8 @@ limitations under the License.
   {:else}
     <button
       class={$UIThemeCSSClass}
-      disabled={disabledBy}
-      on:click={!disabledBy ? fn : () => {}}
+      disabled={isDisabled}
+      on:click={!isDisabled ? fn : () => {}}
       style:width={fixedWidth.length > 0 ? fixedWidth : width}
     >
       <FlexContainer

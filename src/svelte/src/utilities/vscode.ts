@@ -15,8 +15,29 @@
  * limitations under the License.
  */
 
+import {
+  type MessageRequestMap,
+  type PostMessageArgs,
+  type MessageResponseMap,
+} from 'ext_types'
 import type { WebviewApi } from 'vscode-webview'
+import { isEditorResponseId } from '../../../ext_types/messageIds'
 
+type MessageRequest<K extends keyof MessageRequestMap> = {
+  id: string
+  payload: PostMessageArgs<MessageRequestMap, K>
+}
+
+export interface VSMessenger {
+  readonly id: string
+  postMessage<K extends keyof MessageRequestMap>(
+    ...args: PostMessageArgs<MessageRequestMap, K>
+  ): void
+  addListener<K extends keyof MessageResponseMap>(
+    type: K,
+    listener: (data: MessageResponseMap[K]) => void
+  ): void
+}
 /**
  * A utility wrapper around the acquireVsCodeApi() function, which enables
  * message passing and state management between the webview and extension
@@ -28,7 +49,6 @@ import type { WebviewApi } from 'vscode-webview'
  */
 class VSCodeAPIWrapper {
   private readonly vsCodeApi: WebviewApi<unknown> | undefined
-
   constructor() {
     // Check if the acquireVsCodeApi function exists in the current development
     // context (i.e. VS Code development window or web browser)
@@ -36,7 +56,43 @@ class VSCodeAPIWrapper {
       this.vsCodeApi = acquireVsCodeApi()
     }
   }
+  getMessenger(id: string): VSMessenger {
+    return {
+      id: id,
+      postMessage: <K extends keyof MessageRequestMap>(
+        ...args: PostMessageArgs<MessageRequestMap, K>
+      ) => {
+        let msg = this.createMessage(args)
+        msg.id = id
+        this._postMessage(msg)
+      },
+      addListener: <K extends keyof MessageResponseMap>(
+        type: K,
+        listener: (data: MessageResponseMap[K]) => void
+      ) => {
+        this._addListener(id, type, listener)
+      },
+    }
+  }
+  private _addListener<K extends keyof MessageResponseMap>(
+    id: string,
+    type: K,
+    listener: (data: MessageResponseMap[K]) => void
+  ) {
+    window.addEventListener(type, (winEvent: Event) => {
+      const castedEvent = winEvent as CustomEvent<{
+        id: string
+        data: MessageResponseMap[K]
+      }>
+      const eventType = castedEvent.type
+      if (!isEditorResponseId(eventType)) return
 
+      const details = castedEvent.detail
+      if (id !== details.id) return
+
+      listener(details.data as MessageResponseMap[K])
+    })
+  }
   /**
    * Post a message (i.e. send arbitrary data) to the owner of the webview.
    *
@@ -45,14 +101,22 @@ class VSCodeAPIWrapper {
    *
    * @param message Arbitrary data (must be JSON serializable) to send to the extension context.
    */
-  public postMessage(message: unknown) {
-    if (this.vsCodeApi) {
-      this.vsCodeApi.postMessage(message)
-    } else {
-      console.log(message)
+  public postMessage<K extends keyof MessageRequestMap>(
+    id: string,
+    ...args: PostMessageArgs<MessageRequestMap, K>
+  ) {
+    let msg = this.createMessage(args)
+    msg.id = id
+    this._postMessage(msg)
+  }
+  public createMessage<K extends keyof MessageRequestMap>(
+    payload: PostMessageArgs<MessageRequestMap, K>
+  ): MessageRequest<K> {
+    return {
+      id: '',
+      payload: payload,
     }
   }
-
   /**
    * Get the persistent state stored for this webview.
    *
@@ -87,6 +151,14 @@ class VSCodeAPIWrapper {
     } else {
       localStorage.setItem('vscodeState', JSON.stringify(newState))
       return newState
+    }
+  }
+
+  private _postMessage(message: any) {
+    if (this.vsCodeApi) {
+      this.vsCodeApi.postMessage(message)
+    } else {
+      console.error("The 'vsCodeApi' object is invalid")
     }
   }
 }

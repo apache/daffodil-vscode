@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import { describe, it } from 'mocha'
+import { describe, it } from 'vitest'
 import { radixBytePad, radixToString } from '../../src/utilities/display'
-import { RadixValues } from '../../src/stores/configuration'
+import type { RadixValues } from 'ext_types'
+
 import assert from 'assert'
 
 describe('Display Functions', () => {

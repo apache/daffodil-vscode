@@ -16,22 +16,25 @@
  */
 
 {
-  "extends": "@tsconfig/svelte/tsconfig.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2015",
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "inlineSources": true,
-    "baseUrl": "./src",
+    "baseUrl": "./",
     "paths": {
-      "utilities": ["utilities"],
-      "layout/*": ["components/layouts/*"],
-      "HTMLWrappers/*": ["components/html/*"],
-      "editor_components/*": ["components/sections/*"]
+      "utilities/*": ["src/utilities/*"],
+      "layout/*": ["src/components/layouts/*"],
+      "HTMLWrappers/*": ["src/components/html/*"],
+      "editor_components/*": ["src/components/*"],
+      "ext_types": ["../ext_types/index.ts"],
+      "ext_types/*": ["../ext_types/*"],
+      "stores/*": ["src/stores/*"]
     },
-    // "allowImportingTsExtensions": true,
-    "target": "ES6",
     "useDefineForClassFields": true,
-    "module": "commonjs",
     "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": true,
@@ -40,7 +43,13 @@
     "esModuleInterop": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["src/**/*.ts", "src/**/*.svelte", "src/tests/**/*.test.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.svelte",
+    "src/**/*.svelte.ts",
+    "tests/**/*.svelte.test.ts",
+    "tests/**/*.svelte.ts"
+  ],
   "exclude": ["node_modules/*"],
   "strict": true /* enable all strict type-checking options */,
   "noImplicitAny": false,

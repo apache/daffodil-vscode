@@ -125,21 +125,24 @@ suite('Data Editor Test Suite', () => {
       const dataEditWebView: DataEditorClient =
         await vscode.commands.executeCommand(DATA_EDITOR_COMMAND, TEST_SCHEMA)
       assert.ok(dataEditWebView)
-      assert.strictEqual(dataEditWebView.panel.active, true)
+      assert.strictEqual(dataEditWebView.isActive(), true)
       assert.strictEqual(
         // Check if data editor panel has the basename of the file
-        dataEditWebView.panel.title,
+        path.basename(dataEditWebView.currentFile()),
         path.basename(TEST_SCHEMA)
       )
 
       // Listen for the dispose event
       let isDisposed = false
-      dataEditWebView.panel.onDidDispose(() => {
-        isDisposed = true
-      })
+      const disposalListener: vscode.Disposable = {
+        dispose: () => {
+          isDisposed = true
+        },
+      }
+      dataEditWebView.addDisposable(disposalListener)
 
       // Close the data editor panel
-      await dataEditWebView.panel.dispose()
+      await dataEditWebView.dispose()
       await dataEditWebView.waitForDisposeCleanup()
 
       // Verify that the panel has been disposed

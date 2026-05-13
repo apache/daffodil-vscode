@@ -34,6 +34,7 @@ limitations under the License.
     focusedViewportId,
     editorActionsAllowed,
     bytesPerRow,
+    editedDataSegment,
   } from '../../../stores'
   import { elementKeypressEventMap } from '../../../utilities/elementKeypressEvents'
   import type { ByteValue, EditAction } from './BinaryData'
@@ -41,7 +42,7 @@ limitations under the License.
     UIThemeCSSClass,
     type CSSThemeClass,
   } from '../../../utilities/colorScheme'
-  import { EditActionRestrictions } from '../../../stores/configuration'
+  import { EditActionRestrictions } from 'ext_types'
   import Tooltip from '../../layouts/Tooltip.svelte'
 
   const eventDispatcher = createEventDispatcher()
@@ -54,7 +55,7 @@ limitations under the License.
   type ActionElement = {
     id: string
     position: ActionElementPosition
-    HTMLRef: HTMLDivElement | HTMLInputElement
+    HTMLRef: HTMLDivElement | HTMLInputElement | undefined
     render: boolean
   }
   type ActionElements = {
@@ -63,7 +64,7 @@ limitations under the License.
   let actionElements: ActionElements = {
     input: {
       id: 'binary-action-input',
-      HTMLRef: undefined as HTMLInputElement,
+      HTMLRef: undefined,
       render: true,
       position: { viewportLine: -1, viewportByteIndex: -1 },
     },
@@ -166,7 +167,6 @@ limitations under the License.
 
     actionElements['input'].HTMLRef.focus()
     actionElements['input'].HTMLRef.value = ''
-
     return restore_original_target
   })
   function is_input_invalid() {
@@ -206,6 +206,7 @@ limitations under the License.
   function update_selectedByte(editByte: ByteValue) {
     if (invalid) return
     byte = editByte
+    $editedDataSegment[0] = byte.value
   }
 
   function send_delete(_: Event) {
@@ -304,10 +305,11 @@ limitations under the License.
 
   function applyChanges(action: EditAction) {
     if (action === 'byte-input') {
+      const element = actionElements['input'].HTMLRef! as HTMLInputElement
       update_selectedByte({
-        text: $editorSelection,
+        text: element.value,
         offset: byte.offset,
-        value: parseInt(editedByteText, 16),
+        value: parseInt(element.value, $displayRadix),
       })
     }
 

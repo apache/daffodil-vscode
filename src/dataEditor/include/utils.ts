@@ -16,9 +16,17 @@
  */
 import { debug } from 'vscode'
 
-export function isDFDLDebugSessionActive(): boolean {
-  return (
-    debug.activeDebugSession !== undefined &&
-    debug.activeDebugSession.type === 'dfdl'
-  )
+export function isDFDLDebugSessionActive(file: string): boolean {
+  if (debug.activeDebugSession === undefined) return false
+  if (debug.activeDebugSession!.type !== 'dfdl') return false
+  if (debug.activeDebugSession!.configuration.data !== file) return false
+  return true
+}
+
+export function toEncoding(encoding: string): BufferEncoding {
+  if (!Buffer.isEncoding(encoding)) {
+    console.error(`Value (${encoding}) is not a valid BufferEncoding type`)
+    return 'utf-8'
+  }
+  return encoding as BufferEncoding
 }

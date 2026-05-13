@@ -19,6 +19,7 @@ import { SimpleWritable } from '../../../stores/localStore'
 import { replaceQuery, searchQuery } from '../../../stores'
 import { VIEWPORT_CAPACITY_MAX } from '../../../stores/configuration'
 import { viewportByteIndicators } from '../../../utilities/highlights'
+import type { SearchResponse } from 'ext_types'
 
 export enum OffsetSearchType {
   ABSOLUTE,
@@ -77,11 +78,11 @@ export class SearchQuery extends SimpleWritable<SearchData> {
       return query
     })
   }
-  public updateSearchResults(msgData: any) {
+  public updateSearchResults(msgData: SearchResponse) {
     this.update((query) => {
       query.initiaited = true
-      query.searchResults = msgData.searchResults
-      query.byteLength = msgData.searchDataBytesLength
+      query.searchResults = msgData.results
+      query.byteLength = msgData.byteLength
       query.overflow = msgData.overflow
       return query
     })

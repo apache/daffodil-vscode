@@ -19,12 +19,11 @@ limitations under the License.
     editorSelection,
     editMode,
     selectionDataStore,
-    regularSizedFile,
     viewport,
     selectionSize,
     addressRadix,
   } from '../../stores'
-  import { EditByteModes, type RadixValues } from '../../stores/configuration'
+  import { EditByteModes, type RadixValues } from 'ext_types'
   import { UIThemeCSSClass } from '../../utilities/colorScheme'
   import { createEventDispatcher } from 'svelte'
   import ContentControls from '../DataDisplays/Fieldsets/ContentControls.svelte'
@@ -33,10 +32,23 @@ limitations under the License.
   import HelpIcon from '../layouts/HelpIcon.svelte'
   /* DEBUG_ONLY_START */
   import { getDebugVarContext } from '../Debug'
+  import { isRegularSizedFile } from '../Header/fieldsets/FileMetrics.svelte.ts'
+  import { viewportByteIndicators } from 'utilities/highlights.ts'
   getDebugVarContext().add({
     id: 'selection',
     valueStr: () => {
       return `(${$selectionDataStore.startOffset}, ${$selectionDataStore.endOffset})`
+    },
+  })
+  getDebugVarContext().add({
+    id: 'Highlights (Selection)',
+    valueStr: () => {
+      let ret = '['
+      $viewportByteIndicators.forEach((v, i, a) => {
+        if (v === 1) ret += ` ${i}`
+      })
+      ret += ' ]'
+      return ret
     },
   })
   /* DEBUG_ONLY_END */
@@ -53,7 +65,7 @@ limitations under the License.
   let displayTextEditorArea: boolean
   $: displayTextEditorArea =
     $editMode === EditByteModes.Multiple &&
-    ($selectionDataStore.active || !$regularSizedFile)
+    ($selectionDataStore.active || !isRegularSizedFile())
 
   function clearDataDisplays() {
     eventDispatcher('clearDataDisplays')
@@ -126,7 +138,7 @@ limitations under the License.
       on:click={handleEditorEvent}
       on:input={handleEditorEvent}
       bind:value={$editorSelection}
-    />
+    ></textarea>
 
     <FlexContainer>
       <ContentControls on:applyChanges />

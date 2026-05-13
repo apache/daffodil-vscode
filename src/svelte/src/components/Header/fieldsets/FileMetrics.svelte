@@ -17,38 +17,38 @@ limitations under the License.
 <script lang="ts">
   import Button from '../../Inputs/Buttons/Button.svelte'
   import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import { MessageCommand } from '../../../utilities/message'
-  import { vscode } from '../../../utilities/vscode'
-  import { saveable, fileMetrics, replaceQuery } from '../../../stores'
   import { createEventDispatcher } from 'svelte'
   import SidePanel from '../../layouts/SidePanel.svelte'
   import ByteFrequencyGraph from '../../DataMetrics/DataMetrics.svelte'
-  import { viewport } from '../../../stores'
   import { humanReadableByteLength } from '../../../utilities/display'
   import { DATA_PROFILE_MAX_LENGTH } from '../../../stores/configuration'
   import Tooltip from '../../layouts/Tooltip.svelte'
   import ISO6391 from 'iso-639-1'
+  import {
+    canRedo,
+    canRevert,
+    canUndo,
+    fileMetricsState,
+    saveable,
+  } from './FileMetrics.svelte.ts'
+  import { getUIMessegnerCtx } from 'utilities/messageContext.svelte.ts'
+
   const eventDispatcher = createEventDispatcher()
 
+  const { addListener, postMessage } = getUIMessegnerCtx()
+  //   const { postMessage, addListener } = messegeApi!
   let displayOpts = false
   let isProfilerOpen = false
-  let canUndo: boolean
-  let canRedo: boolean
-  let canRevert: boolean
   let startOffset: number = 0
   let length: number = 0
 
   function saveAs() {
-    vscode.postMessage({
-      command: MessageCommand.saveAs,
-    })
+    postMessage('saveAs')
     displayOpts = false
   }
 
   function save() {
-    vscode.postMessage({
-      command: MessageCommand.save,
-    })
+    postMessage('save')
     displayOpts = false
   }
 
@@ -62,47 +62,32 @@ limitations under the License.
     }
   }
 
-  window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
-      case MessageCommand.fileInfo:
-        {
-          // reset the profiler if changes have been made
-          isProfilerOpen = false
-          startOffset = length = 0
-          if ('fileName' in msg.data.data) {
-            $fileMetrics.name = msg.data.data.fileName
-          }
-          if ('type' in msg.data.data) {
-            $fileMetrics.type = msg.data.data.type
-          }
-          if ('language' in msg.data.data) {
-            $fileMetrics.language = msg.data.data.language
-          }
-          if ('diskFileSize' in msg.data.data) {
-            $fileMetrics.diskSize = msg.data.data.diskFileSize
-          }
-          if ('computedFileSize' in msg.data.data) {
-            $fileMetrics.computedSize = msg.data.data.computedFileSize
-          }
-          if ('changeCount' in msg.data.data) {
-            $fileMetrics.changeCount = msg.data.data.changeCount
-          }
-          if ('undoCount' in msg.data.data) {
-            $fileMetrics.undoCount = msg.data.data.undoCount
-          }
-        }
-        break
-      default:
-        break // do nothing
-    }
+  addListener('fileInfo', (msg) => {
+    fileMetricsState.name = msg.filename
+    fileMetricsState.language = msg.language
+    fileMetricsState.type = msg.contentType
   })
-
-  $: {
-    canUndo = $fileMetrics.changeCount > 0
-    canRedo = $fileMetrics.undoCount > 0
-    canRevert = $fileMetrics.undoCount + $fileMetrics.changeCount > 0
-    length = length <= 0 ? viewport.offsetMax - startOffset : length
-  }
+  addListener('counts', (msg) => {
+    fileMetricsState.changeCount =
+      msg.applied >= 0 ? msg.applied : fileMetricsState.changeCount
+    fileMetricsState.computedSize =
+      msg.computedFileSize >= 0
+        ? msg.computedFileSize
+        : fileMetricsState.computedSize
+    fileMetricsState.undoCount =
+      msg.undos >= 0 ? msg.undos : fileMetricsState.undoCount
+    if (fileMetricsState.diskSize === 0)
+      fileMetricsState.diskSize = fileMetricsState.computedSize
+  })
+  addListener('saveAs', (resp) => {
+    fileMetricsState.name = resp.newFilePath
+    fileMetricsState.computedSize = resp.computedFileSize
+    fileMetricsState.diskSize = fileMetricsState.computedSize
+  })
+  addListener('save', (resp) => {
+    fileMetricsState.computedSize = resp.computedFileSize
+    fileMetricsState.diskSize = fileMetricsState.computedSize
+  })
 
   function redo() {
     eventDispatcher('redo')
@@ -139,11 +124,11 @@ limitations under the License.
 <fieldset class="file-metrics">
   <legend>File Metrics</legend>
   <FlexContainer --dir="row">
-    <span id="file_name" class="nowrap">{$fileMetrics.name}</span>&nbsp;
+    <span id="file_name" class="nowrap">{fileMetricsState.name}</span>&nbsp;
   </FlexContainer>
   <FlexContainer --dir="row" --align-items="center">
     {#if displayOpts}
-      <Button fn={save} disabledBy={!$saveable} description="Save to disk">
+      <Button fn={save} isDisabled={!saveable()} description="Save to disk">
         <span slot="left" class="btn-icon material-symbols-outlined">save</span>
         <span slot="default">&nbsp;Save</span>
       </Button>
@@ -154,7 +139,11 @@ limitations under the License.
         <span slot="default">&nbsp;Save As</span>
       </Button>
     {:else}
-      <Button fn={toggleSaveDisplay} description="Save">
+      <Button
+        fn={toggleSaveDisplay}
+        isDisabled={!saveable()}
+        description="Save"
+      >
         <span slot="left" class="btn-icon material-symbols-outlined">save</span>
         <span slot="default">Save&hellip;</span>
       </Button>
@@ -167,11 +156,11 @@ limitations under the License.
         <label for="disk_file_size">Disk Size</label>
       </Tooltip>
       <Tooltip
-        description="{$fileMetrics.diskSize.toLocaleString('en')} bytes"
+        description="{fileMetricsState.diskSize.toLocaleString('en')} bytes"
         alwaysEnabled={true}
       >
         <span id="disk_file_size" class="nowrap"
-          >{humanReadableByteLength($fileMetrics.diskSize)}</span
+          >{humanReadableByteLength(fileMetricsState.diskSize)}</span
         >
       </Tooltip>
     </FlexContainer>
@@ -180,29 +169,29 @@ limitations under the License.
         <label for="computed_file_size">Computed Size</label>
       </Tooltip>
       <Tooltip
-        description="{$fileMetrics.computedSize.toLocaleString('en')} bytes"
+        description="{fileMetricsState.computedSize.toLocaleString('en')} bytes"
         alwaysEnabled={true}
       >
         <span id="computed_file_size" class="nowrap"
-          >{humanReadableByteLength($fileMetrics.computedSize)}</span
+          >{humanReadableByteLength(fileMetricsState.computedSize)}</span
         >
       </Tooltip>
     </FlexContainer>
     <FlexContainer --dir="column">
       <label for="content_type">Content Type</label>
-      <Tooltip description={$fileMetrics.type} alwaysEnabled={true}>
+      <Tooltip description={fileMetricsState.type} alwaysEnabled={true}>
         <span id="content_type" class="nowrap"
-          >{$fileMetrics.type.split('/').pop()}</span
+          >{fileMetricsState.type.split('/').pop()}</span
         >
       </Tooltip>
     </FlexContainer>
     <FlexContainer --dir="column">
       <label for="language">Language</label>
       <Tooltip
-        description={ISO6391.getName($fileMetrics.language)}
+        description={ISO6391.getName(fileMetricsState.language)}
         alwaysEnabled={true}
       >
-        <span id="language" class="nowrap">{$fileMetrics.language}</span>
+        <span id="language" class="nowrap">{fileMetricsState.language}</span>
       </Tooltip>
     </FlexContainer>
   </FlexContainer>
@@ -210,22 +199,22 @@ limitations under the License.
   <FlexContainer>
     <FlexContainer --dir="column" --align-items="center">
       <FlexContainer --dir="row">
-        <Button disabledBy={!canRedo} fn={redo} description="Redo change">
+        <Button isDisabled={!canRedo()} fn={redo} description="Redo change">
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">redo</span>
-            <div class="icon-badge">{$fileMetrics.undoCount}</div>
+            <div class="icon-badge">{fileMetricsState.undoCount}</div>
           </span>
           <span slot="default">&nbsp;Redo</span>
         </Button>
-        <Button disabledBy={!canUndo} fn={undo} description="Undo change">
+        <Button isDisabled={!canUndo()} fn={undo} description="Undo change">
           <span slot="left" class="icon-container">
             <span class="btn-icon material-symbols-outlined">undo</span>
-            <div class="icon-badge">{$fileMetrics.changeCount}</div>
+            <div class="icon-badge">{fileMetricsState.changeCount}</div>
           </span>
           <span slot="default">&nbsp;Undo</span>
         </Button>
         <Button
-          disabledBy={!canRevert}
+          isDisabled={!canRevert()}
           fn={clearChangeStack}
           description="Revert all changes"
         >

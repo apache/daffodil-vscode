@@ -61,19 +61,28 @@ import os from 'os'
 import path from 'path'
 import * as vscode from 'vscode'
 import XDGAppPaths from 'xdg-app-paths'
-import { extractDaffodilEvent } from '../daffodilDebugger/daffodil'
 import {
-  EditByteModes,
+  DaffodilData,
+  extractDaffodilEvent,
+} from '../daffodilDebugger/daffodil'
+import {
+  DATA_PROFILE_MAX_LENGTH,
   VIEWPORT_CAPACITY_MAX,
 } from '../svelte/src/stores/configuration'
 import {
-  EditorMessage,
-  MessageCommand,
-  MessageLevel,
-} from '../svelte/src/utilities/message'
+  EditByteModes,
+  getRequestCommandType,
+  getRequestPayloadType,
+  MessageRequestMap,
+  VSMessagePackage,
+} from 'ext_types'
 import * as editor_config from './config'
 import { configureOmegaEditPort, ServerInfo } from './include/server/ServerInfo'
-import { SvelteWebviewInitializer } from './svelteWebviewInitializer'
+import {
+  DataEditorUI,
+  getSvelteWebviewInitializer,
+  startSvelteWebviewInitializer,
+} from './ui/svelteWebviewInitializer'
 import {
   addActiveSession,
   removeActiveSession,
@@ -82,6 +91,7 @@ import { writeLogbackConfigFile } from './include/server/LogbackConfig'
 import { getCurrentHeartbeatInfo } from './include/server/heartbeat'
 import * as child_process from 'child_process'
 import { osCheck } from '../utils'
+import { isDFDLDebugSessionActive, toEncoding } from './include/utils'
 
 // *****************************************************************************
 // global constants
@@ -100,7 +110,7 @@ const HEARTBEAT_INTERVAL_MS: number = 1000 // 1 second (1000 ms)
 const SERVER_SESSION_TIMEOUT_MS: number = 60 * 1000
 const SERVER_CLEANUP_INTERVAL_MS: number = 15 * 1000
 const MAX_LOG_FILES: number = 5 // Maximum number of log files to keep TODO: make this configurable
-const OPEN_EDITORS = new Map<string, vscode.WebviewPanel>()
+const OPEN_EDITORS = new Map<string, DataEditorUI>()
 
 // *****************************************************************************
 // file-scoped variables
@@ -170,9 +180,6 @@ export function activate(ctx: vscode.ExtensionContext): void {
 // *****************************************************************************
 
 export class DataEditorClient implements vscode.Disposable {
-  public panel: vscode.WebviewPanel
-  private svelteWebviewInitializer: SvelteWebviewInitializer
-  private displayState: DisplayState
   private currentViewportId: string
   private fileToEdit: string = ''
   private fileInfoData: Record<string, any> | undefined = undefined
@@ -191,11 +198,9 @@ export class DataEditorClient implements vscode.Disposable {
 
   constructor(
     protected context: vscode.ExtensionContext,
-    private view: string,
-    title: string,
     private configVars: editor_config.IConfig,
     fileToEdit: string = '',
-    panel: vscode.WebviewPanel
+    private panel: DataEditorUI
   ) {
     this.panel = panel
     this.disposeCleanupComplete = new Promise((resolve) => {
@@ -203,29 +208,31 @@ export class DataEditorClient implements vscode.Disposable {
     })
     this.panel.webview.onDidReceiveMessage(this.messageReceiver, this)
 
+    // this.panel.onDidReceiveMessage(this.messageReceiver, this)
     this.disposables = [
       this.panel,
       vscode.debug.onDidReceiveDebugSessionCustomEvent(async (e) => {
         const eventAsEditorMessage = extractDaffodilEvent(e)
         if (eventAsEditorMessage === undefined) return
-        const forwardAs = eventAsEditorMessage.asObject()
-        await this.panel.webview.postMessage(forwardAs)
+        const { body, event } = eventAsEditorMessage
+        if (event !== 'daffodil.data') return
+        const { bytePos1b } = body as DaffodilData
+
+        this.panel.postMessage('bytePos1b', {
+          bytePos1b,
+        })
       }),
     ]
 
     this.context.subscriptions.push(this)
 
-    this.svelteWebviewInitializer = new SvelteWebviewInitializer(context)
-    this.svelteWebviewInitializer.initialize(this.view, this.panel.webview)
-
     this.currentViewportId = ''
     this.fileToEdit = fileToEdit
-    this.displayState = new DisplayState(this.panel)
   }
-  addDisposable(dispoable: vscode.Disposable) {
+  public addDisposable(dispoable: vscode.Disposable) {
     this.disposables.push(dispoable)
   }
-  async dispose(): Promise<void> {
+  public async dispose(): Promise<void> {
     if (this.sendHeartbeatIntervalId) {
       clearInterval(this.sendHeartbeatIntervalId)
       this.sendHeartbeatIntervalId = undefined
@@ -237,7 +244,7 @@ export class DataEditorClient implements vscode.Disposable {
       this.disposables[i].dispose()
   }
 
-  show(): void {
+  public show(): void {
     this.panel.reveal()
   }
 
@@ -247,30 +254,39 @@ export class DataEditorClient implements vscode.Disposable {
 
   public static async open(
     context: vscode.ExtensionContext,
-    view: string,
     configVars: editor_config.IConfig,
     fileToEdit: string = ''
   ): Promise<DataEditorClient | undefined> {
-    const title = !fileToEdit ? 'Data Editor' : path.basename(fileToEdit)
+    startSvelteWebviewInitializer(context)
+    const title = !fileToEdit
+      ? 'Data Editor' + (OPEN_EDITORS.size + 1).toString()
+      : path.basename(fileToEdit)
+
+    if (OPEN_EDITORS.has(title))
+      throw new Error(`A Data Editor instance already exists for ${title}`)
 
     const column =
       fileToEdit !== '' ? vscode.ViewColumn.Two : vscode.ViewColumn.Active
-
-    const panel = vscode.window.createWebviewPanel(view, title, column, {
-      enableScripts: true,
-      retainContextWhenHidden: true,
-    })
-
-    const editor = new DataEditorClient(
-      context,
-      view,
+    const uiMsgId = getSvelteWebviewInitializer().formatMsgId(
       title,
-      configVars,
-      fileToEdit,
-      panel
+      isDFDLDebugSessionActive(fileToEdit)
     )
 
-    panel.onDidDispose(() => {
+    const ui = getSvelteWebviewInitializer().createSveltePanel({
+      title,
+      column,
+      uiMsgId,
+    })
+    ui.displayState.onColorThemeChanged((kind) => {
+      ui.postMessage('setUITheme', kind)
+    })
+    const editor = new DataEditorClient(context, configVars, fileToEdit, ui)
+
+    await editor.initialize()
+
+    ui.reveal()
+
+    ui.onDidDispose(async () => {
       const pathKey = path.resolve(editor.fileToEdit).toLowerCase()
       OPEN_EDITORS.delete(pathKey)
 
@@ -292,6 +308,13 @@ export class DataEditorClient implements vscode.Disposable {
       })
     })
 
+    if (isDFDLDebugSessionActive(fileToEdit)) {
+      editor.addDisposable(
+        vscode.debug.onDidTerminateDebugSession(async () => {
+          editor.dispose()
+        })
+      )
+    }
     const initialized = await editor.initialize()
     if (!initialized) {
       return undefined
@@ -299,7 +322,6 @@ export class DataEditorClient implements vscode.Disposable {
 
     return editor
   }
-
   public async initialize(): Promise<boolean> {
     checkpointPath = this.configVars.checkpointPath
     let initialized = false
@@ -390,10 +412,17 @@ export class DataEditorClient implements vscode.Disposable {
     return initialized
   }
 
-  sessionId(): string {
+  public sessionId(): string {
     return this.omegaSessionId
   }
 
+  public isActive(): boolean {
+    const pathKey = path.resolve(this.fileToEdit).toLowerCase()
+    return OPEN_EDITORS.get(pathKey) !== undefined
+  }
+  public currentFile(): string {
+    return this.fileToEdit
+  }
   private async setupDataEditor(): Promise<boolean> {
     assert(
       checkpointPath && checkpointPath.length > 0,
@@ -527,11 +556,18 @@ export class DataEditorClient implements vscode.Disposable {
       return false
     }
 
-    // send the initial file info to the webview
     this.fileInfoData = data
-    await this.panel.webview.postMessage({
-      command: MessageCommand.fileInfo,
-      data: data,
+    this.panel.postMessage('fileInfo', {
+      bom: data.byteOrderMark,
+      contentType: data.type,
+      filename: this.fileToEdit,
+      language: data.language,
+    })
+
+    this.panel.postMessage('counts', {
+      applied: 0,
+      computedFileSize: data.computedFileSize,
+      undos: 0,
     })
     getLogger().info(
       {
@@ -575,6 +611,9 @@ export class DataEditorClient implements vscode.Disposable {
           cppStandard: serverInfo.cppStandard,
         },
       },
+      // this.panel.postMessage('heartbeat', {
+      //   ...heartbeatInfo.serverHeartbeat,
+      //   port: this.configVars.port,
     })
     getLogger().debug({
       fn: 'DataEditorClient::sendHeartbeat',
@@ -613,177 +652,113 @@ export class DataEditorClient implements vscode.Disposable {
           break
       }
     })
-
     this.fileInfoData = {
       ...this.fileInfoData,
       ...data,
     }
-
-    // send the accumulated counts to the webview
-    await this.panel.webview.postMessage({
-      command: MessageCommand.fileInfo,
-      data: data,
+    this.panel.postMessage('counts', {
+      applied: data.changeCount,
+      computedFileSize: data.computedFileSize,
+      undos: data.undoCount,
     })
   }
 
-  // handle messages from the webview
-  private async messageReceiver(message: EditorMessage) {
-    switch (message.command) {
-      case MessageCommand.showMessage:
-        switch (message.data.messageLevel as MessageLevel) {
-          case MessageLevel.Error:
-            vscode.window.showErrorMessage(message.data.message)
-            break
-          case MessageLevel.Info:
-            vscode.window.showInformationMessage(message.data.message)
-            break
-          case MessageLevel.Warn:
-            vscode.window.showWarningMessage(message.data.message)
-            break
-        }
-        break
+  private async messageReceiver(incomingMessage: VSMessagePackage) {
+    const command = getRequestCommandType(...incomingMessage.payload)
 
-      case MessageCommand.webviewReady:
-        this.hasReceivedWebviewReady = true
-        getLogger().info(
-          {
-            fn: 'DataEditorClient::messageReceiver',
-            sessionId: this.omegaSessionId,
-            viewportId: this.currentViewportId,
-          },
-          'Received webviewReady from data editor'
-        )
-        await this.resyncWebview()
-        break
+    // case MessageCommand.webviewReady:
+    //   this.hasReceivedWebviewReady = true
+    //   getLogger().info(
+    //     {
+    //       fn: 'DataEditorClient::messageReceiver',
+    //       sessionId: this.omegaSessionId,
+    //       viewportId: this.currentViewportId,
+    //     },
+    //     'Received webviewReady from data editor'
+    //   )
+    //   await this.resyncWebview()
+    //   break
 
-      case MessageCommand.scrollViewport:
-        await this.scrollViewport(
-          this.panel,
-          this.currentViewportId,
-          message.data.scrollOffset,
-          message.data.bytesPerRow
-        )
-        break
+    // case MessageCommand.scrollViewport:
+    //   await this.scrollViewport(
+    //     this.panel,
+    //     this.currentViewportId,
+    //     message.data.scrollOffset,
+    //     message.data.bytesPerRow
+    //   )
+    //   break
 
-      case MessageCommand.editorOnChange:
+    // case MessageCommand.editorOnChange:
+    switch (command) {
+      case 'showMessage':
         {
-          this.displayState.editorEncoding = message.data.encoding
-          const encodeDataAs =
-            message.data.editMode === EditByteModes.Single
-              ? 'hex'
-              : this.displayState.editorEncoding
-
-          if (
-            message.data.selectionData &&
-            message.data.selectionData.length > 0
-          ) {
-            await this.panel.webview.postMessage({
-              command: MessageCommand.editorOnChange,
-              display: dataToEncodedStr(
-                Buffer.from(message.data.selectionData),
-                encodeDataAs
-              ),
-            })
-          }
+          const { level, message } = getRequestPayloadType<typeof command>(
+            incomingMessage.payload[1]
+          )
+          // incomingMessage.payload as MessageRequestMap['showMessage']
+          vscode.window[`show${level}Message`](message)
         }
         break
 
-      case MessageCommand.applyChanges:
-        await edit(
-          this.omegaSessionId,
-          message.data.offset,
-          fromMessageBytes(message.data.originalSegment),
-          fromMessageBytes(message.data.editedSegment)
-        )
-        await this.sendChangesInfo()
-        break
+      // case MessageCommand.applyChanges:
+      //   await edit(
+      //     this.omegaSessionId,
+      //     message.data.offset,
+      //     fromMessageBytes(message.data.originalSegment),
+      //     fromMessageBytes(message.data.editedSegment)
+      //   )
+      //   await this.sendChangesInfo()
+      //   break
 
-      case MessageCommand.undoChange:
-        await undo(this.omegaSessionId)
-        await this.sendChangesInfo()
-        this.panel.webview.postMessage({
-          command: MessageCommand.clearChanges,
-        })
-        break
+      // case MessageCommand.undoChange:
+      //   await undo(this.omegaSessionId)
+      //   await this.sendChangesInfo()
+      //   this.panel.webview.postMessage({
+      //     command: MessageCommand.clearChanges,
+      //   })
+      //   break
 
-      case MessageCommand.redoChange:
-        await redo(this.omegaSessionId)
-        await this.sendChangesInfo()
-        this.panel.webview.postMessage({
-          command: MessageCommand.clearChanges,
-        })
-        break
+      // case MessageCommand.redoChange:
+      //   await redo(this.omegaSessionId)
+      //   await this.sendChangesInfo()
+      //   this.panel.webview.postMessage({
+      //     command: MessageCommand.clearChanges,
+      //   })
+      //   break
 
-      case MessageCommand.profile:
+      // case MessageCommand.profile:
+      case 'scrollViewport':
         {
-          const startOffset: number = message.data.startOffset
-          const length: number = message.data.length
-          const byteProfile: number[] = await profileSession(
-            this.omegaSessionId,
+          const { startOffset, bytesPerRow } = getRequestPayloadType<
+            typeof command
+          >(incomingMessage.payload[1])
+
+          await this.scrollViewport(
+            this.panel,
+            this.currentViewportId,
             startOffset,
-            length
+            bytesPerRow
           )
-          const characterCount = await countCharacters(
-            this.omegaSessionId,
-            startOffset,
-            length
-          )
-          const contentTypeResponse = await getContentType(
-            this.omegaSessionId,
-            startOffset,
-            length
-          )
-          const languageResponse = await getLanguage(
-            this.omegaSessionId,
-            startOffset,
-            length,
-            characterCount.getByteOrderMark()
-          )
-          await this.panel.webview.postMessage({
-            command: MessageCommand.profile,
-            data: {
-              startOffset: startOffset,
-              length: length,
-              byteProfile: byteProfile,
-              numAscii: numAscii(byteProfile),
-              language: languageResponse.getLanguage(),
-              contentType: contentTypeResponse.getContentType(),
-              characterCount: {
-                byteOrderMark: characterCount.getByteOrderMark(),
-                byteOrderMarkBytes: characterCount.getByteOrderMarkBytes(),
-                singleByteCount: characterCount.getSingleByteChars(),
-                doubleByteCount: characterCount.getDoubleByteChars(),
-                tripleByteCount: characterCount.getTripleByteChars(),
-                quadByteCount: characterCount.getQuadByteChars(),
-                invalidBytes: characterCount.getInvalidBytes(),
-              },
-            },
-          })
         }
         break
-
-      case MessageCommand.clearChanges:
-        if (
-          (await vscode.window.showInformationMessage(
-            'Are you sure you want to revert all changes?',
-            { modal: true },
-            'Yes',
-            'No'
-          )) === 'Yes'
-        ) {
-          await clear(this.omegaSessionId)
-          await this.sendChangesInfo()
-          this.panel.webview.postMessage({
-            command: MessageCommand.clearChanges,
-          })
-        }
-        break
-
-      case MessageCommand.save:
+      // Session Manipulation Commands
+      case 'save':
         await this.saveFile(this.fileToEdit)
-        break
 
-      case MessageCommand.saveAs:
+        break
+      case 'saveSegment':
+        const { length, offset } = getRequestPayloadType<typeof command>(
+          incomingMessage.payload[1]
+        )
+        const uri = await vscode.window.showSaveDialog({
+          title: 'Save Segment',
+          saveLabel: 'Save',
+        })
+        if (uri && uri.fsPath) {
+          await this.saveFileSegment(uri.fsPath, offset, length)
+        }
+        break
+      case 'saveAs':
         {
           const uri = await vscode.window.showSaveDialog({
             title: 'Save Session',
@@ -795,106 +770,249 @@ export class DataEditorClient implements vscode.Disposable {
         }
         break
 
-      case MessageCommand.saveSegment:
+      case 'applyChanges':
         {
-          const uri = await vscode.window.showSaveDialog({
-            title: 'Save Segment',
-            saveLabel: 'Save',
-          })
-          if (uri && uri.fsPath) {
-            await this.saveFileSegment(
-              uri.fsPath,
-              message.data.offset,
-              message.data.length
-            )
+          const { offset, edited_segment, original_segment } =
+            getRequestPayloadType<typeof command>(incomingMessage.payload[1])
+          await edit(
+            this.omegaSessionId,
+            offset,
+            original_segment,
+            edited_segment
+          )
+          await this.sendChangesInfo()
+        }
+        break
+      case 'undoChange':
+        {
+          await undo(this.omegaSessionId)
+          await this.sendChangesInfo()
+          this.panel.postMessage('clearChanges')
+        }
+        break
+      case 'redoChange':
+        {
+          await redo(this.omegaSessionId)
+          await this.sendChangesInfo()
+          this.panel.postMessage('clearChanges')
+        }
+        break
+      case 'clearChanges':
+        {
+          if (
+            (await vscode.window.showInformationMessage(
+              'Are you sure you want to revert all changes?',
+              { modal: true },
+              'Yes',
+              'No'
+            )) === 'Yes'
+          ) {
+            await clear(this.omegaSessionId)
+            await this.sendChangesInfo()
+            this.panel.postMessage('clearChanges')
           }
         }
         break
-
-      case MessageCommand.requestEditedData:
+      case 'requestEditedData':
         {
-          const [selectionData, selectionDisplay] = fillRequestData(message)
+          const payload = getRequestPayloadType<typeof command>(
+            incomingMessage.payload[1]
+          )
+          // const {} = incomingMessage.payload as MessageRequestMap['']
+          const [selectionData, selectionDisplay] = fillRequestData(payload)
 
-          await this.panel.webview.postMessage({
-            command: MessageCommand.requestEditedData,
-            data: {
-              data: toMessageBytes(Uint8Array.from(selectionData)),
-              dataDisplay: selectionDisplay,
-            },
+          // await this.panel.webview.postMessage({
+          //   command: MessageCommand.requestEditedData,
+          //   data: {
+          //     data: toMessageBytes(Uint8Array.from(selectionData)),
+          //     dataDisplay: selectionDisplay,
+          //   },
+          await this.panel.postMessage('requestEditedData', {
+            data: Uint8Array.from(selectionData),
+            dataDisplay: selectionDisplay,
           })
         }
         break
-
-      case MessageCommand.replace:
+      case 'replace':
         {
-          const searchDataBytes = encodedStrToData(
-            message.data.searchData,
-            message.data.encoding
-          )
-          const replaceDataBytes = encodedStrToData(
-            message.data.replaceData,
-            message.data.encoding
-          )
+          const {
+            encoding,
+            replaceStr,
+            searchStr,
+            is_case_insensitive,
+            is_reverse,
+            length,
+            offset,
+            overwriteOnly,
+          } = getRequestPayloadType<typeof command>(incomingMessage.payload[1])
+          const requestedEncoding = toEncoding(encoding)
+
+          const searchDataBytes =
+            searchStr instanceof Uint8Array
+              ? searchStr
+              : encodedStrToData(searchStr, requestedEncoding)
+          const replaceDataBytes =
+            replaceStr instanceof Uint8Array
+              ? replaceStr
+              : encodedStrToData(replaceStr, requestedEncoding)
           const nextOffset = await replaceOneSession(
             this.omegaSessionId,
             searchDataBytes,
             replaceDataBytes,
-            message.data.caseInsensitive,
-            message.data.isReverse,
-            message.data.searchOffset,
-            message.data.searchLength,
-            message.data.overwriteOnly
+            is_case_insensitive,
+            is_reverse,
+            offset,
+            length,
+            overwriteOnly
           )
           if (nextOffset === -1) {
             vscode.window.showErrorMessage('No replacement took place')
           } else {
             await this.sendChangesInfo()
           }
-          await this.panel.webview.postMessage({
-            command: MessageCommand.replaceResults,
-            data: {
-              replacementsCount: nextOffset === -1 ? 0 : 1,
-              nextOffset: nextOffset,
-              searchDataBytesLength: searchDataBytes.length,
-              replaceDataBytesLength: replaceDataBytes.length,
-            },
+          await this.panel.postMessage('replaceResults', {
+            replacementsCount: nextOffset === -1 ? 0 : 1,
+            nextOffset: nextOffset,
+            searchDataBytesLength: searchDataBytes.length,
+            replaceDataBytesLength: replaceDataBytes.length,
           })
         }
         break
 
-      case MessageCommand.search:
+      // Utility Message Commands
+      case 'search':
         {
-          const searchDataBytes = encodedStrToData(
-            message.data.searchData,
-            message.data.encoding
-          )
+          const {
+            encoding,
+            searchStr,
+            is_case_insensitive,
+            is_reverse,
+            length,
+            limit,
+            offset,
+          } = getRequestPayloadType<typeof command>(incomingMessage.payload[1])
+          const requestedEncoding = toEncoding(encoding)
+
+          const searchDataBytes = encodedStrToData(searchStr, requestedEncoding)
+          const searchLimit = limit ? limit + 1 : 2
+
           const searchResults = await searchSession(
             this.omegaSessionId,
             searchDataBytes,
-            message.data.caseInsensitive,
-            message.data.isReverse,
-            message.data.searchOffset,
-            message.data.searchLength,
-            message.data.limit + 1
+            is_case_insensitive,
+            is_reverse,
+            offset,
+            length,
+            searchLimit
           )
+
           if (searchResults.length === 0) {
             vscode.window.showInformationMessage(
-              `No more matches found for '${message.data.searchData}'`
+              `No more matches found for '${searchStr}'`
             )
           }
           let overflow = false
-          if (searchResults.length > message.data.limit) {
+          if (searchResults.length >= searchLimit) {
             overflow = true
             searchResults.pop()
           }
-          await this.panel.webview.postMessage({
-            command: MessageCommand.searchResults,
-            data: {
-              searchResults: searchResults,
-              searchDataBytesLength: searchDataBytes.length,
-              overflow: overflow,
+          await this.panel.postMessage('search', {
+            results: searchResults,
+            byteLength: searchDataBytes.length,
+            overflow: overflow,
+          })
+        }
+        break
+      case 'profile':
+        {
+          let { length, startOffset } = getRequestPayloadType<typeof command>(
+            incomingMessage.payload[1]
+          )
+          length = length < 0 ? DATA_PROFILE_MAX_LENGTH : length
+
+          const byteProfile = await profileSession(
+            this.omegaSessionId,
+            startOffset,
+            length
+          ).catch((err) => {
+            vscode.window.showErrorMessage(
+              `Unable to post 'profile' response: ${err}`
+            )
+            return
+          })
+          const characterCount = await countCharacters(
+            this.omegaSessionId,
+            startOffset,
+            length
+          ).catch((err) => {
+            vscode.window.showErrorMessage(
+              `Unable to post 'profile' response: ${err}`
+            )
+            return
+          })
+          const contentTypeResponse = await getContentType(
+            this.omegaSessionId,
+            startOffset,
+            length
+          ).catch((err) => {
+            vscode.window.showErrorMessage(
+              `Unable to post 'profile' response: ${err}`
+            )
+            return
+          })
+          const languageResponse = await getLanguage(
+            this.omegaSessionId,
+            startOffset,
+            length,
+            characterCount!.getByteOrderMark()
+          ).catch((err) => {
+            vscode.window.showErrorMessage(
+              `Unable to post 'profile' response: ${err}`
+            )
+            return
+          })
+          await this.panel.postMessage('profile', {
+            startOffset: startOffset,
+            length: length,
+            byteProfile: byteProfile!,
+            numAscii: numAscii(byteProfile!),
+            language: languageResponse!.getLanguage(),
+            contentType: contentTypeResponse!.getContentType(),
+            characterCount: {
+              byteOrderMark: characterCount!.getByteOrderMark(),
+              byteOrderMarkBytes: characterCount!.getByteOrderMarkBytes(),
+              singleByteCount: characterCount!.getSingleByteChars(),
+              doubleByteCount: characterCount!.getDoubleByteChars(),
+              tripleByteCount: characterCount!.getTripleByteChars(),
+              quadByteCount: characterCount!.getQuadByteChars(),
+              invalidBytes: characterCount!.getInvalidBytes(),
             },
           })
+        }
+        break
+      case 'editorOnChange':
+        {
+          const { editMode, encoding, selectionData } = getRequestPayloadType<
+            typeof command
+          >(incomingMessage.payload[1])
+
+          const requestedEncoding = toEncoding(encoding)
+
+          this.panel.displayState.update('encoding', requestedEncoding)
+
+          const encodeDataAs =
+            editMode === EditByteModes.Single
+              ? 'hex'
+              : this.panel.displayState.get('encoding')
+
+          if (selectionData && selectionData.length > 0) {
+            await this.panel.postMessage('editorOnChange', {
+              encodedStr: dataToEncodedStr(
+                Buffer.from(selectionData),
+                encodeDataAs
+              ),
+            })
+          }
         }
         break
     }
@@ -1048,16 +1166,18 @@ export class DataEditorClient implements vscode.Disposable {
     }
 
     if (saved) {
-      this.fileToEdit = fileToSave
       const fileSize = await getComputedFileSize(this.omegaSessionId)
-      await this.panel.webview.postMessage({
-        command: MessageCommand.fileInfo,
-        data: {
+      if (this.fileToEdit !== fileToSave) {
+        this.fileToEdit = fileToSave
+        this.panel.postMessage('saveAs', {
           computedFileSize: fileSize,
-          diskFileSize: fileSize,
-          fileName: fileToSave,
-        },
-      })
+          newFilePath: this.fileToEdit,
+        })
+      } else {
+        this.panel.postMessage('save', {
+          computedFileSize: fileSize,
+        })
+      }
       vscode.window.showInformationMessage(`Saved: ${fileToSave}`)
     } else if (cancelled) {
       vscode.window.showInformationMessage(`Cancelled save: ${fileToSave}`)
@@ -1067,7 +1187,7 @@ export class DataEditorClient implements vscode.Disposable {
   }
 
   private async scrollViewport(
-    panel: vscode.WebviewPanel,
+    panel: DataEditorUI,
     viewportId: string,
     offset: number,
     bytesPerRow: number
@@ -1157,12 +1277,7 @@ async function createDataEditorWebviewPanel(
   )
 
   // Use the new duplicate-safe open method
-  return await DataEditorClient.open(
-    ctx,
-    'dataEditor',
-    launchConfigVars,
-    fileToEdit
-  )
+  return await DataEditorClient.open(ctx, launchConfigVars, fileToEdit)
 }
 
 function rotateLogFiles(logFile: string): void {
@@ -1253,19 +1368,26 @@ async function setupLogging(configVars: editor_config.Config): Promise<void> {
 }
 
 async function sendViewportRefresh(
-  panel: vscode.WebviewPanel,
+  panel: DataEditorUI,
   viewportDataResponse: ViewportDataResponse
 ): Promise<void> {
-  const delivered = await panel.webview.postMessage({
-    command: MessageCommand.viewportRefresh,
-    data: {
-      viewportId: viewportDataResponse.getViewportId(),
-      fileOffset: viewportDataResponse.getOffset(),
-      length: viewportDataResponse.getLength(),
-      bytesLeft: viewportDataResponse.getFollowingByteCount(),
-      data: toMessageBytes(viewportDataResponse.getData_asU8()),
-      capacity: VIEWPORT_CAPACITY_MAX,
-    },
+  // const delivered = await panel.webview.postMessage({
+  //   command: MessageCommand.viewportRefresh,
+  //   data: {
+  //     viewportId: viewportDataResponse.getViewportId(),
+  //     fileOffset: viewportDataResponse.getOffset(),
+  //     length: viewportDataResponse.getLength(),
+  //     bytesLeft: viewportDataResponse.getFollowingByteCount(),
+  //     data: toMessageBytes(viewportDataResponse.getData_asU8()),
+  //     capacity: VIEWPORT_CAPACITY_MAX,
+  //   },
+  panel.postMessage('viewportRefresh', {
+    viewportId: viewportDataResponse.getViewportId(),
+    fileOffset: viewportDataResponse.getOffset(),
+    length: viewportDataResponse.getLength(),
+    bytesLeft: viewportDataResponse.getFollowingByteCount(),
+    data: viewportDataResponse.getData_asU8(),
+    capacity: VIEWPORT_CAPACITY_MAX,
   })
   getLogger().debug({
     fn: 'sendViewportRefresh',
@@ -1290,6 +1412,15 @@ async function viewportSubscribe(
     viewportId,
     interest: ALL_EVENTS & ~ViewportEventKind.MODIFY,
     onEvent: async (event) => {
+      // async function viewportSubscribe(panel: DataEditorUI, viewportId: string) {
+      // subscribe to all viewport events
+      // client
+      //   .subscribeToViewportEvents(
+      //     new EventSubscriptionRequest()
+      //       .setId(viewportId)
+      //       .setInterest(ALL_EVENTS & ~ViewportEventKind.VIEWPORT_EVT_MODIFY)
+      //   )
+      //   .on('data', async (event: ViewportEvent) => {
       getLogger().debug({
         viewportId: event.getViewportId(),
         event: event.getViewportEventKind(),
@@ -1299,55 +1430,26 @@ async function viewportSubscribe(
   })
 }
 
-class DisplayState {
-  public editorEncoding: BufferEncoding
-  public colorThemeKind: vscode.ColorThemeKind
-  private panel: vscode.WebviewPanel
-
-  constructor(editorPanel: vscode.WebviewPanel) {
-    this.editorEncoding = 'hex'
-    this.colorThemeKind = vscode.window.activeColorTheme.kind
-    this.panel = editorPanel
-
-    vscode.window.onDidChangeActiveColorTheme(async (event) => {
-      this.colorThemeKind = event.kind
-      await this.sendUIThemeUpdate()
-    }, this)
-    this.sendUIThemeUpdate()
-  }
-
-  public sendUIThemeUpdate() {
-    return this.panel.webview.postMessage({
-      command: MessageCommand.setUITheme,
-      theme: this.colorThemeKind,
-    })
-  }
-}
-
-function fillRequestData(message: EditorMessage): [Buffer, string] {
+function fillRequestData(
+  message: MessageRequestMap['requestEditedData']
+): [Buffer, string] {
   let selectionByteData: Buffer
   let selectionByteDisplay: string
-  if (message.data.editMode === EditByteModes.Multiple) {
-    selectionByteData = encodedStrToData(
-      message.data.editedContent,
-      message.data.encoding
-    )
-    selectionByteDisplay = dataToEncodedStr(
-      selectionByteData,
-      message.data.encoding
-    )
+  let encoding = toEncoding(message.encodingStr)
+
+  if (message.editMode === EditByteModes.Multiple) {
+    selectionByteData = encodedStrToData(message.editedContent, encoding)
+    selectionByteDisplay = dataToEncodedStr(selectionByteData, encoding)
   } else {
     selectionByteData =
-      message.data.viewport === 'logical'
-        ? encodedStrToData(message.data.editedContent, 'latin1')
-        : Buffer.from([
-            parseInt(message.data.editedContent, message.data.radix),
-          ])
+      message.viewport === 'logical'
+        ? encodedStrToData(message.editedContent, 'latin1')
+        : Buffer.from([parseInt(message.editedContent, message.radix)])
 
     selectionByteDisplay =
-      message.data.viewport === 'logical'
-        ? message.data.editedContent
-        : dataToRadixStr(selectionByteData, message.data.radix)
+      message.viewport === 'logical'
+        ? message.editedContent
+        : dataToRadixStr(selectionByteData, message.radix)
   }
 
   return [selectionByteData, selectionByteDisplay]
@@ -1376,7 +1478,16 @@ function encodedStrToData(
   }
 }
 
-function dataToEncodedStr(buffer: Buffer, encoding: BufferEncoding): string {
+function dataToEncodedStr(
+  buffer: Buffer,
+  encoding: BufferEncoding | undefined
+): string {
+  if (!encoding) {
+    console.error(
+      `Request encoding (${encoding}) is not an appropriate type of BufferEncoding`
+    )
+    return ''
+  }
   return encoding === 'binary'
     ? dataToRadixStr(buffer, 2)
     : buffer.toString(encoding)
