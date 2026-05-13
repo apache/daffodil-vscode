@@ -106,3 +106,8 @@ Apache, the Apache logo, Apache Daffodil, Daffodil, and the Apache Daffodil logo
 Copyright © 2025 [The Apache Software Foundation](https://www.apache.org/). Licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0). 
 <br/>
 Apache, Apache Daffodil, Daffodil, and the Apache Daffodil logo are trademarks of The Apache Software Foundation.
+
+
+## Update Missing Data Editor Items in Wiki
+
+Added per issue [#1695](https://github.com/apache/daffodil-vscode/issues/1695).
