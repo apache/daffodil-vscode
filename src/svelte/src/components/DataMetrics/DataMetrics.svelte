@@ -18,12 +18,13 @@ limitations under the License.
   import Button from '../Inputs/Buttons/Button.svelte'
   import { onMount } from 'svelte'
   import Input from '../Inputs/Input/Input.svelte'
-  import { addressRadix, fileMetrics, viewport } from '../../stores'
+  import { addressRadix, viewport } from '../../stores'
   import { DATA_PROFILE_MAX_LENGTH } from '../../stores/configuration'
   import { radixToString, regexEditDataTest } from '../../utilities/display'
   import ISO6391 from 'iso-639-1'
   import Tooltip from '../layouts/Tooltip.svelte'
   import { getUIMessegnerCtx } from 'utilities/messageContext.svelte'
+  import { fileMetricsState } from 'editor_components/Header/fieldsets/FileMetrics.svelte.ts'
 
   const { addListener, postMessage } = getUIMessegnerCtx()
   const PROFILE_DOS_EOL = 256
@@ -159,22 +160,14 @@ limitations under the License.
       `Profiling bytes from ${startOffset} to ${startOffset + length}...`,
       0
     )
-    // length = length === $fileMetrics.diskSize ? Math.max(0, length - 1) : length
+    
+    length = length === fileMetricsState.diskSize ? Math.max(0, length - 1) : length
 
-    // if (length < 0) {
-    //   vscode.postMessage({
-    //     command: MessageCommand.showMessage,
-    //     data: `Invalid data length ${length}. Cannot profile data.`,
-    //   })
-    //   return
-    // }
-
-    // vscode.postMessage({
-    //   command: MessageCommand.profile,
-    //   data: {
-    //     startOffset: startOffset,
-    //     length: length <= 0 ? DATA_PROFILE_MAX_LENGTH : length,
-    //   },
+    if (length < 0) {
+      postMessage('showMessage', {message:`Invalid data length ${length}. Cannot profile data.`, level: 'Error'})
+      return
+    }
+    
     postMessage('profile', {
       startOffset: startOffset,
       length: length,

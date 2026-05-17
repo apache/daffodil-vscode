@@ -16,7 +16,6 @@ limitations under the License.
 -->
 
 <script lang="ts">
-  import './app.css'
   import { onMount } from 'svelte'
 
   import {
@@ -76,8 +75,11 @@ limitations under the License.
   const { addListener, postMessage } = getUIMessegnerCtx()
 
   onMount(() => {
-    vscode.postMessage({
-      command: MessageCommand.webviewReady,
+    postMessage('webviewReady')
+    postMessage('scrollViewport', {
+      startOffset: 0,
+      bytesPerRow: $bytesPerRow,
+      numLinesDisplayed: $dataDislayLineAmount
     })
   })
 
@@ -235,8 +237,8 @@ limitations under the License.
     }
     postMessage('applyChanges', {
       offset: editedOffset,
-      original_segment: Array.from(originalData),
-      edited_segment: Array.from(editedData),
+      original_segment: originalData,
+      edited_segment: editedData,
     })
 
     clearDataDisplays()
@@ -339,12 +341,14 @@ limitations under the License.
   })
   addListener('viewportRefresh', (payload) => {
     const { data, fileOffset, length, bytesLeft } = payload
+    
     $viewport = {
-      data: data,
+      data,
       fileOffset: fileOffset,
       length: length,
       bytesLeft: bytesLeft,
     } as ViewportData_t
+    console.log($viewport)
   })
 </script>
 

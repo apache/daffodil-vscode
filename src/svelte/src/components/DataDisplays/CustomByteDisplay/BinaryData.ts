@@ -16,16 +16,17 @@
  */
 
 import { SimpleWritable } from '../../../stores/localStore'
-import {
-  type BytesPerRow,
-  type RadixValues,
-} from '../../../stores/configuration'
+// import {
+//   type BytesPerRow,
+//   type RadixValues,
+// } from '../../../stores/configuration'
 import {
   radixBytePad,
   viewport_offset_to_line_num,
 } from '../../../utilities/display'
 import { dataDislayLineAmount } from '../../../stores'
 import { get } from 'svelte/store'
+import type { BytesPerRow, RadixValues } from 'ext_types'
 
 export const BYTE_ACTION_DIV_OFFSET: number = 24
 

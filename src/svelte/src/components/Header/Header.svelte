@@ -49,7 +49,7 @@ limitations under the License.
       <FlexContainer --height="fit-content">
         <FileMetrics on:clearChangeStack on:redo on:undo />
         <SearchReplace on:seek on:clearDataDisplays />
-        <Settings on:seek />
+        <Settings/>
       </FlexContainer>
     </header>
     <div class="display-icons">

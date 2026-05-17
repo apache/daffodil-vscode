@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { debug } from 'vscode'
+import { debug, window } from 'vscode'
 
 export function isDFDLDebugSessionActive(file: string): boolean {
   if (debug.activeDebugSession === undefined) return false
@@ -29,4 +29,30 @@ export function toEncoding(encoding: string): BufferEncoding {
     return 'utf-8'
   }
   return encoding as BufferEncoding
+}
+
+export interface DataEditorFileProvider {
+  getFile(): Promise<string>
+}
+
+export const VSCodeDialogFileProvider: DataEditorFileProvider = {
+  getFile() {
+    return new Promise(async (res, rej) => {
+      const fileUri = await window.showOpenDialog({
+        canSelectMany: false,
+        openLabel: 'Select',
+        canSelectFiles: true,
+        canSelectFolders: false,
+        title: 'Select Data File',
+      })
+      // If user cancels file prompt, display info message
+      if (!fileUri || !fileUri[0]) {
+        // vscode.window.showInformationMessage(
+        //   ''
+        // )
+        rej(`Data Editor file opening cancelled.`)
+      }
+      res(fileUri![0].fsPath)
+    })
+  },
 }

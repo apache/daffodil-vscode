@@ -26,6 +26,7 @@ import { XMLParser } from 'fast-xml-parser'
 import * as unzip from 'unzip-stream'
 import { pipeline } from 'stream/promises'
 import { Transform } from 'stream'
+import { DataEditorFileProvider } from 'dataEditor/include/utils'
 let currentConfig: vscode.DebugConfiguration
 
 export const terminalName = 'daffodil-debugger'
@@ -71,7 +72,12 @@ export async function onDebugStartDisplay(viewsToCheck: string[]) {
     switch (viewToCheck) {
       case 'data-editor':
         if (config.openDataEditor) {
-          runCommand('extension.data.edit', config.data)
+          const fileProvider: DataEditorFileProvider = {
+            getFile: () => {
+              return config.data
+            },
+          }
+          runCommand('extension.data.edit', fileProvider)
         }
         break
       case 'infoset-view':

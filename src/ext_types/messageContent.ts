@@ -39,33 +39,51 @@ import {
   SetUIThemeResponse,
   ViewportRefreshResponse,
 } from './messages'
-import { EditorRequestIds, isEditorMessageId } from './messageIds'
+import {
+  EditorRequestId,
+  EditorRequestIds,
+  EditorResponseId,
+  isEditorMessageId,
+} from './messageIds'
+import { HeartbeatInfo } from 'dataEditor/include/server/heartbeat/HeartBeatInfo'
 
-type MessageCommands =
-  | 'clearChanges'
-  | 'applyChanges'
-  | 'editorOnChange'
-  | 'fileInfo'
-  | 'heartbeat'
-  | 'profile'
-  | 'redoChange'
-  | 'replaceResults'
-  | 'requestEditedData'
-  | 'save'
-  | 'saveAs'
-  | 'saveSegment'
-  | 'scrollViewport'
-  | 'search'
-  | 'replace'
-  | 'setUITheme'
-  | 'showMessage'
-  | 'undoChange'
-  | 'viewportRefresh'
+// type MessageCommands = EditorRequestId | EditorResponseId
+// type MessageCommandMapType<
+//   TActual extends Record<TExpectedKeys, unknown>,
+//   TExpectedKeys extends PropertyKey
+// > =
+//   Exclude<keyof TActual, TExpectedKeys> extends never
+//     ? TActual
+//     : never;
 
-type CommandMap = {
-  [K in MessageCommands]: any
-}
-export interface MessageRequestMap extends CommandMap {
+// type CommandMap<R extends 'Request' | 'Response'> = R extends 'Request'
+// ? { [K in EditorRequestId]: any}
+// : { [K in EditorResponseId]: any}
+
+// type RequestMap ={
+//   counts: never
+//   clearChanges: never
+//   applyChanges: ApplyChangesRequest
+//   editorOnChange: EditorOnChangeRequest
+//   fileInfo: never
+//   heartbeat: never
+//   profile: ProfileRequest
+//   redoChange: never
+//   replaceResults: never
+//   requestEditedData: EditedDataRequest
+//   save: never
+//   saveAs: never
+//   saveSegment: SaveSegmentRequest
+//   scrollViewport: ScrollViewportRequest
+//   search: SearchRequest
+//   replace: ReplaceRequest
+//   undoChange: never
+//   viewportRefresh: never
+//   showMessage: NotificationRequest
+// }
+// type RequestMessageContent<K extends keyof RequestMap> = RequestMap[K]
+// const t: RequestMessageContent<'applyChanges'>
+export type MessageRequestMap = {
   counts: never
   clearChanges: never
   applyChanges: ApplyChangesRequest
@@ -85,9 +103,10 @@ export interface MessageRequestMap extends CommandMap {
   undoChange: never
   viewportRefresh: never
   showMessage: NotificationRequest
+  webviewReady: never
 }
 
-export interface MessageResponseMap extends CommandMap {
+export type MessageResponseMap = {
   clearChanges: never
   applyChanges: ChangesInfoResponse
   editorOnChange: EditorOnChangeResponse
@@ -113,21 +132,21 @@ export interface MessageResponseMap extends CommandMap {
 
 export type ExtensionMessageKeys =
   | 'showMessage'
-  | 'setUITheme'
+  // | 'setUITheme'
   | 'editorOnChange'
 
-export type DataEditorMessageKeys = Exclude<
-  MessageCommands,
-  ExtensionMessageKeys
->
-export type DataEditorMessageRequests = Pick<
-  MessageRequestMap,
-  DataEditorMessageKeys
->
-export type DataEditorMessageResponses = Pick<
-  MessageResponseMap,
-  DataEditorMessageKeys
->
+// export type DataEditorMessageKeys = Exclude<
+//   MessageCommands,
+//   ExtensionMessageKeys
+// >
+// export type DataEditorMessageRequests = Pick<
+//   MessageRequestMap,
+//   DataEditorMessageKeys
+// >
+// export type DataEditorMessageResponses = Pick<
+//   MessageResponseMap,
+//   DataEditorMessageKeys
+// >
 /**
  * Key indexable interface to templated type inference of available messages sent between
  * the components of the DFDL VSCode extension.

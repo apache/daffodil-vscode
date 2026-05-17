@@ -76,31 +76,31 @@ limitations under the License.
   }
 
   addListener('heartbeat', (data) => {
-    // switch (msg.data.command) {
+    // switch (command) {
     //   case MessageCommand.heartbeat:
-        heartbeat.latency = msg.data.data.latency
-        heartbeat.serverCpuLoadAverage = msg.data.data.serverCpuLoadAverage
-        heartbeat.serverTimestamp = msg.data.data.serverTimestamp
-        heartbeat.serverUptime = msg.data.data.serverUptime
+        heartbeat.latency = data.latency
+        heartbeat.serverCpuLoadAverage = data.serverCpuLoadAverage
+        heartbeat.serverTimestamp = data.serverTimestamp
+        heartbeat.serverUptime = data.serverUptime
         heartbeat.serverResidentMemoryBytes =
-          msg.data.data.serverResidentMemoryBytes ?? 0
+          data.serverResidentMemoryBytes ?? 0
         heartbeat.serverVirtualMemoryBytes =
-          msg.data.data.serverVirtualMemoryBytes ?? 0
+          data.serverVirtualMemoryBytes ?? 0
         heartbeat.serverPeakResidentMemoryBytes =
-          msg.data.data.serverPeakResidentMemoryBytes ?? 0
-        heartbeat.sessionCount = msg.data.data.sessionCount
-        heartbeat.omegaEditPort = msg.data.data.serverInfo.omegaEditPort
-        heartbeat.serverVersion = msg.data.data.serverInfo.serverVersion
-        heartbeat.serverHostname = msg.data.data.serverInfo.serverHostname
-        heartbeat.serverProcessId = msg.data.data.serverInfo.serverProcessId
-        heartbeat.runtimeKind = msg.data.data.serverInfo.runtimeKind
-        heartbeat.runtimeName = msg.data.data.serverInfo.runtimeName
-        heartbeat.platform = msg.data.data.serverInfo.platform
+          data.serverPeakResidentMemoryBytes ?? 0
+        heartbeat.sessionCount = data.sessionCount
+        heartbeat.omegaEditPort = data.serverInfo.omegaEditPort
+        heartbeat.serverVersion = data.serverInfo.serverVersion
+        heartbeat.serverHostname = data.serverInfo.serverHostname
+        heartbeat.serverProcessId = data.serverInfo.serverProcessId
+        heartbeat.runtimeKind = data.serverInfo.runtimeKind
+        heartbeat.runtimeName = data.serverInfo.runtimeName
+        heartbeat.platform = data.serverInfo.platform
         heartbeat.availableProcessors =
-          msg.data.data.serverInfo.availableProcessors
-        heartbeat.compiler = msg.data.data.serverInfo.compiler
-        heartbeat.buildType = msg.data.data.serverInfo.buildType
-        heartbeat.cppStandard = msg.data.data.serverInfo.cppStandard
+          data.serverInfo.availableProcessors
+        heartbeat.compiler = data.serverInfo.compiler
+        heartbeat.buildType = data.serverInfo.buildType
+        heartbeat.cppStandard = data.serverInfo.cppStandard
 
         // set the serverTimestamp to 0 after 5 seconds of no heartbeat to indicate that no heartbeat has been received
         clearTimeout(timerId)
@@ -143,7 +143,7 @@ limitations under the License.
 <FlexContainer --height="25pt" --align-items="center">
   {#if heartbeat.serverTimestamp !== 0}
     <div class="info">
-      &#9889; Powered by Ωedit™ v{heartbeat.serverVersion} on port {heartbeat.port}
+      &#9889; Powered by Ωedit™ v{heartbeat.serverVersion} on port {heartbeat.omegaEditPort}
       &nbsp;
     </div>
     <FlexContainer>

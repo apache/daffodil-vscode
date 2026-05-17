@@ -23,11 +23,12 @@ import { DisplayState } from './displayState'
 export interface DataEditorUI extends vscode.Disposable {
   readonly displayState: DisplayState
   dispose(): void
+  isReady(): Promise<boolean>
   setTitle(title: string): void
   getMsgId(): string
   postMessage<K extends keyof MessageResponseMap>(
     ...payload: PostMessageArgs<MessageResponseMap, K>
-  ): void
+  ): Thenable<boolean>
   reveal: vscode.WebviewPanel['reveal']
   onDidReceiveMessage(listener: (e: any) => void, thisArg?: any): void
   onDidDispose(listener: (e: any) => void): void
@@ -35,11 +36,20 @@ export interface DataEditorUI extends vscode.Disposable {
 class SvelteUIWebviewPanel implements DataEditorUI {
   static readonly uiViewId: string = 'dataEditor'
   readonly displayState: DisplayState = new DisplayState()
+  private _isReady: Promise<boolean>
+  isReady() {
+    return this._isReady
+  }
+  private readyResolve!: (v: boolean) => void
 
   constructor(
     private vscodePanel: vscode.WebviewPanel,
     private messengerId: string = ''
-  ) {}
+  ) {
+    this._isReady = new Promise<boolean>((resolve) => {
+      this.readyResolve = resolve
+    })
+  }
   dispose() {
     this.vscodePanel.dispose()
   }
@@ -60,7 +70,7 @@ class SvelteUIWebviewPanel implements DataEditorUI {
     ...msg: PostMessageArgs<MessageResponseMap, K>
   ) {
     const [type, payload] = msg as [K, MessageResponseMap[K]]
-    this.vscodePanel.webview.postMessage({
+    return this.vscodePanel.webview.postMessage({
       command: type,
       id: this.messengerId,
       data: payload,
@@ -68,7 +78,10 @@ class SvelteUIWebviewPanel implements DataEditorUI {
   }
 
   public onDidReceiveMessage(listener: (e: any) => void, thisArg?: any) {
-    this.vscodePanel.webview.onDidReceiveMessage(listener, thisArg)
+    this.vscodePanel.webview.onDidReceiveMessage((msg) => {
+      if (msg.id === 'webviewReady') this.readyResolve(true)
+      else thisArg.listener(msg)
+    }, thisArg)
   }
 
   public readonly reveal = () => {

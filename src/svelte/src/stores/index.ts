@@ -373,7 +373,7 @@ export const requestable = derived(
 export const originalDataSegment = derived(
   [viewport, selectionDataStore],
   ([$viewport, $selectionData]) => {
-    if (!$viewport.data) return []
+    if (!$viewport.data) return new Uint8Array(0)
     if (!isRegularSizedFile()) return $viewport.data
 
     return $viewport.data.slice(

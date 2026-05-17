@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
-import type { ServerHeartbeat } from 'dataEditor/include/server/heartbeat/HeartBeatInfo'
+// import type { ServerHeartbeat } from 'dataEditor/include/server/heartbeat/HeartBeatInfo'
 import type { ColorThemeKind } from 'vscode'
 import { EditByteModes } from './formattypes'
+import { IServerHeartbeat, IServerInfo } from '@omega-edit/client'
+import { HeartbeatInfo } from 'dataEditor/include/server/heartbeat/HeartBeatInfo'
+import { GetHeartbeatResponse } from '@omega-edit/client/dist/esm/protobuf_ts/generated/omega_edit/v1/omega_edit'
 /**
  * Level of notification type sent to the VSCode extension.
  */
@@ -153,7 +156,7 @@ export type SearchResponse = {
 }
 
 export type ChangesInfoResponse = {
-  fileName: string
+  filename: string
   computedFileSize: number
   changeCount: number
   undoCount: number
@@ -182,6 +185,8 @@ export type DFDLDataBytePos = {
   bytePos1b: number
 }
 
-export type HeartbeatResponse = ServerHeartbeat & { port: number }
+export type HeartbeatResponse = HeartbeatInfo & {
+  serverInfo: IServerInfo
+}
 
 export type SetUIThemeResponse = ColorThemeKind

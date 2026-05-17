@@ -29,48 +29,43 @@ limitations under the License.
   import { UIThemeCSSClass } from '../../../utilities/colorScheme'
   import ViewportVisibilityIcon from '../../Icons/ViewportVisibilityIcon.svelte'
 
-  import {
-    fileMetricsState,
-    isRegularSizedFile,
-    saveable,
-  } from './FileMetrics.svelte.ts'
-  import { getUIMessegnerCtx } from 'utilities/messageContext.svelte.ts'
+  // import {
+  //   fileMetricsState,
+  //   isRegularSizedFile,
+  //   saveable,
+  // } from './FileMetrics.svelte.ts'
+  // import { getUIMessegnerCtx } from 'utilities/messageContext.svelte.ts'
 
-  const { addListener } = getUIMessegnerCtx()
+  // const { addListener } = getUIMessegnerCtx()
   /* DEBUG_ONLY_START */
-  import { getDebugVarContext } from '../../Debug/'
-  let bom = $state('utf-8')
-  getDebugVarContext().add({
-    id: 'bom',
-    valueStr: () => {
-      return bom
-    },
-  })
-  getDebugVarContext().add({
-    id: 'RegularFileSizeState',
-    valueStr: () => {
-      const size = fileMetricsState.computedSize
-      const stateVal = isRegularSizedFile()
-      return `Size (${size}) is regular ? ${stateVal}`
-    },
-  })
-  getDebugVarContext().add({
-    id: 'Can save',
-    valueStr: () => {
-      let ret = `Raw: ${fileMetricsState.changeCount > 0 ? 'true' : 'false'} ; CanUndo(): ${saveable()}`
-      return ret
-    },
-  })
+  // import { getDebugVarContext } from '../../Debug/'
+  // // let bom = $state('utf-8')
+  
+  // getDebugVarContext().add({
+  //   id: 'RegularFileSizeState',
+  //   valueStr: () => {
+  //     const size = fileMetricsState.computedSize
+  //     const stateVal = isRegularSizedFile()
+  //     return `Size (${size}) is regular ? ${stateVal}`
+  //   },
+  // })
+  // getDebugVarContext().add({
+  //   id: 'Can save',
+  //   valueStr: () => {
+  //     let ret = `Raw: ${fileMetricsState.changeCount > 0 ? 'true' : 'false'} ; CanUndo(): ${saveable()}`
+  //     return ret
+  //   },
+  // })
   /* DEBUG_ONLY_END */
-  addListener('fileInfo', (data) => {
-    if (!data.bom) return
-    bom = data.bom
-    if (bom === 'UTF-8') $editorEncoding = 'utf-8'
-    else if (bom === 'UTF-16LE') $editorEncoding = 'utf-16le'
-  })
+  // addListener('fileInfo', (data) => {
+  //   if (!data.bom) return
+  //   bom = data.bom
+  //   if (bom === 'UTF-8') $editorEncoding = 'utf-8'
+  //   else if (bom === 'UTF-16LE') $editorEncoding = 'utf-16le'
+  // })
 </script>
 
-<fieldset>
+<fieldset class="settings">
   <legend>Settings</legend>
   <FlexContainer --dir="column">
     <FlexContainer --dir="row" --align-items="center">

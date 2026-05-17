@@ -34,6 +34,7 @@ export const EditorRequestIds = [
   'showMessage',
   'setUITheme',
   'editorOnChange',
+  'webviewReady',
 ] as const
 
 export const EditorResponseIds = [

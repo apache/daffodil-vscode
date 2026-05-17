@@ -32,6 +32,7 @@ limitations under the License.
     saveable,
   } from './FileMetrics.svelte.ts'
   import { getUIMessegnerCtx } from 'utilities/messageContext.svelte.ts'
+  import { editorEncoding } from 'stores/index.ts'
 
   const eventDispatcher = createEventDispatcher()
 
@@ -63,9 +64,19 @@ limitations under the License.
   }
 
   addListener('fileInfo', (msg) => {
-    fileMetricsState.name = msg.filename
-    fileMetricsState.language = msg.language
-    fileMetricsState.type = msg.contentType
+    const {bom, filename, language, contentType} = msg
+    fileMetricsState.name = filename
+    fileMetricsState.language = language
+    fileMetricsState.type = contentType
+    if(bom == 'none') return
+    if (bom === 'UTF-8') {
+      $editorEncoding = 'utf-8'
+      return
+    }
+    else if (bom === 'UTF-16LE') {
+      $editorEncoding = 'utf-16le'
+      return
+    }
   })
   addListener('counts', (msg) => {
     fileMetricsState.changeCount =
