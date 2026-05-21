@@ -975,17 +975,17 @@
   resolved "https://registry.yarnpkg.com/@sveltejs/adapter-static/-/adapter-static-3.0.8.tgz#f23ee99a9678dbaec58b79d183bc3defbfe99f1a"
   integrity sha512-YaDrquRpZwfcXbnlDsSrBQNCChVOT9MGuSg+dMAyfsAa1SmiAhrA5jUYUiIMC59G92kIbY/AaQOWcBdq+lh+zg==
 
-"@sveltejs/kit@^2.53.3":
-  version "2.53.3"
-  resolved "https://registry.yarnpkg.com/@sveltejs/kit/-/kit-2.53.3.tgz#72283a76e63ca62ddc7f500f47ed4aaf86b2b0c4"
-  integrity sha512-tshOeBUid2v5LAblUpatIdFm5Cyykbw2EiKWOunAAX0A/oJaR7DOdC9wLR5Qqh9zUf3QUISA2m9A3suBdQSYQg==
+"@sveltejs/kit@^2.60.1":
+  version "2.60.1"
+  resolved "https://registry.yarnpkg.com/@sveltejs/kit/-/kit-2.60.1.tgz#41e73108f66588784e4bd3c32ac8500ee92e6b59"
+  integrity sha512-mQjlkNo+rJvpln7V2IGY2j99BqhcFbS4UN0AQNKNYfhBAFZTuCDAdW3a1sgf330mvtNvsBXn3HpAhcmvdJTcIQ==
   dependencies:
     "@standard-schema/spec" "^1.0.0"
     "@sveltejs/acorn-typescript" "^1.0.5"
     "@types/cookie" "^0.6.0"
     acorn "^8.14.1"
     cookie "^0.6.0"
-    devalue "^5.6.3"
+    devalue "^5.8.1"
     esm-env "^1.2.2"
     kleur "^4.1.5"
     magic-string "^0.30.5"
@@ -2034,7 +2034,7 @@ detect-libc@^2.0.0:
   resolved "https://registry.yarnpkg.com/detect-libc/-/detect-libc-2.1.2.tgz#689c5dcdc1900ef5583a4cb9f6d7b473742074ad"
   integrity sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==
 
-devalue@^5.6.3, devalue@^5.8.1:
+devalue@^5.8.1:
   version "5.8.1"
   resolved "https://registry.yarnpkg.com/devalue/-/devalue-5.8.1.tgz#f27290d3a324e2eb20c2714369b01b8ec4de4c61"
   integrity sha512-4CXDYRBGqN+57wVJkuXBYmpAVUSg3L6JAQa/DFqm238G73E1wuyc/JhGQJzN7vUf/CMphYau2zXbfWzDR5aTEw==
