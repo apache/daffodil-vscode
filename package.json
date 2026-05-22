@@ -221,12 +221,12 @@
         },
         {
           "command": "infoset.display",
-          "when": "inDebugMode && editorLangId == 'dfdl'",
+          "when": "inDebugMode",
           "group": "navigation@2"
         },
         {
           "command": "infoset.diff",
-          "when": "inDebugMode && editorLangId == 'dfdl'",
+          "when": "inDebugMode",
           "group": "navigation@3"
         },
         {
@@ -390,15 +390,13 @@
         "command": "infoset.display",
         "title": "Display the infoset view",
         "category": "Daffodil Debug",
-        "enablement": "inDebugMode && editorLangId == 'dfdl'",
-        "icon": "$(file-code)"
+        "enablement": "inDebugMode"
       },
       {
         "command": "infoset.diff",
         "title": "View infoset diff",
         "category": "Daffodil Debug",
-        "enablement": "inDebugMode && editorLangId == 'dfdl'",
-        "icon": "$(diff)"
+        "enablement": "inDebugMode"
       },
       {
         "command": "infoset.save",
