@@ -294,7 +294,15 @@ Once the `launch.json` file has been created it will look something like this
     "type": "file",
     "path": "${workspaceFolder}/infoset.xml"
   },
-  "debugServer": 4711
+  "debugServer": 4711,
+  "openDataEditor": false,
+  "dataEditor": {
+    "port": 9000,
+    "logging": {
+      "file": "",
+      "level": "info"
+    }
+  }
 }
 ```
 
@@ -314,9 +322,19 @@ This default configuration will prompt the user to select the DFDL Schema and da
     "type": "file",
     "path": "${workspaceFolder}/infoset.xml"
   },
-  "debugServer": 4711
+  "debugServer": 4711,
+  "openDataEditor": true,
+  "dataEditor": {
+    "port": 9000,
+    "logging": {
+      "file": "",
+      "level": "info"
+    }
+  }
 }
 ```
+
+Set `openDataEditor` to `true` to open the Data Editor when the debug session starts. The `dataEditor` settings configure the Ωedit server port and Data Editor logging. Leave `logging.file` empty to use the default OS app-data/XDG log location, or set it to a specific log file path. For the Ωedit server, `logging.level` accepts `trace`, `debug`, `info`, `warn`, `warning`, `error`, `fatal`, and `critical`. The launch config wizard also exposes these settings as **Open Data Editor**, **omega-edit Port**, **Log File**, and **Log Level**.
 
 ## Dropdown for Log Level
 A dropdown list has been added in the launch config wizard under Log Level settings. There are four different options to select including DEBUG, INFO, WARNING, ERROR, and CRITICAL.
@@ -341,6 +359,8 @@ In the launch.json file, there's a new suggestion mode that gives you suggestion
 ## Launch a DFDL Parse Debugging Session
 
 Using the launch profile above a `DFDL parse: My Data` menu item at the top of the `Run and Debug` pane (Command-Shift-D) will display. Then press the `play` button to start the debugging session.
+
+If `openDataEditor` is enabled, the Data Editor opens the configured input data file at the start of the debug session. For a DFDL debug session, that file comes from the debug launch target, so the Data Editor does not prompt for a separate file selection.
 
 In the Terminal, log output from the DFDL debugger backend service will display.  If something is not working as expected, check the output in this Terminal window for hints.
 
@@ -371,6 +391,8 @@ From left to right, the icons indicate the following functions: Continue, Step O
 * The Step Out button will parse the remainder of the current element and then pause, similar to continuing a subroutine and halting upon the return from that routine.
 * The Restart button will stop the current execution and begin again from the beginning.
 * The Stop button will immediately terminate and abort all processing.
+
+When the Data Editor is open during a debug session, it tracks the parser location in the input data. As the debugger pauses on entry, steps through the schema, or stops at breakpoints, the Data Editor highlights the corresponding byte position so the schema, infoset, and input data can be compared together.
 
 <details>
 <summary>Debug Control Examples</summary>
