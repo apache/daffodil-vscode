@@ -208,7 +208,7 @@ lazy val debugger =
         "co.fs2" %% "fs2-io" % "3.13.0",
         "com.monovore" %% "decline-effect" % "2.6.1",
         "org.typelevel" %% "log4cats-slf4j" % "2.8.0",
-        "org.scalameta" %% "munit" % "1.3.0" % Test
+        "org.scalameta" %% "munit" % "1.3.1" % Test
       ),
       dependencyOverrides += "commons-io" % "commons-io" % "2.22.0",
       libraryDependencies ++= getPlatformSpecificLibraries(scalaBinaryVersion.value),
