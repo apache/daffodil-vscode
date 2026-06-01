@@ -31,8 +31,8 @@ const defaultConf = getConfig({
   type: 'dfdl',
   schema: {
     path: '${command:AskForSchemaName}',
-    rootName: 'null',
-    rootNamespace: 'null',
+    rootName: null,
+    rootNamespace: null,
   },
 })
 
@@ -754,7 +754,50 @@ class LaunchWizard {
         <p id="tdmlPathLabel" style="${tdmlPathVisOrHiddenStyle}" class="setting-description">TDML File Path:</p>
         <input style="${tdmlPathVisOrHiddenStyle}" class="file-input" value="${tdmlPath}" id="tdmlPath">
       </div>
+      
+      <div id="tunablesDiv" class="setting-div" style="margin-top: 15px;">
+        <p>Tunables:</p>
+        <p class="setting-description">Key/value configuration options</p>
 
+        <table style="width: 100%; border-collapse: collapse; margin-top: 5px;">
+          <thead>
+            <tr>
+              <th style="text-align: left;">Key</th>
+              <th style="text-align: left;">Value</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tunablesTableBody">
+            <!-- rows later -->
+          </tbody>
+        </table>
+
+        <button id="addTunableBtn" onclick="addTunableRow()" style="margin-top: 10px;">
+          + Add Tunable
+        </button>
+      </div>
+
+      <div id="VariablesDiv" class="setting-div" style="margin-top: 15px;">
+        <p>Variables:</p>
+        <p class="setting-description">Key/value configuration options</p>
+
+        <table style="width: 100%; border-collapse: collapse; margin-top: 5px;">
+          <thead>
+            <tr>
+              <th style="text-align: left;">Key</th>
+              <th style="text-align: left;">Value</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="variablesTableBody">
+            <!-- rows later -->
+          </tbody>
+        </table>
+
+        <button id="addVariableBtn" onclick="addVariableRow()" style="margin-top: 10px;">
+          + Add Variable
+        </button>
+      </div>
       <div id="dataEditorDiv" class="setting-div">
         <p>Data Editor Settings:</p>
         
@@ -769,7 +812,6 @@ class LaunchWizard {
           ${dataEditorLogLevelSelect}
         </select>
       </div>
-
       <br/>
       <button class="save-button" type="button" onclick="save()">Save</button>
     </body>
