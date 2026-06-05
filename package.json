@@ -390,14 +390,14 @@
         "command": "infoset.display",
         "title": "Display the infoset view",
         "category": "Daffodil Debug",
-        "enablement": "inDebugMode && editorLangId == 'dfdl'",
+        "enablement": "inDebugMode",
         "icon": "$(file-code)"
       },
       {
         "command": "infoset.diff",
         "title": "View infoset diff",
         "category": "Daffodil Debug",
-        "enablement": "inDebugMode && editorLangId == 'dfdl'",
+        "enablement": "inDebugMode",
         "icon": "$(diff)"
       },
       {
