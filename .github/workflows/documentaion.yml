@@ -17,11 +17,6 @@
 name: Enforce Documentation Checkbox
 
 on:
-  push:
-    branches-ignore:
-      - "main"
-      - "dependabot/**" # dependabot branches
-      - "update/**" # scala-steward branches
   pull_request:
     types: [opened, edited, synchronize, reopened]
     branches-ignore:
@@ -30,7 +25,6 @@ on:
 
 jobs:
   enforce-checkbox:
-    # this if is to further ensure that this job won't run on dependabot or scala-steward PRs
     if: ${{ !startsWith(github.head_ref, 'dependabot/') && !startsWith(github.head_ref, 'update/') }}
     runs-on: ubuntu-22.04
     steps:
@@ -38,12 +32,12 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v7
         with:
           script: |
-            const prBody = context.payload.pull_request.body || "";
+            const prBody = context.payload.pull_request?.body || "";
             const checkbox1Text = "- [x] I have determined that no documentation updates are needed for these changes";
             const checkbox2Text = "- [x] I have added the following documentation for these changes";
- 
+
             if (!prBody.includes(checkbox1Text) && !prBody.includes(checkbox2Text)) {
-              core.setFailed("❌ Required documentation checkbox not checked. Please check one of the the box before merging.");
+              core.setFailed("❌ Required documentation checkbox not checked. Please check one of the boxes before merging.");
             } else {
               core.info("✅ Required documentation checkbox is checked.");
             }
