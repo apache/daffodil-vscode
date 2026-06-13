@@ -45,7 +45,7 @@
     "package": "run-func build/yarn-scripts.ts package && yarn --cwd dist/package install --production && run-func build/yarn-scripts.ts syncOmegaEditClientRuntime && run-func build/yarn-scripts.ts packageVsix",
     "pretest": "yarn compile && yarn vite:dev",
     "test": "sbt test && yarn test:svelte && node ./out/tests/omegaEditServerLifecycle.js && node ./out/tests/runTest.js",
-    "test:svelte": "mocha --import=tsx ./src/svelte/tests/**/*.test.ts",
+    "test:svelte": "yarn vitest --config src/svelte/vitest.config.mjs --run",
     "sbt": "sbt Universal/stage",
     "move-debuggers": "run-func build/yarn-scripts.ts moveDebuggers",
     "svelte:check": "svelte-check --tsconfig ./src/svelte/tsconfig.json",
@@ -110,7 +110,8 @@
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.21.0",
     "typescript": "5.2.2",
-    "vite": "^6.4.3",
+    "vite": "^8.0.0",
+    "vitest": "^4.1.4",
     "vscode-extension-tester": "5.9.1"
   },
   "resolutions": {

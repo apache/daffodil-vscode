@@ -19,7 +19,7 @@ limitations under the License.
   import {
     currentHelpSectionDisplayed,
     currentHelpSectionEvent,
-  } from '../../stores'
+  } from 'stores/index'
   import type { AvailableHelpSections } from './Help'
 
   export let helpSectionId: AvailableHelpSections

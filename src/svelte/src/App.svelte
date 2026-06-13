@@ -16,17 +16,13 @@ limitations under the License.
 -->
 
 <script lang="ts">
-  import './app.css'
   import { onMount } from 'svelte'
 
   import {
     bytesPerRow,
-    displayRadix,
     editedDataSegment,
     editMode,
-    editorEncoding,
     editorSelection,
-    focusedViewportId,
     seekOffset,
     originalDataSegment,
     requestable,
@@ -37,23 +33,18 @@ limitations under the License.
     dataFeedAwaitRefresh,
     viewport,
     searchQuery,
-    regularSizedFile,
+    focusedViewportId,
+    displayRadix,
+    editorEncoding,
     dataDislayLineAmount,
-  } from './stores'
+  } from 'stores'
   import {
     CSSThemeClass,
     UIThemeCSSClass,
     darkUITheme,
-  } from './utilities/colorScheme'
-  import { MessageCommand } from './utilities/message'
-  import { vscode } from './utilities/vscode'
+  } from 'utilities/colorScheme'
   import Header from './components/Header/Header.svelte'
   import Main from './Main.svelte'
-  import {
-    EditByteModes,
-    type BytesPerRow,
-    VIEWPORT_SCROLL_INCREMENT,
-  } from './stores/configuration'
   import ServerMetrics from './components/ServerMetrics/ServerMetrics.svelte'
   import {
     elementKeypressEventMap,
@@ -64,28 +55,44 @@ limitations under the License.
     ViewportData_t,
   } from './components/DataDisplays/CustomByteDisplay/BinaryData'
   import { byte_count_divisible_offset } from './utilities/display'
-  import Help from './components/layouts/Help.svelte'
-  import { viewportByteIndicators } from 'utilities/highlights'
+  import Help from 'layout/Help.svelte'
+  import { EditByteModes, type BytesPerRow } from 'ext_types'
+  import { VIEWPORT_SCROLL_INCREMENT } from './stores/configuration'
+  import { vscode } from './utilities/vscode'
+  import { isRegularSizedFile } from './components/Header/fieldsets/FileMetrics.svelte.ts'
+  import { viewportByteIndicators } from 'utilities/highlights.ts'
+  import {
+    getUIMessegnerCtx,
+    setUIMessegnerCtx,
+  } from 'utilities/messageContext.svelte.ts'
+
+  let { mountTarget }: { mountTarget: HTMLElement } = $props<{
+    mountTarget: HTMLElement
+  }>()
+
+  const uiMsgId = mountTarget.attributes['extension_msg_id'].value
+  setUIMessegnerCtx(vscode.getMessenger(uiMsgId))
+  const { addListener, postMessage } = getUIMessegnerCtx()
 
   onMount(() => {
-    vscode.postMessage({
-      command: MessageCommand.webviewReady,
+    postMessage('webviewReady')
+    postMessage('scrollViewport', {
+      startOffset: 0,
+      bytesPerRow: $bytesPerRow,
+      numLinesDisplayed: $dataDislayLineAmount,
     })
   })
 
   function requestEditedData() {
     if ($requestable) {
-      vscode.postMessage({
-        command: MessageCommand.requestEditedData,
-        data: {
-          selectionToFileOffset: $selectionDataStore.startOffset,
-          editedContent: $editorSelection,
-          viewport: $focusedViewportId,
-          selectionSize: $selectionSize,
-          encoding: $editorEncoding,
-          radix: $displayRadix,
-          editMode: $editMode,
-        },
+      postMessage('requestEditedData', {
+        selectionToFileOffset: $selectionDataStore.startOffset,
+        editedContent: $editorSelection,
+        viewport: $focusedViewportId as 'physical' | 'logical',
+        selectionSize: $selectionSize,
+        encodingStr: $editorEncoding,
+        radix: $displayRadix,
+        editMode: $editMode,
       })
     }
   }
@@ -156,13 +163,10 @@ limitations under the License.
       fetchOffset
     )
 
-    vscode.postMessage({
-      command: MessageCommand.scrollViewport,
-      data: {
-        scrollOffset: fetchOffset,
-        bytesPerRow: $bytesPerRow,
-        numLinesDisplayed: $dataDislayLineAmount,
-      },
+    postMessage('scrollViewport', {
+      startOffset: fetchOffset,
+      bytesPerRow: $bytesPerRow,
+      numLinesDisplayed: $dataDislayLineAmount,
     })
     clearDataDisplays()
   }
@@ -175,34 +179,39 @@ limitations under the License.
     const navigationData = navigationEvent.detail
     $dataFeedAwaitRefresh = true
 
-    vscode.postMessage({
-      command: MessageCommand.scrollViewport,
-      data: {
-        scrollOffset: navigationData.nextViewportOffset,
-        bytesPerRow: $bytesPerRow,
-      },
+    postMessage('scrollViewport', {
+      startOffset: navigationData.nextViewportOffset,
+      bytesPerRow: $bytesPerRow,
     })
 
     $dataFeedLineTop = navigationData.lineTopOnRefresh
     clearDataDisplays()
   }
 
-  function handleEditorEvent(_: Event) {
-    if ($regularSizedFile && $selectionSize < 0) {
-      clearDataDisplays()
-      return
+  function handleEditorEvent(event: CustomEvent) {
+    if (!event.detail) {
+      const sizeRegularity = isRegularSizedFile()
+      if (sizeRegularity && $selectionSize < 0) {
+        clearDataDisplays()
+        return
+      }
+      if (!sizeRegularity && $editorSelection.length == 0) return
+    } else {
+      const { eventType } = event.detail
+      if (eventType === 'byte-edit') {
+      }
     }
-    if (!$regularSizedFile && $editorSelection.length == 0) return
 
     requestEditedData()
   }
 
   function custom_apply_changes(event: CustomEvent<EditEvent>) {
     const action = event.detail.action
+    const sizeRegularity = isRegularSizedFile()
 
     let editedData: Uint8Array
     let originalData = $originalDataSegment
-    let editedOffset = $regularSizedFile
+    let editedOffset = sizeRegularity
       ? $selectionDataStore.startOffset + $viewport.fileOffset
       : 0
 
@@ -218,7 +227,7 @@ limitations under the License.
         break
       case 'insert-replace':
         editedData =
-          !$regularSizedFile && $editorSelection.length == 0
+          !sizeRegularity && $editorSelection.length == 0
             ? new Uint8Array(0)
             : $editedDataSegment
         break
@@ -226,35 +235,26 @@ limitations under the License.
         editedData = new Uint8Array(0)
         break
     }
-
-    vscode.postMessage({
-      command: MessageCommand.applyChanges,
-      data: {
-        offset: editedOffset,
-        originalSegment: Array.from(originalData),
-        editedSegment: Array.from(editedData),
-      },
+    postMessage('applyChanges', {
+      offset: editedOffset,
+      original_segment: originalData,
+      edited_segment: editedData,
     })
+
     clearDataDisplays()
     clearQueryableData()
   }
 
   function undo() {
-    vscode.postMessage({
-      command: MessageCommand.undoChange,
-    })
+    postMessage('undoChange')
   }
 
   function redo() {
-    vscode.postMessage({
-      command: MessageCommand.redoChange,
-    })
+    postMessage('redoChange')
   }
 
   function clearChangeStack() {
-    vscode.postMessage({
-      command: MessageCommand.clearChanges,
-    })
+    postMessage('clearChanges')
   }
 
   function clearDataDisplays() {
@@ -284,44 +284,35 @@ limitations under the License.
     }
   }
 
-  window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
-      case MessageCommand.editorOnChange:
-        if ($editMode === EditByteModes.Multiple)
-          $editorSelection = msg.data.display
-        break
-
-      case MessageCommand.requestEditedData:
-        $editorSelection = msg.data.data.dataDisplay
-        const editedBytes = Array.isArray(msg.data.data.data)
-          ? msg.data.data.data
-          : [msg.data.data.data]
-        if ($editMode === EditByteModes.Multiple) {
-          $editedDataSegment = new Uint8Array(editedBytes)
-        } else {
-          $editedDataSegment = new Uint8Array([editedBytes[0] ?? 0])
-        }
-        $selectionDataStore.endOffset =
-          $selectionDataStore.startOffset + $editedDataSegment.byteLength - 1
-        break
-
-      case MessageCommand.setUITheme:
-        $darkUITheme = msg.data.theme === 2
-        $UIThemeCSSClass = $darkUITheme
-          ? CSSThemeClass.Dark
-          : CSSThemeClass.Light
-        break
-      case MessageCommand.viewportRefresh:
-        // the viewport has been refreshed, so the editor views need to be updated
-        const { data, fileOffset, length, bytesLeft } = msg.data.data
-        $viewport = {
-          data: new Uint8Array(data ?? []),
-          fileOffset: fileOffset,
-          length: length,
-          bytesLeft: bytesLeft,
-        } as ViewportData_t
-        break
+  addListener('editorOnChange', (data) => {
+    if ($editMode === EditByteModes.Multiple) $editorSelection = data.encodedStr
+  })
+  addListener('requestEditedData', (data) => {
+    $editorSelection = data.dataDisplay
+    if ($editMode === EditByteModes.Multiple) {
+      $editedDataSegment = new Uint8Array(data.data)
+    } else {
+      $editedDataSegment[0] = data.data[0]
     }
+    $selectionDataStore.endOffset =
+      $selectionDataStore.startOffset + $editedDataSegment.byteLength - 1
+    viewportByteIndicators.updateSelectionIndications($selectionDataStore)
+  })
+  addListener('setUITheme', (kind) => {
+    $darkUITheme = kind === 2
+    $UIThemeCSSClass = $darkUITheme ? CSSThemeClass.Dark : CSSThemeClass.Light
+  })
+  addListener('viewportRefresh', (payload) => {
+    const { data, fileOffset, length, bytesLeft } = payload
+    const byteData = Uint8Array.from(data)
+
+    $viewport = {
+      data: byteData,
+      fileOffset: fileOffset,
+      length: length,
+      bytesLeft: bytesLeft,
+    } as ViewportData_t
+    console.log($viewport)
   })
 </script>
 

@@ -15,10 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import {
-    CSSThemeClass,
-    UIThemeCSSClass,
-  } from '../../../utilities/colorScheme'
+  import { CSSThemeClass, UIThemeCSSClass } from 'utilities/colorScheme'
   import { createEventDispatcher, onMount } from 'svelte'
   const eventDispatcher = createEventDispatcher()
 
