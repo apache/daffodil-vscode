@@ -49,7 +49,8 @@
 			"dataEditor": ["dataEditor"],
 			"language":["language"],
 			"launchWizard": ["launchWizard/launchWizard"],
-			"infoset":["infoset"]
+			"infoset":["infoset"],
+			"ext_types": ["ext_types"]
 		}
 	},
 	"include": ["src/**/*"],

@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { tooltipsEnabled } from '../../stores'
+  import { tooltipsEnabled } from 'stores'
 
   const NULL = () => {}
   const TOOLTIP_MIN_WIDTH = 50
