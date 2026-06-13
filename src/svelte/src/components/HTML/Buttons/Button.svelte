@@ -15,14 +15,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import Tooltip from '../../layouts/Tooltip.svelte'
-  import FlexContainer from '../../layouts/FlexContainer.svelte'
+  import FlexContainer from 'layout/FlexContainer.svelte'
+  import Tooltip from 'layout/Tooltip.svelte'
+  import { tooltipsEnabled } from 'stores'
   import { onMount } from 'svelte'
-  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
-  import { tooltipsEnabled } from '../../../stores'
-  import { shouldCollapseContent } from '../../../utilities/display'
+  import { UIThemeCSSClass } from 'utilities/colorScheme'
+  import { shouldCollapseContent } from 'utilities/display'
   export let fn: (event?: Event) => void
-  export let disabledBy = false
+  export let isDisabled = false
   export let width = ''
   export let fixedWidth = ''
 
@@ -50,8 +50,8 @@ limitations under the License.
   {#if collapseContent}
     <button
       class={$UIThemeCSSClass + ' collapsed'}
-      disabled={disabledBy}
-      on:click={!disabledBy ? fn : () => {}}
+      disabled={isDisabled}
+      on:click={!isDisabled ? fn : () => {}}
       style:width={fixedWidth}
     >
       <FlexContainer
@@ -68,8 +68,8 @@ limitations under the License.
   {:else}
     <button
       class={$UIThemeCSSClass}
-      disabled={disabledBy}
-      on:click={!disabledBy ? fn : () => {}}
+      disabled={isDisabled}
+      on:click={!isDisabled ? fn : () => {}}
       style:width={fixedWidth.length > 0 ? fixedWidth : width}
     >
       <FlexContainer

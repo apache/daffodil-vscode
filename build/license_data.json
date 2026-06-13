@@ -30,10 +30,11 @@
         "ACE",
         "MulanPSL-2.0",
         "0BSD",
-        "TCL"
+        "TCL",
+        "BlueOak-1.0.0"
     ],
     "packages": [
-       {
+        {
             "name": "buffers",
             "license": "MIT",
             "allowed": true

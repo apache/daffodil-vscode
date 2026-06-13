@@ -26,6 +26,7 @@ import { XMLParser } from 'fast-xml-parser'
 import * as unzip from 'unzip-stream'
 import { pipeline } from 'stream/promises'
 import { Transform } from 'stream'
+import { DataEditorFileProvider } from 'dataEditor/include/utils'
 let currentConfig: vscode.DebugConfiguration
 
 export const terminalName = 'daffodil-debugger'
@@ -62,6 +63,17 @@ export function runCommand(command: string, params?: any) {
     vscode.commands.executeCommand(command, params).then(undefined, vscodeError)
 }
 
+export function getDataEditorFileProvider(
+  config: vscode.DebugConfiguration
+): DataEditorFileProvider {
+  return {
+    async getFile(formatOp?: (file: string) => string): Promise<string> {
+      const file = config.data as string
+      return formatOp ? formatOp(file) : file
+    },
+  }
+}
+
 // Function for checking if config specifies if either the
 // infoset, infoset diff or data editor needs to be opened
 export async function onDebugStartDisplay(viewsToCheck: string[]) {
@@ -71,7 +83,7 @@ export async function onDebugStartDisplay(viewsToCheck: string[]) {
     switch (viewToCheck) {
       case 'data-editor':
         if (config.openDataEditor) {
-          runCommand('extension.data.edit', config.data)
+          runCommand('extension.data.edit', getDataEditorFileProvider(config))
         }
         break
       case 'infoset-view':

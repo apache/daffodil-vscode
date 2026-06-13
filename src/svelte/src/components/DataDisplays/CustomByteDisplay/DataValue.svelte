@@ -20,7 +20,7 @@ limitations under the License.
     type ByteValue,
     type ViewportDataType,
   } from './BinaryData'
-  import type { ByteDivWidth } from '../../../utilities/display'
+  import type { ByteDivWidth } from 'utilities/display'
 
   export let id: ViewportDataType
   export let byte: ByteValue
@@ -31,7 +31,10 @@ limitations under the License.
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 {#if disabled}
-  <div class="byte disabled" style:width={id === 'logical' ? '20px' : width} />
+  <div
+    class="byte disabled"
+    style:width={id === 'logical' ? '20px' : width}
+  ></div>
 {:else if id === 'physical'}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div

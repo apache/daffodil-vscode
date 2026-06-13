@@ -420,13 +420,35 @@ function updateVersion() {
 
 /* START SECTION: LICENSE related methods */
 function getLicenseData() {
-  return JSON.parse(
-    child_process
-      .execSync(
-        `yarn licenses list --json --prod | jq 'select(.type == "table").data.body'`
-      )
-      .toString()
-  )
+  const yarn = process.platform === 'win32' ? 'yarn.cmd' : 'yarn'
+  const yarnData = (args, type) => {
+    const output = child_process.execFileSync(yarn, args, {
+      encoding: 'utf8',
+      shell: process.platform === 'win32',
+    })
+    const result = output
+      .trim()
+      .split(/\r?\n/)
+      .map((line) => JSON.parse(line))
+      .find((entry) => entry.type === type)
+    if (!result) throw new Error(`Missing ${type} in yarn ${args.join(' ')}`)
+    return result.data
+  }
+
+  // Yarn Classic's licenses command can include optional dependencies of dev
+  // tools even with --prod. Limit the report to the production dependency tree.
+  const productionPackages = new Set()
+  const collect = (trees) => {
+    for (const tree of trees) {
+      productionPackages.add(tree.name.slice(0, tree.name.lastIndexOf('@')))
+      collect(tree.children || [])
+    }
+  }
+  collect(yarnData(['list', '--json', '--prod'], 'tree').trees)
+  return yarnData(
+    ['licenses', 'list', '--json', '--prod'],
+    'table'
+  ).body.filter((license) => productionPackages.has(license[0]))
 }
 
 function checkMissingLicenseData() {

@@ -58,6 +58,7 @@
     - [Opening the Repository in VSCode](#opening-the-repository-in-vscode)
       - [Recommended VSCode Extensions](#recommended-vscode-extensions)
     - [Verifying Setup Can Build](#verifying-setup-can-build)
+      - [Resolving yarn.lock conflicts during a rebase](#resolving-yarnlock-conflicts-during-a-rebase)
       - [Yarn Package](#yarn-package)
       - [Automated Testing Suite](#automated-testing-suite)
         - [Testing Against a Specific Version of VS Code](#testing-against-a-specific-version-of-vs-code)
@@ -300,6 +301,25 @@ Lastly, run `yarn test`. All tests should pass without any errors. More informat
 ![yarn_test_succ_output](https://github.com/user-attachments/assets/188cafb9-844b-4037-953f-2c70c75dc865)
 
 Alternatively, you can run all of the commands in a single line by running `yarn && yarn package && yarn test && echo "All good!"`.
+
+#### Resolving yarn.lock conflicts during a rebase
+
+Use Yarn Classic 1.22.22. Resolve `package.json` first, preserving main's dependency updates and the dependencies needed by your branch. During a rebase, use the lockfile from the commits already rebased onto main as the starting point:
+
+```sh
+git checkout --ours -- yarn.lock
+yarn install
+git diff -- yarn.lock
+yarn install --frozen-lockfile
+yarn test:svelte
+yarn package
+git add package.json yarn.lock
+git rebase --continue
+```
+
+`--ours` means the rebased main side during a rebase; its meaning differs during a merge. Run these commands only while resolving a rebase conflict. Do not delete the lockfile: that refreshes unrelated transitive dependencies and creates unnecessary conflicts. Review and stage any other resolved files before continuing the rebase.
+
+Keep the `vite` dependency and `vitest/vite` resolution aligned with the Svelte plugin's supported Vite major. The resolution also keeps Vitest on the same Vite version. Packaging uses frozen installs both at the repository root and in `dist/package`.
 
 #### Yarn Package
 

@@ -17,8 +17,11 @@ limitations under the License.
 <script lang="ts">
   import App from './App.svelte'
   import Debug from './components/Debug/Debug.svelte'
+  let { mountTarget }: { mountTarget: HTMLElement } = $props<{
+    mountTarget: HTMLElement
+  }>()
 </script>
 
 <Debug>
-  <App />
+  <App {mountTarget} />
 </Debug>
