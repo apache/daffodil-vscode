@@ -2195,3 +2195,16 @@ The following NOTICE information applies to binary components distributed with t
   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
   OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+- 'lightningcss' in extension/dist/ext/extension.js
+  You may not remove or alter the substance of any license notices
+  (including copyright notices, patent notices, disclaimers of warranty,
+  or limitations of liability) contained within the Source Code Form of
+  the Covered Software, except that You may alter any license notices to
+  the extent required to remedy known factual inaccuracies.
+
+- 'sax' in extension/dist/ext/extension.js
+  You must ensure that everyone who gets a copy of
+  any part of this software from you, with or without
+  changes, also gets the text of this license or a link to
+  <https://blueoakcouncil.org/license/1.0.0>.

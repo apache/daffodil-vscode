@@ -16,7 +16,7 @@ limitations under the License.
 -->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
-  import { bytesPerRow } from '../../../stores'
+  import { bytesPerRow } from 'stores'
   const eventDispatcher = createEventDispatcher()
 
   export let totalLines = 0
@@ -69,7 +69,7 @@ limitations under the License.
     : 'enabled'}"
   bind:this={indicatorContainer}
 >
-  <div class="traversal-thumb" style:width="{percentageTraversed}%" />
+  <div class="traversal-thumb" style:width="{percentageTraversed}%"></div>
 </div>
 
 <style lang="scss">
