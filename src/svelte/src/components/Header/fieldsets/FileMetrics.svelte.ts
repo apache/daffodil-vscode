@@ -13,20 +13,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { SimpleWritable } from '../../../stores/localStore'
+export const fileMetricsState = $state({
+  name: '',
+  type: '',
+  language: '',
+  diskSize: 0,
+  computedSize: 0,
+  changeCount: 0,
+  undoCount: 0,
+})
 
-export class FileMetricsData {
-  name: string = ''
-  type: string = ''
-  language: string = ''
-  diskSize: number = 0
-  computedSize: number = 0
-  changeCount: number = 0
-  undoCount: number = 0
-}
+const isRegularSizedFileState = $derived(fileMetricsState.computedSize >= 2)
 
-export class FileMetrics extends SimpleWritable<FileMetricsData> {
-  protected init(): FileMetricsData {
-    return new FileMetricsData()
-  }
-}
+const canUndoState = $derived(fileMetricsState.changeCount > 0)
+
+const canRedoState = $derived(fileMetricsState.undoCount > 0)
+
+const canRevertState = $derived(
+  fileMetricsState.undoCount + fileMetricsState.changeCount > 0
+)
+
+const saveableState = $derived(fileMetricsState.changeCount > 0)
+
+export const isRegularSizedFile = () => isRegularSizedFileState
+
+export const canUndo = () => canUndoState
+
+export const canRedo = () => canRedoState
+
+export const canRevert = () => canRevertState
+
+export const saveable = () => saveableState

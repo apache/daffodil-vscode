@@ -16,11 +16,17 @@
  */
 
 import { mount } from 'svelte'
+import 'utilities/messages'
 import './app.css'
 import App from '$root'
 
+const target = document.getElementById('app')!
+
 const app = mount(App, {
   target: document.getElementById('app')!,
+  props: {
+    mountTarget: target,
+  },
 })
 
 export default app

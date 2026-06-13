@@ -40,5 +40,6 @@
     "[typescript]": {
       "editor.defaultFormatter": "esbenp.prettier-vscode",
       "editor.formatOnSave": true
-    }
+    },
+  "vitest.rootConfig": "./src/svelte/vitest.config.mjs"
 }

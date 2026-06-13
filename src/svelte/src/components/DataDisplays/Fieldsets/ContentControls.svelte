@@ -15,12 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { applyErrMsg, applicable, editMode } from '../../../stores'
-  import { EditByteModes } from '../../../stores/configuration'
+  import { applyErrMsg, applicable, editMode } from 'stores'
+  import { EditByteModes } from 'ext_types'
   import { createEventDispatcher } from 'svelte'
-  import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import Button from '../../Inputs/Buttons/Button.svelte'
-  import type { EditEvent } from '../CustomByteDisplay/BinaryData'
+  import Button from 'HTMLWrappers/Buttons/Button.svelte'
+  import FlexContainer from 'layout/FlexContainer.svelte'
+  import type { EditEvent } from '../index.svelte'
   const eventDispatcher = createEventDispatcher()
 
   function applyChanges(event: Event) {
@@ -40,7 +40,7 @@ limitations under the License.
   {#if $editMode === EditByteModes.Multiple}
     <FlexContainer>
       <Button
-        disabledBy={!$applicable}
+        isDisabled={!$applicable}
         fn={(e) => {
           applyChanges(e!)
         }}
