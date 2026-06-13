@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import FlexContainer from '../../layouts/FlexContainer.svelte'
+  import FlexContainer from 'layout/FlexContainer.svelte'
 
   export let toggleBind: boolean
   export let configItem: string

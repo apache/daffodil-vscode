@@ -16,11 +16,11 @@ limitations under the License.
 -->
 <script lang="ts">
   import {
-    addressRadix,
-    displayRadix,
-    dataFeedAwaitRefresh,
     viewport,
-  } from '../../stores'
+    displayRadix,
+    addressRadix,
+    dataFeedAwaitRefresh,
+  } from 'stores'
   import DataLineFeed from './CustomByteDisplay/DataLineFeed.svelte'
 </script>
 
