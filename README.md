@@ -48,12 +48,12 @@ The Apache Daffodil™ Extension for Visual Studio provides a Daffodil parse deb
 
 ![image 3](images/DE-brief.png)
 
-The Apache Daffodil™ Extension for Visual Studio Code provides an integrated data editor tuned specifically for challenging Daffodil use cases. It is designed to support large files, of any type, that are well beyond the limits of the standard text editor in VS Code. The Data Editor enables the editing of single or multiple bytes in various encodings. The Data Editor can seek to file offsets, search and replace byte sequences, profile data, and determine a file's content type. Features of the Data Editor will evolve to address the specific needs of the Daffodil community.
+The Apache Daffodil™ Extension for Visual Studio Code integrates with the Ωedit™ Data Editor extension for challenging Daffodil use cases. The data editor is declared as a VS Code extension dependency and is designed to support large files, of any type, that are well beyond the limits of the standard text editor in VS Code. It enables editing single or multiple bytes in various encodings, seeking to file offsets, searching and replacing byte sequences, profiling data, and determining a file's content type.
 
 ### Data Debugger Integration
 ![image](https://github.com/apache/daffodil-vscode/assets/30351915/7f906c91-83bc-454e-a164-4dad51842887)
 
-The Data Editor component can be configured to run alongside and open the designated file specified by the data debugger. During this operation, whenever the debug session steps to a new byte position or stops at a breakpoint, the data content within the Data Editor will illustrate the byte location.
+The Data Editor can be configured to open the designated data file when a Daffodil debug session starts. As the debug session steps to new byte positions, Daffodil sends byte-location highlights to the Ωedit™ Data Editor so the parse location is visible in the data content.
 
 # Prerequisites
 

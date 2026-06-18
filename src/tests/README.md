@@ -69,6 +69,8 @@ Instructions for testing dfdl intellisense are in the file DfdlIntellisenseTesti
 
 ## Data Editor
 
+The data editor UI and local editor runtime are provided by the Ωedit Data Editor extension dependency. Daffodil-specific validation should focus on opening the configured data file and showing Daffodil debug byte-position highlights.
+
 - [ ] open a file (use small and large files of different types)
   - [ ] verify that the tab is the base name of the file
   - [ ] verify that the full path name is correct (if the file name is too long, there will be a horizontal scroll bar)
@@ -146,13 +148,6 @@ Instructions for testing dfdl intellisense are in the file DfdlIntellisenseTesti
   - [ ] verify that Redo, Undo and Revert All buttons work as expected after committing changes and the counts appear correct
   - [ ] verify that changes in the length of the data are reflected in the Computed Size (hover over the Computed Size to see the tooltip with the byte size)
   - [ ] verify that clicking the 'X' button in the Edit box clears the selection, hides the Edit box, and displays the Data Inspector
-- [ ] server heartbeat information
-  - [ ] verify that the port the server is on matches the one configured (9000 is the default port)
-  - [ ] verify that the server heartbeat information is displayed in the footer when hovering over the dot
-  - [ ] ensure the latency is less than 30ms
-  - [ ] open another Data Editor tab on a different file and verify that the Session Count is incremented
-  - [ ] attempt to open the same file as one that is being edited and verify that opening the session fails and the Session Count is not incremented, then close this tab
-  - [ ] close the other Data Editor tab and verify that the Session Count is decremented
 - [ ] screen size
   - [ ] verify that when the screen is is large enough that the buttons have icons and text
   - [ ] verify that when the screen is smaller, that the buttons have icons only, with tooltips
@@ -167,8 +162,6 @@ Instructions for testing dfdl intellisense are in the file DfdlIntellisenseTesti
   - [ ] verify that search works on changed data
   - [ ] profile the changed data to verify that changes made are reflected in the profile
   - [ ] verify that all changes can be undone using the Revert All button
-  - [ ] verify that closing the last Data Editor tab shuts down the Ωedit server (check the process table searching for omega)
-  - [ ] check the log files for errors (e.g., dataEditor-9000.log and serv-9000.log in the OS-specific log directory for macOS it's ~/Library/Application Support/omega_edit/)
 
 ## Packaging
 

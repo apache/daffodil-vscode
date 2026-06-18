@@ -30,6 +30,8 @@ import pc from 'picocolors' // same color lib used by Vite
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const pkg_dir = 'dist/package'
+const DOWNLOAD_MAX_ATTEMPTS = 3
+const DOWNLOAD_RETRY_DELAY_MS = 1000
 
 const localModulePath = (moduleName) =>
   path.resolve(__dirname, 'src', moduleName)
@@ -42,6 +44,11 @@ const localModuleAliases = {
   infoset: localModulePath('infoset'),
   rootCompletion: localModulePath('rootCompletion'),
 }
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const getErrorMessage = (error) =>
+  error instanceof Error ? error.message : String(error)
 
 const packageData = jsoncParse(
   fs.readFileSync(path.resolve('package.json'), 'utf8')
@@ -92,6 +99,32 @@ function copyDebuggerOutAfterBuild() {
 // Helper function to download and extract with a progress bar. This was specifically designed to match the output
 // style of vite.
 async function downloadAndExtract(title, url, targetDir) {
+  for (let attempt = 1; attempt <= DOWNLOAD_MAX_ATTEMPTS; attempt++) {
+    try {
+      await downloadAndExtractOnce(title, url, targetDir)
+      return
+    } catch (error) {
+      const message = getErrorMessage(error)
+      if (attempt === DOWNLOAD_MAX_ATTEMPTS) {
+        throw new Error(
+          `${title} download failed after ${DOWNLOAD_MAX_ATTEMPTS} attempts: ${message}`
+        )
+      }
+
+      console.warn(
+        pc.yellow(
+          `⚠ ${title} download attempt ${attempt}/${DOWNLOAD_MAX_ATTEMPTS} failed: ${message}`
+        )
+      )
+      console.log(
+        pc.dim(`Retrying in ${attempt * DOWNLOAD_RETRY_DELAY_MS}ms...`)
+      )
+      await delay(attempt * DOWNLOAD_RETRY_DELAY_MS)
+    }
+  }
+}
+
+async function downloadAndExtractOnce(title, url, targetDir) {
   console.log(pc.cyan(`\n▶ Starting download for ${title}...\n`))
 
   const res = await fetch(url)
@@ -103,6 +136,7 @@ async function downloadAndExtract(title, url, targetDir) {
 
   const totalBytes = Number(res.headers.get('content-length')) || 0
   let downloaded = 0
+  let barStarted = false
 
   // Create a CLI progress bar (Vite aesthetic)
   const bar = new cliProgress.SingleBar(
@@ -117,6 +151,7 @@ async function downloadAndExtract(title, url, targetDir) {
 
   if (totalBytes > 0) {
     bar.start(totalBytes, 0)
+    barStarted = true
   } else {
     console.log(pc.dim('Downloading (unknown size)...'))
   }
@@ -137,10 +172,12 @@ async function downloadAndExtract(title, url, targetDir) {
   await fs.promises.mkdir(targetDir, { recursive: true })
 
   // Stream download → progress tracker → unzipper
-  await pipeline(res.body, progressStream, unzip.Extract({ path: targetDir }))
-
-  if (totalBytes > 0) bar.update(totalBytes)
-  bar.stop()
+  try {
+    await pipeline(res.body, progressStream, unzip.Extract({ path: targetDir }))
+    if (totalBytes > 0) bar.update(totalBytes)
+  } finally {
+    if (barStarted) bar.stop()
+  }
 
   const check = pc.green(pc.bold('✓'))
   console.log(
@@ -171,10 +208,6 @@ async function copyToPkgDirPlugin() {
     { from: 'language', to: `${pkg_dir}/language` },
     { from: 'package.json', to: `${pkg_dir}/package.json` },
     { from: 'yarn.lock', to: `${pkg_dir}/yarn.lock` },
-    {
-      from: 'node_modules/@omega-edit/server/out',
-      to: `${pkg_dir}/node_modules/@omega-edit/server/out`,
-    },
     {
       from: 'node_modules/@vscode/webview-ui-toolkit',
       to: `${pkg_dir}/node_modules/@vscode/webview-ui-toolkit`,
@@ -245,7 +278,7 @@ export default defineConfig(({ mode }) => {
         input: {
           extension: path.resolve(__dirname, 'src/adapter/extension.ts'),
         },
-        external: ['vscode', '@omega-edit/client', ...builtinModules, /^node:.*/],
+        external: ['vscode', ...builtinModules, /^node:.*/],
         output: {
           entryFileNames: 'extension.js',
           format: 'cjs',

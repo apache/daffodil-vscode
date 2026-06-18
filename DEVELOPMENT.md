@@ -69,7 +69,6 @@
       - [Yarn Package Issues](#yarn-package-issues)
         - [If Yarn Keeps Updating to The Latest Version](#if-yarn-keeps-updating-to-the-latest-version)
       - [Yarn Test Issues](#yarn-test-issues)
-        - [Data Editor Opens Test Case Failing](#data-editor-opens-test-case-failing)
         - [TLS Certificate Issues](#tls-certificate-issues)
         - [Tests Failing When Connected Through SSH](#tests-failing-when-connected-through-ssh)
       - [Debugging Issues](#debugging-issues)
@@ -397,7 +396,7 @@ Your window should look like the following. Note that you may have to move some 
 
 ![ide-debug](https://github.com/user-attachments/assets/dbc8a48e-b528-4861-8163-6c167c4d60fa)
 
-Here’s an example view of the data editor (OmegaEdit) with the schema on the left.
+Here’s an example view of the Ωedit Data Editor dependency with the schema on the left.
 
 ![ide-debug2](https://github.com/user-attachments/assets/9b982947-2f9c-45b0-8d6f-7b86eef1bacd)
 
@@ -489,7 +488,7 @@ As of typing this document (Feb 2025), the latest version of yarn is 4.6.0. If y
 ➤ YN0087: Migrated your project to the latest Yarn version ��
 ➤ YN0000: · Yarn 4.6.0
 ➤ YN0000: ┌ Resolution step
-➤ YN0085: │ + @omega-edit/client@npm:0.9.83, @tsconfig/svelte@npm:5.0.2, @types/glob@npm:8.1.0, @types/mocha@npm:10.0.6, @types/node@npm:20.11.30, @types/vscode-webview@npm:1.57.4, @types/vscode@npm:1.95.0, @viperproject/locate-java-home@npm:1.1.15, @vscode/debugadapter-testsupport@npm:1.65.0, @vscode/debugadapter@npm:1.67.0, @vscode/test-electron@npm:2.3.8, @vscode/vsce@npm:2.22.0, @vscode/webview-ui-toolkit@npm:1.4.0, await-notify@npm:1.0.1, chai@npm:4.4.1, and 703 more.
+➤ YN0085: │ + @types/glob@npm:8.1.0, @types/mocha@npm:10.0.6, @types/node@npm:20.11.30, @types/vscode@npm:1.95.0, @viperproject/locate-java-home@npm:1.1.15, @vscode/debugadapter-testsupport@npm:1.65.0, @vscode/debugadapter@npm:1.67.0, @vscode/test-electron@npm:2.3.8, @vscode/vsce@npm:2.22.0, @vscode/webview-ui-toolkit@npm:1.4.0, await-notify@npm:1.0.1, chai@npm:4.4.1, and more.
 ➤ YN0000: └ Completed in 9s 958ms
 ➤ YN0000: ┌ Post-resolution validation
 ➤ YN0002: │ apache-daffodil-vscode@workspace:. doesn't provide react (pa7c88), requested by @vscode/webview-ui-toolkit.
@@ -500,8 +499,6 @@ As of typing this document (Feb 2025), the latest version of yarn is 4.6.0. If y
 ➤ YN0000: └ Completed in 4m 47s
 ➤ YN0000: ┌ Link step
 ➤ YN0007: │ esbuild@npm:0.19.9 must be built because it never has been before or the last one failed
-➤ YN0007: │ svelte-preprocess@npm:5.1.1 [5fe27] must be built because it never has been before or the last one failed
-➤ YN0007: │ svelte-preprocess@npm:5.1.1 [ab741] must be built because it never has been before or the last one failed
 ➤ YN0007: │ keytar@npm:7.9.0 must be built because it never has been before or the last one failed
 ➤ YN0007: │ protobufjs@npm:7.4.0 must be built because it never has been before or the last one failed
 ➤ YN0000: └ Completed in 2m 40s
@@ -513,10 +510,6 @@ this means that there is a yarn project that is initialized in a folder that’s
 To remedy this, you need to change versions of Yarn. Use `yarn set version 1.22.22` to change versions of Yarn. [Documentation for set-version](https://yarnpkg.com/cli/set/version).  
 
 #### Yarn Test Issues
-
-##### Data Editor Opens Test Case Failing
-
-This means port 9000 is Occupied. See the current workarounds section in ["data editor opens" test fails if Port 9000 is Occupied · Issue #1175 · apache/daffodil-vscode](https://github.com/apache/daffodil-vscode/issues/1175).
 
 ##### TLS Certificate Issues
 
@@ -599,8 +592,6 @@ If issues persist, you may want to uninstall Node and reinstall it. If that does
 #### Inspecting the Log Files
 
 For issues not mentioned in this section, the log files for the debugger are located in your OS temp directory (e.g. `/tmp` for Ubuntu 24.04.2). The log file for the debugger should be named `daffodil-debugger-<port>.log` when debugging the extension or `yarn-test-daffodil-debugger-<port>.log` when running yarn test.
-
-The log files for the data editor are located in your OS app data path (e.g. `/home/<user>/.local/share/omega_edit`). The log files for the data editor should be named `serv-<port>.log` for the server logs and `dataEditor-<port>.log` for the data editor logs when using the data editor or `test-serv-<port>.log` and `test-dataEditor-<port>.log` when running yarn test.
 
 ## Development Specific
 
