@@ -4894,10 +4894,10 @@ version-range@^4.15.0:
   resolved "https://registry.yarnpkg.com/version-range/-/version-range-4.15.0.tgz#89df1e921b14d37515aab5e42ed4ac0515cab2c1"
   integrity sha512-Ck0EJbAGxHwprkzFO966t4/5QkRuzh+/I1RxhLgUKKwEn+Cd8NwM60mE3AqBZg5gYODoXW0EFsQvbZjRlvdqbg==
 
-vite@^6.4.2:
-  version "6.4.2"
-  resolved "https://registry.yarnpkg.com/vite/-/vite-6.4.2.tgz#a4e548ca3a90ca9f3724582cab35e1ba15efc6f2"
-  integrity sha512-2N/55r4JDJ4gdrCvGgINMy+HH3iRpNIz8K6SFwVsA+JbQScLiC+clmAxBgwiSPgcG9U15QmvqCGWzMbqda5zGQ==
+vite@^6.4.3:
+  version "6.4.3"
+  resolved "https://registry.yarnpkg.com/vite/-/vite-6.4.3.tgz#85a164db7ce706f2a776812efa2b340f1721858e"
+  integrity sha512-NTKlcQjlAK7MlQoyb6LgaqHc8sso/pVyUJYWMws3jg21uTJw/LddqIFPcPqP6PzpgbIcZyKI85sFE4HBrQDA8A==
   dependencies:
     esbuild "^0.25.0"
     fdir "^6.4.4"
