@@ -509,6 +509,39 @@ export const displayModalError = async (
     )
 
 /**
+ * Make HTTP request with retries and exponential backoff
+ *
+ * @param url The url to fetch
+ * @param options The options for the fetch
+ * @param retries Max number of retries
+ * @param delay Initial delay in ms
+ * @returns Response object
+ */
+export async function fetchRetry(
+  url,
+  options = {},
+  retries = 5,
+  delay = 4000
+): Promise<Response | undefined> {
+  let backoff = delay
+  for (let i = 1; i <= retries; i++) {
+    const res = await fetch(url, options)
+    if (!res.ok || !res.body) {
+      if (i === retries) {
+        throw new Error(
+          `Failed request to ${url}: ${res.status} ${res.statusText}`
+        )
+      } else {
+        await new Promise((r) => setTimeout(r, backoff))
+        backoff = backoff * 2
+      }
+    } else {
+      return res
+    }
+  }
+}
+
+/**
  * Download and extract a files with a progress bar
  *
  * @param title A title to use for printing to the user what is being downloaded
@@ -529,11 +562,9 @@ export async function downloadAndExtract(
     async (progress) => {
       progress.report({ increment: 0, message: 'Starting download...' })
 
-      const res = await fetch(url)
-      if (!res.ok || !res.body) {
-        throw new Error(
-          `Failed to download ${url}: ${res.status} ${res.statusText}`
-        )
+      const res = await fetchRetry(url)
+      if (!res) {
+        throw new Error(`Failed to download ${url}`)
       }
 
       const totalBytes = Number(res.headers.get('content-length')) || 0
