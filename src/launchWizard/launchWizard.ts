@@ -22,6 +22,7 @@ import { DFDLDebugger } from '../classes/dfdlDebugger'
 import { VSCodeLaunchConfigArgs } from '../classes/vscode-launch'
 import { DataEditorConfig } from '../classes/dataEditor'
 import { parse as jsoncParse } from 'jsonc-parser'
+import * as path from 'path'
 
 let launchWizard: LaunchWizard | undefined
 
@@ -278,6 +279,20 @@ async function createWizard(ctx: vscode.ExtensionContext) {
   let launchWiz = new LaunchWizard(ctx)
   let panel = launchWiz.getPanel()
   panel.webview.html = launchWiz.getWebViewContent()
+
+  //Read in list of valid
+
+  const tunablesPath = path.join(
+    ctx.extensionPath,
+    'constants',
+    'tunables.json'
+  )
+
+  const tunables = JSON.parse(fs.readFileSync(tunablesPath, 'utf8'))
+  panel.webview.postMessage({
+    command: 'loadTunables',
+    tunables: tunables,
+  })
 
   panel.webview.onDidReceiveMessage(
     async (message) => {
@@ -777,11 +792,20 @@ class LaunchWizard {
         </button>
       </div>
 
+      <div id="tunableErrorContainer"
+      style="color:red;font-size:12px;">
+       </div>
+
       <div id="VariablesDiv" class="setting-div" style="margin-top: 15px;">
         <p>Variables:</p>
         <p class="setting-description">Key/value configuration options</p>
 
         <table style="width: 100%; border-collapse: collapse; margin-top: 5px;">
+          <style>
+            td {
+              vertical-align: top;
+            }
+          </style>
           <thead>
             <tr>
               <th style="text-align: left;">Key</th>

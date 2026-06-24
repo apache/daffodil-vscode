@@ -1,0 +1,76 @@
+{
+  "allowExpressionResultCoercion": "boolean",
+  "allowExternalPathExpressions": "boolean",
+  "allowSignedIntegerLength1Bit": "boolean",
+
+  "blobChunkSizeInBytes": "number",
+
+  "defaultEmptyElementParsePolicy": "string",
+
+  "escalateWarningsToErrors": "boolean",
+
+  "generatedNamespacePrefixStem": "string",
+
+  "initialElementOccurrencesHint": "number",
+  "initialRegexMatchLimitInCharacters": "number",
+
+  "infosetWalkerSkipMin": "number",
+  "infosetWalkerSkipMax": "number",
+
+  "invalidRestrictionPolicy": {
+    "type": "enum",
+    "values": ["error", "ignore", "validate"]
+  },
+
+  "maxBinaryDecimalVirtualPoint": "number",
+  "maxByteArrayOutputStreamBufferSizeInBytes": "number",
+  "maxDataDumpSizeInBytes": "number",
+  "maxHexBinaryLengthInBytes": "number",
+
+  "maxLengthForVariableLengthDelimiterDisplay": "number",
+  "maxLookaheadFunctionBits": "number",
+
+  "maxOccursBounds": "number",
+
+  "maxSkipLengthInBytes": "number",
+
+  "maxValidYear": "number",
+
+  "maximumRegexMatchLengthInCharacters": "number",
+  "maximumSimpleElementSizeInCharacters": "number",
+
+  "minBinaryDecimalVirtualPoint": "number",
+  "minValidYear": "number",
+
+  "outputStreamChunkSizeInBytes": "number",
+
+  "parseUnparsePolicy": "string",
+
+  "releaseUnneededInfoset": "boolean",
+
+  "requireBitOrderProperty": "boolean",
+  "requireEmptyElementParsePolicyProperty": "boolean",
+
+  "requireEncodingErrorPolicyProperty": "boolean",
+  "requireFloatingProperty": "boolean",
+  "requireTextBidiProperty": "boolean",
+  "requireTextStandardBaseProperty": "boolean",
+
+  "saxUnparseEventBatchSize": "number",
+
+  "suppressSchemaDefinitionWarnings": "string",
+
+  "tempFilePath": "string",
+
+  "unqualifiedPathStepPolicy": {
+    "type": "enum",
+    "values": [
+      "noNamespace",
+      "defaultNamespace",
+      "preferDefaultNamespace"
+    ]
+  },
+
+  "unparseSuspensionWaitOld": "number",
+  "unparseSuspensionWaitYoung": "number"
+}
