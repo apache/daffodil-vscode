@@ -19,7 +19,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as vscode from 'vscode'
 import { outputChannel } from '../adapter/activateDaffodilDebug'
-import { downloadAndExtract } from '../utils'
+import { downloadAndExtract, fetchRetry } from '../utils'
 import { parseStringPromise } from 'xml2js'
 
 /**
@@ -69,11 +69,9 @@ export async function checkIfDaffodilJarsNeeded(
 async function getValidDaffodilVersions(): Promise<string[]> {
   const url = 'https://daffodil.apache.org/doap.rdf'
 
-  const resp = await fetch(url)
-  if (!resp.ok) {
-    throw new Error(
-      `Failed to fetch DOAP RDF: ${resp.status} ${resp.statusText}`
-    )
+  const resp = await fetchRetry(url)
+  if (!resp) {
+    throw new Error(`Failed to fetch DOAP RDF ${url}`)
   }
 
   const xmlText = await resp.text()

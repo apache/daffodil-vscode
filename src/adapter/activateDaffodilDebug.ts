@@ -18,6 +18,7 @@ import * as rootCompletion from '../rootCompletion'
 import { tmpdir } from 'os'
 import JSZip from 'jszip'
 import { rm } from 'node:fs/promises'
+import { getTunables } from './extension'
 
 import {
   CancellationToken,
@@ -766,16 +767,15 @@ class DaffodilConfigurationProvider
   constructor(context: vscode.ExtensionContext) {
     this.context = context
   }
-
   /**
    * Massage a debug configuration just before a debug session is being launched,
    * e.g. add all missing attributes to the debug configuration.
    */
-  resolveDebugConfiguration(
+  async resolveDebugConfiguration(
     folder: WorkspaceFolder | undefined,
     config: DebugConfiguration,
     token?: CancellationToken
-  ): ProviderResult<DebugConfiguration> {
+  ): Promise<DebugConfiguration | undefined> {
     // if launch.json is missing or empty
     if (!config.type && !config.request && !config.name) {
       config = getConfig({ name: 'Launch', request: 'launch', type: 'dfdl' })
@@ -789,6 +789,62 @@ class DaffodilConfigurationProvider
         path: config.schema?.path || '${command:AskForSchemaName}',
       },
       data: config.data || '${command:AskForDataName}',
+    }
+
+    const validTunables = getTunables(this.context)
+    const currentTunables = config.tunables ?? {}
+
+    const invalidTunables = Object.keys(currentTunables).filter(
+      (name) => !(name in validTunables)
+    )
+
+    const invalidValues = Object.entries(currentTunables)
+      .filter(([name, value]) => {
+        if (!(name in validTunables)) {
+          return false
+        }
+
+        const type = validTunables[name]
+
+        switch (type) {
+          case 'boolean':
+            return value !== 'true' && value !== 'false'
+
+          case 'number':
+            return isNaN(Number(value))
+
+          case 'string':
+            return typeof value !== 'string'
+
+          default:
+            return false
+        }
+      })
+      .map(([name]) => name)
+
+    const invalid = [...invalidTunables, ...invalidValues]
+
+    if (invalid.length > 0) {
+      const messages = [
+        ...invalidTunables.map((name) => `${name} (invalid tunable)`),
+        ...invalidValues.map((name) => `${name} (invalid value)`),
+      ]
+
+      const choice = await vscode.window.showWarningMessage(
+        `Invalid tunables found:\n\n${messages.join('\n')}`,
+        { modal: true },
+        'Ignore Invalid Tunables'
+      )
+
+      if (choice !== 'Ignore Invalid Tunables') {
+        return undefined
+      }
+
+      config.tunables = { ...config.tunables }
+
+      for (const invalidTunable of invalid) {
+        delete config.tunables[invalidTunable]
+      }
     }
 
     let dataFolder = config.data

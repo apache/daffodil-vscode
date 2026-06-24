@@ -52,6 +52,7 @@ object Rat {
     file("build/package/NOLICENSE"),
     file("build/package/NONOTICE"),
     file("src/tests/data/test.txt"),
+    file("constants/tunables.json"),
     file("debugger/src/test/data/emptyData.xml"),
     file("debugger/src/test/data/emptyInfoset.xml"),
     file("debugger/src/test/data/notInfoset.xml"),

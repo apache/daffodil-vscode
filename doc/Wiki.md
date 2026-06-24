@@ -372,11 +372,22 @@ Tunables are configured using **Key** and **Value** fields in the launch configu
 
 Use the **“+ Add Tunable”** button to add additional entries. Each row can be removed using the **“X”** button.
 
+Tunables are case sensitive, and only allowed tunables will be allowed to be saved in the wizard.
+
 Tunables control runtime behavior and performance characteristics. Most tunables have default values, so you only need to specify a value if you want to override them.
 
 <img width="790" height="176" alt="tunables_gui" src="https://github.com/user-attachments/assets/f78d5471-bfff-4cfb-b6cf-62c787a8e31b" />
 
 <img width="360" height="177" alt="tunables_launchjson" src="https://github.com/user-attachments/assets/0d70044d-d04c-4f47-958c-175c6e67f3f9" />
+
+### List of allowed Tunables
+
+In order to prevent unexpected tunables from being ran, there is a list of allowed tunables at `constants/tunables.json` which contains all valid tunables. Tunables are case sensitive and the values type must match what is expected. For example boolean values will only allow true or false. If a invalid tunable is saved in the `launch.json` , when you attempt to run daffodil you will encounter a error saying `Cancel` or `Ignore invalid tunable`. Cancel will send you back where you fix the error, and Ignore invalid tunable runs daffodil but does not register the invalid tunable. The tunable will stay in your launch.json however. The tunables.json file will be updated as new tunables are added and removed.
+
+The validation for tunable values is reasonably loose to allow for possibly unknown tunables to be applied. For example suppressSchemaDefinitionWarnings documentation didn't explicitly list all the possible values, but unqualifiedPathStepPolicy explicitly stated the allowed values so only those values are allowing.
+
+<img width="914" height="718" alt="image" src="https://github.com/user-attachments/assets/22b24b29-de7e-4ec9-b012-85fe8f1bb54c" />
+
 
 ### Reference
 - https://daffodil.apache.org/tunables/
