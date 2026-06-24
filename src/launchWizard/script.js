@@ -348,6 +348,19 @@ function save() {
       )
   }
 
+  // Blocks save if tunable isnt valid. This means we have to always make sure the tunable list is valid.
+  // should we just warn the user that it will case errors and let them submit
+  validateTunablesTable()
+
+  const hasErrors = [
+    ...document.querySelectorAll('#tunablesTableBody .tunable-error'),
+  ].some((el) => el.textContent.trim())
+
+  if (hasErrors) {
+    console.warn('Cannot save: invalid tunables present')
+    return
+  }
+
   vscode.postMessage({
     command: 'saveConfig',
     data: JSON.stringify(obj, null, 4),
@@ -360,11 +373,14 @@ function addTunableRow() {
 
   const row = document.createElement('tr')
 
-  row.innerHTML = `
-    <td><input class="file-input" /></td>
-    <td><input class="file-input" /></td>
-    <td><button onclick="this.closest('tr').remove()">X</button></td>
-  `
+  row.innerHTML = row.innerHTML = `
+  <td>
+    <input class="file-input" />
+    <div class="tunable-error" style="color:red;font-size:12px"></div>
+  </td>
+  <td><input class="file-input" /></td>
+  <td><button onclick="this.closest('tr').remove()">X</button></td>
+`
 
   tableBody.appendChild(row)
 }
@@ -403,10 +419,19 @@ function renderTunables(tunables = {}) {
     const row = document.createElement('tr')
 
     row.innerHTML = `
-      <td><input class="file-input" value="${escapeHtml(key)}" /></td>
-      <td><input class="file-input" value="${escapeHtml(value)}" /></td>
-      <td><button onclick="this.closest('tr').remove()">X</button></td>
-    `
+  <td>
+    <input class="file-input" value="${escapeHtml(key)}" />
+    <div class="tunable-error" style="color:red;font-size:12px;"></div>
+  </td>
+
+  <td>
+    <input class="file-input" value="${escapeHtml(value)}" />
+  </td>
+
+  <td>
+    <button onclick="this.closest('tr').remove()">X</button>
+  </td>
+`
 
     tableBody.appendChild(row)
   })
@@ -461,6 +486,24 @@ function renderVariables(variables = {}) {
     `
 
     tableBody.appendChild(row)
+  })
+}
+
+const VALID_TUNABLES = new Set(['timeout', 'maxRetries', 'logLevel', 'region'])
+
+function validateTunablesTable() {
+  const rows = document.querySelectorAll('#tunablesTableBody tr')
+
+  rows.forEach((row) => {
+    const keyInput = row.children[0].querySelector('input')
+    const errorDiv = row.children[0].querySelector('.tunable-error')
+
+    if (!keyInput || !errorDiv) return
+
+    const key = keyInput.value.trim()
+
+    errorDiv.textContent =
+      key && !VALID_TUNABLES.has(key) ? 'Invalid tunable' : ''
   })
 }
 
@@ -586,6 +629,9 @@ async function updateConfigValues(config) {
 
   renderTunables(config.tunables || {})
   renderVariables(config.variables || {})
+  document
+    .getElementById('tunablesTableBody')
+    ?.addEventListener('input', validateTunablesTable)
   updateInfosetOutputType()
   updateTDMLAction()
 
