@@ -488,24 +488,56 @@ function renderVariables(variables = {}) {
     tableBody.appendChild(row)
   })
 }
+  let VALID_TUNABLES = {}
 
-const VALID_TUNABLES = new Set(['timeout', 'maxRetries', 'logLevel', 'region'])
-
-function validateTunablesTable() {
-  const rows = document.querySelectorAll('#tunablesTableBody tr')
-
-  rows.forEach((row) => {
-    const keyInput = row.children[0].querySelector('input')
-    const errorDiv = row.children[0].querySelector('.tunable-error')
-
-    if (!keyInput || !errorDiv) return
-
-    const key = keyInput.value.trim()
-
-    errorDiv.textContent =
-      key && !VALID_TUNABLES.has(key) ? 'Invalid tunable' : ''
-  })
-}
+  // Validates tunables. validates against list of tunables and the value expected
+  function validateTunablesTable() {
+    const rows = document.querySelectorAll('#tunablesTableBody tr')
+  
+    rows.forEach((row) => {
+      const keyInput = row.children[0].querySelector('input')
+      const valueInput = row.children[1].querySelector('input')
+      const errorDiv = row.children[0].querySelector('.tunable-error')
+  
+      if (!keyInput || !valueInput || !errorDiv) return
+  
+      const key = keyInput.value.trim()
+      const value = valueInput.value.trim()
+  
+      let error = ''
+     
+      //Case sensitive check for valid tunables. If not valid, check for case insensitive match and suggest that to the user.
+      if (key && !VALID_TUNABLES[key]) {
+        const match = Object.keys(VALID_TUNABLES)
+          .find(t => t.toLowerCase() === key.toLowerCase())
+      
+        error = match
+          ? `Invalid tunable. Did you mean "${match}"? (case sensitive)`
+          : 'Invalid tunable'
+      }
+      else if (key && value) {
+        const expectedType = VALID_TUNABLES[key]
+  
+        if (expectedType === 'boolean') {
+          if (value !== 'true' && value !== 'false') {
+            error = 'Value must be boolean (true/false)'
+          }
+        }
+  
+        if (expectedType === 'number') {
+          if (isNaN(Number(value))) {
+            error = 'Value must be a number'
+          }
+        }
+  
+        if (expectedType === 'string') {
+          // strings are always valid
+        }
+      }
+  
+      errorDiv.textContent = error
+    })
+  }
 
 // Function to copy selected config
 function copyConfig() {
@@ -631,7 +663,10 @@ async function updateConfigValues(config) {
   renderVariables(config.variables || {})
   document
     .getElementById('tunablesTableBody')
-    ?.addEventListener('input', validateTunablesTable)
+    ?.addEventListener('blur', validateTunablesTable, true) // remove true and change blur to input if we want this to validate on each key
+    
+  // catches any invalid tunables on load.
+  validateTunablesTable()
   updateInfosetOutputType()
   updateTDMLAction()
 
@@ -661,6 +696,10 @@ async function updateDaffodilDebugClasspath(message) {
     const message = event.data
 
     switch (message.command) {
+      case 'loadTunables':
+        VALID_TUNABLES = message.tunables
+       // validateTunablesTable()
+        break
       case 'updateConfValues':
         await updateConfigValues(message.configValues)
         break

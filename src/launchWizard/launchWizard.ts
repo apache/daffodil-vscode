@@ -22,6 +22,7 @@ import { DFDLDebugger } from '../classes/dfdlDebugger'
 import { VSCodeLaunchConfigArgs } from '../classes/vscode-launch'
 import { DataEditorConfig } from '../classes/dataEditor'
 import { parse as jsoncParse } from 'jsonc-parser'
+import * as path from 'path'
 
 let launchWizard: LaunchWizard | undefined
 
@@ -278,6 +279,16 @@ async function createWizard(ctx: vscode.ExtensionContext) {
   let launchWiz = new LaunchWizard(ctx)
   let panel = launchWiz.getPanel()
   panel.webview.html = launchWiz.getWebViewContent()
+
+  //Read in list of valid
+  const tunablesPath = path.join(ctx.extensionPath, 'tunables.json')
+  const tunables = JSON.parse(
+  fs.readFileSync(tunablesPath, 'utf8')
+  )
+  panel.webview.postMessage({
+  command: 'loadTunables',
+  tunables: tunables
+  })
 
   panel.webview.onDidReceiveMessage(
     async (message) => {
