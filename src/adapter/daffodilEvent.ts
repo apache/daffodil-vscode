@@ -30,6 +30,10 @@ export function handleDebugEvent(e: vscode.DebugSessionCustomEvent) {
       fs.copyFileSync(path, `${path}.prev.xml`)
       fs.writeFileSync(path, update.content)
       break
+
+    case daf.warningEvent:
+      vscode.window.showWarningMessage(e.body.message)
+      break
     // this allows for any error event to be caught in this case
     case e.event.startsWith('daffodil.error') ? e.event : '':
       if (!e.body.message.startsWith('Schema Definition Error:')) {

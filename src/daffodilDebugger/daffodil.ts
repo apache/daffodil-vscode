@@ -36,6 +36,11 @@ export interface DaffodilParseError {
   message: string
 }
 
+export const warningEvent = 'daffodil.warning'
+export interface DaffodilWarning {
+  message: string
+}
+
 export const infosetEvent = 'daffodil.infoset'
 export interface InfosetEvent {
   content: string
@@ -80,6 +85,7 @@ export type DaffodilEventType =
   | 'daffodil.parseError'
   | 'daffodil.infoset'
   | 'daffodil.config'
+  | 'daffodil.warning'
 export type DaffodilEventData = { command: string; data: any }
 export type DaffodilDataType =
   | DaffodilData
@@ -87,12 +93,14 @@ export type DaffodilDataType =
   | DaffodilParseError
   | InfosetEvent
   | ConfigEvent
+  | DaffodilWarning
 export type DaffodilDataTypeMap = {
   'daffodil.data': DaffodilData
   'daffodil.dataLeftOver': DaffodilDataLeftOver
   'daffodil.parseError': DaffodilParseError
   'daffodil.infoset': InfosetEvent
   'daffodil.config': ConfigEvent
+  'daffodil.warning': DaffodilWarning
 }
 
 export class DaffodilDebugEvent<
