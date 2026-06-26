@@ -223,7 +223,7 @@ lazy val debugger =
     )
     .jvmPlatform(
       scalaVersions =
-        Seq("2.12.20", "2.13.18") ++ (if (scala.util.Properties.isJavaAtLeast("17")) Seq("3.3.6") else Seq())
+        Seq("2.12.20", "2.13.18") ++ (if (scala.util.Properties.isJavaAtLeast("17")) Seq("3.3.8") else Seq())
     )
 
 def getPlatformSpecificLibraries(scalaBinaryVersion: String) =
