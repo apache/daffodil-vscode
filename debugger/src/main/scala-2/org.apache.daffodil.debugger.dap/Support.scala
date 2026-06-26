@@ -27,6 +27,8 @@ import java.nio.file.Path
 import org.apache.daffodil.sapi._
 import org.apache.daffodil.sapi.io.InputSourceDataInputStream
 import org.apache.daffodil.sapi.infoset.{JsonInfosetOutputter, XMLTextInfosetOutputter}
+import cats.effect.IO
+import cats.syntax.all._
 
 object Support {
   /* Daffodil DataProcessor wrapper methods */
@@ -34,11 +36,20 @@ object Support {
       p: DataProcessor,
       debugger: org.apache.daffodil.runtime1.debugger.Debugger,
       variables: Map[String, String]
-  ): DataProcessor =
-    p.withDebugger(debugger)
-      .withDebugging(true)
-      .withExternalVariables(variables)
-      .withValidationMode(ValidationMode.Limited)
+  ): IO[DataProcessor] = {
+    val base = p.withDebugger(debugger).withDebugging(true)
+
+    variables.toList
+      .foldLeftM(base) { case (dp, (k, v)) =>
+        IO(dp.withExternalVariables(Map(k -> v))).handleErrorWith {
+          case e: ExternalVariableException =>
+            IO.println(s"[WARNING] Skipping unknown external variable '$k': ${e.getMessage}") *>
+              IO.pure(dp)
+          case e => IO.raiseError(e)
+        }
+      }
+      .map(_.withValidationMode(ValidationMode.Limited))
+  }
 
   /* Daffodil infoset wrapper methods */
   def getInputSourceDataInputStream(data: InputStream): InputSourceDataInputStream = new InputSourceDataInputStream(
