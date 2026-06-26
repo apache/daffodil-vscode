@@ -80,9 +80,12 @@ object Parse {
       dapEvents: Channel[IO, Events.DebugEvent]
   ): IO[Parse] =
     for {
-      dp <- DAPCompiler()
+      dpAndWarnings <- DAPCompiler()
         .compile(schema, rootName, rootNamespace, tunables)
-        .map(p => Support.dataProcessorWithDebugger(p, debugger, variables))
+        .flatMap(p => Support.dataProcessorWithDebugger(p, debugger, variables))
+      dp = dpAndWarnings._1
+      warnings = dpAndWarnings._2
+      _ <- warnings.traverse(w => dapEvents.send(Parse.Event.Warning(w)))
       done <- Ref[IO].of(false)
       pleaseStop <- Deferred[IO, Unit]
     } yield new Parse {
@@ -1096,6 +1099,7 @@ object Parse {
     case object Fini extends Event
     case class Control(state: DAPodil.Debugee.State) extends Event
     case class Error(message: String) extends Events.DebugEvent("daffodil.parseError")
+    case class Warning(message: String) extends Events.DebugEvent("daffodil.warning")
 
     implicit val show: Show[Event] = Show.fromToString
   }

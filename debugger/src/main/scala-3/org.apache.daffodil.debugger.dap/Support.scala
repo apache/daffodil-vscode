@@ -26,23 +26,29 @@ import java.io._
 import java.nio.file.Path
 import org.apache.daffodil.api._
 import scala.jdk.CollectionConverters._
+import cats.effect.IO
+import cats.syntax.all._
+import org.apache.daffodil.api.exceptions.ExternalVariableException
 
 object Support {
   /* Daffodil DataProcessor wrapper methods */
-  def dataProcessorWithDebugger(p: DataProcessor, debugger: Debugger, variables: Map[String, String]): DataProcessor =
-    p.withDebugger(debugger)
-      .withExternalVariables(variables.asJava)
-      .withValidation("daffodil")
+  def dataProcessorWithDebugger(
+      p: DataProcessor,
+      debugger: Debugger,
+      variables: Map[String, String]
+  ): IO[(DataProcessor, List[String])] = {
+    val base = p.withDebugger(debugger)
 
-  /* Daffodil infoset wrapper methods */
-  def getInputSourceDataInputStream(data: InputStream): InputSourceDataInputStream =
-    Daffodil.newInputSourceDataInputStream(data)
-  def getInfosetOutputter(infosetFormat: String, stream: OutputStream): InfosetOutputter =
-    infosetFormat match {
-      case "xml"  => Daffodil.newXMLTextInfosetOutputter(stream, true)
-      case "json" => Daffodil.newJsonInfosetOutputter(stream, true)
-      case other  => throw new IllegalArgumentException(s"unsupported infosetFormat: $other")
-    }
+    variables.toList
+      .foldLeftM((base, List.empty[String])) { case ((dp, warnings), (k, v)) =>
+        IO(dp.withExternalVariables(Map(k -> v).asJava)).map((_, warnings)).handleErrorWith {
+          case e: ExternalVariableException =>
+            IO.pure((dp, warnings :+ s"Skipping unknown external variable '$k': ${e.getMessage}"))
+          case e => IO.raiseError(e)
+        }
+      }
+      .map { case (dp, warnings) => (dp.withValidation("daffodil"), warnings) }
+  }
 
   /* Daffodil ProcessorFactory wrapper methods */
   def getProcessorFactory(
@@ -57,8 +63,20 @@ object Support {
       .compileFile(schema.toFile(), rootName.orNull, rootNamespace.orNull)
 
   /* Method to convert java list of diagnostics to a sequence of diagnostics */
+  /* Method to convert java list of diagnostics to a sequence of diagnostics */
   def parseDiagnosticList(
       dl: java.util.List[org.apache.daffodil.api.Diagnostic]
   ): Seq[org.apache.daffodil.api.Diagnostic] =
     dl.asScala.toSeq
+
+  /* Daffodil infoset wrapper methods */
+  def getInputSourceDataInputStream(data: InputStream): InputSourceDataInputStream =
+    Daffodil.newInputSourceDataInputStream(data)
+
+  def getInfosetOutputter(infosetFormat: String, stream: OutputStream): InfosetOutputter =
+    infosetFormat match {
+      case "xml"  => Daffodil.newXMLTextInfosetOutputter(stream, true)
+      case "json" => Daffodil.newJsonInfosetOutputter(stream, true)
+      case other  => throw new IllegalArgumentException(s"unsupported infosetFormat: $other")
+    }
 }
