@@ -29,6 +29,8 @@ import { Transform } from 'stream'
 let currentConfig: vscode.DebugConfiguration
 
 export const terminalName = 'daffodil-debugger'
+const DOWNLOAD_MAX_ATTEMPTS = 3
+const DOWNLOAD_RETRY_DELAY_MS = 1000
 
 export const regexp = {
   comma: new RegExp(',', 'g'),
@@ -36,6 +38,9 @@ export const regexp = {
   space: new RegExp(' ', 'g'),
   workspace: new RegExp('${workspaceFolder}', 'g'),
 }
+
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error)
 
 // Function to retrieve to the current debug config
 export function getCurrentConfig(): vscode.DebugConfiguration {
@@ -182,13 +187,6 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
     openInfosetView: defaultConf.get('openInfosetView', false),
     openInfosetDiffView: defaultConf.get('openInfosetDiffView', false),
     daffodilDebugClasspath: defaultConf.get('daffodilDebugClasspath', []),
-    dataEditor: defaultConf.get('dataEditor', {
-      port: 9000,
-      logging: {
-        level: 'info',
-        file: '',
-      },
-    }),
     dfdlDebugger: defaultConf.get('dfdlDebugger', {
       daffodilVersion: '3.11.0',
       timeout: '10s',
@@ -363,32 +361,6 @@ export async function runScript(
   return terminal
 }
 
-/**
- * Search for an existing Omega Edit server and kill if desired.
- * @param killOnFind Kill any OmegaEdit server found that is running. Defaults to True.
- * @returns PID of the process found and/or killed. 0 if no server is found. -1 if a child_process error occurred.
- */
-export async function findExistingOmegaEditServer(
-  killOnFind: boolean = true
-): Promise<number> {
-  let ret: number
-  const pid: string = child_process
-    .execSync(
-      osCheck('', "ps -a | grep omega-edit | grep -v grep | awk '{print $1}'")
-    )
-    .toString('ascii')
-
-  pid === '' ? (ret = 0) : (ret = parseInt(pid))
-
-  if (ret > 0 && killOnFind) {
-    vscode.window.showWarningMessage(
-      `Existing Omega Edit server found | Killing PID: ${ret} and restarting server.`
-    )
-    await killProcess(ret)
-  }
-  return ret
-}
-
 export function tmpFile(sid: string): string {
   return `${os.tmpdir()}/infoset-${sid}.${getCurrentConfig().infosetFormat}`
 }
@@ -527,48 +499,74 @@ export async function downloadAndExtract(
       cancellable: false,
     },
     async (progress) => {
-      progress.report({ increment: 0, message: 'Starting download...' })
-
-      const res = await fetch(url)
-      if (!res.ok || !res.body) {
-        throw new Error(
-          `Failed to download ${url}: ${res.status} ${res.statusText}`
-        )
-      }
-
-      const totalBytes = Number(res.headers.get('content-length')) || 0
-      let downloaded = 0
-      let lastPercent = 0
-
-      // Transform stream to track download progress
-      const progressStream = new Transform({
-        transform(chunk: Buffer, _encoding, callback) {
-          downloaded += chunk.length
-          if (totalBytes > 0) {
-            const percent = (downloaded / totalBytes) * 100
-            const increment = percent - lastPercent
-            lastPercent = percent
-            progress.report({
-              increment,
-              message: `${percent.toFixed(1)}%`,
-            })
+      for (let attempt = 1; attempt <= DOWNLOAD_MAX_ATTEMPTS; attempt++) {
+        try {
+          await downloadAndExtractOnce(progress, url, targetDir)
+          return
+        } catch (error) {
+          const message = getErrorMessage(error)
+          if (attempt === DOWNLOAD_MAX_ATTEMPTS) {
+            throw new Error(
+              `${title} download failed after ${DOWNLOAD_MAX_ATTEMPTS} attempts: ${message}`
+            )
           }
-          callback(null, chunk)
-        },
-      })
 
-      await fs.promises.mkdir(targetDir, { recursive: true })
-
-      await pipeline(
-        res.body as any,
-        progressStream,
-        unzip.Extract({ path: targetDir })
-      )
-
-      progress.report({
-        increment: 100 - lastPercent,
-        message: 'Extracting complete!',
-      })
+          progress.report({
+            increment: 0,
+            message: `Attempt ${attempt}/${DOWNLOAD_MAX_ATTEMPTS} failed. Retrying...`,
+          })
+          await delay(attempt * DOWNLOAD_RETRY_DELAY_MS)
+        }
+      }
     }
   )
+}
+
+async function downloadAndExtractOnce(
+  progress: vscode.Progress<{ increment?: number; message?: string }>,
+  url: string,
+  targetDir: string
+): Promise<void> {
+  progress.report({ increment: 0, message: 'Starting download...' })
+
+  const res = await fetch(url)
+  if (!res.ok || !res.body) {
+    throw new Error(
+      `Failed to download ${url}: ${res.status} ${res.statusText}`
+    )
+  }
+
+  const totalBytes = Number(res.headers.get('content-length')) || 0
+  let downloaded = 0
+  let lastPercent = 0
+
+  // Transform stream to track download progress
+  const progressStream = new Transform({
+    transform(chunk: Buffer, _encoding, callback) {
+      downloaded += chunk.length
+      if (totalBytes > 0) {
+        const percent = (downloaded / totalBytes) * 100
+        const increment = percent - lastPercent
+        lastPercent = percent
+        progress.report({
+          increment,
+          message: `${percent.toFixed(1)}%`,
+        })
+      }
+      callback(null, chunk)
+    },
+  })
+
+  await fs.promises.mkdir(targetDir, { recursive: true })
+
+  await pipeline(
+    res.body as any,
+    progressStream,
+    unzip.Extract({ path: targetDir })
+  )
+
+  progress.report({
+    increment: Math.max(0, 100 - lastPercent),
+    message: 'Extracting complete!',
+  })
 }

@@ -16,7 +16,6 @@
  */
 
 import { TDMLConfig } from './tdmlConfig'
-import { DataEditorConfig } from './dataEditor'
 import { InfosetOutput } from '../daffodilDebugger'
 import { DFDLDebugger } from './dfdlDebugger'
 import { SchemaData } from './schemaData'
@@ -31,7 +30,6 @@ export interface VSCodeLaunchConfigArgs {
   infosetFormat: string | null
   infosetOutput: InfosetOutput | null
   tdmlConfig: TDMLConfig
-  dataEditor: DataEditorConfig | null
   stopOnEntry: boolean
   useExistingServer: boolean
   trace: boolean

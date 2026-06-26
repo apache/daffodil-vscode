@@ -69,11 +69,6 @@ function getConfigValues() {
   const stopOnEntry = document.getElementById('stopOnEntry').checked
   const trace = document.getElementById('trace').checked
   const useExistingServer = document.getElementById('useExistingServer').checked
-  const dataEditorPort = parseInt(
-    document.getElementById('dataEditorPort').value
-  )
-  const dataEditorLogFile = document.getElementById('dataEditorLogFile').value
-  const dataEditorLogLevel = document.getElementById('dataEditorLogLevel').value
   const dfdlDaffodilVersion = document.getElementById(
     'dfdlDaffodilVersion'
   ).value
@@ -114,9 +109,6 @@ function getConfigValues() {
     stopOnEntry,
     trace,
     useExistingServer,
-    dataEditorPort,
-    dataEditorLogFile,
-    dataEditorLogLevel,
     dfdlDaffodilVersion,
     dfdlDebuggerTimeout,
     dfdlDebuggerLogFile,
@@ -314,13 +306,6 @@ function save() {
         openInfosetView: configValues.openInfosetView,
         openInfosetDiffView: configValues.openInfosetDiffView,
         daffodilDebugClasspath: configValues.daffodilDebugClasspath,
-        dataEditor: {
-          port: configValues.dataEditorPort,
-          logging: {
-            file: configValues.dataEditorLogFile,
-            level: configValues.dataEditorLogLevel,
-          },
-        },
         dfdlDebugger: {
           daffodilVersion: configValues.dfdlDaffodilVersion,
           timeout: configValues.dfdlDebuggerTimeout,
@@ -501,13 +486,6 @@ function copyConfig() {
         openInfosetView: configValues.openInfosetView,
         openInfosetDiffView: configValues.openInfosetDiffView,
         daffodilDebugClasspath: configValues.daffodilDebugClasspath,
-        dataEditor: {
-          port: configValues.dataEditorPort,
-          logging: {
-            file: configValues.dataEditorLogFile,
-            level: configValues.dataEditorLogLevel,
-          },
-        },
         dfdlDebugger: {
           daffodilVersion: configValues.dfdlDaffodilVersion,
           timeout: configValues.dfdlDebuggerTimeout,
@@ -567,14 +545,6 @@ async function updateConfigValues(config) {
   document.getElementById('trace').checked = config.trace
   document.getElementById('useExistingServer').checked =
     config.useExistingServer
-  document.getElementById('dataEditorPort').value = parseInt(
-    config.dataEditor.port
-  )
-  document.getElementById('dataEditorLogFile').value =
-    config.dataEditor.logging.file
-  document.getElementById('dataEditorLogLevel').value =
-    config.dataEditor.logging.level
-
   document.getElementById('dfdlDaffodilVersion').value =
     config.dfdlDebugger.daffodilVersion
   document.getElementById('dfdlDebuggerTimeout').value =

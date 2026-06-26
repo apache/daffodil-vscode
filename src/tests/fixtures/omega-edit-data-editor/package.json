@@ -1,0 +1,11 @@
+{
+  "name": "omega-edit-data-editor",
+  "displayName": "Test OmegaEdit Data Editor",
+  "publisher": "ctc-oss",
+  "version": "0.0.0-test",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "main": "./extension.js",
+  "activationEvents": []
+}

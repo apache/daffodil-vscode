@@ -16,6 +16,7 @@
  */
 
 // All tests ran here are ones that require the vscode API
+import * as fs from 'fs'
 import * as path from 'path'
 import { runTests, downloadAndUnzipVSCode } from '@vscode/test-electron'
 
@@ -32,6 +33,7 @@ async function main() {
   if (disable_cert_verification) {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
   }
+  delete process.env.ELECTRON_RUN_AS_NODE
 
   // The version of VS Code to use for running the test suite in.  Aside from
   // actual version strings, 'stable' can be used for using the latest stable
@@ -48,6 +50,12 @@ async function main() {
     // The path to the extension test script
     // Passed to --extensionTestsPath
     const extensionTestsPath = path.resolve(__dirname, './suite/index')
+    const extensionsDir = path.resolve(
+      __dirname,
+      '../../.vscode-test/extensions'
+    )
+    const omegaEditFixturePath =
+      installOmegaEditDataEditorFixture(extensionsDir)
 
     const vscodeExecutablePath = await downloadAndUnzipVSCode(testVsCodeVersion)
 
@@ -56,6 +64,7 @@ async function main() {
       vscodeExecutablePath,
       extensionDevelopmentPath,
       extensionTestsPath,
+      launchArgs: [`--extensionDevelopmentPath=${omegaEditFixturePath}`],
     })
 
     // Exit with the same exit code as the tests
@@ -66,6 +75,34 @@ async function main() {
     // Exit with an error code
     process.exit(1)
   }
+}
+
+function installOmegaEditDataEditorFixture(extensionsDir: string): string {
+  const source = path.resolve(
+    __dirname,
+    '../../src/tests/fixtures/omega-edit-data-editor'
+  )
+  const extensionFolderPrefix = 'ctc-oss.omega-edit-data-editor'
+  const omegaEditFixturePackageJson = JSON.parse(
+    fs.readFileSync(path.join(source, 'package.json'), 'utf8')
+  )
+  const destination = path.join(
+    extensionsDir,
+    `${extensionFolderPrefix}-${omegaEditFixturePackageJson.version}`
+  )
+
+  fs.mkdirSync(extensionsDir, { recursive: true })
+  fs.rmSync(path.join(extensionsDir, 'extensions.json'), { force: true })
+  for (const extensionFolder of fs.readdirSync(extensionsDir)) {
+    if (extensionFolder.startsWith(extensionFolderPrefix)) {
+      fs.rmSync(path.join(extensionsDir, extensionFolder), {
+        recursive: true,
+        force: true,
+      })
+    }
+  }
+  fs.cpSync(source, destination, { recursive: true })
+  return destination
 }
 
 main().then()

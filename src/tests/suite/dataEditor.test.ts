@@ -16,134 +16,93 @@
  */
 
 import * as assert from 'assert'
+import * as os from 'os'
 import * as path from 'path'
 import * as vscode from 'vscode'
 import fs from 'fs'
-import { TEST_SCHEMA } from './common'
-import { after, before } from 'mocha'
 import {
-  createSimpleFileLogger,
-  getClientVersion,
-  getServerInfo,
-  setLogger,
-  startServer,
-  stopProcessUsingPID,
-} from '@omega-edit/client'
-import {
-  APP_DATA_PATH,
+  buildDaffodilDataHighlight,
+  DAFFODIL_CURRENT_DATA_HIGHLIGHT_ID,
   DATA_EDITOR_COMMAND,
-  DataEditorClient,
-  OMEGA_EDIT_HOST,
-  SERVER_START_TIMEOUT,
-} from '../../dataEditor/dataEditorClient'
-import { writeLogbackConfigFile } from '../../dataEditor/include/server/LogbackConfig'
-
-const testPort = 9009 // use a different port than the default for testing to avoid conflicts with running servers
-const logLevel = 'debug'
-
-function getTestPidFile(serverPort: number) {
-  return path.join(APP_DATA_PATH, `test-serv-${serverPort}.pid`)
-}
+  OMEGA_EDIT_EXTENSION_ID,
+  resolveDataFileUri,
+} from '../../dataEditor'
+import { PACKAGE_PATH, TEST_SCHEMA } from './common'
 
 suite('Data Editor Test Suite', () => {
-  // NOTE: Currently failing after glob update. Maybe add back in later?
-  // test('data edit command exists', async () => {
-  //   assert.strictEqual(
-  //     (await vscode.commands.getCommands()).includes(DATA_EDITOR_COMMAND),
-  //     true
-  //   )
-  // })
-
-  suite('Editor Service', () => {
-    const pidFile = getTestPidFile(testPort)
-    const serverLogFile = path.join(APP_DATA_PATH, `test-serv-${testPort}.log`)
-    const logFile = path.join(APP_DATA_PATH, `test-dataEditor-${testPort}.log`)
-    let logConfigFile = ''
-    setLogger(createSimpleFileLogger(logFile, logLevel))
-
-    before(async () => {
-      logConfigFile = writeLogbackConfigFile(
-        path.join(APP_DATA_PATH, `test-serv-${testPort}.logconf.xml`),
-        serverLogFile,
-        logLevel
-      )
-      const serverPid = (await Promise.race([
-        startServer(testPort, OMEGA_EDIT_HOST, pidFile, { logConfigFile }),
-        new Promise((resolve, reject) => {
-          setTimeout(
-            () =>
-              reject(
-                new Error(
-                  `Server startup timed out after ${SERVER_START_TIMEOUT} seconds`
-                )
-              ),
-            SERVER_START_TIMEOUT * 1000
-          )
-        }),
-      ])) as number | undefined
-      if (serverPid === undefined || serverPid <= 0) {
-        throw new Error('Server failed to start or PID is invalid')
-      }
-    })
-
-    after(async () => {
-      assert.strictEqual(fs.existsSync(pidFile), true)
-      const pid = parseInt(fs.readFileSync(pidFile).toString())
-      console.log(pid)
-      assert.strictEqual(await stopProcessUsingPID(pid), true)
-      if (fs.existsSync(logConfigFile)) {
-        fs.rmSync(logConfigFile, { force: true })
-      }
-    })
-
-    test('is running', async () => {
-      // make sure the server is listening on the configured port
-      const wait_port = require('wait-port')
-      const result = await wait_port({
-        host: OMEGA_EDIT_HOST,
-        port: testPort,
-        output: 'silent',
-      })
-      assert.strictEqual(result.open, true)
-      assert.strictEqual(fs.existsSync(logConfigFile), true)
-      // make sure there is a pid file for the server
-      assert.strictEqual(fs.existsSync(pidFile), true)
-    })
-
-    test('server and client versions match', async () => {
-      const clientVersion = getClientVersion()
-      const serverInfo = await getServerInfo()
-      const serverVersion = serverInfo.serverVersion
-      assert.strictEqual(serverVersion, clientVersion)
-      assert.strictEqual(fs.existsSync(serverLogFile), true)
-      assert.strictEqual(fs.existsSync(logFile), true)
-    })
+  test('data edit command is contributed', () => {
+    const packageJson = JSON.parse(fs.readFileSync(PACKAGE_PATH, 'utf8'))
+    assert.strictEqual(
+      packageJson.contributes.commands.some(
+        (command) => command.command === DATA_EDITOR_COMMAND
+      ),
+      true
+    )
   })
 
-  suite('Data Editor', () => {
-    test('data editor opens', async () => {
-      const dataEditWebView: DataEditorClient =
-        await vscode.commands.executeCommand(DATA_EDITOR_COMMAND, TEST_SCHEMA)
-      assert.ok(dataEditWebView)
-      assert.strictEqual(dataEditWebView.panel.active, true)
-      assert.strictEqual(
-        // Check if data editor panel has the basename of the file
-        dataEditWebView.panel.title,
-        path.basename(TEST_SCHEMA)
-      )
+  test('declares OmegaEdit data editor extension dependency', () => {
+    const packageJson = JSON.parse(fs.readFileSync(PACKAGE_PATH, 'utf8'))
+    assert.ok(
+      Array.isArray(packageJson.extensionDependencies),
+      'extensionDependencies must be declared'
+    )
+    assert.ok(
+      packageJson.extensionDependencies.includes(OMEGA_EDIT_EXTENSION_ID),
+      `extensionDependencies must include ${OMEGA_EDIT_EXTENSION_ID}`
+    )
+  })
 
-      // Listen for the dispose event
-      let isDisposed = false
-      dataEditWebView.panel.onDidDispose(() => {
-        isDisposed = true
-      })
+  test('resolves provided data file paths', async () => {
+    const dataUri = await resolveDataFileUri(TEST_SCHEMA)
+    assert.ok(dataUri)
+    assert.strictEqual(
+      path.normalize(dataUri.fsPath),
+      path.normalize(TEST_SCHEMA)
+    )
+  })
 
-      // Close the data editor panel
-      await dataEditWebView.panel.dispose()
-      await dataEditWebView.waitForDisposeCleanup()
+  test('resolves POSIX file paths containing colons', async function () {
+    if (process.platform === 'win32') {
+      this.skip()
+    }
 
-      // Verify that the panel has been disposed
-      assert.strictEqual(isDisposed, true)
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'daffodil-data-'))
+    const dataPath = path.join(tempDir, 'session:1.bin')
+    try {
+      fs.writeFileSync(dataPath, 'data')
+
+      const dataUri = await resolveDataFileUri(dataPath)
+      assert.ok(dataUri)
+      assert.strictEqual(dataUri.scheme, 'file')
+      assert.strictEqual(dataUri.fsPath, dataPath)
+    } finally {
+      fs.rmSync(tempDir, { force: true, recursive: true })
+    }
+  })
+
+  test('builds Daffodil current-byte highlights', () => {
+    assert.deepStrictEqual(buildDaffodilDataHighlight(5, 10), {
+      id: DAFFODIL_CURRENT_DATA_HIGHLIGHT_ID,
+      offset: 4,
+      length: 1,
+      kind: 'current',
+      label: 'Daffodil parser byte 5',
+      source: 'Apache Daffodil',
     })
+    assert.strictEqual(buildDaffodilDataHighlight(0, 10), undefined)
+    assert.strictEqual(buildDaffodilDataHighlight(1, 0), undefined)
+    assert.strictEqual(buildDaffodilDataHighlight(11, 10)?.offset, 9)
+  })
+
+  test('data editor opens through OmegaEdit dependency when installed', async function () {
+    if (!vscode.extensions.getExtension(OMEGA_EDIT_EXTENSION_ID)) {
+      this.skip()
+    }
+
+    const editorState = await vscode.commands.executeCommand(
+      DATA_EDITOR_COMMAND,
+      TEST_SCHEMA
+    )
+    assert.ok(editorState)
   })
 })

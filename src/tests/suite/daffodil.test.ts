@@ -152,7 +152,7 @@ suite('Daffodfil', () => {
     })
   })
 
-  // This breaks when the omega-edit tests run for some reason
+  // This breaks when the data editor integration tests run for some reason
   // suite('non-debug specific commands', () => {
   //   const nonDebugSpecificCmds = [
   //     'extension.dfdl-debug.debugEditorContents',
@@ -182,7 +182,7 @@ suite('Daffodfil', () => {
   //   })
   // })
 
-  // This breaks when the omega-edit tests run for some reason
+  // This breaks when the data editor integration tests run for some reason
   // suite('debug specific commands', () => {
   //   const debugSpecificCmds = [
   //     'extension.dfdl-debug.toggleFormatting',
@@ -191,7 +191,7 @@ suite('Daffodfil', () => {
   //     'infoset.save',
   //   ]
 
-  //   // This breaks when the omega-edit tests run for some reason
+  //   // This breaks when the data editor integration tests run for some reason
   //   test('Not available by default', () => {
   //     debugSpecificCmds.forEach(async (cmd) => {
   //       assert.strictEqual(
@@ -201,7 +201,7 @@ suite('Daffodfil', () => {
   //     })
   //   })
 
-  //   // This breaks when the omega-edit tests run for some reason
+  //   // This breaks when the data editor integration tests run for some reason
   //   test('Available when inDebugMode', () => {
   //     vscode.commands.executeCommand('setContext', 'inDebugMode', true)
 

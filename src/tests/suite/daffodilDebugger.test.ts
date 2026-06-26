@@ -25,7 +25,6 @@ import { getConfig, killProcess } from '../../utils'
 import { runDebugger, stopDebugging } from '../../daffodilDebugger'
 import { before, after, Suite, Test } from 'mocha'
 import { DFDLDebugger } from '../../classes/dfdlDebugger'
-import { DataEditorConfig } from '../../classes/dataEditor'
 import { getJavaHome } from '../../daffodilDebugger'
 import { delay } from '../../utils'
 import { TDMLConfig } from 'classes/tdmlConfig'
@@ -47,14 +46,6 @@ suite('Daffodil Debugger', function (this: Suite) {
 
   const tdmlConf = {
     action: 'none',
-  }
-
-  const dataEditor: DataEditorConfig = {
-    port: 9000,
-    logging: {
-      file: 'dataEditor-9000.log',
-      level: 'info',
-    },
   }
 
   before(async () => {
@@ -85,8 +76,7 @@ suite('Daffodil Debugger', function (this: Suite) {
       XML_INFOSET_PATH,
       JSON_INFOSET_PATH,
       DATA,
-      tdmlConf,
-      dataEditor
+      tdmlConf
     )
   })
 
@@ -162,7 +152,6 @@ async function checkDebug(
   infosetFormat: string,
   infosetPath: string,
   tdmlConfig: TDMLConfig,
-  dataEditor: DataEditorConfig,
   dfdlDebugger: DFDLDebugger
 ) {
   await vscode.debug.startDebugging(
@@ -182,7 +171,6 @@ async function checkDebug(
         path: infosetPath,
       },
       tdmlConfig: tdmlConfig,
-      dataEditor: dataEditor,
       dfdlDebugger: dfdlDebugger,
       stopOnEntry: false,
     }),
@@ -211,8 +199,7 @@ async function addDebuggerRunningTests(
   xmlInfosetPath: string,
   jsonInfosetPath: string,
   data: string,
-  tdmlConfig: TDMLConfig,
-  dataEditor: DataEditorConfig
+  tdmlConfig: TDMLConfig
 ) {
   for (var i = 0; i < dfdlDebuggerConfigs.length; i++) {
     const debuggerConfig = dfdlDebuggerConfigs[i]
@@ -233,7 +220,6 @@ async function addDebuggerRunningTests(
             debuggerConfig.infosetFormat,
             infosetPath,
             tdmlConfig,
-            dataEditor,
             debuggerConfig.debugger
           )
         }

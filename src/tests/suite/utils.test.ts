@@ -52,13 +52,6 @@ suite('Utils Test Suite', () => {
     openInfosetView: false,
     openInfosetDiffView: false,
     daffodilDebugClasspath: [],
-    dataEditor: {
-      port: 9000,
-      logging: {
-        file: '',
-        level: 'info',
-      },
-    },
     dfdlDebugger: {
       daffodilVersion: '3.11.0',
       timeout: '10s',

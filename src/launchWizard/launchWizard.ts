@@ -20,7 +20,6 @@ import * as vscode from 'vscode'
 import { getConfig, osCheck } from '../utils'
 import { DFDLDebugger } from '../classes/dfdlDebugger'
 import { VSCodeLaunchConfigArgs } from '../classes/vscode-launch'
-import { DataEditorConfig } from '../classes/dataEditor'
 import { parse as jsoncParse } from 'jsonc-parser'
 
 let launchWizard: LaunchWizard | undefined
@@ -547,19 +546,6 @@ class LaunchWizard {
       }
     })
 
-    let dataEditor: DataEditorConfig = defaultValues.dataEditor
-    let dataEditorLogLevelSelect = ''
-    let dataEditorLogLevelTypes = getAllowedLogLevels(true)
-    let dataEditorLogLevel = dataEditor.logging.level
-
-    dataEditorLogLevelTypes.forEach((type) => {
-      if (type === dataEditorLogLevel) {
-        dataEditorLogLevelSelect += `<option selected value="${type}">${type}</option>`
-      } else {
-        dataEditorLogLevelSelect += `<option value="${type}">${type}</option>`
-      }
-    })
-
     return `
   <!DOCTYPE html>
   <html lang="en">
@@ -797,20 +783,6 @@ class LaunchWizard {
         <button id="addVariableBtn" onclick="addVariableRow()" style="margin-top: 10px;">
           + Add Variable
         </button>
-      </div>
-      <div id="dataEditorDiv" class="setting-div">
-        <p>Data Editor Settings:</p>
-        
-        <p id="dataEditorPortLabel" class="setting-description">omega-edit Port:</p>
-        <input class="file-input" value="${dataEditor.port}" id="dataEditorPort">
-
-        <p id="dataEditorLogFileLabel" style="margin-top: 10px;" class="setting-description">Log File:</p>
-        <input class="file-input" value="${dataEditor.logging.file}" id="dataEditorLogFile">
-        
-        <p id="dataEditorLogLevelLabel" style="margin-top: 10px;" class="setting-description">Log Level:</p>
-        <select class="file-input" style="width: 200px;" id="dataEditorLogLevel">
-          ${dataEditorLogLevelSelect}
-        </select>
       </div>
       <br/>
       <button class="save-button" type="button" onclick="save()">Save</button>
