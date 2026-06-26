@@ -348,6 +348,19 @@ function save() {
       )
   }
 
+  // Blocks save if tunable isnt valid. This means we have to always make sure the tunable list is valid.
+  // should we just warn the user that it will case errors and let them submit
+  validateTunablesTable()
+
+  const hasErrors = [
+    ...document.querySelectorAll('#tunablesTableBody .tunable-error'),
+  ].some((el) => el.textContent.trim())
+
+  if (hasErrors) {
+    console.warn('Cannot save: invalid tunables present')
+    return
+  }
+
   vscode.postMessage({
     command: 'saveConfig',
     data: JSON.stringify(obj, null, 4),
@@ -360,11 +373,14 @@ function addTunableRow() {
 
   const row = document.createElement('tr')
 
-  row.innerHTML = `
-    <td><input class="file-input" /></td>
-    <td><input class="file-input" /></td>
-    <td><button onclick="this.closest('tr').remove()">X</button></td>
-  `
+  row.innerHTML = row.innerHTML = `
+  <td>
+    <input class="file-input" />
+    <div class="tunable-error" style="color:red;font-size:12px"></div>
+  </td>
+  <td><input class="file-input" /></td>
+  <td><button onclick="this.closest('tr').remove()">X</button></td>
+`
 
   tableBody.appendChild(row)
 }
@@ -403,10 +419,19 @@ function renderTunables(tunables = {}) {
     const row = document.createElement('tr')
 
     row.innerHTML = `
-      <td><input class="file-input" value="${escapeHtml(key)}" /></td>
-      <td><input class="file-input" value="${escapeHtml(value)}" /></td>
-      <td><button onclick="this.closest('tr').remove()">X</button></td>
-    `
+  <td>
+    <input class="file-input" value="${escapeHtml(key)}" />
+    <div class="tunable-error" style="color:red;font-size:12px;"></div>
+  </td>
+
+  <td>
+    <input class="file-input" value="${escapeHtml(value)}" />
+  </td>
+
+  <td>
+    <button onclick="this.closest('tr').remove()">X</button>
+  </td>
+`
 
     tableBody.appendChild(row)
   })
@@ -463,6 +488,56 @@ function renderVariables(variables = {}) {
     tableBody.appendChild(row)
   })
 }
+  let VALID_TUNABLES = {}
+
+  // Validates tunables. validates against list of tunables and the value expected
+  function validateTunablesTable() {
+    const rows = document.querySelectorAll('#tunablesTableBody tr')
+  
+    rows.forEach((row) => {
+      const keyInput = row.children[0].querySelector('input')
+      const valueInput = row.children[1].querySelector('input')
+      const errorDiv = row.children[0].querySelector('.tunable-error')
+  
+      if (!keyInput || !valueInput || !errorDiv) return
+  
+      const key = keyInput.value.trim()
+      const value = valueInput.value.trim()
+  
+      let error = ''
+     
+      //Case sensitive check for valid tunables. If not valid, check for case insensitive match and suggest that to the user.
+      if (key && !VALID_TUNABLES[key]) {
+        const match = Object.keys(VALID_TUNABLES)
+          .find(t => t.toLowerCase() === key.toLowerCase())
+      
+        error = match
+          ? `Invalid tunable. Did you mean "${match}"? (case sensitive)`
+          : 'Invalid tunable'
+      }
+      else if (key && value) {
+        const expectedType = VALID_TUNABLES[key]
+  
+        if (expectedType === 'boolean') {
+          if (value !== 'true' && value !== 'false') {
+            error = 'Value must be boolean (true/false)'
+          }
+        }
+  
+        if (expectedType === 'number') {
+          if (isNaN(Number(value))) {
+            error = 'Value must be a number'
+          }
+        }
+  
+        if (expectedType === 'string') {
+          // strings are always valid
+        }
+      }
+  
+      errorDiv.textContent = error
+    })
+  }
 
 // Function to copy selected config
 function copyConfig() {
@@ -586,6 +661,12 @@ async function updateConfigValues(config) {
 
   renderTunables(config.tunables || {})
   renderVariables(config.variables || {})
+  document
+    .getElementById('tunablesTableBody')
+    ?.addEventListener('blur', validateTunablesTable, true) // remove true and change blur to input if we want this to validate on each key
+    
+  // catches any invalid tunables on load.
+  validateTunablesTable()
   updateInfosetOutputType()
   updateTDMLAction()
 
@@ -615,6 +696,10 @@ async function updateDaffodilDebugClasspath(message) {
     const message = event.data
 
     switch (message.command) {
+      case 'loadTunables':
+        VALID_TUNABLES = message.tunables
+       // validateTunablesTable()
+        break
       case 'updateConfValues':
         await updateConfigValues(message.configValues)
         break

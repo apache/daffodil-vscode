@@ -18,6 +18,7 @@ import * as rootCompletion from '../rootCompletion'
 import { tmpdir } from 'os'
 import JSZip from 'jszip'
 import { rm } from 'node:fs/promises'
+import { getTunables } from './extension'
 
 import {
   CancellationToken,
@@ -766,16 +767,15 @@ class DaffodilConfigurationProvider
   constructor(context: vscode.ExtensionContext) {
     this.context = context
   }
-
   /**
    * Massage a debug configuration just before a debug session is being launched,
    * e.g. add all missing attributes to the debug configuration.
    */
-  resolveDebugConfiguration(
+  async resolveDebugConfiguration(
     folder: WorkspaceFolder | undefined,
     config: DebugConfiguration,
     token?: CancellationToken
-  ): ProviderResult<DebugConfiguration> {
+  ): Promise<DebugConfiguration | undefined> {
     // if launch.json is missing or empty
     if (!config.type && !config.request && !config.name) {
       config = getConfig({ name: 'Launch', request: 'launch', type: 'dfdl' })
@@ -791,6 +791,31 @@ class DaffodilConfigurationProvider
       data: config.data || '${command:AskForDataName}',
     }
 
+    const validTunables = getTunables(this.context)
+    const currentTunables = config.tunables ?? {}
+    const invalidTunables = Object.keys(currentTunables).filter(
+      (name) => !validTunables.includes(name)
+    )
+
+    if (invalidTunables.length > 0) {
+      const choice = await vscode.window.showWarningMessage(
+        `Invalid tunables found:\n\n${invalidTunables.join('\n')}`,
+        { modal: true },
+        'Ignore Invalid Tunables'
+      )
+
+      // If the user dismisses the checkbox in anyway it will exit. so Cancel , Esc or unexpected values will exit
+      // Only pressing ignore invalid tunables will proceed with the launch and remove the invalid tunables from the config sent to the debug adapter
+      if (choice !== 'Ignore Invalid Tunables') {
+        return undefined
+      }
+      //Copies the tunables , then deletes the invalid tunables from the copied config so that the user can still see the invalid tunables in their launch.json but they won't be sent to the debug adapter and cause errors
+      config.tunables = { ...config.tunables }
+
+      for (const invalid of invalidTunables) {
+        delete config.tunables[invalid]
+      }
+    }
     let dataFolder = config.data
 
     if (

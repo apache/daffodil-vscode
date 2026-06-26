@@ -1,0 +1,35 @@
+{
+    "allowExpressionResultCoercion": "boolean",
+    "allowExternalPathExpressions": "boolean",
+    "allowSignedIntegerLength1Bit": "boolean",
+  
+    "blobChunkSizeInBytes": "number",
+  
+    "defaultEmptyElementParsePolicy": "string",
+  
+    "escalateWarningsToErrors": "boolean",
+  
+    "generatedNamespacePrefixStem": "string",
+  
+    "initialElementOccurrencesHint": "number",
+    "initialRegexMatchLimitInCharacters": "number",
+  
+    "infosetWalkerSkipMin": "number",
+    "infosetWalkerSkipMax": "number",
+  
+    "invalidRestrictionPolicy": "string",
+  
+    "maxBinaryDecimalVirtualPoint": "number",
+    "maxByteArrayOutputStreamBufferSizeInBytes": "number",
+    "maxDataDumpSizeInBytes": "number",
+    "maxHexBinaryLengthInBytes": "number",
+  
+    "maxOccursBounds": "number",
+  
+    "parseUnparsePolicy": "string",
+  
+    "releaseUnneededInfoset": "boolean",
+  
+    "requireBitOrderProperty": "boolean",
+    "requireEmptyElementParsePolicyProperty": "boolean"
+  }

@@ -19,6 +19,8 @@
 
 import * as vscode from 'vscode'
 import * as position from '../position'
+import * as fs from 'fs'
+import * as path from 'path'
 import { ProviderResult } from 'vscode'
 import { DaffodilDebugSession } from './daffodilDebug'
 import {
@@ -43,6 +45,19 @@ export async function activate(context: vscode.ExtensionContext) {
 export function deactivate() {
   // deactivate position
   position.deactivate()
+}
+
+export function getTunables(context: vscode.ExtensionContext): string[] {
+  const file = path.join(
+    context.extensionPath,
+    'constants',
+    'tunables.json'
+  )
+
+  const data = fs.readFileSync(file, 'utf8')
+  const json = JSON.parse(data)
+
+  return Object.keys(json)
 }
 
 export class InlineDebugAdapterFactory
