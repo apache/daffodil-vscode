@@ -281,13 +281,17 @@ async function createWizard(ctx: vscode.ExtensionContext) {
   panel.webview.html = launchWiz.getWebViewContent()
 
   //Read in list of valid
-  const tunablesPath = path.join(ctx.extensionPath, 'tunables.json')
-  const tunables = JSON.parse(
-  fs.readFileSync(tunablesPath, 'utf8')
+
+  const tunablesPath = path.join(
+    ctx.extensionPath,
+    'constants',
+    'tunables.json'
   )
+
+  const tunables = JSON.parse(fs.readFileSync(tunablesPath, 'utf8'))
   panel.webview.postMessage({
-  command: 'loadTunables',
-  tunables: tunables
+    command: 'loadTunables',
+    tunables: tunables,
   })
 
   panel.webview.onDidReceiveMessage(

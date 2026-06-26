@@ -48,7 +48,11 @@ export function deactivate() {
 }
 
 export function getTunables(context: vscode.ExtensionContext): string[] {
-  const file = path.join(context.extensionPath, 'tunables.json')
+  const file = path.join(
+    context.extensionPath,
+    'constants',
+    'tunables.json'
+  )
 
   const data = fs.readFileSync(file, 'utf8')
   const json = JSON.parse(data)
