@@ -82,7 +82,7 @@ object Parse {
     for {
       dp <- DAPCompiler()
         .compile(schema, rootName, rootNamespace, tunables)
-        .map(p => Support.dataProcessorWithDebugger(p, debugger, variables))
+        .flatMap(p => Support.dataProcessorWithDebugger(p, debugger, variables))
       done <- Ref[IO].of(false)
       pleaseStop <- Deferred[IO, Unit]
     } yield new Parse {
