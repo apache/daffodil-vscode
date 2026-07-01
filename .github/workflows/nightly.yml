@@ -86,7 +86,7 @@ jobs:
 
       # some runner oses don't have sbt by default
       - name: Setup sbt
-        uses: sbt/setup-sbt@508b753e53cb6095967669e0911487d2b9bc9f41 # v1
+        uses: sbt/setup-sbt@3afe9cf056c5d139bfc46579af1192d77a2f0821 # v1
 
       ############################################################
       # Build & Package
