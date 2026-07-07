@@ -88,7 +88,7 @@ The Apache Daffodil™ Extension for Visual Studio Code provides a Daffodil Data
 
 ### [Data Editor](https://github.com/apache/daffodil-vscode/wiki/Apache-Daffodil%E2%84%A2-Extension-for-Visual-Studio-Code:-v1.4.1#data-editor-1)
 
-<img width="800" src="images/v1.3.1/DE-brief.png" alt="Data Editor">
+<img width="800" height="435" alt="image" src="https://github.com/user-attachments/assets/2373bc28-8bf8-47aa-bba2-0b01b5648e96" />
 
 The Apache Daffodil™ Extension for Visual Studio Code provides an integrated data editor.  It is akin to a hex editor but tuned specifically for challenging Daffodil use cases.  As an editor designed for Daffodil developers by Daffodil developers, features of the tool will evolve quickly to address the specific needs of the Daffodil community.
 
@@ -628,37 +628,37 @@ A Daffodil Parse will then be launched. The DFDL Schema file and input data file
 
 This version of the Apache Daffodil™ Extension for Visual Studio Code includes a new Data Editor.  To use the Data Editor, open the VS Code command palette and select `Daffodil Debug: Data Editor`.
 
-<img width="800" src="images/DE-cmd-palette.png"/>
+<img width="800" height="166" alt="image" src="https://github.com/user-attachments/assets/f9877154-cfe4-48e4-9b56-e58919d1e7f2" />
 
 A notification message will appear that informs where the Data Editor logged to. If problems occur, check this log file.
 
-<img width="400" src="images/v1.3.1/DE-logging.png"/>
+<img width="400" height="103" alt="image" src="https://github.com/user-attachments/assets/8b86e875-a4b6-4f56-94ae-aa11b5bdd9b5" />
 
 Once the extension is connected to the server, the bottom left corner of the Data Editor shows the version of the Ωedit™ server powering the editor, and the port it's connected to.  Hovering over the filled circle shows the CPU load average, the memory usage of the server in bytes, the server session count, the server uptime measured in seconds, and the round-trip latency measured in milliseconds.
 
-<img width="800" src="images/v1.3.1/DE-heartbeat.png"/>
+<img width="800" height="24" alt="image" src="https://github.com/user-attachments/assets/ab749aaa-c177-41e6-a40c-313a1862586f" />
 
 After selecting a file to edit, there will be a table with controls at the top of the Data Editor.
 
-<img width="800" src="images/v1.3.1/DE-top-controls.png"/>
+<img width="800" height="101" alt="image" src="https://github.com/user-attachments/assets/f924546e-a581-4acb-9b68-824f8a401305" />
 
 The first section of the table is called `File Metrics` and it contains the path of the file being edited, its initial size in bytes [`Disk Size`], the size as the file is being edited [`Computed Size`], and the detected Content Type.  When changes are committed, the `Save` button will become enabled, allowing the changes to be saved to the file.  The `Redo` and `Undo` buttons will redo and undo edit change transactions.  The `Revert All` button will revert all edit changes since the file was opened. The `Profile` button will open the `Data Profiler` and allow profiling of all or a portion of the edited file.
 
-<img width="400" src="images/v1.3.1/DE-filemetrics.png"/>
+<img width="400" height="149" alt="image" src="https://github.com/user-attachments/assets/77b0aa5d-5fb5-42d2-a857-814ed91e3c70" />
 
 The `Data Profiler` allows for byte frequency profiling of all or a section of the file starting at an editable start offset and ending at an editable end offset, or an editable length of bytes.  The offsets and lengths will use the chosen `Address Radix`.  The frequency scale can be either `Linear` or `Logrithmic`.  The graph can have either an `ASCII` overlay that appears behind the graph, or `None` for no overlay behind the graph.  Hover over the bars to see the byte frequency and value.  The frequency data can be downloaded as a Comma Separated Value (CSV) file using the `Profile as CSV` button.  Click anywhere outside the `Data Profiler` to close it.
 
 📝 Note: The maximum length of bytes profiled in this version is capped at 10,000,000 (10M).
 
-<img width="400" src="images/v1.3.1/DE-profiler.png"/>
+<img width="400" height="593" alt="image" src="https://github.com/user-attachments/assets/e645c3f8-abe7-48dc-a5dd-03d10361dd51" />
 
 The second section of the table is called `Search`, and it allows for seeking a desired offset and searching of byte sequences in the given `Edit Encoding` in the edited file.  The `Seek` input box uses the selected `Address Radix` as the seek radix. If the `Edit Encoding` can be case-insensitive, a `Case Insensitive` toggle (located inside the `Search` input box) will be displayed allowing for that option to be enabled.  The found sequences can be examined using the `First`, `Prev`, `Next`, and `Last` buttons in this section.  The search can be canceled using the `Cancel` button.
 
-<img width="800" src="images/v1.3.1/DE-search.png"/>
+<img width="800" height="247" alt="image" src="https://github.com/user-attachments/assets/f1268b69-a66d-4c43-9aed-e3623c8125e7" />
 
 Found sequences can also be replaced in the given `Edit Encoding` by filling in a replacement sequence and clicking the `Replace...` button.
 
-<img width="800" src="images/v1.3.1/DE-replace.png"/>
+<img width="800" height="234" alt="image" src="https://github.com/user-attachments/assets/ad0fcb71-799f-40a8-b764-1b4a77275023" />
 
 The third section of the table is called `Settings`, and it allows for setting the `Display Radix`, `Edit Encoding`, and `Editing` modes.
 
@@ -666,45 +666,45 @@ The `Display Radix` can be one of *Hexadecimal*, *Decimal*, *Octal*, or *Binary*
 
 The `Edit Encoding` can be one of *Hexadecimal*, *Binary*, *ASCII (7-Bit)*, *Latin-1 (8-bit)*, *UTF-8*, or *UTF-16LE* and will affect the selected bytes being edited in the `Edit` viewport. 
 
-<img width="800" src="images/v1.3.1/DE-settings.png">
+<img width="800" height="299" alt="image" src="https://github.com/user-attachments/assets/7dd63b25-a223-4d64-abda-b908050c0494" />
 
 In `Single Byte Edit Mode`, individual bytes may be *deleted*, *inserted* (to the left or the right of the selected byte), and *overwritten* in the `Single Byte Edit Window` that appears when a byte in the `Physical` or `Logical` viewports is clicked.
 
 Mouse over the buttons of the `Ephemeral Edit Window` to determine what each button does.  Mouse over the `Input Box` and it will show the byte offset position in the `Address Radix` selected radix.  Buttons will become enabled or disabled depending on whether there is valid input in the `Input Box`.  Values entered in the `Input Box` must match the format set by the byte `Display Radix` when editing bytes in the `Physical` viewport or be in *Latin-1 (8-bit ASCII)* format when editing bytes in the `Logical` viewport.
 
-<img width="800" src="images/v1.3.1/DE-SBM-1.png"/>
+<img width="800" height="282" alt="image" src="https://github.com/user-attachments/assets/903c5ac6-51df-4cd0-a620-460c10ecdcac" />
 
 When clicking on a single byte in either the `Physical` or `Logical` viewports, the `Data Inspector` will populate giving the value of the byte in Latin-1, and various integer formats for the selected endianness.  The `Data Inspector` will also show the byte offset position in the `Address Radix` selected radix. The values in the `Data Inspector` are editable by clicking on the value and entering a new value.
 
-<img width="800" src="images/v1.3.1/DE-data_inspector-edit.png"/>
+<img width="800" height="201" alt="image" src="https://github.com/user-attachments/assets/7cd48e4c-8471-4329-bbef-64bf38642212" />
 
 In `Multiple Byte Edit Mode`, a segment of bytes is selected from either the `Physical` or `Logical` viewports, then the selected segment of bytes is edited in the `Edit` viewport using the selected `Edit Encoding`.
 
-<img width="800" src="images/v1.3.1/DE-MBM-edit_encoding.png"/>
+<img width="800" height="239" alt="image" src="https://github.com/user-attachments/assets/92730bf2-d41a-4536-af8c-8931210af230" />
 
 Now changes are made in the selected `Edit Encoding`.
 
-<img width="800" src="images/v1.3.1/DE-MBM-1.png"/>
+<img width="800" height="390" alt="image" src="https://github.com/user-attachments/assets/dd57edbc-1ef2-4ca8-aadc-714e9adc85a1" />
 
 When valid changes have been made to the segment of bytes in the `Edit` viewport, the `Apply` button will become enabled.
 
-<img width="800" src="images/v1.3.1/DE-MBM-2.png"/>
+<img width="800" height="427" alt="image" src="https://github.com/user-attachments/assets/765704aa-66cf-4c2d-a3de-b9a649f9832e" />
 
 Once editing of the selected segment is completed and is valid, the `Apply` button is pressed, and the edited segment replaces the selected segment.  As with changes made in `Single Byte Mode`, changes in `Multiple Byte Edit Mode` are also applied as edit transactions that can be undone and redone.
 
-<img width="800" src="images/v1.3.1/DE-MBM-apply_change.png"/>
+<img width="800" height="430" alt="image" src="https://github.com/user-attachments/assets/82f94e79-716f-42e7-a8e8-75b3473b78f6" />
 
 Byte addresses can be expressed in *hexadecimal*, *decimal*, or *octal*.  The selected `Address Radix` is also what is used entering an offset into the `Offset` input and for offsets and length in the `Data Profiler`. If an offset is entered in the `Offset` input and the `Address Radix` is changed, the offset will automatically be converted into the selected radix.
 
-<img width="800" src="images/v1.3.1/DE-address-hex.png"/>
+<img width="800" height="202" alt="image" src="https://github.com/user-attachments/assets/c34980fe-8196-4f2b-b322-5aaa628ffd56" />
 <br/>
-<img width="800" src="images/v1.3.1/DE-address-dec.png"/>
+<img width="800" height="205" alt="image" src="https://github.com/user-attachments/assets/52255840-1dbd-4f9c-906f-86ce712a9e1a" />
 
 The Data Editor supports light and dark modes.  The mode is determined by the VSCode theme.  If the VSCode theme is set to a light theme, the Data Editor will be in light mode.  If the VSCode theme is set to a dark theme, the Data Editor will be in dark mode.
 
-<img width="800" src="images/Theme-selection.png"/>
+<img width="800" height="126" alt="image" src="https://github.com/user-attachments/assets/c922becb-f8ff-4f2c-a26b-d0ed126fb573" />
 <br/>
-<img width="800" src="images/v1.3.1/DE-light-theme.png"/>
+<img width="800" height="424" alt="image" src="https://github.com/user-attachments/assets/9928487e-7ad7-4646-9f05-6d17800fd6ab" />
 
 ## Navigation
 
@@ -712,7 +712,8 @@ The Data Editor can be navigated using the mouse or keyboard.
 
 Clicking on the `File Progress Indicator Bar` will navigate to the position in the file that corresponds to the position clicked.
 
-<img width="800" src="images/v1.3.1/DE-navigation.png"/>
+<img width="800" height="65" alt="image" src="https://github.com/user-attachments/assets/f52adf1a-8dc0-44ad-9b73-5d44ae82a74c" />
+
 
 Below the `File Progress Indicator Bar` are a series of buttons that allow for navigating the file.  The `Home` button will take you to the beginning, the `Page Up` button will take you to the previous page, the `Page Down` button will take you to the next page, and the `End` button will take you to the end. The `Line Up` button will take you to the previous line, and the `Line Down` button will take you to the next line.
 
