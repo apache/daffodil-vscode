@@ -17,23 +17,23 @@
 
 |<div style="width:200px"></div>|<div style="width:250px"></div>|
 |:---|---|
-|Introduction to the<br>**Apache Daffodil Extension** <br>for <br>**Visual Studio Code**<br><br>|![](images/new_users/VSCode_Extension0.png)|
+|Introduction to the<br>**Apache Daffodil Extension** <br>for <br>**Visual Studio Code**<br><br>|<img width="1720" height="970" alt="image" src="https://github.com/user-attachments/assets/79fcd741-0849-4470-a77e-bab855b8359d" />|
 
 
 |<div style="width:160px"></div>|<div style="width:325px"></div>|
 |:---|---|
-|**The Mission:<br>Make Daffodil Coding & Debugging Easier**<br><br><br><br>The Command Line Interface with existing Daffodil debugging capability is non\-intuitive and difficult to master<br><br><br><br><br><br><br><br>|![](images/new_users/VSCode_Extension4.png)|
+|**The Mission:<br>Make Daffodil Coding & Debugging Easier**<br><br><br><br>The Command Line Interface with existing Daffodil debugging capability is non\-intuitive and difficult to master<br><br><br><br><br><br><br><br>|<img width="1133" height="856" alt="image" src="https://github.com/user-attachments/assets/5688433a-2f7f-4063-8dc5-8230d260c431" />|
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|---|
-|**The Solution:<br>Integrate Daffodil with VS Code**<br><ul><li>Source Level Debugging</li><li> Breakpoints</li><li>Single Stepping</li><li>Syntax Highlighting</li><li>Context Aware Code Completion Assistance</li><li>Data view & Location Tracking</li><li>Interactive Infoset Viewing</li></ul>|![](images/new_users/VSCode_Extension1.png)|
+|**The Solution:<br>Integrate Daffodil with VS Code**<br><ul><li>Source Level Debugging</li><li> Breakpoints</li><li>Single Stepping</li><li>Syntax Highlighting</li><li>Context Aware Code Completion Assistance</li><li>Data view & Location Tracking</li><li>Interactive Infoset Viewing</li></ul>|<img width="1718" height="741" alt="image" src="https://github.com/user-attachments/assets/85ecaaff-29ad-4fb4-8627-7b7e8c8d15b5" />|
 
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|---|
-|**The How:**<br><br><br><br><br><br><ul><li>VS Code plug\-in extension</li><li>DAPodil interface server</li><li>Ωedit \& Data Editor</li><li>Apache Daffodil w/ integrated Debugger</li></ul><br><br><br><br>|![](images/new_users/VSCode_Extension4x.png)|
+|**The How:**<br><br><br><br><br><br><ul><li>VS Code plug\-in extension</li><li>DAPodil interface server</li><li>Ωedit \& Data Editor</li><li>Apache Daffodil w/ integrated Debugger</li></ul><br><br><br><br>|<img width="754" height="582" alt="image" src="https://github.com/user-attachments/assets/f706fee7-7f74-4d29-8667-efbab75ddda2" />|
 
 
 
@@ -46,66 +46,66 @@
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
-|**IDE Basics**<br><br>Integrated Development Environment<br>A single program that integrates all the steps of software development<ul><li>***Editing***</li><li>Compiling</li><li>Execution</li><li>Debugging</li><li>Version Control</li></ul>|![](images/new_users/Basic_1.png)|
+|**IDE Basics**<br><br>Integrated Development Environment<br>A single program that integrates all the steps of software development<ul><li>***Editing***</li><li>Compiling</li><li>Execution</li><li>Debugging</li><li>Version Control</li></ul>|<img width="763" height="409" alt="image" src="https://github.com/user-attachments/assets/11720529-6d0e-466d-94e7-d79a1e7cb62f" />|
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
-|**IDE Basics**<br><br>Integrated Development Environment<br>A single program that integrates all the steps of software development<ul><li>Editing</li><li>***Compiling***</li><li>Execution</li><li>Debugging</li><li>Version Control</li></ul>|![](images/new_users/Basic_2.png)|
+|**IDE Basics**<br><br>Integrated Development Environment<br>A single program that integrates all the steps of software development<ul><li>Editing</li><li>***Compiling***</li><li>Execution</li><li>Debugging</li><li>Version Control</li></ul>|<img width="724" height="388" alt="image" src="https://github.com/user-attachments/assets/87110d0c-4499-48d4-afb2-4f74705b658f" />|
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
-|**IDE Basics**<br><br>Integrated Development Environment<br>A single program that integrates all the steps of software development<ul><li>Editing</li><li>Compiling</li><li>***Execution***</li><li>Debugging</li><li>Version Control</li></ul>|![](images/new_users/Basic_3.png)|
+|**IDE Basics**<br><br>Integrated Development Environment<br>A single program that integrates all the steps of software development<ul><li>Editing</li><li>Compiling</li><li>***Execution***</li><li>Debugging</li><li>Version Control</li></ul>|<img width="759" height="548" alt="image" src="https://github.com/user-attachments/assets/b1f0f204-a0e6-4b6c-83ca-dfc21871ec1e" />|
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
-|**IDE Basics**<br><br>Integrated Development Environment<br>A single program that integrates all the steps of software development<ul><li>Editing</li><li>Compiling</li><li>Execution</li><li>***Debugging***</li><li>Version Control</li></ul>|![](images/new_users/Basic_4.png)|
+|**IDE Basics**<br><br>Integrated Development Environment<br>A single program that integrates all the steps of software development<ul><li>Editing</li><li>Compiling</li><li>Execution</li><li>***Debugging***</li><li>Version Control</li></ul>|<img width="852" height="635" alt="image" src="https://github.com/user-attachments/assets/72b0fa5d-c056-4c23-8e88-3cc47bdb3f7b" />|
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
-|**IDE Basics**<br><br>Integrated Development Environment<br>A single program that integrates all the steps of software development<ul><li>Editing</li><li>Compiling</li><li>Execution</li><li>Debugging</li><li>***Version Control***</li></ul>|![](images/new_users/Basic_5.png)|
+|**IDE Basics**<br><br>Integrated Development Environment<br>A single program that integrates all the steps of software development<ul><li>Editing</li><li>Compiling</li><li>Execution</li><li>Debugging</li><li>***Version Control***</li></ul>|<img width="881" height="565" alt="image" src="https://github.com/user-attachments/assets/30d430b9-81ba-4e9d-9ce1-46147e416d84" />|
 
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---:|
-|Install VS Code<br><br><br><br><ul><li>Free and built on open source</li><li>Available for Windows, Linux, macOS and web browsers</li></ul><br><br><br>|<br>*Click Image for Download Page:*[![Supported platforms](images/new_users/VSCode_Install.png "Download VS Code Here")](https://code.visualstudio.com/Download)|
+|Install VS Code<br><br><br><br><ul><li>Free and built on open source</li><li>Available for Windows, Linux, macOS and web browsers</li></ul><br><br><br>|<br>*Click Image for Download Page:*<a href="https://code.visualstudio.com/Download" rel="nofollow" class><img width="1039" height="466" alt="Supported platforms" title="Download VS Code Here" src="https://github.com/user-attachments/assets/bae78dad-a0c1-4c8a-8392-b69b3036c150" /></a>|
 
 
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
-|**Installing the Daffodil Extension**<br><br><ol><li>***In VS Code, click on the Extensions Icon.*** <br>![](img/VSCode_Extension16.png)</li></ol><br><br><br><br><br><br>|![](images/new_users/Extension_Install_1.png)|
+|**Installing the Daffodil Extension**<br><br><ol><li>***In VS Code, click on the Extensions Icon.***</li></ol><br><br><br><br><br><br>|<img width="718" height="405" alt="image" src="https://github.com/user-attachments/assets/3f0a7b56-d4fe-46ec-ab05-22df6c3d1125" />|
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
-|**Installing the Daffodil Extension**<br><br><ol><li>In VS Code, click on the Extensions Icon</li><li>***Then enter “daffodil” in the search box***</li><br><br><br><br></ol>|![](images/new_users/Extension_Install_2.png)|
+|**Installing the Daffodil Extension**<br><br><ol><li>In VS Code, click on the Extensions Icon</li><li>***Then enter “daffodil” in the search box***</li><br><br><br><br></ol>|<img width="718" height="407" alt="image" src="https://github.com/user-attachments/assets/56bf69cc-52cb-44f1-a426-4b8dd5e919eb" />|
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
-|**Installing the Daffodil Extension**<br><br><ol><li>In VS Code, click on the Extensions Icon.</li><li>Then enter “daffodil” in the search box</li><li>***Click on the Apache Daffodil tile***</li><br><br><br>|![](images/new_users/Extension_Install_3.png)|
+|**Installing the Daffodil Extension**<br><br><ol><li>In VS Code, click on the Extensions Icon.</li><li>Then enter “daffodil” in the search box</li><li>***Click on the Apache Daffodil tile***</li><br><br><br>|<img width="718" height="407" alt="image" src="https://github.com/user-attachments/assets/d889e93e-1952-4b23-a53c-849d19fa6f1d" />|
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
-|**Installing the Daffodil Extension**<br><br><ol><li>In VS Code, click on the Extensions Icon.</li><li>Then enter “daffodil” in the search box</li><li>Click on the Apache Daffodil tile</li><li>***Click on the***  `Install` ***button***</li><br><br>|![](images/new_users/Extension_Install_4.png)|
+|**Installing the Daffodil Extension**<br><br><ol><li>In VS Code, click on the Extensions Icon.</li><li>Then enter “daffodil” in the search box</li><li>Click on the Apache Daffodil tile</li><li>***Click on the***  `Install` ***button***</li><br><br>|<img width="712" height="405" alt="image" src="https://github.com/user-attachments/assets/c960481b-7aa7-4398-b742-574eca928c15" />|
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
-|**Installing the Daffodil Extension**<br><br><ol><li>In VS Code, click on the Extensions Icon.</li><li>Then enter “daffodil” in the search box</li><li>Click on the Apache Daffodil tile</li><li>Click on the Install button</li><li>***Upon installation, the*** `Install` ***button will be replaced by*** `Disable` ***&*** `Uninstall` ***buttons***</li></ol>|![](images/new_users/Extension_Install_5.png)|
+|**Installing the Daffodil Extension**<br><br><ol><li>In VS Code, click on the Extensions Icon.</li><li>Then enter “daffodil” in the search box</li><li>Click on the Apache Daffodil tile</li><li>Click on the Install button</li><li>***Upon installation, the*** `Install` ***button will be replaced by*** `Disable` ***&*** `Uninstall` ***buttons***</li></ol>|<img width="712" height="405" alt="image" src="https://github.com/user-attachments/assets/ba17e4e8-5127-4da7-a258-02eb2df320da" />|
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---:|
-|***Configuring for First Use***<br>*Create a working directory*<br><ul><li>Sample data file</li><li>Sample schema file</ul><br><br><br>*[Free sample schemas here](https://github.com/DFDLSchemas)*|![](images/new_users/VSCode_Extension18.png)*This example uses a Daffdile logo saved as a PNG file*|
+|***Configuring for First Use***<br>*Create a working directory*<br><ul><li>Sample data file</li><li>Sample schema file</ul><br><br><br>*[Free sample schemas here](https://github.com/DFDLSchemas)*|<img width="629" height="225" alt="image" src="https://github.com/user-attachments/assets/b9a0eaa1-0f25-4b6d-96dd-db1a97f1f284" /><br>*This example uses a Daffdile logo saved as a PNG file*|
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
-|***Configuring for First Use***<br>*Open the working directory*<br><br><br><ol><li>Click `File`</li><li>Click `Open Folder`</li><li>Navigate to & Select your folder<br><br><br></ol></li><br><br>|![](images/new_users/Open_Folder.png)|
+|***Configuring for First Use***<br>*Open the working directory*<br><br><br><ol><li>Click `File`</li><li>Click `Open Folder`</li><li>Navigate to & Select your folder<br><br><br></ol></li><br><br>|<img width="779" height="422" alt="image" src="https://github.com/user-attachments/assets/87ce73a7-be11-461f-a187-e9f7e9138bb5" />|
 
 Note that if you wind up working on multiple DFDL projects in different folders, you will need to configure **each folder** with its own launch.json file
 
@@ -114,20 +114,20 @@ Another important issue to note when choosing working directories is that VSCode
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
 |***Configuring for First Use***<br>*Configuring Launch.json file*<br><br><ul><li>Open the *Launch Config Wizard*<ul><li>Press `Ctrl` + `Shift` + `P`</li><li>In the search bar that opens, begin entering: "Daffodil"</li><li>When the list shows `Daffdodil Debug: Configure launch.json`, select it</li></ul></li></ul>|![commandpalletedaff](https://github.com/user-attachments/assets/a9ad737b-2feb-4c77-a7af-b2191f5b59fd)|
-|<ul><li>The Launch Config Wizard will open in a new tab.</li></ul><br><br><br><br><br><br>|![](images/new_users/Launch_Config_0.png)|
+|<ul><li>The Launch Config Wizard will open in a new tab.</li></ul><br><br><br><br><br><br>|<img width="938" height="538" alt="image" src="https://github.com/user-attachments/assets/b3620c0b-a572-4512-ba7b-d96b189de37e" />|
 
 Note that the debugger **should** run with the **default settings**. You may simply scroll down to the bottom of the configuration wizard and click the `SAVE` button, then close the wizard.<br>If you run into a problem, the most likely problem is that you have not yet opened a working folder/directory. If VS Code opens settings.json instead of launch.json make sure that you have created and opened the intended folder/directory. The second most likely culprit is a port conflict and you can simply reopen the configuration wizard and change the port settings and save the new configuration. 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
-|***Configuring for First Use***<br>*Launch Config Wizard*<br><br><ul><li>Launch config: The file can hold multiple configurations.</li><ul><p>1. Enter a name for the new configuration<br>&emsp;&emsp;&emsp;or<br>2. Select a previous configuration from the drop-down list</p>|![](images/new_users/Launch_Config.png)|
+|***Configuring for First Use***<br>*Launch Config Wizard*<br><br><ul><li>Launch config: The file can hold multiple configurations.</li><ul><p>1. Enter a name for the new configuration<br>&emsp;&emsp;&emsp;or<br>2. Select a previous configuration from the drop-down list</p>|<img width="480" height="164" alt="image" src="https://github.com/user-attachments/assets/ce08ac08-d2b9-4122-9a93-c9bd3dc3ebff" />|
 
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
 |***Configuring for First Use***<br>*Launch Config Wizard*||
-|*Main Schema File/Input Data File*<br>The input files can be hard coded into the configuration by clicking the `Browse` button and navigating to the file and clicking on it|![](images/new_users/Input_Files.png)|
+|*Main Schema File/Input Data File*<br>The input files can be hard coded into the configuration by clicking the `Browse` button and navigating to the file and clicking on it|<img width="480" height="115" alt="image" src="https://github.com/user-attachments/assets/36e051e7-614b-4d28-a0e9-4431cebd4b2b" />|
 
 Leave the `${command:AskForSchemaName}`/`${command:AskForDataName}` values and you will be prompted for the file names each time you execute a parse. *This option can be useful if you will be testing with a variety of input files, rather than running the same files repeatedly*
 
@@ -136,8 +136,7 @@ Leave the `${command:AskForSchemaName}`/`${command:AskForDataName}` values and y
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
 |***Configuring for First Use***<br>*Launch Config Wizard*||
-|*Root and RootNameSpace Element*<br>For simple schemas, this field should be left empty. Unless specified no string should be in either field, so that they can default to null value not string. |<img width="519" height="240" alt="image" src="https://github.com/user-attachments/assets/5d395a41-1592-4f1c-ac24-c66165198f99" />
-|
+|*Root and RootNameSpace Element*<br>For simple schemas, this field should be left empty. Unless specified no string should be in either field, so that they can default to null value not string. |<img width="519" height="240" alt="image" src="https://github.com/user-attachments/assets/5d395a41-1592-4f1c-ac24-c66165198f99" />|
 
 
 
@@ -150,14 +149,14 @@ Leave the `${command:AskForSchemaName}`/`${command:AskForDataName}` values and y
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
 |***Configuring for First Use***<br>*Launch Config Wizard*||
-|*Classpath*<br><ul><li>Complex schemas often require multiple locations and JAR files. The debugger needs to know where to find these additional files</li></ul>*Infoset*<ul><li>Infoset Format - Select XML or JSON for the ouput</li><li>Output Type - store output to a file or stream to console</li><li>Output Infoset Path - specify the location for the output file</li></ul>|![](images/new_users/Debugger_Settings_2.png)|
+|*Classpath*<br><ul><li>Complex schemas often require multiple locations and JAR files. The debugger needs to know where to find these additional files</li></ul>*Infoset*<ul><li>Infoset Format - Select XML or JSON for the ouput</li><li>Output Type - store output to a file or stream to console</li><li>Output Infoset Path - specify the location for the output file</li></ul>|<img width="517" height="444" alt="image" src="https://github.com/user-attachments/assets/79f8e77f-96d4-474a-a174-7198eae915f3" />|
 
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
 |***Configuring for First Use***<br>*Launch Config Wizard*||
-|<ul><li>Open Data Editor - Display contents of file being parsed. Defaults to Hex, but many configurable settings. Tracks position in file and allows modification of data.</li><li>Open Infoset Diff View - Can show the difference between output results of the current and previous parse.</li><li>Open Infoset View - Displays the partial resulting output of the file parsing. Note that parser often backtracks when portions of the parse are determined to be incorrect.</li></ul>|![](images/new_users/Open_Options.png)|
+|<ul><li>Open Data Editor - Display contents of file being parsed. Defaults to Hex, but many configurable settings. Tracks position in file and allows modification of data.</li><li>Open Infoset Diff View - Can show the difference between output results of the current and previous parse.</li><li>Open Infoset View - Displays the partial resulting output of the file parsing. Note that parser often backtracks when portions of the parse are determined to be incorrect.</li></ul>|<img width="354" height="257" alt="image" src="https://github.com/user-attachments/assets/2647b2ab-0d20-4a02-9cb0-11aaa3bab27f" />|
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
@@ -173,13 +172,12 @@ Leave the `${command:AskForSchemaName}`/`${command:AskForDataName}` values and y
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
 |***Configuring for First Use***<br>*Launch Config Wizard*<br>Data Editor Configuration||
-|<ul><li>Omega-edit port - allows user to specify which port will be used for communication between VS Code & the backend server.</li><li>Name/location of the log file which records communication between VS Code and the backend server.</li><li>Drop down list of the valid log levels.</li></ul>|![](images/new_users/Data_Editor_Settings.png)|
+|<ul><li>Omega-edit port - allows user to specify which port will be used for communication between VS Code & the backend server.</li><li>Name/location of the log file which records communication between VS Code and the backend server.</li><li>Drop down list of the valid log levels.</li></ul>|<img width="481" height="257" alt="image" src="https://github.com/user-attachments/assets/07449ba7-dac0-4ae4-9040-6460e1320215" />|
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
 |***Configuring for First Use***<br>*Launch Config Wizard*||
-|Don't forget to save your configuration settings!<br><br>If you have a problem saving your settings, verify that you have opened a valid working folder.|![](images/new_users/Save.png)|
-|||
+|Don't forget to save your configuration settings!<br><br>If you have a problem saving your settings, verify that you have opened a valid working folder.|<img width="204" height="54" alt="image" src="https://github.com/user-attachments/assets/0d3667c5-c5e7-4313-a681-ec3b4de5bebb" />|
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
