@@ -25,6 +25,7 @@ import {
   createSimpleFileLogger,
   getClientVersion,
   getServerInfo,
+  resetClient,
   setLogger,
   startServer,
   stopProcessUsingPID,
@@ -78,6 +79,7 @@ suite('Data Editor Test Suite', () => {
   })
 
   after(async () => {
+    resetClient()
     assert.strictEqual(fs.existsSync(pidFile), true)
     const pid = parseInt(fs.readFileSync(pidFile).toString())
     console.log(pid)

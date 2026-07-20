@@ -17,8 +17,9 @@
 
 import * as vscode from 'vscode'
 import * as fs from 'fs'
+import * as os from 'os'
 import * as path from 'path'
-import { getConfig, setCurrentConfig } from '../utils'
+import { getConfig, setCurrentConfig, terminalName } from '../utils'
 import {
   runDebugger,
   stopDebugger,
@@ -27,9 +28,11 @@ import {
 } from './utils'
 import {
   getDefaultTDMLTestCaseName,
+  getTDMLMetadata,
   getTestCaseDisplayData,
   getTmpTDMLFilePath,
   readTDMLFileContents,
+  resolveTDMLReference,
 } from '../tdmlEditor/utilities/tdmlXmlUtils'
 import { outputChannel } from '../adapter/activateDaffodilDebug'
 
@@ -48,6 +51,116 @@ export async function getDataFileFromFolder(dataFolder: string) {
         return fileUri[0].fsPath
       }
     })
+}
+
+function normalizeWindowsOsType(value: string, version?: string): string {
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[_\s]+/g, '')
+
+  if (/^windows(10|11)$/.test(normalized)) return normalized
+  if (normalized === 'windowsnt') {
+    if (version) {
+      const releaseMatch = version.match(/^(\d+)\.(\d+)\.(\d+)/)
+      if (releaseMatch) {
+        const build = Number(releaseMatch[3])
+        return build >= 22000 ? 'windows11' : 'windows10'
+      }
+    }
+    return 'windows'
+  }
+
+  if (normalized.startsWith('windows')) {
+    const versionMatch = normalized.match(/windows(\d+)/)
+    if (versionMatch) return `windows${versionMatch[1]}`
+    return 'windows'
+  }
+
+  return normalized
+}
+
+function normalizeTDMLRuntimeValue(
+  key: string,
+  value: string,
+  version?: string
+): string {
+  const normalized = value.trim()
+
+  switch (key) {
+    case 'osType':
+      return normalizeWindowsOsType(normalized, version)
+    case 'osVersion': {
+      const match = normalized.match(/^(\d+)\.(\d+)(?:\.(\d+))?/)
+      return match ? `${match[1]}.${match[2]}` : normalized.toLowerCase()
+    }
+    default:
+      return normalized.toLowerCase()
+  }
+}
+
+function logTDMLRuntimeMetadataWarning(message: string) {
+  const warningText = `[WARN] ${message}`
+
+  console.warn(warningText)
+  outputChannel.appendLine(warningText)
+  outputChannel.show(true)
+
+  const terminal =
+    vscode.window.terminals.find((t) =>
+      t.name.toLowerCase().includes(terminalName.toLowerCase())
+    ) ??
+    vscode.window.createTerminal({
+      name: terminalName,
+      hideFromUser: false,
+      shellPath: process.platform === 'win32' ? 'cmd.exe' : undefined,
+    })
+
+  terminal.show(true)
+  terminal.sendText(`echo ${warningText.replace(/"/g, '\\"')}`, true)
+  vscode.window.showWarningMessage(message)
+}
+
+function compareTDMLRuntimeMetadata(
+  metadata: Record<string, string | undefined>,
+  testCaseName?: string
+) {
+  const actualMetadata = {
+    osType: os.type(),
+    osVersion: os.release(),
+    vscodeVersion: vscode.version,
+    extensionVersion:
+      vscode.extensions.getExtension('asf.apache-daffodil-vscode')?.packageJSON
+        ?.version ?? '',
+  }
+
+  const mismatches: string[] = []
+
+  for (const [key, actualValue] of Object.entries(actualMetadata)) {
+    const tdmlValue = metadata[key]?.trim()
+    if (!tdmlValue || !actualValue) continue
+
+    const tdmlNormalized = normalizeTDMLRuntimeValue(
+      key,
+      tdmlValue,
+      metadata.osVersion?.trim()
+    )
+    const localNormalized = normalizeTDMLRuntimeValue(
+      key,
+      actualValue,
+      actualMetadata.osVersion
+    )
+
+    if (tdmlNormalized !== localNormalized) {
+      mismatches.push(`${key}: TDML=${tdmlValue} | local=${actualValue}`)
+    }
+  }
+
+  if (mismatches.length > 0) {
+    const name = testCaseName ? ` for test case '${testCaseName}'` : ''
+    const message = `TDML metadata differs from the current environment${name}: ${mismatches.join('; ')}. The debugger will continue using the local environment.`
+    logTDMLRuntimeMetadataWarning(message)
+  }
 }
 
 async function getTDMLConfig(
@@ -89,12 +202,42 @@ async function getTDMLConfig(
 
     await readTDMLFileContents(config.tdmlConfig.path).then(
       async (xmlBuffer) => {
+        const metadata = await getTDMLMetadata(
+          xmlBuffer,
+          config.tdmlConfig.name
+        )
+        const tdmlDaffodilVersion = metadata.daffodilVersion?.trim()
+
+        if (tdmlDaffodilVersion) {
+          config.dfdlDebugger = {
+            ...config.dfdlDebugger,
+            daffodilVersion: tdmlDaffodilVersion,
+          }
+          config.metadata = {
+            ...(config.metadata ?? {}),
+            daffodilVersion: tdmlDaffodilVersion,
+          }
+        }
+
+        compareTDMLRuntimeMetadata(metadata, config.tdmlConfig?.name)
+
         await getTestCaseDisplayData(xmlBuffer).then((testSuiteData) => {
           testSuiteData.testCases.forEach((testCase) => {
             if (testCase.testCaseName === config.tdmlConfig.name) {
               // Behave the same as the backend - if there are multiple data documents, ignore any past the first
-              config.data = testCase.dataDocuments[0]
-              config.schema.path = testCase.testCaseModel
+              if (testCase.dataDocuments[0]) {
+                config.data = resolveTDMLReference(
+                  config.tdmlConfig.path,
+                  testCase.dataDocuments[0]
+                )
+              }
+
+              if (testCase.testCaseModel) {
+                config.schema.path = resolveTDMLReference(
+                  config.tdmlConfig.path,
+                  testCase.testCaseModel
+                )
+              }
             }
           })
         })
