@@ -17,7 +17,7 @@
 
 import { readFileSync, writeFileSync } from 'fs'
 import os from 'os'
-import { join, resolve, sep, relative, dirname } from 'path'
+import { join, resolve, sep, relative, dirname, isAbsolute } from 'path'
 import { Element, ElementCompact, js2xml, xml2js } from 'xml-js'
 import * as vscode from 'vscode'
 
@@ -60,6 +60,15 @@ export type TDMLTestSuiteDisplay = {
   testCases: TDMLTestCaseDisplay[]
 }
 
+export type TDMLMetadata = {
+  vscodeVersion?: string
+  extensionVersion?: string
+  daffodilVersion?: string
+  osType?: string
+  osVersion?: string
+  [key: string]: string | undefined
+}
+
 // Hard coded element/attribute names expected in the XML
 const testSuiteAttribute = 'suiteName'
 const testCaseNameAttribute = 'name'
@@ -80,6 +89,19 @@ export function getTmpTDMLFilePath() {
 
 export function getDefaultTDMLTestCaseName() {
   return 'Default Test Case'
+}
+
+export function resolveTDMLReference(
+  tdmlPath: string,
+  reference: string
+): string {
+  if (!reference) {
+    return reference
+  }
+
+  return isAbsolute(reference)
+    ? reference
+    : resolve(dirname(tdmlPath), reference)
 }
 
 /*
@@ -121,6 +143,60 @@ export async function writeTDMLFileContents(
  * xmlBuffer: String containing the contents of the XML file
  * returns The data from the XML file in a custom type.
  */
+export async function getTDMLMetadata(
+  xmlBuffer: string,
+  testCaseName?: string
+): Promise<TDMLMetadata> {
+  try {
+    const xmlObj: Element | ElementCompact = xml2js(xmlBuffer)
+    const metadata: TDMLMetadata = {}
+
+    const collectMetadata = (
+      node: Element | ElementCompact | undefined,
+      matchName?: string
+    ) => {
+      if (!node || !('elements' in node) || !node.elements) return
+
+      for (const child of node.elements) {
+        if (child.name?.endsWith('parserTestCase')) {
+          const caseName = child.attributes?.name?.toString()
+          const shouldMatch = matchName === undefined || caseName === matchName
+
+          if (shouldMatch) {
+            const environmentNode = child.elements?.find((entry) =>
+              entry.name?.endsWith('environment')
+            )
+
+            environmentNode?.elements?.forEach((entry) => {
+              const key = entry.name?.split(':').pop()
+              if (key && entry.elements?.[0]?.text !== undefined) {
+                metadata[key] = entry.elements[0].text.toString()
+              }
+            })
+          }
+        }
+
+        if (matchName !== undefined && child.name?.endsWith('environment')) {
+          continue
+        }
+
+        collectMetadata(child, matchName)
+      }
+    }
+
+    collectMetadata(xmlObj as Element, testCaseName)
+
+    if (Object.keys(metadata).length === 0 && testCaseName !== undefined) {
+      const fallback = await getTDMLMetadata(xmlBuffer)
+      return fallback
+    }
+
+    return metadata
+  } catch (error) {
+    return {}
+  }
+}
+
 export async function getTestCaseDisplayData(
   xmlBuffer: string
 ): Promise<TDMLTestSuiteDisplay> {

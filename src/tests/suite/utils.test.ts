@@ -45,6 +45,11 @@ suite('Utils Test Suite', () => {
       name: 'Default Test Case',
       path: '${command:AskForValidatedTDMLPath}',
     },
+    metadata: {
+      vscodeVersion: '',
+      extensionVersion: '',
+      daffodilVersion: '3.11.0',
+    },
     stopOnEntry: true,
     useExistingServer: false,
     validateSchemaBeforeDebug: true,
@@ -71,8 +76,18 @@ suite('Utils Test Suite', () => {
   }
 
   test('Default config', async () => {
-    var config = utils.getConfig({ name: name, request: request, type: type })
-    assert.strictEqual(JSON.stringify(defaultConfig), JSON.stringify(config))
+    const config = utils.getConfig({ name: name, request: request, type: type })
+    const { metadata: actualMetadata, ...actualConfig } = config
+    const { metadata: _expectedMetadata, ...expectedConfig } = defaultConfig
+
+    assert.deepStrictEqual(actualConfig, expectedConfig)
+    assert.deepStrictEqual(
+      Object.keys(actualMetadata).sort(),
+      Object.keys(defaultConfig.metadata).sort()
+    )
+    for (const value of Object.values(actualMetadata)) {
+      assert.strictEqual(typeof value, 'string')
+    }
   })
 
   test('Get current config', async () => {

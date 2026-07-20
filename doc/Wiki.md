@@ -530,6 +530,14 @@ Commands will only appear on this panel if they are valid in the current context
 
 # TDML Support
 When uploading files to the mailing list, it may be easier to upload a zip file containing a TDML file, the DFDL Schema file, the input data file, and, optionally, the infoset file. Sending this file to the mailing list will allow other users to unpack your zip file and run your test case. It becomes even easier if you have multiple test cases.
+The TDML file has been enhanced with an envrionment section which records the versions of the software utilized. The includes:
+* VSCode version
+* VSCode Daffodil extension version
+* Daffodil version
+* Operating system
+* Operating system version
+
+This information can be required in order to duplicate behavior. The Extension has been updated so that when executing a TDML test, it will attempt to utilize the Daffodil version specified in the testcase. If specified version is unavailable, it will provide a warning message and proceed using the systems default version instead.
 
 To Generate a TDML file, use similar steps for Launching a DFDL Parse Debugging Session:
 * Open the DFDL Schema file

@@ -59,6 +59,33 @@ trait Parse {
 object Parse {
   implicit val logger: Logger[IO] = Slf4jLogger.getLogger
 
+  def buildTDMLMetadata(arguments: JsonObject = new JsonObject()): Map[String, String] = {
+    def readString(value: String): Option[String] =
+      Option(arguments.getAsJsonPrimitive(value)).map(_.getAsString)
+
+    val metadataObject = Option(arguments.getAsJsonObject("metadata"))
+    val values = Map(
+      "vscodeVersion" -> metadataObject
+        .flatMap(obj => Option(obj.getAsJsonPrimitive("vscodeVersion")))
+        .map(_.getAsString)
+        .orElse(Option(System.getenv("VSCODE_VERSION")))
+        .orElse(Option(System.getenv("VSCODE_CLI_VERSION")))
+        .orElse(readString("vscodeVersion"))
+        .getOrElse(""),
+      "daffodilVersion" -> metadataObject
+        .flatMap(obj => Option(obj.getAsJsonPrimitive("daffodilVersion")))
+        .map(_.getAsString)
+        .orElse(readString("daffodilVersion"))
+        .orElse(Option(Misc.getDaffodilVersion))
+        .getOrElse(""),
+      "extensionVersion" -> Option(DAPBuildInfo.version).getOrElse(""),
+      "osType" -> Option(System.getProperty("os.name")).getOrElse(""),
+      "osVersion" -> Option(System.getProperty("os.version")).getOrElse("")
+    )
+
+    values.filter { case (_, value) => value.nonEmpty }
+  }
+
   case class Exception(diagnostics: List[SDiagnostic])
       extends RuntimeException(
         diagnostics
@@ -650,7 +677,7 @@ object Parse {
         ).onFinalize(
           infosetOutput match {
             case Debugee.LaunchArgs.InfosetOutput.File(path) =>
-              IO(TDML.generate(path, schemaPath, dataPath, name, tdmlPath))
+              IO(TDML.generate(path, schemaPath, dataPath, name, tdmlPath, buildTDMLMetadata(request.arguments)))
             case _ =>
               // This case should never be hit. Validation is being done on launch config prior to
               //   this section of code attempting to run a DFDL operation. If the user is trying to
