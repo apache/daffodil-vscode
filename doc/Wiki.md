@@ -48,6 +48,8 @@ The purpose of Apache Daffodil™ Extension for Visual Studio Code is to ease th
 - [Debugging a DFDL Schema Using the Apache Daffodil™ Extension for Visual Studio Code’s Bundled Daffodil Data Parse Debugger](#debugging-a-dfdl-schema-using-the-apache-daffodil-extension-for-visual-studio-codes-bundled-daffodil-data-parse-debugger)
    * [Debug Configuration](#debug-configuration)
    * [Dropdown for Log Level](#dropdown-for-log-level)
+   * [Variable Configuration](#variable-configuration)
+   * [Tunable Configuration](#tunable-configuration)
    * [Root element and namespace auto suggestions/finding](#root-element-and-namespace-auto-suggestionsfinding)
    * [Launch a DFDL Parse Debugging Session](#launch-a-dfdl-parse-debugging-session)
    * [Other Options for Launching a DFDL Parse Debugging Session](#other-options-for-launching-a-dfdl-parse-debugging-session)
@@ -61,6 +63,7 @@ The purpose of Apache Daffodil™ Extension for Visual Studio Code is to ease th
 - [Data Editor](#data-editor-1)
    * [Navigation](#navigation)
    * [Keyboard Shortcuts](#keyboard-shortcuts)
+- [Extension Settings](#extension-settings)
 - [Known Issues in v1.6.0](#known-issues-in-v160)
    * [General Issues](#general-issues)
 - [Reporting Problems and Requesting New Features](#reporting-problems-and-requesting-new-features)
@@ -725,6 +728,16 @@ For any input box, including the input box for `Single Byte Editing Mode`, `ENTE
 When using `Single Byte Editing Mode`, `CTRL-ENTER` will insert a byte to the left of the selected byte, `SHIFT-ENTER` will insert a byte to the right of the selected byte, and `DELETE` will delete the selected byte.
 
 When browsing the data in the `Physical` or `Logical` viewports, `Home` will take you to the top of the edited file, `End` will take you to the end of the edited file, `Page-Up` will give you the previous page of the edited file, `Page-Down` will give you the next page of the edited file, `Arrow-Up` will give you the previous line of the edited file, and `Arrow-Down` will give you the next line of the edited file. 
+
+# Extension Settings
+
+Settings for the Apache Daffodil™ Extension for Visual Studio Code can be modified in the VS Code Settings Editor under `Extensions->Apache Daffodil™ Extension for Visual Studio Code` or in the settings.json file. More information can be found at [User and workspace settings](https://code.visualstudio.com/docs/configure/settings). 
+
+<img width="1077" height="603" alt="image" src="https://github.com/user-attachments/assets/e5efb357-a9c0-4bbc-918c-ebf5943b3e86" />
+
+Changing settings here will change the default values when creating a new launch config. More information on the settings and a list of the default values can be found on the extension's marketplace page in VS Code under `Features->Settings`.
+
+<img width="1074" height="597" alt="image" src="https://github.com/user-attachments/assets/8bad6ff3-d476-45ca-8b36-be7c646b0da7" />
 
 # Known Issues in v1.6.0
 
