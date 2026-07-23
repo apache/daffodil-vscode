@@ -192,6 +192,11 @@ Leave the `${command:AskForSchemaName}`/`${command:AskForDataName}` values and y
 |***Debugging for the first time for Visual Studio Code***||
 |You will see the data editor pop up!|![commandpalletedaff](https://github.com/user-attachments/assets/56ac7f2d-6889-4a93-8bbe-052b20129e91)|
 
+|<div style="width:200px"></div>|<div style="width:205px"></div>|
+|:---|:---|
+|***DFDL Command Panel***||
+|All debugging-related commands are conveniently grouped in one place, making them easier to find and use. This command panel dynamically updates to only show relevant commands based on the current debug mode and can be quickly executed using a play button.|![{D03B1D68-20CC-4F42-901F-0728C8137038}](https://github.com/user-attachments/assets/52165b90-3dd5-495b-8b86-bd15b4f960a1)|
+
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
