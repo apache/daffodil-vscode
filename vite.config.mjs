@@ -41,6 +41,7 @@ const localModuleAliases = {
   launchWizard: localModulePath('launchWizard/launchWizard'),
   infoset: localModulePath('infoset'),
   rootCompletion: localModulePath('rootCompletion'),
+  ext_types: localModulePath('ext_types'),
 }
 
 const packageData = jsoncParse(

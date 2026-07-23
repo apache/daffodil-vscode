@@ -14,31 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ChangesInfoResponse, FileInfoResponse } from 'ext_types'
 
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
-import { sveltePreprocess } from 'svelte-preprocess'
+export type FileInfoKey = keyof FileInfoResponse | keyof ChangesInfoResponse
 
-/** @type {import('@sveltejs/vite-plugin-svelte').SvelteConfig} */
-export default {
-  preprocess: [
-    vitePreprocess(),
-    sveltePreprocess({ sourceMap: true, typescript: true }),
-  ],
-  compilerOptions: {
-    runes: undefined,
-    css: 'external',
-    rootDir: '.',
-  },
-
-  onwarn(w, defaultHandler) {
-    if (
-      ![
-        'a11y_no_static_element_interactions',
-        'a11y_click_events_have_key_events',
-        'css_unused_selector',
-      ].includes(w.code)
-    ) {
-      defaultHandler(w)
-    }
-  },
+export type DataEditorFileInfo = FileInfoResponse & ChangesInfoResponse
+export const DefaultFileInfo: DataEditorFileInfo = {
+  bom: '',
+  changeCount: 0,
+  computedFileSize: 0,
+  contentType: '',
+  filename: '',
+  language: '',
+  undoCount: 0,
 }
