@@ -124,6 +124,7 @@
     "onDebugResolve:dfdl",
     "onDebugDynamicConfigurations:dfdl",
     "onCommand:extension.data.edit",
+    "onCommand:extension.dfdl-debug.compileSchema",
     "onCommand:extension.dfdl-debug.getSchemaName",
     "onCommand:extension.dfdl-debug.getDataName",
     "onCommand:extension.dfdl-debug.getTDMLName",
@@ -259,6 +260,10 @@
           "when": "!inDebugMode && editorLangId == 'dfdl'"
         },
         {
+          "command": "extension.dfdl-debug.compileSchema",
+          "when": "!inDebugMode && editorLangId == 'dfdl'"
+        },
+        {
           "command": "extension.dfdl-debug.debugEditorContents",
           "when": "!inDebugMode && editorLangId == 'dfdl'"
         },
@@ -282,6 +287,10 @@
       "commandPalette": [
         {
           "command": "extension.dfdl-debug.debugEditorContents",
+          "when": "!inDebugMode && editorLangId == 'dfdl'"
+        },
+        {
+          "command": "extension.dfdl-debug.compileSchema",
           "when": "!inDebugMode && editorLangId == 'dfdl'"
         },
         {
@@ -364,6 +373,13 @@
         "category": "Daffodil Debug",
         "enablement": "!inDebugMode && editorLangId == 'dfdl'",
         "icon": "$(play)"
+      },
+      {
+        "command": "extension.dfdl-debug.compileSchema",
+        "title": "Compile Schema",
+        "category": "Daffodil Debug",
+        "enablement": "!inDebugMode && editorLangId == 'dfdl'",
+        "icon": "$(tools)"
       },
       {
         "command": "extension.dfdl-debug.debugLastEditorContents",
@@ -633,6 +649,11 @@
                 "description": "Enable connection to running DAP Server",
                 "default": false
               },
+              "validateSchemaBeforeDebug": {
+                "type": "boolean",
+                "description": "Validate the DFDL schema before starting debug.",
+                "default": true
+              },
               "openDataEditor": {
                 "type": "boolean",
                 "description": "Open data editor on debug start",
@@ -791,6 +812,7 @@
             "openInfosetView": false,
             "openInfosetDiffView": false,
             "daffodilDebugClasspath": [],
+            "validateSchemaBeforeDebug": true,
             "variables": {},
             "tunables": {},
             "dataEditor": {
@@ -839,6 +861,7 @@
               "openInfosetView": false,
               "openInfosetDiffView": false,
               "daffodilDebugClasspath": [],
+              "validateSchemaBeforeDebug": true,
               "variables": {},
               "tunables": {},
               "dataEditor": {
@@ -918,6 +941,11 @@
             "type": "boolean",
             "description": "Enable connection to running DAP Server",
             "default": false
+          },
+          "validateSchemaBeforeDebug": {
+            "type": "boolean",
+            "description": "Validate the DFDL schema before starting debug.",
+            "default": true
           },
           "debugServer": {
             "type": "integer",

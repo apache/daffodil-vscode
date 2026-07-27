@@ -19,7 +19,12 @@ import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
 import { getConfig, setCurrentConfig } from '../utils'
-import { runDebugger, stopDebugger, stopDebugging } from './utils'
+import {
+  runDebugger,
+  stopDebugger,
+  stopDebugging,
+  validateSchemaWithDaffodilCLI,
+} from './utils'
 import {
   getDefaultTDMLTestCaseName,
   getTestCaseDisplayData,
@@ -208,6 +213,37 @@ export async function getDebugger(
     )
 
     setCurrentConfig(config)
+
+    if (config.validateSchemaBeforeDebug) {
+      outputChannel.appendLine(
+        `[INFO] Running pre-debug schema compilation for ${config.schema.path}`
+      )
+
+      const validationResult = await validateSchemaWithDaffodilCLI(
+        config.schema.path,
+        config.dfdlDebugger,
+        config.schema.rootName,
+        config.schema.rootNamespace,
+        config.tunables ?? {},
+        {
+          useCacheIfAvailable: true,
+          variables: config.variables ?? {},
+        }
+      )
+
+      if (!validationResult.success) {
+        outputChannel.appendLine(
+          `[ERROR] Schema compilation failed:\n${validationResult.output}`
+        )
+        outputChannel.show()
+        vscode.window.showErrorMessage(
+          'Schema compilation failed. Fix the schema and try again.'
+        )
+        return await stopDebugging().then((_) => undefined)
+      }
+
+      outputChannel.appendLine(`[INFO] ${validationResult.output}`)
+    }
 
     if (!config.useExistingServer) {
       let newDebugger = await runDebugger(

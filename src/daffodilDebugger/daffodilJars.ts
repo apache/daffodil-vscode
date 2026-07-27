@@ -19,7 +19,11 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as vscode from 'vscode'
 import { outputChannel } from '../adapter/activateDaffodilDebug'
-import { downloadAndExtract, fetchRetry } from '../utils'
+import {
+  downloadAndExtract,
+  fetchRetry,
+  markDirectoryExecutable,
+} from '../utils'
 import { parseStringPromise } from 'xml2js'
 
 /**
@@ -137,6 +141,8 @@ export async function downloadAndExtractToGlobalStorage(
       `[INFO] Daffodil CLI JARs already exists. Skipping download.`
     )
   }
+
+  markDirectoryExecutable(path.join(binFolder, 'bin'))
 
   return binFolder
 }

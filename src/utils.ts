@@ -177,6 +177,10 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
     },
     stopOnEntry: defaultConf.get('stopOnEntry', true),
     useExistingServer: defaultConf.get('useExistingServer', false),
+    validateSchemaBeforeDebug: defaultConf.get(
+      'validateSchemaBeforeDebug',
+      true
+    ),
     trace: defaultConf.get('trace', true),
     openDataEditor: defaultConf.get('openDataEditor', false),
     openInfosetView: defaultConf.get('openInfosetView', false),
@@ -602,4 +606,23 @@ export async function downloadAndExtract(
       })
     }
   )
+}
+
+/**
+ * Zip extraction on Linux/macOS doesn't restore the executable bit, so scripts under a
+ * directory (e.g. a distribution's "bin" folder) must be re-marked executable after extraction.
+ *
+ * @param dir The directory whose files should be made executable
+ */
+export function markDirectoryExecutable(dir: string): void {
+  if (os.platform().toLowerCase().startsWith('win') || !fs.existsSync(dir)) {
+    return
+  }
+
+  for (const entry of fs.readdirSync(dir)) {
+    const entryPath = path.join(dir, entry)
+    if (fs.statSync(entryPath).isFile()) {
+      fs.chmodSync(entryPath, 0o755)
+    }
+  }
 }

@@ -78,6 +78,9 @@ function getConfigValues() {
   const stopOnEntry = document.getElementById('stopOnEntry').checked
   const trace = document.getElementById('trace').checked
   const useExistingServer = document.getElementById('useExistingServer').checked
+  const validateSchemaBeforeDebug = document.getElementById(
+    'validateSchemaBeforeDebug'
+  ).checked
   const dataEditorPort = parseInt(
     document.getElementById('dataEditorPort').value
   )
@@ -123,6 +126,7 @@ function getConfigValues() {
     stopOnEntry,
     trace,
     useExistingServer,
+    validateSchemaBeforeDebug,
     dataEditorPort,
     dataEditorLogFile,
     dataEditorLogLevel,
@@ -319,6 +323,7 @@ function save() {
         trace: configValues.trace,
         stopOnEntry: configValues.stopOnEntry,
         useExistingServer: configValues.useExistingServer,
+        validateSchemaBeforeDebug: configValues.validateSchemaBeforeDebug,
         openDataEditor: configValues.openDataEditor,
         openInfosetView: configValues.openInfosetView,
         openInfosetDiffView: configValues.openInfosetDiffView,
@@ -612,6 +617,7 @@ function copyConfig() {
         trace: configValues.trace,
         stopOnEntry: configValues.stopOnEntry,
         useExistingServer: configValues.useExistingServer,
+        validateSchemaBeforeDebug: configValues.validateSchemaBeforeDebug,
         openDataEditor: configValues.openDataEditor,
         openInfosetView: configValues.openInfosetView,
         openInfosetDiffView: configValues.openInfosetDiffView,
@@ -682,6 +688,8 @@ async function updateConfigValues(config) {
   document.getElementById('trace').checked = config.trace
   document.getElementById('useExistingServer').checked =
     config.useExistingServer
+  document.getElementById('validateSchemaBeforeDebug').checked =
+    config.validateSchemaBeforeDebug
   document.getElementById('dataEditorPort').value = parseInt(
     config.dataEditor.port
   )
