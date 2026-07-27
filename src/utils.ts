@@ -177,6 +177,10 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
     },
     stopOnEntry: defaultConf.get('stopOnEntry', true),
     useExistingServer: defaultConf.get('useExistingServer', false),
+    validateSchemaBeforeDebug: defaultConf.get(
+      'validateSchemaBeforeDebug',
+      true
+    ),
     trace: defaultConf.get('trace', true),
     openDataEditor: defaultConf.get('openDataEditor', false),
     openInfosetView: defaultConf.get('openInfosetView', false),

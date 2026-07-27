@@ -81,7 +81,7 @@ object Parse {
   ): IO[Parse] =
     for {
       dpAndWarnings <- DAPCompiler()
-        .compile(schema, rootName, rootNamespace, tunables)
+        .compile(schema, rootName, rootNamespace, tunables, variables)
         .flatMap(p => Support.dataProcessorWithDebugger(p, debugger, variables))
       dp = dpAndWarnings._1
       warnings = dpAndWarnings._2

@@ -143,7 +143,30 @@ Leave the `${command:AskForSchemaName}`/`${command:AskForDataName}` values and y
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
 |:---|:---|
 |***Configuring for First Use***<br>*Launch Config Wizard*||
-|*Debugger Settings*<br><ul><li>Port - Port used for communication between VS Code & Daffodil Debugger.</li><li>Version (Daffodil version) - Specify the version of Daffodil to be used while debugging.</li><li>Timeout - Limit on communication failure before error declared.</li><li>Log File - Specify name & location of the log file.</li><li>Log Level - specify the level of information to be logged.</li><li>Use Existing Server - *ignore* - Used only for backend server developers</li><li>Stop On Entry - Essentially sets a breakpoint on the first line.</li><li>Trace - logging of internal communications</li></ul>|<img src="https://github.com/user-attachments/assets/df600e97-616a-496d-8bfa-4f04655cdb63" />|
+|*Debugger Settings*<br><ul><li>Port - Port used for communication between VS Code & Daffodil Debugger.</li><li>Version (Daffodil version) - Specify the version of Daffodil to be used while debugging.</li><li>Timeout - Limit on communication failure before error declared.</li><li>Log File - Specify name & location of the log file.</li><li>Log Level - specify the level of information to be logged.</li><li>Use Existing Server - *ignore* - Used only for backend server developers</li><li>Validate Schema Before Debug - Pre-debug compile/check. If schema inputs are unchanged, debug can reuse the previously compiled parser cache.</li><li>Stop On Entry - Essentially sets a breakpoint on the first line.</li><li>Trace - logging of internal communications</li></ul>|<img src="https://github.com/user-attachments/assets/df600e97-616a-496d-8bfa-4f04655cdb63" />|
+
+### Compile Schema and Debug Reuse
+
+You can use `Daffodil Debug: Compile Schema` to compile a `.dfdl.xsd` schema before a debug run. The command is available from:
+
+- Command Palette
+- Command Explorer (`DFDL Command Panel`)
+- Schema file context actions
+
+This command performs schema compilation/validation and writes a serialized parser cache artifact.
+
+On later debug runs, when `Validate Schema Before Debug` (`validateSchemaBeforeDebug` in launch config) is enabled and inputs are unchanged, the debugger reuses the cached parser instead of recompiling.
+
+The cache identity is based on:
+
+- Schema path
+- Schema last-modified timestamp and file size
+- Root name and root namespace
+- Tunables
+- External variables
+- Extension/backend build version
+
+Cache files are stored in an OS temp-directory subfolder (`daffodil-vscode/saved-parsers`). This works on Windows, Linux, and macOS, and the cache is retained until temp cleanup occurs or a failed compile removes it. If the OS cleans temp files, rerun `Compile Schema` (or debug once) to regenerate cache files.
 
 
 |<div style="width:200px"></div>|<div style="width:205px"></div>|
