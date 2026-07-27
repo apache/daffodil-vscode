@@ -77,6 +77,17 @@ Notes:
 * Daffodil 4.x runtime API differences are handled in the debugger backend so infoset serialization remains compatible with Daffodil 4.0.0, 4.1.0, and 4.2.0.
 * For Daffodil library and CLI release information, see [Apache Daffodil Library and CLI](https://daffodil.apache.org/libraryAndCLI/).
 
+# Parser Cache Reuse
+
+To avoid recompiling a schema on every debug launch, the debugger backend caches the compiled parser and reuses it when the schema, root, tunables, and variables are unchanged. The following messages appear in the debugger log to indicate cache behavior:
+
+| Message | Meaning |
+| --- | --- |
+| `Loaded cached parser from <path>` | A matching cached parser was found and reused; the schema was not recompiled. |
+| `No usable cached parser found at <path>; compiling fresh` | No cache entry exists for the current schema/settings, so the schema is compiled. |
+| `Failed to load cached parser from <path>; recompiling` | A cache entry exists but could not be loaded (e.g., incompatible or corrupt), so the schema is recompiled. |
+| `Compiling schema and saving parser cache at <path>` | The schema is being compiled and the resulting parser is being saved for future reuse. |
+
 # Getting Help
 
 If additional help or guidance on using Apache Daffodil™, Apache Daffodil™ Extension for Visual Studio Code, or DFDL development in general is needed, please engage with the Daffodil user and developer communities on [mailing lists](https://daffodil.apache.org/community/) (https://daffodil.apache.org/community/) and/or review the [list archives](https://lists.apache.org/list.html?users@daffodil.apache.org) (https://lists.apache.org/list.html?users@daffodil.apache.org).

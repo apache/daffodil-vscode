@@ -82,6 +82,18 @@ function watch() {
 function package() {
   const pkg_dir = 'dist/package'
 
+  const sourceConstantsDir = path.resolve('constants')
+  const destinationConstantsDir = path.join(pkg_dir, 'constants')
+
+  if (fs.existsSync(sourceConstantsDir)) {
+    fs.rmSync(destinationConstantsDir, { recursive: true, force: true })
+    fs.mkdirSync(path.dirname(destinationConstantsDir), { recursive: true })
+    fs.cpSync(sourceConstantsDir, destinationConstantsDir, {
+      recursive: true,
+      force: true,
+    })
+  }
+
   // create .vscodeignore to not package all node_modules into the vsix
   fs.writeFileSync(
     path.join(pkg_dir, '.vscodeignore'),
@@ -103,6 +115,8 @@ function package() {
 **/node_modules/**/*
 !node_modules/
 !node_modules/**/*
+!constants/**
+!constants/tunables.js
 `
   )
 }

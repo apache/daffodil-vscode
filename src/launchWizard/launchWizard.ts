@@ -486,6 +486,9 @@ class LaunchWizard {
     let stopOnEntry = defaultValues.stopOnEntry ? 'checked' : ''
     let trace = defaultValues.trace ? 'checked' : ''
     let useExistingServer = defaultValues.useExistingServer ? 'checked' : ''
+    let validateSchemaBeforeDebug = defaultValues.validateSchemaBeforeDebug
+      ? 'checked'
+      : ''
 
     let daffodilDebugClasspathList =
       '<ul id="daffodilDebugClasspathTable" style="list-style: none; padding-left: 20px;">'
@@ -704,6 +707,14 @@ class LaunchWizard {
         <p>Use Existing Server:</p>
         <label class="container">Enable connection to running DAP Server.
           <input type="checkbox" id="useExistingServer" ${useExistingServer}>
+          <span class="checkmark"></span>
+        </label>
+      </div>
+
+      <div id="validateSchemaBeforeDebugDiv" class="setting-div" onclick="check('validateSchemaBeforeDebug')">
+        <p>Validate Schema Before Debug:</p>
+        <label class="container">Validate the DFDL schema before starting debug.
+          <input type="checkbox" id="validateSchemaBeforeDebug" ${validateSchemaBeforeDebug}>
           <span class="checkmark"></span>
         </label>
       </div>
