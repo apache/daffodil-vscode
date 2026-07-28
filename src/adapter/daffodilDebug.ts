@@ -24,7 +24,8 @@ import {
   Breakpoint,
 } from '@vscode/debugadapter'
 import { DebugProtocol } from '@vscode/debugprotocol'
-import { basename } from 'path'
+import * as fs from 'fs'
+import * as path from 'path'
 import {
   DaffodilRuntime,
   IDaffodilBreakpoint,
@@ -51,6 +52,12 @@ interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
   trace?: boolean
   /** run without debugging */
   noDebug?: boolean
+  /** debugger-specific settings used by the external Scala backend */
+  dfdlDebugger?: {
+    logging?: {
+      file?: string
+    }
+  }
 }
 
 export class DaffodilDebugSession extends LoggingDebugSession {
@@ -74,6 +81,11 @@ export class DaffodilDebugSession extends LoggingDebugSession {
 
   private _showHex = false
   private _useInvalidatedEvent = false
+
+  private _debuggerLogFilePath: string | undefined
+  private _debuggerLogWatcher: fs.FSWatcher | undefined
+  private _debuggerLogOffset = 0
+  private _debuggerLogRemainder = ''
 
   /**
    * Creates a new debug adapter that is used for one debug session.
@@ -141,6 +153,7 @@ export class DaffodilDebugSession extends LoggingDebugSession {
       this.sendEvent(e)
     })
     this._runtime.on('end', () => {
+      this.stopDebuggerLogStreaming()
       this.sendEvent(new TerminatedEvent())
     })
   }
@@ -243,6 +256,8 @@ export class DaffodilDebugSession extends LoggingDebugSession {
       false
     )
 
+    this.startDebuggerLogStreaming(args)
+
     // wait until configuration has finished (and configurationDoneRequest has been called)
     await this._configurationDone.wait(1000)
 
@@ -250,6 +265,24 @@ export class DaffodilDebugSession extends LoggingDebugSession {
     await this._runtime.start(args.schema, !!args.stopOnEntry, !!args.noDebug)
 
     this.sendResponse(response)
+  }
+
+  protected disconnectRequest(
+    response: DebugProtocol.DisconnectResponse,
+    args: DebugProtocol.DisconnectArguments,
+    request?: DebugProtocol.Request
+  ): void {
+    this.stopDebuggerLogStreaming()
+    super.disconnectRequest(response, args, request)
+  }
+
+  protected terminateRequest(
+    response: DebugProtocol.TerminateResponse,
+    args: DebugProtocol.TerminateArguments,
+    request?: DebugProtocol.Request
+  ): void {
+    this.stopDebuggerLogStreaming()
+    super.terminateRequest(response, args, request)
   }
 
   protected async setBreakPointsRequest(
@@ -775,9 +808,99 @@ export class DaffodilDebugSession extends LoggingDebugSession {
 
   //---- helpers
 
+  private startDebuggerLogStreaming(args: ILaunchRequestArguments): void {
+    const configuredLogFile = args.dfdlDebugger?.logging?.file?.trim()
+
+    if (!configuredLogFile || configuredLogFile.includes('${')) {
+      return
+    }
+
+    this.stopDebuggerLogStreaming()
+
+    try {
+      fs.mkdirSync(path.dirname(configuredLogFile), { recursive: true })
+      if (!fs.existsSync(configuredLogFile)) {
+        fs.writeFileSync(configuredLogFile, '')
+      }
+
+      this._debuggerLogFilePath = configuredLogFile
+      this._debuggerLogOffset = fs.statSync(configuredLogFile).size
+
+      this._debuggerLogWatcher = fs.watch(configuredLogFile, (eventType) => {
+        if (eventType === 'change') {
+          this.readDebuggerLogDelta()
+        }
+      })
+    } catch (error) {
+      this.sendEvent(
+        new OutputEvent(
+          `Unable to stream debugger log file '${configuredLogFile}': ${error}\n`
+        )
+      )
+      this.stopDebuggerLogStreaming()
+    }
+  }
+
+  private stopDebuggerLogStreaming(): void {
+    if (this._debuggerLogWatcher) {
+      this._debuggerLogWatcher.close()
+      this._debuggerLogWatcher = undefined
+    }
+
+    this._debuggerLogFilePath = undefined
+    this._debuggerLogOffset = 0
+    this._debuggerLogRemainder = ''
+  }
+
+  private readDebuggerLogDelta(): void {
+    if (!this._debuggerLogFilePath) {
+      return
+    }
+
+    try {
+      const stats = fs.statSync(this._debuggerLogFilePath)
+
+      if (stats.size < this._debuggerLogOffset) {
+        this._debuggerLogOffset = 0
+        this._debuggerLogRemainder = ''
+      }
+
+      if (stats.size === this._debuggerLogOffset) {
+        return
+      }
+
+      const chunkLength = stats.size - this._debuggerLogOffset
+      const buffer = Buffer.alloc(chunkLength)
+      const fd = fs.openSync(this._debuggerLogFilePath, 'r')
+
+      try {
+        fs.readSync(fd, buffer, 0, chunkLength, this._debuggerLogOffset)
+      } finally {
+        fs.closeSync(fd)
+      }
+
+      this._debuggerLogOffset = stats.size
+      this.emitDebuggerLogChunk(buffer.toString('utf8'))
+    } catch {
+      // Ignore transient file access errors while the backend is writing.
+    }
+  }
+
+  private emitDebuggerLogChunk(chunk: string): void {
+    const combined = this._debuggerLogRemainder + chunk
+    const lines = combined.split(/\r?\n/)
+    this._debuggerLogRemainder = lines.pop() ?? ''
+
+    for (const line of lines) {
+      if (line.length > 0) {
+        this.sendEvent(new OutputEvent(`[daffodil-debugger] ${line}\n`))
+      }
+    }
+  }
+
   private createSource(filePath: string): Source {
     return new Source(
-      basename(filePath),
+      path.basename(filePath),
       this.convertDebuggerPathToClient(filePath),
       undefined,
       undefined,

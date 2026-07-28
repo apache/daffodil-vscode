@@ -17,6 +17,15 @@
 
 // Retrieve vscode api - Doing this multiple times causes issues with the scripts
 const vscode = acquireVsCodeApi()
+const SUPPORTED_DAFFODIL_VERSIONS = [
+  '3.9.0',
+  '3.10.0',
+  '3.11.0',
+  '4.0.0',
+  '4.1.0',
+  '4.2.0',
+]
+const DEFAULT_DAFFODIL_VERSION = '4.2.0'
 
 // Function to get config index
 function getConfigIndex() {
@@ -681,8 +690,18 @@ async function updateConfigValues(config) {
   document.getElementById('dataEditorLogLevel').value =
     config.dataEditor.logging.level
 
-  document.getElementById('dfdlDaffodilVersion').value =
-    config.dfdlDebugger.daffodilVersion
+  const dfdlDaffodilVersionSelect = document.getElementById(
+    'dfdlDaffodilVersion'
+  )
+  if (dfdlDaffodilVersionSelect) {
+    const currentVersion =
+      config.dfdlDebugger?.daffodilVersion &&
+      SUPPORTED_DAFFODIL_VERSIONS.includes(config.dfdlDebugger.daffodilVersion)
+        ? config.dfdlDebugger.daffodilVersion
+        : DEFAULT_DAFFODIL_VERSION
+
+    dfdlDaffodilVersionSelect.value = currentVersion
+  }
   document.getElementById('dfdlDebuggerTimeout').value =
     config.dfdlDebugger.timeout
   document.getElementById('dfdlDebuggerLogFile').value =

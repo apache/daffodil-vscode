@@ -26,6 +26,13 @@
 
 This file outlines the release notes and known issues for the "daffodil-vscode" extension.
 
+## 1.6.0
+  ### Debugger:
+  - Updated Scala 3 debugger compatibility for Apache Daffodil 4.x runtimes.
+    - Added support for Daffodil 4.0.0, 4.1.0, and 4.2.0 infoset runtime API shapes.
+    - Added runtime compatibility regression coverage for infoset walker API detection on Scala 3.
+    - Aligned Scala 3 target to 3.3.7 based on Daffodil release notes guidance.
+
 ## 1.5.0
   ### Debugger:
   - Added support for multiple versions of the Daffodil parser (i.e., Daffodil 3.10.0, 3.11.0, and 4.0.0). 

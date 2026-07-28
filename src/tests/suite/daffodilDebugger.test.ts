@@ -120,13 +120,13 @@ async function getDaffodilVersionsToTest(): Promise<Array<string>> {
   const isAtLeastJdk17: boolean = parseFloat(javaHome?.version ?? '0') >= 17
 
   const dfdlVersions = ['3.10.0', '3.11.0']
-  if (isAtLeastJdk17) dfdlVersions.push('4.0.0')
+  if (isAtLeastJdk17) dfdlVersions.push('4.0.0', '4.1.0', '4.2.0')
   return dfdlVersions
 }
 
 /**
  * Populates the array of debugger configs with all debugger configs. If JDK >= 17 there
- * should be 6 and if JDK < 17 there should be 4. Each version of the debugger has two
+ * should be 10 and if JDK < 17 there should be 4. Each version of the debugger has two
  * configs, one for XML and one for JSON.
  */
 async function getDebuggerConfigs() {
@@ -198,11 +198,11 @@ async function checkDebug(
 
 /**
  * This function adds a number of tests to the suite for connecting to the debuggers.
- * Since we have 3 different versions of the debugger, each needs to be connected to
+ * Since we have multiple versions of the debugger, each needs to be connected to
  * twice. Once for outputting XML and one for outputting JSON. Not sure if this is
  * a common way to add tests to a test suite but it seemed better and more efficient
  * than making a single separate test for each combination of the debugger plus infoset
- * format. Especially since two of the combinations can only be ran if the JDK version
+ * format. Especially since some of the combinations can only be ran if the JDK version
  * being used is >= 17.
  */
 async function addDebuggerRunningTests(

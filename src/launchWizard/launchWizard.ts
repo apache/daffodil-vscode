@@ -26,6 +26,28 @@ import * as path from 'path'
 
 let launchWizard: LaunchWizard | undefined
 
+export const DEFAULT_DAFFODIL_VERSION = '4.2.0'
+export const SUPPORTED_DAFFODIL_VERSIONS = [
+  '3.9.0',
+  '3.10.0',
+  '3.11.0',
+  '4.0.0',
+  '4.1.0',
+  '4.2.0',
+]
+
+export function getDaffodilVersionOptions(selectedVersion?: string): string {
+  const effectiveVersion =
+    selectedVersion && SUPPORTED_DAFFODIL_VERSIONS.includes(selectedVersion)
+      ? selectedVersion
+      : DEFAULT_DAFFODIL_VERSION
+
+  return SUPPORTED_DAFFODIL_VERSIONS.map((version) => {
+    const isSelected = version === effectiveVersion
+    return `<option value="${version}"${isSelected ? ' selected' : ''}>${version}</option>`
+  }).join('')
+}
+
 const defaultConf = getConfig({
   name: 'Wizard Config',
   request: 'launch',
@@ -662,7 +684,9 @@ class LaunchWizard {
         <input class="file-input" value="${defaultValues.debugServer}" id="debugServer"/>
 
         <p id="dfdlDaffodilVersionLabel" style="margin-top: 10px;" class="setting-description">Version (Daffodil Version):</p>
-        <input class="file-input" value="${dfdlDebugger.daffodilVersion}" id="dfdlDaffodilVersion">
+        <select class="file-input" style="width: 200px;" id="dfdlDaffodilVersion">
+          ${getDaffodilVersionOptions(dfdlDebugger.daffodilVersion)}
+        </select>
 
         <p id="dfdlDebuggerTimeoutLabel" style="margin-top: 10px;" class="setting-description">Timeout (should end with s, m or h):</p>
         <input class="file-input" value="${dfdlDebugger.timeout}" id="dfdlDebuggerTimeout">
