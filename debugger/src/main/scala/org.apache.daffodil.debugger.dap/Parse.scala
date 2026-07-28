@@ -33,7 +33,7 @@ import java.net.URI
 import java.nio.file._
 import org.apache.commons.io.FileUtils
 import org.apache.daffodil.debugger.dap.{BuildInfo => DAPBuildInfo}
-import org.apache.daffodil.runtime1.infoset.{DIDocument, DIElement, InfosetWalker}
+import org.apache.daffodil.runtime1.infoset.{DIDocument, DIElement}
 import org.apache.daffodil.runtime1.processors._
 import org.apache.daffodil.runtime1.processors.dfa.DFADelimiter
 import org.apache.daffodil.runtime1.processors.parsers._
@@ -1245,16 +1245,138 @@ object Parse {
 
     private def infosetToString(format: String, ie: DIElement): String = {
       val bos = new java.io.ByteArrayOutputStream()
+      val outputter = Support.getInfosetOutputter(format, bos)
 
-      val iw = InfosetWalker(
-        ie.asInstanceOf[DIElement],
-        Support.getInfosetOutputter(format, bos),
-        walkHidden = false,
-        ignoreBlocks = true,
-        releaseUnneededInfoset = false
-      )
-      iw.walk(lastWalk = true)
+      // Daffodil runtime walker APIs differ across 4.x releases.
+      // Use reflection to support older InfosetWalker companion, newer streaming walker class APIs, and
+      // finally a non-streaming constructor fallback.
+      val walker = createInfosetWalker(ie, outputter)
+      val walkMethod = walker.getClass.getMethod("walk", classOf[Boolean])
+      walkMethod.invoke(walker, Boolean.box(true))
       bos.toString("UTF-8")
+    }
+
+    private def createInfosetWalker(ie: DIElement, outputter: AnyRef): AnyRef = {
+      createInfosetWalkerFromCompanion(ie, outputter)
+        .orElse(createInfosetWalkerFromStreamingClass(ie, outputter))
+        .orElse(createInfosetWalkerFromCtor(ie, outputter))
+        .getOrElse {
+          throw new IllegalStateException(
+            "Unable to create infoset walker. Unsupported Daffodil runtime API for infoset serialization."
+          )
+        }
+    }
+
+    def isCompatibleRuntimeForInfosetSerialization(): Boolean =
+      hasCompatibleInfosetWalkerCompanionApi() || hasCompatibleStreamingInfosetWalkerApi() || hasCompatibleNonStreamingCtorApi()
+
+    private def hasCompatibleInfosetWalkerCompanionApi(): Boolean =
+      Try {
+        val companion = Class.forName("org.apache.daffodil.runtime1.infoset.InfosetWalker$")
+        companion
+          .getMethods
+          .filter(m => m.getName == "apply")
+          .exists(m => isCompatibleApplyMethod(m, classOf[DIElement], None))
+      }.getOrElse(false)
+
+    private def hasCompatibleStreamingInfosetWalkerApi(): Boolean =
+      Try {
+        val clazz = Class.forName("org.apache.daffodil.runtime1.infoset.StreamingInfosetWalker")
+        clazz
+          .getMethods
+          .filter(m => m.getName == "apply")
+          .exists(m => isCompatibleApplyMethod(m, classOf[DIElement], None))
+      }.getOrElse(false)
+
+    private def hasCompatibleNonStreamingCtorApi(): Boolean =
+      Try {
+        val clazz = Class.forName("org.apache.daffodil.runtime1.infoset.NonStreamingInfosetWalker")
+        clazz.getConstructors.exists(_.getParameterCount == 2)
+      }.getOrElse(false)
+
+    private def createInfosetWalkerFromCompanion(ie: DIElement, outputter: AnyRef): Option[AnyRef] =
+      Try {
+        val companion = Class.forName("org.apache.daffodil.runtime1.infoset.InfosetWalker$")
+        val module = companion.getField("MODULE$").get(null)
+        val maybeMethod = companion
+          .getMethods
+          .filter(m => m.getName == "apply")
+          .find(m => isCompatibleApplyMethod(m, ie.getClass, Some(outputter.getClass)))
+
+        val method = maybeMethod.getOrElse(
+          throw new NoSuchMethodException(
+            "InfosetWalker$.apply(...) with expected first five parameters was not found"
+          )
+        )
+
+        val args = new Array[AnyRef](method.getParameterCount)
+        args(0) = ie
+        args(1) = outputter
+        args(2) = Boolean.box(false)
+        args(3) = Boolean.box(true)
+        args(4) = Boolean.box(false)
+
+        (5 until method.getParameterCount).foreach { i =>
+          val defaultMethodName = s"apply$$default$$${i + 1}"
+          val defaultValue = companion.getMethod(defaultMethodName).invoke(module)
+          args(i) = defaultValue.asInstanceOf[AnyRef]
+        }
+
+        method.invoke(module, args: _*).asInstanceOf[AnyRef]
+      }.toOption
+
+    private def createInfosetWalkerFromStreamingClass(ie: DIElement, outputter: AnyRef): Option[AnyRef] =
+      Try {
+        val clazz = Class.forName("org.apache.daffodil.runtime1.infoset.StreamingInfosetWalker")
+        val maybeApply = clazz
+          .getMethods
+          .filter(m => m.getName == "apply")
+          .find(m => isCompatibleApplyMethod(m, ie.getClass, Some(outputter.getClass)))
+
+        val method = maybeApply.getOrElse(
+          throw new NoSuchMethodException(
+            "StreamingInfosetWalker.apply(...) with expected first five parameters was not found"
+          )
+        )
+
+        val args = new Array[AnyRef](method.getParameterCount)
+        args(0) = ie
+        args(1) = outputter
+        args(2) = Boolean.box(false)
+        args(3) = Boolean.box(true)
+        args(4) = Boolean.box(false)
+
+        (5 until method.getParameterCount).foreach { i =>
+          val defaultMethodName = s"apply$$default$$${i + 1}"
+          val defaultValue = clazz.getMethod(defaultMethodName).invoke(null)
+          args(i) = defaultValue.asInstanceOf[AnyRef]
+        }
+
+        method.invoke(null, args: _*).asInstanceOf[AnyRef]
+      }.toOption
+
+    private def createInfosetWalkerFromCtor(ie: DIElement, outputter: AnyRef): Option[AnyRef] =
+      Try {
+        val clazz = Class.forName("org.apache.daffodil.runtime1.infoset.NonStreamingInfosetWalker")
+        val ctor = clazz.getConstructors.find(_.getParameterCount == 2).getOrElse(
+          throw new NoSuchMethodException("NonStreamingInfosetWalker(DIElement, InfosetOutputter)")
+        )
+
+        ctor.newInstance(ie, outputter).asInstanceOf[AnyRef]
+      }.toOption
+
+    private def isCompatibleApplyMethod(
+        method: java.lang.reflect.Method,
+        rootClass: Class[?],
+        outputterClass: Option[Class[?]]
+    ): Boolean = {
+      val pts = method.getParameterTypes
+      pts.length >= 5 &&
+      pts(0).isAssignableFrom(rootClass) &&
+      outputterClass.fold(!pts(1).isPrimitive)(cls => pts(1).isAssignableFrom(cls)) &&
+      pts(2) == java.lang.Boolean.TYPE &&
+      pts(3) == java.lang.Boolean.TYPE &&
+      pts(4) == java.lang.Boolean.TYPE
     }
 
   }

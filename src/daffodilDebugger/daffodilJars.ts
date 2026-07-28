@@ -56,7 +56,7 @@ export async function checkIfDaffodilJarsNeeded(
   // If not a valid daffodil version provided and it doesn't exist already in cache then throw error
   if (!(await checkIfValidDaffodilVersion(daffodilVersion))) {
     throw new Error(
-      'Invalid Daffodil Version provided. Make sure dfdlDebugger.daffodilVersion is a valid version of Daffodil'
+      'Unsupported or Invalid Daffodil Version provided. Make sure dfdlDebugger.daffodilVersion is a valid version of Daffodil'
     )
   }
 
@@ -64,6 +64,15 @@ export async function checkIfDaffodilJarsNeeded(
   // the desired version's bin folder doesn't already exists.
   return await downloadAndExtractToGlobalStorage(context, daffodilVersion)
 }
+
+const allowedDaffodilVersions = [
+  '3.9.0',
+  '3.10.0',
+  '3.11.0',
+  '4.0.0',
+  '4.1.0',
+  '4.2.0',
+]
 
 // Helper function to get the list of valid Daffodil versions
 async function getValidDaffodilVersions(): Promise<string[]> {
@@ -91,8 +100,13 @@ async function getValidDaffodilVersions(): Promise<string[]> {
 // Helper function to check if the given daffodil version is a valid version or not
 const checkIfValidDaffodilVersion = async (
   daffodilVersion: string
-): Promise<boolean> =>
-  (await getValidDaffodilVersions()).includes(daffodilVersion)
+): Promise<boolean> => {
+  const validVersions = await getValidDaffodilVersions()
+  return (
+    allowedDaffodilVersions.includes(daffodilVersion) &&
+    validVersions.includes(daffodilVersion)
+  )
+}
 
 export async function downloadAndExtractToGlobalStorage(
   context: vscode.ExtensionContext,

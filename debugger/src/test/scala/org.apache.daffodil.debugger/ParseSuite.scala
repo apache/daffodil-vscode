@@ -169,6 +169,10 @@ class ParseSuite extends FunSuite {
     )
   }
 
+  test("Infoset walker runtime API is compatible") {
+    assertEquals(Parse.InfosetEvent.isCompatibleRuntimeForInfosetSerialization(), true)
+  }
+
   def buildJson(): Unit = {
     schema.addProperty("path", schemaPath)
 

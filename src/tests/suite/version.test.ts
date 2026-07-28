@@ -20,6 +20,10 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { PROJECT_ROOT } from './common'
 import { parse as jsoncParse } from 'jsonc-parser'
+import {
+  DEFAULT_DAFFODIL_VERSION,
+  getDaffodilVersionOptions,
+} from '../../launchWizard/launchWizard'
 
 suite('Daffodil Version', () => {
   const versionFile = path.join(PROJECT_ROOT, 'src/version.ts')
@@ -39,6 +43,29 @@ suite('Daffodil Version', () => {
     test('version.ts version should be same as package.json', () => {
       const version = require('../../version').LIB_VERSION
       assert.strictEqual(version, packageMapped.version)
+    })
+
+    test('launch wizard exposes the supported Daffodil version options', () => {
+      const options = getDaffodilVersionOptions('4.1.0')
+
+      assert.ok(options.includes('value="3.9.0"'))
+      assert.ok(options.includes('value="3.10.0"'))
+      assert.ok(options.includes('value="3.11.0"'))
+      assert.ok(options.includes('value="4.0.0"'))
+      assert.ok(options.includes('value="4.1.0"'))
+      assert.ok(options.includes('value="4.2.0"'))
+      assert.ok(options.includes('selected'))
+      assert.ok(options.includes('>4.1.0<'))
+    })
+
+    test('launch wizard defaults the Daffodil version to 4.2.0', () => {
+      assert.strictEqual(DEFAULT_DAFFODIL_VERSION, '4.2.0')
+      assert.ok(
+        getDaffodilVersionOptions(undefined).includes('value="4.2.0" selected')
+      )
+      assert.ok(
+        getDaffodilVersionOptions('9.9.9').includes('value="4.2.0" selected')
+      )
     })
   })
 })

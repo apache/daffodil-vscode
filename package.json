@@ -718,7 +718,7 @@
                 "properties": {
                   "daffodilVersion": {
                     "type": "string",
-                    "default": "3.11.0",
+                    "default": "4.2.0",
                     "description": "Daffodil version to use."
                   },
                   "timeout": {
@@ -755,7 +755,7 @@
                   }
                 },
                 "default": {
-                  "daffodilVersion": "3.11.0",
+                  "daffodilVersion": "4.2.0",
                   "timeout": "10s",
                   "logging": {
                     "level": "INFO",
@@ -801,7 +801,7 @@
               }
             },
             "dfdlDebugger": {
-              "daffodilVersion": "3.11.0",
+              "daffodilVersion": "4.2.0",
               "timeout": "10s",
               "logging": {
                 "level": "INFO",
@@ -849,7 +849,7 @@
                 }
               },
               "dfdlDebugger": {
-                "daffodilVersion": "3.11.0",
+                "daffodilVersion": "4.2.0",
                 "timeout": "10s",
                 "logging": {
                   "level": "INFO",
@@ -973,7 +973,7 @@
             "type": "object",
             "description": "Configuration for debugger. Settings are daffodilVersion, timeout and logging (level and file)",
             "default": {
-              "daffodilVersion": "3.11.0",
+              "daffodilVersion": "4.2.0",
               "timeout": "10s",
               "logging": {
                 "level": "INFO",

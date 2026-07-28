@@ -61,6 +61,22 @@ The Data Editor component can be configured to run alongside and open the design
 * [Install Java Runtime 8 or greater](https://docs.oracle.com/goldengate/1212/gg-winux/GDRAD/java.htm#BGBFJHAB)
 * On Linux, glibc 2.31 or greater is required
 
+# Debugger Compatibility
+
+The debugger backend is built for multiple Scala and Daffodil versions so the extension can support a wider range of parser runtimes.
+
+| Debugger target | Scala version | Daffodil dependency |
+| --- | --- | --- |
+| `debugger2_12` | 2.12.20 | 3.10.0 |
+| `debugger` | 2.13.18 | 3.11.0 |
+| `debugger3` | 3.3.8 | 4.0.0, 4.1.0, 4.2.0 |
+
+Notes:
+
+* The Scala 3 debugger target requires Java 17 or later.
+* Daffodil 4.x runtime API differences are handled in the debugger backend so infoset serialization remains compatible with Daffodil 4.0.0, 4.1.0, and 4.2.0.
+* For Daffodil library and CLI release information, see [Apache Daffodil Library and CLI](https://daffodil.apache.org/libraryAndCLI/).
+
 # Getting Help
 
 If additional help or guidance on using Apache Daffodil™, Apache Daffodil™ Extension for Visual Studio Code, or DFDL development in general is needed, please engage with the Daffodil user and developer communities on [mailing lists](https://daffodil.apache.org/community/) (https://daffodil.apache.org/community/) and/or review the [list archives](https://lists.apache.org/list.html?users@daffodil.apache.org) (https://lists.apache.org/list.html?users@daffodil.apache.org).
