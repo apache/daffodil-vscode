@@ -1256,7 +1256,7 @@ object Parse {
       bos.toString("UTF-8")
     }
 
-    private def createInfosetWalker(ie: DIElement, outputter: AnyRef): AnyRef = {
+    private def createInfosetWalker(ie: DIElement, outputter: AnyRef): AnyRef =
       createInfosetWalkerFromCompanion(ie, outputter)
         .orElse(createInfosetWalkerFromStreamingClass(ie, outputter))
         .orElse(createInfosetWalkerFromCtor(ie, outputter))
@@ -1265,7 +1265,6 @@ object Parse {
             "Unable to create infoset walker. Unsupported Daffodil runtime API for infoset serialization."
           )
         }
-    }
 
     def isCompatibleRuntimeForInfosetSerialization(): Boolean =
       hasCompatibleInfosetWalkerCompanionApi() || hasCompatibleStreamingInfosetWalkerApi() || hasCompatibleNonStreamingCtorApi()
@@ -1273,8 +1272,7 @@ object Parse {
     private def hasCompatibleInfosetWalkerCompanionApi(): Boolean =
       Try {
         val companion = Class.forName("org.apache.daffodil.runtime1.infoset.InfosetWalker$")
-        companion
-          .getMethods
+        companion.getMethods
           .filter(m => m.getName == "apply")
           .exists(m => isCompatibleApplyMethod(m, classOf[DIElement], None))
       }.getOrElse(false)
@@ -1282,8 +1280,7 @@ object Parse {
     private def hasCompatibleStreamingInfosetWalkerApi(): Boolean =
       Try {
         val clazz = Class.forName("org.apache.daffodil.runtime1.infoset.StreamingInfosetWalker")
-        clazz
-          .getMethods
+        clazz.getMethods
           .filter(m => m.getName == "apply")
           .exists(m => isCompatibleApplyMethod(m, classOf[DIElement], None))
       }.getOrElse(false)
@@ -1298,8 +1295,7 @@ object Parse {
       Try {
         val companion = Class.forName("org.apache.daffodil.runtime1.infoset.InfosetWalker$")
         val module = companion.getField("MODULE$").get(null)
-        val maybeMethod = companion
-          .getMethods
+        val maybeMethod = companion.getMethods
           .filter(m => m.getName == "apply")
           .find(m => isCompatibleApplyMethod(m, ie.getClass, Some(outputter.getClass)))
 
@@ -1328,8 +1324,7 @@ object Parse {
     private def createInfosetWalkerFromStreamingClass(ie: DIElement, outputter: AnyRef): Option[AnyRef] =
       Try {
         val clazz = Class.forName("org.apache.daffodil.runtime1.infoset.StreamingInfosetWalker")
-        val maybeApply = clazz
-          .getMethods
+        val maybeApply = clazz.getMethods
           .filter(m => m.getName == "apply")
           .find(m => isCompatibleApplyMethod(m, ie.getClass, Some(outputter.getClass)))
 
@@ -1358,9 +1353,11 @@ object Parse {
     private def createInfosetWalkerFromCtor(ie: DIElement, outputter: AnyRef): Option[AnyRef] =
       Try {
         val clazz = Class.forName("org.apache.daffodil.runtime1.infoset.NonStreamingInfosetWalker")
-        val ctor = clazz.getConstructors.find(_.getParameterCount == 2).getOrElse(
-          throw new NoSuchMethodException("NonStreamingInfosetWalker(DIElement, InfosetOutputter)")
-        )
+        val ctor = clazz.getConstructors
+          .find(_.getParameterCount == 2)
+          .getOrElse(
+            throw new NoSuchMethodException("NonStreamingInfosetWalker(DIElement, InfosetOutputter)")
+          )
 
         ctor.newInstance(ie, outputter).asInstanceOf[AnyRef]
       }.toOption

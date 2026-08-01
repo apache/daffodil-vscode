@@ -16,6 +16,7 @@
  */
 
 // All tests ran here are ones that require the vscode API
+import * as fs from 'fs'
 import * as path from 'path'
 import { runTests, downloadAndUnzipVSCode } from '@vscode/test-electron'
 
@@ -23,6 +24,36 @@ import { runTests, downloadAndUnzipVSCode } from '@vscode/test-electron'
 // so that version is a reasonable default.
 const DEFAULT_DAFFODIL_TEST_VSCODE_VERSION =
   require('../../package.json').engines.vscode.replace('^', '')
+
+function resolveMacOSExecutable(executablePath: string): string {
+  if (process.platform !== 'darwin' || fs.existsSync(executablePath)) {
+    return executablePath
+  }
+
+  const macOSDirectory = path.dirname(executablePath)
+  const infoPlistPath = path.resolve(macOSDirectory, '../Info.plist')
+
+  try {
+    const infoPlist = fs.readFileSync(infoPlistPath, 'utf8')
+    const executableName = infoPlist.match(
+      /<key>CFBundleExecutable<\/key>\s*<string>([^<]+)<\/string>/
+    )?.[1]
+
+    if (executableName) {
+      const resolvedPath = path.resolve(macOSDirectory, executableName)
+      if (
+        path.dirname(resolvedPath) === macOSDirectory &&
+        fs.existsSync(resolvedPath)
+      ) {
+        return resolvedPath
+      }
+    }
+  } catch {
+    // Preserve the original path so runTests reports the launch failure.
+  }
+
+  return executablePath
+}
 
 async function main() {
   const disable_cert_verification =
@@ -49,7 +80,11 @@ async function main() {
     // Passed to --extensionTestsPath
     const extensionTestsPath = path.resolve(__dirname, './suite/index')
 
-    const vscodeExecutablePath = await downloadAndUnzipVSCode(testVsCodeVersion)
+    const downloadedExecutablePath =
+      await downloadAndUnzipVSCode(testVsCodeVersion)
+    const vscodeExecutablePath = resolveMacOSExecutable(
+      downloadedExecutablePath
+    )
 
     // Download VS Code, unzip it and run the integration tests
     const runTestsResult = await runTests({
