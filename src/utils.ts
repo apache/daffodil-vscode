@@ -532,6 +532,7 @@ export async function fetchRetry(
           `Failed request to ${url}: ${res.status} ${res.statusText}`
         )
       } else {
+        console.warn(`Attempt ${i} failed. Retrying in ${backoff}ms...`)
         await new Promise((r) => setTimeout(r, backoff))
         backoff = backoff * 2
       }

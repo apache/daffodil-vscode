@@ -55,6 +55,29 @@ function resolveMacOSExecutable(executablePath: string): string {
   return executablePath
 }
 
+async function downloadAndUnzipVSCodeRetry(
+  testVsCodeVersion,
+  retries = 5,
+  delay = 4000
+): Promise<string | undefined> {
+  let backoff = delay
+  for (let i = 1; i <= retries; i++) {
+    try {
+      const vscodeExecutablePath =
+        await downloadAndUnzipVSCode(testVsCodeVersion)
+      return vscodeExecutablePath
+    } catch (error) {
+      if (i === retries) {
+        throw error
+      } else {
+        console.warn(`Attempt ${i} failed. Retrying in ${backoff}ms...`)
+        await new Promise((r) => setTimeout(r, backoff))
+        backoff = backoff * 2
+      }
+    }
+  }
+}
+
 async function main() {
   const disable_cert_verification =
     process.argv.includes('-k') ||
@@ -80,13 +103,14 @@ async function main() {
     // Passed to --extensionTestsPath
     const extensionTestsPath = path.resolve(__dirname, './suite/index')
 
+    // Download VS Code and retry upon error
     const downloadedExecutablePath =
-      await downloadAndUnzipVSCode(testVsCodeVersion)
+      await downloadAndUnzipVSCodeRetry(testVsCodeVersion)
     const vscodeExecutablePath = resolveMacOSExecutable(
-      downloadedExecutablePath
+      downloadedExecutablePath!
     )
 
-    // Download VS Code, unzip it and run the integration tests
+    // Run the integration tests
     const runTestsResult = await runTests({
       vscodeExecutablePath,
       extensionDevelopmentPath,
