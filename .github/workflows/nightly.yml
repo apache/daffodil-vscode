@@ -96,11 +96,19 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Runs tests - Linux
-        run: xvfb-run -a yarn test
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          max_attempts: 3
+          timeout_minutes: 120
+          command: xvfb-run -a yarn test
         if: runner.os == 'Linux'
 
       - name: Runs tests - Windows/Mac
-        run: yarn test
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          max_attempts: 3
+          timeout_minutes: 120
+          command: yarn test
         if: runner.os != 'Linux'
 
       - name: Check for Errors in macOS

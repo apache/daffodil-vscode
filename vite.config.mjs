@@ -94,11 +94,23 @@ function copyDebuggerOutAfterBuild() {
 async function downloadAndExtract(title, url, targetDir) {
   console.log(pc.cyan(`\n▶ Starting download for ${title}...\n`))
 
-  const res = await fetch(url)
-  if (!res.ok || !res.body) {
-    throw new Error(
-      `Failed to download ${url}: ${res.status} ${res.statusText}`
-    )
+  let res = undefined
+  let backoff = 4000
+  for (let i = 1; i <= 5; i++) {
+    res = await fetch(url)
+    if (!res.ok || !res.body) {
+      if (i === 5) {
+        throw new Error(
+          `Failed to download ${url}: ${res.status} ${res.statusText}`
+        )
+      } else {
+        console.warn(`Attempt ${i} failed. Retrying in ${backoff}ms...`)
+        await new Promise((r) => setTimeout(r, backoff))
+        backoff = backoff * 2
+      }
+    } else {
+      break
+    }
   }
 
   const totalBytes = Number(res.headers.get('content-length')) || 0
@@ -245,7 +257,12 @@ export default defineConfig(({ mode }) => {
         input: {
           extension: path.resolve(__dirname, 'src/adapter/extension.ts'),
         },
-        external: ['vscode', '@omega-edit/client', ...builtinModules, /^node:.*/],
+        external: [
+          'vscode',
+          '@omega-edit/client',
+          ...builtinModules,
+          /^node:.*/,
+        ],
         output: {
           entryFileNames: 'extension.js',
           format: 'cjs',
