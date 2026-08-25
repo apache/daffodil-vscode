@@ -334,6 +334,6 @@ This file outlines the release notes and known issues for the "daffodil-vscode" 
  - Set breakpoints inside of imported schemas
 
 
-Copyright © 2025 [The Apache Software Foundation](https://www.apache.org/). Licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0). 
+Copyright © 2026 [The Apache Software Foundation](https://www.apache.org/). Licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 <br/>
 Apache, Apache Daffodil, Daffodil, and the Apache Daffodil logo are trademarks of The Apache Software Foundation.
