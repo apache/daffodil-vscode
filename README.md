@@ -103,6 +103,6 @@ Apache, the Apache logo, Apache Daffodil, Daffodil, and the Apache Daffodil logo
 <sup>1</sup> Data Format Description Language (DFDL) is a standard from the Open Grid Forum (www.ogf.org), available [here](https://ogf.org/documents/GFD.240.pdf) (https://ogf.org/documents/GFD.240.pdf).
 
 
-Copyright © 2025 [The Apache Software Foundation](https://www.apache.org/). Licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0). 
+Copyright © 2026 [The Apache Software Foundation](https://www.apache.org/). Licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 <br/>
 Apache, Apache Daffodil, Daffodil, and the Apache Daffodil logo are trademarks of The Apache Software Foundation.
