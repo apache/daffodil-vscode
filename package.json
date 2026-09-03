@@ -111,7 +111,7 @@
     "tsx": "^4.21.0",
     "typescript": "5.2.2",
     "vite": "^6.4.3",
-    "vscode-extension-tester": "5.9.1"
+    "vscode-extension-tester": "8.24.0"
   },
   "resolutions": {
     "@omega-edit/server": "2.0.0",
