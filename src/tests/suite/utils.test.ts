@@ -89,4 +89,31 @@ suite('Utils Test Suite', () => {
       JSON.stringify(utils.getCurrentConfig())
     )
   })
+
+  test('Data editor file provider returns launch config data as a promise', async () => {
+    const data = '/path/to/PNG/PngSuite-2013jan13/basi3p02.png'
+    const fileProvider = utils.getDataEditorFileProvider({
+      ...defaultConfig,
+      data,
+    })
+    const result = fileProvider.getFile()
+
+    assert.strictEqual(typeof result.then, 'function')
+    assert.strictEqual(await result, data)
+  })
+
+  test('Data editor file provider applies file formatter', async () => {
+    const data = '${workspaceFolder}/input/data.txt'
+    const fileProvider = utils.getDataEditorFileProvider({
+      ...defaultConfig,
+      data,
+    })
+
+    assert.strictEqual(
+      await fileProvider.getFile((file) =>
+        file.replace('${workspaceFolder}', '/workspace')
+      ),
+      '/workspace/input/data.txt'
+    )
+  })
 })

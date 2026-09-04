@@ -16,6 +16,7 @@
  */
 
 /// <reference types="svelte" />
+/// <reference path="../types/dataeditor.d.ts" />
 declare module '*.svelte' {
   import { SvelteComponent } from 'svelte'
   const component: typeof SvelteComponent

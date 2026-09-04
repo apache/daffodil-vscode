@@ -15,6 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
+  import { OffsetSearchType } from 'editor_components/Header/fieldsets/SearchReplace'
+  import type { BytesPerRow, RadixValues } from 'ext_types'
   import {
     addressRadix,
     displayRadix,
@@ -23,16 +25,10 @@ limitations under the License.
     seekOffsetSearchType,
     bytesPerRow,
     visableViewports,
-  } from '../../../stores'
-  import {
-    ADDRESS_RADIX_OPTIONS,
-    type RadixValues,
-    type BytesPerRow,
-    RADIX_OPTIONS,
-  } from '../../../stores/configuration'
-  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
-  import { OffsetSearchType } from '../../Header/fieldsets/SearchReplace'
-  import { byteDivWidthFromRadix } from '../../../utilities/display'
+  } from 'stores'
+  import { ADDRESS_RADIX_OPTIONS, RADIX_OPTIONS } from 'stores/configuration'
+  import { UIThemeCSSClass } from 'utilities/colorScheme'
+  import { byteDivWidthFromRadix } from 'utilities/display'
   let bitIndexStr = '01234567'
   let offsetLine: string[] = []
 

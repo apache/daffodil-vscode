@@ -12,11 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import {
-  EditByteModes,
-  type BytesPerRow,
-  type RadixValues,
-} from '../stores/configuration'
+import { EditByteModes, type BytesPerRow, type RadixValues } from 'ext_types'
 
 export type Viewport = 'physical' | 'address' | 'logical'
 
