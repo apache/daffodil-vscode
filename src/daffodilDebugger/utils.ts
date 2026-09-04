@@ -17,7 +17,10 @@
 
 import * as vscode from 'vscode'
 import * as path from 'path'
+import * as fs from 'fs'
+import * as os from 'os'
 import * as child_process from 'child_process'
+import { createHash } from 'crypto'
 import _locateJavaHome from '@viperproject/locate-java-home'
 import { IJavaHomeInfo } from '@viperproject/locate-java-home/js/es5/lib/interfaces'
 import * as semver from 'semver'
@@ -31,6 +34,17 @@ import { checkIfDaffodilJarsNeeded } from './daffodilJars'
 
 export const daffodilArtifact = (version: string): Artifact => {
   return new Artifact('daffodil-debugger', version, 'daffodil-debugger')
+}
+
+export interface SchemaValidationResult {
+  success: boolean
+  output: string
+}
+
+interface SchemaValidationOptions {
+  useCacheIfAvailable?: boolean
+  forceRecompile?: boolean
+  variables?: Record<string, string>
 }
 
 export const stopDebugger = async (id: number | undefined = undefined) =>
@@ -181,6 +195,184 @@ export const getJavaHome = async (): Promise<IJavaHomeInfo | undefined> =>
         : undefined
     })
   })
+
+const getDaffodilCliPath = (daffodilPath: string): string =>
+  path.join(daffodilPath, 'bin', osCheck('daffodil.bat', 'daffodil'))
+
+const quoteArg = (value: string): string => `"${value.replace(/"/g, '\\"')}"`
+
+const runDaffodilCommand = async (
+  command: string,
+  env?: NodeJS.ProcessEnv
+): Promise<{ code: number; output: string }> =>
+  await new Promise((resolve) => {
+    child_process.exec(
+      command,
+      {
+        env,
+        windowsHide: true,
+        maxBuffer: 10 * 1024 * 1024,
+      },
+      (error, stdout, stderr) => {
+        const output = [stdout, stderr].filter(Boolean).join('\n').trim()
+        const code =
+          typeof (error as any)?.code === 'number'
+            ? (error as any).code
+            : error
+              ? 1
+              : 0
+        resolve({ code, output })
+      }
+    )
+  })
+
+const parserCachePath = (
+  schemaPath: string,
+  rootName: string | null,
+  rootNamespace: string | null,
+  tunables: Record<string, string>,
+  variables: Record<string, string>
+): string => {
+  const digest = createHash('sha256')
+  const normalizedSchemaPath = path.normalize(path.resolve(schemaPath))
+  const schemaStats = fs.statSync(normalizedSchemaPath)
+
+  const update = (value: string) => {
+    digest.update(value, 'utf8')
+  }
+
+  update(normalizedSchemaPath)
+  update(Math.trunc(schemaStats.mtimeMs).toString())
+  update(schemaStats.size.toString())
+  update(rootName ?? '')
+  update(rootNamespace ?? '')
+
+  Object.entries(tunables)
+    .sort(([a], [b]) => {
+      if (a < b) return -1
+      if (a > b) return 1
+      return 0
+    })
+    .forEach(([key, value]) => {
+      update(key)
+      update(value)
+    })
+
+  Object.entries(variables)
+    .sort(([a], [b]) => {
+      if (a < b) return -1
+      if (a > b) return 1
+      return 0
+    })
+    .forEach(([key, value]) => {
+      update(key)
+      update(value)
+    })
+
+  update(LIB_VERSION)
+
+  const cacheFileName = `${digest.digest('hex')}.bin`
+  return path.join(
+    path.join(os.tmpdir(), 'daffodil-vscode', 'saved-parsers'),
+    cacheFileName
+  )
+}
+
+export async function validateSchemaWithDaffodilCLI(
+  schemaPath: string,
+  dfdlDebugger: DFDLDebugger,
+  rootName: string | null,
+  rootNamespace: string | null,
+  tunables: Record<string, string> = {},
+  options: SchemaValidationOptions = {}
+): Promise<SchemaValidationResult> {
+  const { useCacheIfAvailable = true, forceRecompile = false } = options
+  const variables = options.variables ?? {}
+  const javaHome: IJavaHomeInfo | undefined = await getJavaHome()
+  const isAtLeastJdk17: boolean = parseFloat(javaHome?.version ?? '0') >= 17
+  const dfdlVersion = dfdlDebugger.daffodilVersion
+
+  if (semver.satisfies(dfdlVersion, '>=4.0.0') && !isAtLeastJdk17) {
+    return {
+      success: false,
+      output: `Daffodil Versions 4.0.0+ requires JDK >= 17`,
+    }
+  }
+
+  const daffodilPath = await checkIfDaffodilJarsNeeded(dfdlVersion)
+  if (daffodilPath === 'error') {
+    return {
+      success: false,
+      output: 'Unable to resolve Daffodil CLI distribution for validation.',
+    }
+  }
+
+  const cliPath = getDaffodilCliPath(daffodilPath)
+  if (!fs.existsSync(cliPath)) {
+    return {
+      success: false,
+      output: `Daffodil CLI executable not found at ${cliPath}`,
+    }
+  }
+
+  const parserOutPath = parserCachePath(
+    schemaPath,
+    rootName,
+    rootNamespace,
+    tunables,
+    variables
+  )
+
+  if (useCacheIfAvailable && !forceRecompile && fs.existsSync(parserOutPath)) {
+    return {
+      success: true,
+      output: `Schema is already compiled. Using cached parser at ${parserOutPath}`,
+    }
+  }
+
+  const rootArg =
+    rootName && rootNamespace
+      ? `{${rootNamespace}}${rootName}`
+      : rootName || undefined
+
+  const args: string[] = ['save-parser', '-s', schemaPath]
+  if (rootArg) {
+    args.push('-r', rootArg)
+  }
+
+  Object.entries(tunables).forEach(([key, value]) => {
+    args.push(`-T${key}=${value}`)
+  })
+
+  fs.mkdirSync(path.dirname(parserOutPath), { recursive: true })
+  args.push(parserOutPath)
+
+  const command = [cliPath, ...args].map(quoteArg).join(' ')
+  const env = javaHome
+    ? { ...process.env, JAVA_HOME: javaHome.path }
+    : process.env
+
+  const result = await runDaffodilCommand(command, env)
+
+  if (result.code !== 0) {
+    if (fs.existsSync(parserOutPath)) {
+      fs.rmSync(parserOutPath, { force: true })
+    }
+    return {
+      success: false,
+      output:
+        result.output ||
+        `Daffodil CLI schema compilation failed with exit code ${result.code}.`,
+    }
+  }
+
+  return {
+    success: true,
+    output:
+      result.output ||
+      `Schema compilation succeeded and cached parser was written to ${parserOutPath}`,
+  }
+}
 
 function latestJdk(jdkHomes: IJavaHomeInfo[]): IJavaHomeInfo | undefined {
   if (jdkHomes.length > 0) {

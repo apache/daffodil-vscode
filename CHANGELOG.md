@@ -32,6 +32,16 @@ This file outlines the release notes and known issues for the "daffodil-vscode" 
     - Added support for Daffodil 4.0.0, 4.1.0, and 4.2.0 infoset runtime API shapes.
     - Added runtime compatibility regression coverage for infoset walker API detection on Scala 3.
     - Aligned Scala 3 target to 3.3.7 based on Daffodil release notes guidance.
+  - Added a dedicated `Compile Schema` command to compile/validate `.dfdl.xsd` schemas before debugging.
+    - The command is available from the Command Palette, DFDL Command Explorer panel, and schema file context actions.
+  - Added `validateSchemaBeforeDebug` launch configuration support (shown as `Validate Schema Before Debug` in the launch wizard).
+    - When enabled, debug launch validates schema compilation before starting a session.
+  - Added parser cache serialization/reload behavior for debug startup.
+    - Debug can reuse a previously compiled parser artifact when schema inputs are unchanged, reducing repeated compilation overhead.
+    - Cache invalidation considers schema path/metadata, root settings, tunables, external variables, and build version.
+  ### Documentation:
+  - Updated `doc/Wiki.md` with `Compile Schema` command usage, cache reuse behavior, and debug validation details.
+  - Updated `doc/Introduction-to-Daffodil-VS-Code-Extension.md` with compile-versus-debug workflow guidance and launch option behavior.
 
 ## 1.5.0
   ### Debugger:

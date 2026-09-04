@@ -47,6 +47,7 @@ suite('Utils Test Suite', () => {
     },
     stopOnEntry: true,
     useExistingServer: false,
+    validateSchemaBeforeDebug: true,
     trace: true,
     openDataEditor: false,
     openInfosetView: false,

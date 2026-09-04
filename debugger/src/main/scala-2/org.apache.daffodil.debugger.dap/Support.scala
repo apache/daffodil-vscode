@@ -23,6 +23,8 @@
 package org.apache.daffodil.debugger.dap
 
 import java.io._
+import java.nio.channels.Channels
+import java.nio.file.Files
 import java.nio.file.Path
 import org.apache.daffodil.sapi._
 import org.apache.daffodil.sapi.io.InputSourceDataInputStream
@@ -32,6 +34,27 @@ import cats.syntax.all._
 
 object Support {
   /* Daffodil DataProcessor wrapper methods */
+  def loadCachedDataProcessor(cachePath: Path): IO[Option[DataProcessor]] =
+    IO.blocking {
+      if (!Files.exists(cachePath)) None
+      else {
+        try Some(reloadDataProcessor(cachePath))
+        catch {
+          case _: Throwable =>
+            Files.deleteIfExists(cachePath)
+            None
+        }
+      }
+    }
+
+  def saveCachedDataProcessor(cachePath: Path, processor: DataProcessor): IO[Unit] =
+    IO.blocking {
+      Files.createDirectories(cachePath.getParent)
+      val output = Files.newOutputStream(cachePath)
+      try processor.save(Channels.newChannel(output))
+      finally output.close()
+    }.handleError(_ => ())
+
   def dataProcessorWithDebugger(
       p: DataProcessor,
       debugger: org.apache.daffodil.runtime1.debugger.Debugger,
@@ -48,6 +71,12 @@ object Support {
         }
       }
       .map { case (dp, warnings) => (dp.withValidationMode(ValidationMode.Limited), warnings) }
+  }
+
+  private def reloadDataProcessor(cachePath: Path): DataProcessor = {
+    val input = Files.newInputStream(cachePath)
+    try Daffodil.compiler().reload(Channels.newChannel(input))
+    finally input.close()
   }
 
   /* Daffodil infoset wrapper methods */

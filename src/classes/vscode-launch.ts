@@ -34,6 +34,7 @@ export interface VSCodeLaunchConfigArgs {
   dataEditor: DataEditorConfig | null
   stopOnEntry: boolean
   useExistingServer: boolean
+  validateSchemaBeforeDebug: boolean
   trace: boolean
   tunables?: Record<string, string>
   variables?: Record<string, string>

@@ -26,7 +26,11 @@ import {
   ProviderResult,
   WorkspaceFolder,
 } from 'vscode'
-import { getDataFileFromFolder, getDebugger } from '../daffodilDebugger'
+import {
+  getDataFileFromFolder,
+  getDebugger,
+  validateSchemaWithDaffodilCLI,
+} from '../daffodilDebugger'
 import { getConfig, getCurrentConfig, getTDMLTestCaseItems } from '../utils'
 import { FileAccessor } from './daffodilRuntime'
 import { TDMLConfig } from '../classes/tdmlConfig'
@@ -242,6 +246,68 @@ async function createDebugRunFileConfigs(
   }
 }
 
+async function compileSchema(resource: vscode.Uri) {
+  let targetResource: vscode.Uri | undefined = resource
+
+  if (!targetResource) {
+    targetResource = vscode.window.activeTextEditor?.document.uri
+  }
+
+  let schemaPath = targetResource ? normalizePath(targetResource.fsPath) : ''
+
+  if (!schemaPath || !schemaPath.endsWith('.dfdl.xsd')) {
+    schemaPath =
+      (await vscode.commands.executeCommand(
+        'extension.dfdl-debug.getSchemaName'
+      )) ?? ''
+  }
+
+  if (!schemaPath) {
+    return
+  }
+
+  const config = getConfig({
+    schema: {
+      path: schemaPath,
+      rootName: null,
+      rootNamespace: null,
+    },
+  })
+
+  outputChannel.appendLine(`[INFO] Compiling schema: ${schemaPath}`)
+  outputChannel.show(true)
+
+  const result = await validateSchemaWithDaffodilCLI(
+    schemaPath,
+    config.dfdlDebugger,
+    config.schema.rootName,
+    config.schema.rootNamespace,
+    config.tunables ?? {},
+    {
+      forceRecompile: true,
+      variables: config.variables ?? {},
+    }
+  )
+
+  if (result.success) {
+    outputChannel.appendLine(
+      `[INFO] Schema compilation succeeded for: ${schemaPath}`
+    )
+    if (result.output && result.output !== 'Schema compilation succeeded.') {
+      outputChannel.appendLine(result.output)
+    }
+    vscode.window.showInformationMessage('Schema compilation succeeded.')
+  } else {
+    outputChannel.appendLine(
+      `[ERROR] Schema compilation failed for: ${schemaPath}`
+    )
+    outputChannel.appendLine(result.output)
+    vscode.window.showErrorMessage(
+      'Schema compilation failed. See Daffodil output for details.'
+    )
+  }
+}
+
 function setupViews(context: vscode.ExtensionContext) {
   new CommandsProvider().register(context)
 }
@@ -271,6 +337,12 @@ export function activateDaffodilDebug(
       'extension.dfdl-debug.debugLastEditorContents',
       (resource: vscode.Uri) => {
         createDebugRunFileConfigs(resource, 'debug', undefined, true)
+      }
+    ),
+    vscode.commands.registerCommand(
+      'extension.dfdl-debug.compileSchema',
+      (resource: vscode.Uri) => {
+        compileSchema(resource)
       }
     ),
     vscode.commands.registerCommand(
