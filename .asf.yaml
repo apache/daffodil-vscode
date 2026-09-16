@@ -17,19 +17,32 @@ github:
   description: "Apache Daffodil™ Extension for Visual Studio Code"
   homepage: https://daffodil.apache.org/
   features:
-    wiki:     true
-    issues:   true
+    wiki: true
+    issues: true
     projects: true
   enabled_merge_buttons:
-    squash:   false
-    merge:    false
-    rebase:   true
+    squash: false
+    merge: false
+    rebase: true
   collaborators:
     - hdalsania
     - lrbarber
     - naga-panchumarty
     - adedoyinNteligen
+  rulesets:
+    - name: "Default Branch Protection"
+      type: branch
+      branches:
+        includes:
+          - "~DEFAULT_BRANCH"
+          - "release/*"
+          - "rel/*"
+        excludes: []
+      bypass_teams:
+        - root
+      restrict_deletion: true
+      restrict_force_push: true
 notifications:
-    commits:      commits@daffodil.apache.org
-    issues:       commits@daffodil.apache.org
-    pullrequests: commits@daffodil.apache.org
+  commits: commits@daffodil.apache.org
+  issues: commits@daffodil.apache.org
+  pullrequests: commits@daffodil.apache.org
