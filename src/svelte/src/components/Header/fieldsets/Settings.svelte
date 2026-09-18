@@ -14,48 +14,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-<script lang="ts" xmlns="http://www.w3.org/1999/html">
+<script lang="ts">
+  import ViewportVisibilityIcon from 'editor_components/Icons/ViewportVisibilityIcon.svelte'
+  import FlexContainer from 'layout/FlexContainer.svelte'
+  import { displayRadix, editorEncoding, editorActionsAllowed } from 'stores'
   import {
     RADIX_OPTIONS,
     ENCODING_GROUPS,
     EDIT_ACTIONS,
-  } from '../../../stores/configuration'
-  import {
-    displayRadix,
-    editorEncoding,
-    editorActionsAllowed,
-  } from '../../../stores'
-  import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
-  import ViewportVisibilityIcon from '../../Icons/ViewportVisibilityIcon.svelte'
-  import { MessageCommand } from '../../../utilities/message'
-
-  /* DEBUG_ONLY_START */
-  import { getDebugVarContext } from '../../Debug/'
-  let bom = $state('utf-8')
-  getDebugVarContext().add({
-    id: 'bom',
-    valueStr: () => {
-      return bom
-    },
-  })
-
-  /* DEBUG_ONLY_END */
-  window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
-      case MessageCommand.fileInfo: {
-        if ('byteOrderMark' in msg.data.data) {
-          const { byteOrderMark } = msg.data.data
-          if (byteOrderMark === 'UTF-8') $editorEncoding = 'utf-8'
-          else if (byteOrderMark === 'UTF-16LE') $editorEncoding = 'utf-16le'
-          bom = byteOrderMark
-        }
-      }
-    }
-  })
+  } from 'stores/configuration'
+  import { UIThemeCSSClass } from 'utilities/colorScheme'
 </script>
 
-<fieldset>
+<fieldset class="settings">
   <legend>Settings</legend>
   <FlexContainer --dir="column">
     <FlexContainer --dir="row" --align-items="center">

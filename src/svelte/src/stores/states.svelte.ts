@@ -14,11 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import App from '../../components/dataEditor.svelte'
-
-const app = new App({
-  target: document.body,
-})
-
-export default app
+let uiMsgId = $state<string>('')
+export const setUIMsgId = (id: string) => {
+  if (!id) throw new Error('Cannot set an undefined UI Message ID')
+  uiMsgId = id
+}
+export const getUIMsgId = () => uiMsgId
+export const isUIDebugAttached = (id: string) => {
+  return id.includes('dfdl-')
+}

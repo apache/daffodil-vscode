@@ -15,10 +15,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import { MessageCommand } from '../../utilities/message'
-  import FlexContainer from '../layouts/FlexContainer.svelte'
+  import type { HeartbeatUIResponse } from 'ext_types'
+  import FlexContainer from 'layout/FlexContainer.svelte'
 
-  let heartbeat = {
+  import { getUIMessegnerCtx } from 'utilities/messageContext.svelte'
+
+  const { addListener } = getUIMessegnerCtx()
+
+  let heartbeat: HeartbeatUIResponse = {
     latency: 0,
     serverCpuLoadAverage: 0,
     serverTimestamp: 0,
@@ -28,16 +32,19 @@ limitations under the License.
     serverPeakResidentMemoryBytes: 0,
     sessionCount: 0,
     omegaEditPort: 0,
-    serverVersion: 'Unknown',
-    serverHostname: 'Unknown',
-    serverProcessId: 0,
-    runtimeKind: 'Unknown',
-    runtimeName: 'Unknown',
-    platform: 'Unknown',
-    availableProcessors: 0,
-    compiler: 'Unknown',
-    buildType: 'Unknown',
-    cppStandard: 'Unknown',
+    serverCpuCount: 0,
+    serverInfo: {
+      serverVersion: 'Unknown',
+      serverHostname: 'Unknown',
+      serverProcessId: 0,
+      runtimeKind: 'Unknown',
+      runtimeName: 'Unknown',
+      platform: 'Unknown',
+      availableProcessors: 0,
+      compiler: 'Unknown',
+      buildType: 'Unknown',
+      cppStandard: 'Unknown',
+    },
   }
   let timerId: NodeJS.Timeout
 
@@ -72,51 +79,25 @@ limitations under the License.
       (seconds === 1 ? `${seconds} second` : `${seconds} seconds`)
     )
   }
+  addListener('heartbeat', (data) => {
+    heartbeat = data
 
-  window.addEventListener('message', (msg) => {
-    switch (msg.data.command) {
-      case MessageCommand.heartbeat:
-        heartbeat.latency = msg.data.data.latency
-        heartbeat.serverCpuLoadAverage = msg.data.data.serverCpuLoadAverage
-        heartbeat.serverTimestamp = msg.data.data.serverTimestamp
-        heartbeat.serverUptime = msg.data.data.serverUptime
-        heartbeat.serverResidentMemoryBytes =
-          msg.data.data.serverResidentMemoryBytes ?? 0
-        heartbeat.serverVirtualMemoryBytes =
-          msg.data.data.serverVirtualMemoryBytes ?? 0
-        heartbeat.serverPeakResidentMemoryBytes =
-          msg.data.data.serverPeakResidentMemoryBytes ?? 0
-        heartbeat.sessionCount = msg.data.data.sessionCount
-        heartbeat.omegaEditPort = msg.data.data.serverInfo.omegaEditPort
-        heartbeat.serverVersion = msg.data.data.serverInfo.serverVersion
-        heartbeat.serverHostname = msg.data.data.serverInfo.serverHostname
-        heartbeat.serverProcessId = msg.data.data.serverInfo.serverProcessId
-        heartbeat.runtimeKind = msg.data.data.serverInfo.runtimeKind
-        heartbeat.runtimeName = msg.data.data.serverInfo.runtimeName
-        heartbeat.platform = msg.data.data.serverInfo.platform
-        heartbeat.availableProcessors =
-          msg.data.data.serverInfo.availableProcessors
-        heartbeat.compiler = msg.data.data.serverInfo.compiler
-        heartbeat.buildType = msg.data.data.serverInfo.buildType
-        heartbeat.cppStandard = msg.data.data.serverInfo.cppStandard
-
-        // set the serverTimestamp to 0 after 5 seconds of no heartbeat to indicate that no heartbeat has been received
-        clearTimeout(timerId)
-        timerId = setTimeout(() => {
-          heartbeat.serverTimestamp = 0
-        }, 5000)
-        break
-    }
+    // set the serverTimestamp to 0 after 5 seconds of no heartbeat to indicate that no heartbeat has been received
+    clearTimeout(timerId)
+    timerId = setTimeout(() => {
+      heartbeat.serverTimestamp = 0
+    }, 5000)
   })
 </script>
 
 <FlexContainer --height="25pt" --align-items="center">
   {#if heartbeat.serverTimestamp !== 0}
     <div class="info">
-      &#9889; Powered by Ωedit™ v{heartbeat.serverVersion} on port {heartbeat.omegaEditPort}
+      &#9889; Powered by Ωedit™ v{heartbeat.serverInfo.serverVersion} on port {heartbeat.omegaEditPort}
       &nbsp;
     </div>
     <FlexContainer>
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <svg
         class="latency-indicator"
         on:mouseenter={() => showHeartbeatInfo(true)}
@@ -145,25 +126,25 @@ limitations under the License.
           <b>Session Count:</b>
           {heartbeat.sessionCount},
         {/if}
-        {#if heartbeat.serverCpuLoadAverage > 0}
+        {#if heartbeat.serverCpuLoadAverage! > 0}
           <b>CPU Load Avg:</b>
-          {heartbeat.serverCpuLoadAverage.toFixed(2)},
+          {heartbeat.serverCpuLoadAverage!.toFixed(2)},
         {/if}
-        {#if heartbeat.serverResidentMemoryBytes > 0}
+        {#if heartbeat.serverResidentMemoryBytes! > 0}
           <b>Resident Memory:</b>
           {heartbeat.serverResidentMemoryBytes},
         {/if}
-        {#if heartbeat.serverProcessId > 0}
+        {#if heartbeat.serverInfo.serverProcessId > 0}
           <b>Process ID:</b>
-          {heartbeat.serverProcessId},
+          {heartbeat.serverInfo.serverProcessId},
         {/if}
-        {#if heartbeat.runtimeName.length > 0}
+        {#if heartbeat.serverInfo.runtimeName.length > 0}
           <b>Runtime:</b>
-          {heartbeat.runtimeName}
+          {heartbeat.serverInfo.runtimeName}
         {/if}
-        {#if heartbeat.platform.length > 0}
+        {#if heartbeat.serverInfo.platform.length > 0}
           <b>Platform:</b>
-          {heartbeat.platform}
+          {heartbeat.serverInfo.platform}
         {/if}
       </div>
     </FlexContainer>

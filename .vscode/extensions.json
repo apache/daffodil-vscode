@@ -21,6 +21,7 @@
 	"recommendations": [
 		"esbenp.prettier-vscode", 
 		"vincaslt.highlight-matching-tag",
-		"wmanth.jar-viewer"
+		"wmanth.jar-viewer",
+		"vitest.explorer"
 	]
 }

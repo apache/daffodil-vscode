@@ -16,16 +16,10 @@ limitations under the License.
 -->
 
 <script lang="ts">
-  import Tooltip from '../layouts/Tooltip.svelte'
-  import {
-    bytesPerRow,
-    dataDislayLineAmount,
-    visableViewports,
-  } from '../../stores'
-  import {
-    BYTES_PER_ROW_MAX_LINE_NUM,
-    type BytesPerRow,
-  } from '../../stores/configuration'
+  import Tooltip from 'layout/Tooltip.svelte'
+  import { bytesPerRow, dataDislayLineAmount, visableViewports } from 'stores'
+  import { BYTES_PER_ROW_MAX_LINE_NUM } from 'stores/configuration'
+  import { type BytesPerRow } from 'ext_types'
 
   export let dimension: number = 20
   const defaultDimension = 20
@@ -86,14 +80,14 @@ limitations under the License.
           ? 'white'
           : ''}
         class="viewport physical"
-      />
+      ></span>
       <span
         style:background-color={$visableViewports === 'all' ||
         $visableViewports === 'logical'
           ? 'white'
           : ''}
         class="viewport logical"
-      />
+      ></span>
     </span>
   </Tooltip>
   {#if selectionsDisplay.viewports}

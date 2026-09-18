@@ -15,30 +15,16 @@
  * limitations under the License.
  */
 
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
-import { sveltePreprocess } from 'svelte-preprocess'
+import { MessageResponseMap } from './messageContent'
 
-/** @type {import('@sveltejs/vite-plugin-svelte').SvelteConfig} */
-export default {
-  preprocess: [
-    vitePreprocess(),
-    sveltePreprocess({ sourceMap: true, typescript: true }),
-  ],
-  compilerOptions: {
-    runes: undefined,
-    css: 'external',
-    rootDir: '.',
-  },
+export * from './formattypes'
+export * from './messageContent'
+export * from './messages'
 
-  onwarn(w, defaultHandler) {
-    if (
-      ![
-        'a11y_no_static_element_interactions',
-        'a11y_click_events_have_key_events',
-        'css_unused_selector',
-      ].includes(w.code)
-    ) {
-      defaultHandler(w)
-    }
-  },
+export type EditorMessageListener<K extends keyof MessageResponseMap> = (
+  payload: MessageResponseMap[K]
+) => void
+
+export type EditorMessageListenerMap = {
+  [K in keyof MessageResponseMap]: EditorMessageListener<K>
 }

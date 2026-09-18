@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import { SelectionData_t, searchResultsUpdated } from '../stores'
-import { VIEWPORT_CAPACITY_MAX } from '../stores/configuration'
-import { SimpleWritable } from '../stores/localStore'
 import type {
-  DataReplacement,
-  ReplaceData,
   SearchData,
-} from '../components/Header/fieldsets/SearchReplace'
+  ReplaceData,
+  DataReplacement,
+} from 'editor_components/Header/fieldsets/SearchReplace'
+import { searchResultsUpdated, SelectionData_t } from 'stores'
+import { VIEWPORT_CAPACITY_MAX } from 'stores/configuration'
+import { SimpleWritable } from 'stores/localStore'
 import { ViewportByteCategories } from './ByteCategories/CategoryIndications'
 
 class ViewportByteIndications extends SimpleWritable<Uint8Array> {
