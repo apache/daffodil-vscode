@@ -77,7 +77,7 @@
   "devDependencies": {
     "@sveltejs/adapter-static": "3.0.8",
     "@sveltejs/kit": "^2.69.1",
-    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@tsconfig/svelte": "^5.0.8",
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.3",
