@@ -46,6 +46,47 @@ function getTestPidFile(serverPort: number) {
 }
 
 suite('Data Editor Test Suite', () => {
+  const pidFile = getTestPidFile(testPort)
+  const serverLogFile = path.join(APP_DATA_PATH, `test-serv-${testPort}.log`)
+  const logFile = path.join(APP_DATA_PATH, `test-dataEditor-${testPort}.log`)
+  let logConfigFile = ''
+  setLogger(createSimpleFileLogger(logFile, logLevel))
+
+  before(async () => {
+    logConfigFile = writeLogbackConfigFile(
+      path.join(APP_DATA_PATH, `test-serv-${testPort}.logconf.xml`),
+      serverLogFile,
+      logLevel
+    )
+    const serverPid = (await Promise.race([
+      startServer(testPort, OMEGA_EDIT_HOST, pidFile, { logConfigFile }),
+      new Promise((resolve, reject) => {
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                `Server startup timed out after ${SERVER_START_TIMEOUT} seconds`
+              )
+            ),
+          SERVER_START_TIMEOUT * 1000
+        )
+      }),
+    ])) as number | undefined
+    if (serverPid === undefined || serverPid <= 0) {
+      throw new Error('Server failed to start or PID is invalid')
+    }
+  })
+
+  after(async () => {
+    assert.strictEqual(fs.existsSync(pidFile), true)
+    const pid = parseInt(fs.readFileSync(pidFile).toString())
+    console.log(pid)
+    assert.strictEqual(await stopProcessUsingPID(pid), true)
+    if (fs.existsSync(logConfigFile)) {
+      fs.rmSync(logConfigFile, { force: true })
+    }
+  })
+
   // NOTE: Currently failing after glob update. Maybe add back in later?
   // test('data edit command exists', async () => {
   //   assert.strictEqual(
@@ -55,47 +96,6 @@ suite('Data Editor Test Suite', () => {
   // })
 
   suite('Editor Service', () => {
-    const pidFile = getTestPidFile(testPort)
-    const serverLogFile = path.join(APP_DATA_PATH, `test-serv-${testPort}.log`)
-    const logFile = path.join(APP_DATA_PATH, `test-dataEditor-${testPort}.log`)
-    let logConfigFile = ''
-    setLogger(createSimpleFileLogger(logFile, logLevel))
-
-    before(async () => {
-      logConfigFile = writeLogbackConfigFile(
-        path.join(APP_DATA_PATH, `test-serv-${testPort}.logconf.xml`),
-        serverLogFile,
-        logLevel
-      )
-      const serverPid = (await Promise.race([
-        startServer(testPort, OMEGA_EDIT_HOST, pidFile, { logConfigFile }),
-        new Promise((resolve, reject) => {
-          setTimeout(
-            () =>
-              reject(
-                new Error(
-                  `Server startup timed out after ${SERVER_START_TIMEOUT} seconds`
-                )
-              ),
-            SERVER_START_TIMEOUT * 1000
-          )
-        }),
-      ])) as number | undefined
-      if (serverPid === undefined || serverPid <= 0) {
-        throw new Error('Server failed to start or PID is invalid')
-      }
-    })
-
-    after(async () => {
-      assert.strictEqual(fs.existsSync(pidFile), true)
-      const pid = parseInt(fs.readFileSync(pidFile).toString())
-      console.log(pid)
-      assert.strictEqual(await stopProcessUsingPID(pid), true)
-      if (fs.existsSync(logConfigFile)) {
-        fs.rmSync(logConfigFile, { force: true })
-      }
-    })
-
     test('is running', async () => {
       // make sure the server is listening on the configured port
       const wait_port = require('wait-port')
