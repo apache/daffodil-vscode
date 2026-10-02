@@ -15,4 +15,27 @@
  * limitations under the License.
  */
 
-/// <reference types="svelte" />
+export type Radixes = 'Hexadecimal' | 'Decimal' | 'Octal' | 'Binary'
+
+export type RadixValues = 16 | 10 | 8 | 2
+
+export type BytesPerRow = 16 | 8 | 24
+
+export enum EditByteModes {
+  Single = 'single',
+  Multiple = 'multiple',
+}
+export type AvailableStrEncodings =
+  | 'hex'
+  | 'binary'
+  | 'ascii'
+  | 'latin1'
+  | 'utf-8'
+  | 'utf-16'
+
+export enum EditActionRestrictions {
+  None,
+  OverwriteOnly,
+}
+
+export type EditAction = { name: string; value: EditActionRestrictions }

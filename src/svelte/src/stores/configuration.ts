@@ -15,17 +15,16 @@
  * limitations under the License.
  */
 
-export type Radixes = 'Hexadecimal' | 'Decimal' | 'Octal' | 'Binary'
+import type {
+  Radixes,
+  RadixValues,
+  EditAction,
+  AvailableStrEncodings,
+  BytesPerRow,
+} from 'ext_types'
+import { EditActionRestrictions } from 'ext_types'
 
-export type RadixValues = 16 | 10 | 8 | 2
-
-export type BytesPerRow = 16 | 8 | 24
-
-export enum EditByteModes {
-  Single = 'single',
-  Multiple = 'multiple',
-}
-
+export type StrEncodingByteWidths = { [k in AvailableStrEncodings]: number }
 export const RADIX_OPTIONS: Record<Radixes, RadixValues> = {
   Hexadecimal: 16,
   Decimal: 10,
@@ -57,15 +56,6 @@ export const ENCODING_GROUPS = [
   },
 ]
 
-export type AvailableStrEncodings =
-  | 'hex'
-  | 'binary'
-  | 'ascii'
-  | 'latin1'
-  | 'utf-8'
-  | 'utf-16'
-
-export type StrEncodingByteWidths = { [k in AvailableStrEncodings]: number }
 export const StrEncodingByteWidths: StrEncodingByteWidths = {
   hex: 1,
   binary: 1,
@@ -75,12 +65,6 @@ export const StrEncodingByteWidths: StrEncodingByteWidths = {
   'utf-16': 2 | 4,
 }
 
-export enum EditActionRestrictions {
-  None,
-  OverwriteOnly,
-}
-
-export type EditAction = { name: string; value: EditActionRestrictions }
 export const EDIT_ACTIONS: EditAction[] = [
   { name: 'Delete, Insert, and Overwrite', value: EditActionRestrictions.None },
   { name: 'Overwrite Only', value: EditActionRestrictions.OverwriteOnly },

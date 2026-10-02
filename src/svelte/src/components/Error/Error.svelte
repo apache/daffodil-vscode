@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
-  import Tooltip from '../layouts/Tooltip.svelte'
+  import Tooltip from 'layout/Tooltip.svelte'
   import type { ErrorStore } from './Error'
 
   export let err: ErrorStore

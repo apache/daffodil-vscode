@@ -15,38 +15,8 @@
  * limitations under the License.
  */
 
-export enum MessageCommand {
-  clearChanges,
-  applyChanges,
-  editorOnChange,
-  fileInfo,
-  heartbeat,
-  profile,
-  redoChange,
-  replaceResults,
-  requestEditedData,
-  save,
-  saveAs,
-  saveSegment,
-  scrollViewport,
-  search,
-  replace,
-  searchResults,
-  setUITheme,
-  showMessage,
-  undoChange,
-  updateLogicalDisplay,
-  viewportRefresh,
-  webviewReady,
-}
+import { createContext } from 'svelte'
+import type { VSMessenger } from './vscode'
 
-export enum MessageLevel {
-  Error,
-  Info,
-  Warn,
-}
-
-export type EditorMessage = {
-  command: MessageCommand
-  data: Record<string, any>
-}
+export const [getUIMessegnerCtx, setUIMessegnerCtx] =
+  createContext<VSMessenger>()
