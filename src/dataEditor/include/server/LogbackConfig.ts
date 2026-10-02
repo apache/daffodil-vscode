@@ -26,6 +26,11 @@ function ensureParentDirectory(filePath: string): void {
 }
 
 function buildLogbackConfig(logFile: string, logLevel: string): string {
+  const normalizedLogLevel = logLevel.trim() || 'INFO'
+  const serverLogLevel =
+    normalizedLogLevel.toLowerCase() === 'none'
+      ? 'OFF'
+      : normalizedLogLevel.toUpperCase()
   return `<?xml version="1.0" encoding="UTF-8"?>\n
 <configuration>
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
@@ -34,7 +39,7 @@ function buildLogbackConfig(logFile: string, logLevel: string): string {
             <pattern>[%date{ISO8601}] [%level] [%logger] [%marker] [%thread] - %msg MDC: {%mdc}%n</pattern>
         </encoder>
     </appender>
-    <root level="${logLevel.toUpperCase()}">
+    <root level="${serverLogLevel}">
         <appender-ref ref="FILE" />
     </root>
 </configuration>

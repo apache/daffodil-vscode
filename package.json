@@ -715,7 +715,8 @@
                           "info",
                           "warning",
                           "error",
-                          "critical"
+                          "critical",
+                          "none"
                         ],
                         "description": "Data Editor Logging Level",
                         "default": "info"

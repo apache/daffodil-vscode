@@ -1157,9 +1157,11 @@ function getPidFile(serverPort: number): string {
 async function setupLogging(configVars: editor_config.Config): Promise<void> {
   const logFile = configVars.logFile
   const logLevel =
-    process.env.OMEGA_EDIT_CLIENT_LOG_LEVEL ||
-    process.env.OMEGA_EDIT_LOG_LEVEL ||
-    configVars.logLevel
+    (
+      process.env.OMEGA_EDIT_CLIENT_LOG_LEVEL ||
+      process.env.OMEGA_EDIT_LOG_LEVEL ||
+      configVars.logLevel
+    )?.trim() || 'info'
   if (
     configuredClientLogger?.logFile === logFile &&
     configuredClientLogger.logLevel === logLevel
@@ -1167,7 +1169,8 @@ async function setupLogging(configVars: editor_config.Config): Promise<void> {
     return
   }
   rotateLogFiles(logFile)
-  setLogger(createSimpleFileLogger(logFile, logLevel))
+  const clientLogLevel = logLevel.toLowerCase() === 'none' ? 'silent' : logLevel
+  setLogger(createSimpleFileLogger(logFile, clientLogLevel))
   configuredClientLogger = { logFile, logLevel }
   vscode.window.showInformationMessage(`Logging (${logLevel}) to '${logFile}'`)
 }
@@ -1471,9 +1474,11 @@ async function serverStart() {
   }, animationInterval)
   const config = vscode.workspace.getConfiguration('dataEditor')
   const logLevel =
-    process.env.OMEGA_EDIT_SERVER_LOG_LEVEL ||
-    process.env.OMEGA_EDIT_LOG_LEVEL ||
-    config.get<string>('logLevel', 'info')
+    (
+      process.env.OMEGA_EDIT_SERVER_LOG_LEVEL ||
+      process.env.OMEGA_EDIT_LOG_LEVEL ||
+      config.get<string>('logLevel', 'info')
+    )?.trim() || 'info'
   const logConfigFile = generateLogbackConfigFile(
     path.join(APP_DATA_PATH, `serv-${omegaEditPort}.log`),
     logLevel
