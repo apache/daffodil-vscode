@@ -287,21 +287,40 @@ async function getDaffodilDebugClasspath(
     })
   }
 
-  // make sure infoset output directory is present
-  if (config.infosetOutput.type == 'file') {
-    let dir = path.dirname(
-      config.infosetOutput.path.includes('${workspaceFolder}')
-        ? config.infosetOutput.path.replace(
-            '${workspaceFolder}',
-            workspaceFolder
-          )
-        : config.infosetOutput.path
-    )
-
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-  }
-
   return daffodilDebugClasspath
+}
+
+// Make sure the infoset output directory exists and the file is writable.
+// Returns false (after showing an error) if it is not.
+function ensureInfosetOutputWritable(
+  config: vscode.DebugConfiguration,
+  workspaceFolder: string
+): boolean {
+  if (config.infosetOutput?.type !== 'file') return true
+
+  const infosetPath: string = config.infosetOutput.path.includes(
+    '${workspaceFolder}'
+  )
+    ? config.infosetOutput.path.replace('${workspaceFolder}', workspaceFolder)
+    : config.infosetOutput.path
+
+  try {
+    const dir = path.dirname(infosetPath)
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+
+    // Opening in append mode creates the file if needed without erasing existing content
+    fs.closeSync(fs.openSync(infosetPath, 'a'))
+    return true
+  } catch (e: any) {
+    const reason =
+      e?.code === 'EPERM' || e?.code === 'EACCES'
+        ? 'permission denied'
+        : (e?.message ?? String(e))
+    const msg = `Unable to write infoset output file '${infosetPath}': ${reason}. Choose a different 'infosetOutput.path' in your launch configuration.`
+    outputChannel.appendLine(`[ERROR] ${msg}`)
+    vscode.window.showErrorMessage(msg)
+    return false
+  }
 }
 
 // Function for getting the daffodil-debugger
@@ -348,6 +367,10 @@ export async function getDebugger(
     }
 
     let workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath
+
+    if (!ensureInfosetOutputWritable(config, workspaceFolder)) {
+      return await stopDebugging().then((_) => undefined)
+    }
 
     // Get daffodilDebugger class paths to be added to the debugger
     const daffodilDebugClasspath = await getDaffodilDebugClasspath(

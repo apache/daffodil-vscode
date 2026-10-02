@@ -381,7 +381,7 @@ This default configuration will prompt the user to select the DFDL Schema and da
 }
 ```
 
-Set `openDataEditor` to `true` to open the Data Editor when the debug session starts. The `dataEditor` settings configure the Ωedit server port and Data Editor logging. Leave `logging.file` empty to use the default OS app-data/XDG log location, or set it to a specific log file path. For the Ωedit server, `logging.level` accepts `trace`, `debug`, `info`, `warn`, `warning`, `error`, `fatal`, and `critical`. The launch config wizard also exposes these settings as **Open Data Editor**, **omega-edit Port**, **Log File**, and **Log Level**.
+Set `openDataEditor` to `true` to open the Data Editor when the debug session starts. The `dataEditor` settings configure the Ωedit server port and Data Editor logging. Leave `logging.file` empty to use the default OS app-data/XDG log location, or set it to a specific log file path. For the Ωedit server, `logging.level` accepts `trace`, `debug`, `info`, `warn`, `warning`, `error`, `fatal`, `critical`, and `none` (`none` disables logging). The launch config wizard also exposes these settings as **Open Data Editor**, **omega-edit Port**, **Log File**, and **Log Level**.
 
 ## Dropdown for Log Level
 A dropdown list has been added in the launch config wizard under Log Level settings. There are four different options to select including DEBUG, INFO, WARNING, ERROR, and CRITICAL.
