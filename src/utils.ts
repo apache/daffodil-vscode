@@ -116,6 +116,18 @@ function checkInfosetFileExtension(
   }
 }
 
+function checkInfosetFileRoot(
+  infosetOutput: InfosetOutput,
+  infosetFormat: string
+) {
+  if (
+    !fs.existsSync(path.parse(infosetOutput.path).root) &&
+    !infosetOutput.path.startsWith('${workspaceFolder}')
+  ) {
+    infosetOutput.path = '${workspaceFolder}/' + infosetOutput.path
+  }
+}
+
 function checkSettingValue<T>(target: unknown, defaults: T): T {
   if (
     typeof defaults !== 'object' ||
@@ -209,6 +221,10 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
 
   if (launchConfigArgs.infosetOutput?.type == 'file') {
     checkInfosetFileExtension(
+      launchConfigArgs.infosetOutput!,
+      launchConfigArgs.infosetFormat!
+    )
+    checkInfosetFileRoot(
       launchConfigArgs.infosetOutput!,
       launchConfigArgs.infosetFormat!
     )

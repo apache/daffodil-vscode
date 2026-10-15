@@ -532,7 +532,7 @@ object Parse {
                           // This is inside the Java code, so we have to make sure that the TDML file we
                           //   are working with is not a directory
                           !file
-                            .isDirectory() && (file.canWrite || (!file.exists && file.getParentFile.canWrite))
+                            .isDirectory() && (file.canWrite || (!file.exists && (file.getParentFile != null) && file.getParentFile.canWrite))
                         }
                     )
                     .toEitherNel
@@ -605,7 +605,7 @@ object Parse {
               // This is inside the Java code, so we have to make sure that the TDML file we
               //   are working with is not a directory
               !file
-                .isDirectory() && (file.canWrite || (!file.exists && file.getParentFile.canWrite))
+                .isDirectory() && (file.canWrite || (!file.exists && (file.getParentFile != null) && file.getParentFile.canWrite))
             }
         )
         .toEitherNel
