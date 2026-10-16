@@ -16,3 +16,14 @@
  */
 
 /// <reference types="svelte" />
+import { type MessageResponseMap, type EditorMessageListener } from 'ext_types'
+declare global {
+  interface Window {
+    addEditorMsgListener: <K extends keyof MessageResponseMap>(
+      type: K,
+      listener: EditorMessageListener<K>
+    ) => void
+  }
+}
+
+export {}
