@@ -505,6 +505,10 @@ If you want to be able to set breakpoints in the schema file, make sure that the
 
 ![{2559195A-206E-4051-97DD-630850F0A4DC}](https://github.com/user-attachments/assets/6eaeecaa-1f16-4cd8-b6d7-c60cd01a2838)
 
+## dfdlx:trace
+The dfdlx:trace function is an extension to the dfdl specification implemented by Daffodil. This function allows users to output runtime values similarly to adding printf functions in C code. These output value are placed into the log file specified for the dfdlDebuggerin the launch.json configuration.
+
+Note that using this function currently requires the user to make a change to their schema before each run/parse due to an issue with Daffodil processing of dfdlx:trace when using a saved parser. The Daffodil VSCode extension automatically saves the parser, so the only way to consistanly have the trace function work is to force each execution to recompile the schema.
 
 ## Custom DFDL Debugger Views
 
@@ -799,6 +803,7 @@ Changing settings here will change the default values when creating a new launch
 * Some nightly tests are still failing intermittently due to GitHub runners. 
 * TDML Zipping does not support nested/included schema files.
 * TDML cannot handle files that are located on a different drive (Windows). For example, don't run off of C:, then use data or infoset files from D:
+* dfdlx:trace support currently works only when the schema file is compiled. This is related to the functionality of the underlying Daffodil [dfdlx:trace](https://issues.apache.org/jira/browse/DAFFODIL-3105) with saved parsers.
 
 # Reporting Problems and Requesting New Features
 
