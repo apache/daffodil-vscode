@@ -454,6 +454,8 @@ class DAPodil(
     }
 }
 
+// This code is used below to set the daffodil verbose setting to allow INFO message to be collected in support of the dfdlx:trace function.
+// If/when Daffodile issue https://issues.apache.org/jira/browse/DAFFODIL-3105 is resolved, code will need to be tested to see if it works with saved parsers.
 object DAPodilLogging {
   def setLogLevel(level: Int): Unit = {
     val rootLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[LogbackLogger]
