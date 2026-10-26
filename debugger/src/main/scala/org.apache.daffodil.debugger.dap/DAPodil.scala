@@ -22,6 +22,7 @@ import cats.effect._
 import cats.effect.std._
 import cats.Show
 import cats.syntax.all._
+import ch.qos.logback.classic.{Level, Logger => LogbackLogger}
 import com.microsoft.java.debug.core.protocol._
 import com.microsoft.java.debug.core.protocol.Messages._
 import com.microsoft.java.debug.core.protocol.Events.DebugEvent
@@ -36,6 +37,7 @@ import java.net._
 import java.nio.file.Path
 import java.nio.file.Paths
 import org.apache.daffodil.lib.util.Misc
+import org.slf4j.LoggerFactory
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
@@ -228,6 +230,7 @@ class DAPodil(
               )
           case Right(dbgee) =>
             for {
+              _ <- IO.delay(DAPodilLogging.setLogLevel(1))
               launched <- hotswap.swap {
                 DAPodil.State.Launched.resource(session, dbgee).evalTap(state.set)
               }.attempt
@@ -449,6 +452,19 @@ class DAPodil(
         } yield ()
       case s => DAPodil.InvalidState.raise(request, "Launched", s)
     }
+}
+
+object DAPodilLogging {
+  def setLogLevel(level: Int): Unit = {
+    val rootLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[LogbackLogger]
+    val logbackLevel = level match {
+      case 0 => Level.WARN
+      case 1 => Level.INFO
+      case 2 => Level.DEBUG
+      case _ => Level.TRACE
+    }
+    rootLogger.setLevel(logbackLevel)
+  }
 }
 
 object DAPodil extends IOApp {
