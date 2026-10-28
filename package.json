@@ -112,7 +112,7 @@
     "typescript": "5.2.2",
     "vite": "^6.4.3",
     "vitest": "^4.1.4",
-    "vscode-extension-tester": "5.9.1"
+    "vscode-extension-tester": "8.28.1"
   },
   "resolutions": {
     "vitest/vite": "^6.4.3",
