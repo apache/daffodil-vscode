@@ -189,3 +189,74 @@ jobs:
 
       - name: Package
         run: yarn package
+
+  # Tests that use a real VS Code through Playwright. They're separate from the
+  # tests above: see "End-to-End Tests" in DEVELOPMENT.md.
+  e2e:
+    name: "E2E Tests (OS: ${{ matrix.os }}, VS Code: ${{ matrix.vscode }})"
+    strategy:
+      matrix:
+        os: [macos-15, ubuntu-22.04, windows-2022]
+        vscode: ["stable"]
+        include:
+          - os: ubuntu-22.04
+            vscode: "1.90.0" # the oldest supported version of VS Code
+      fail-fast: false # don't immediately fail all other jobs if a single job fails
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      DAFFODIL_TEST_VSCODE_VERSION: ${{ matrix.vscode }} # read by e2e/global.setup.ts
+    steps:
+      ############################################################
+      # Setup
+      ############################################################
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Daffodil 4.0.0 and newer need JDK 17 or newer
+      - name: Setup Java
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # some runner oses don't have sbt by default
+      - name: Setup sbt
+        uses: sbt/setup-sbt@ecad189dd245444b9ae0a0cd5922fd938b88906f # v1.5.12
+
+      # Playwright needs the latest patch release of a supported Node version
+      - name: Install Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: yarn
+          cache-dependency-path: yarn.lock
+
+      - name: Install node dependencies
+        run: yarn install --frozen-lockfile
+
+      ############################################################
+      # Test
+      ############################################################
+
+      # Linux runners have no screen, so xvfb-run gives VS Code a virtual one.
+      # -a makes it pick a free display number.
+      - name: Run E2E tests - Linux
+        run: xvfb-run -a yarn test:e2e
+        if: runner.os == 'Linux'
+
+      - name: Run E2E tests - Windows/Mac
+        run: yarn test:e2e
+        if: runner.os != 'Linux'
+
+      # The report has a trace of each test, for finding out why one failed. To
+      # read it, download it from the run's page and run:
+      # yarn playwright show-report <unzipped folder>
+      - name: Upload test report
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: e2e-report-${{ matrix.os }}-${{ matrix.vscode }}
+          path: e2e/playwright-report/
