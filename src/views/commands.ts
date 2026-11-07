@@ -17,6 +17,7 @@
 
 import * as vscode from 'vscode'
 import { outputChannel } from '../adapter/activateDaffodilDebug'
+import { isDFDLDebugSessionActive } from '../dataEditor/include/utils'
 import jsep from 'jsep'
 
 const viewName = 'commandsView'
@@ -118,7 +119,7 @@ export class CommandsProvider implements vscode.TreeDataProvider<CommandItem> {
   // in our boolean expressions mapped to their resolved values.
   private getEnablementContext(): Record<string, any> {
     return {
-      inDebugMode: () => vscode.debug.activeDebugSession,
+      inDebugMode: isDFDLDebugSessionActive,
       editorLangId: () => this.getActiveLangId(),
       activeEditor: () => this.getActiveCustomEditor(),
       editorTextFocus: () => !(vscode.window.activeTextEditor === undefined),
