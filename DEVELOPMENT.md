@@ -62,6 +62,8 @@
       - [Yarn Package](#yarn-package)
       - [Automated Testing Suite](#automated-testing-suite)
         - [Testing Against a Specific Version of VS Code](#testing-against-a-specific-version-of-vs-code)
+      - [End-to-End Tests](#end-to-end-tests)
+        - [How a Test Run Works](#how-a-test-run-works)
     - [Debugging the Extension](#debugging-the-extension)
       - [Changing the sampleWorkspace folder name and location](#changing-the-sampleworkspace-folder-name-and-location)
       - [Test a Local Version of Apache Daffodil Debugger](#test-a-local-version-of-apache-daffodil-debugger)
@@ -360,6 +362,38 @@ DAFFODIL_TEST_VSCODE_VERSION=1.74.3 yarn test
 ```
 
 Set `DAFFODIL_TEST_VSCODE_VERSION` to `stable` to use the latest stable release, or to `insiders` to use the latest (nightly) insiders build.
+
+#### End-to-End Tests
+
+The end-to-end (E2E) tests are separate from the test suite above, and everything for them is in the `e2e` folder. They use [Playwright](https://playwright.dev) to start a real VS Code and use the extension the way a person would, including the insides of webviews like the Data Editor. They need Node 22 or newer.
+
+| Command                | What it does                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| `yarn test:e2e`        | Runs the tests                                                                       |
+| `yarn test:e2e:ui`     | Opens Playwright's interactive viewer, to pick tests, run them and inspect each step |
+| `yarn test:e2e:debug`  | Runs the tests paused in the Playwright Inspector, to step through them              |
+| `yarn test:e2e:report` | Opens the report of the last run, with a step-by-step trace of each test             |
+
+All of them except the report rebuild the extension first, and accept a test filter, such as `yarn test:e2e:ui dataEditor`. `DAFFODIL_TEST_VSCODE_VERSION` picks the version of VS Code, the same as for `yarn test`.
+
+In the interactive viewer, a test's timeline appears when the test finishes rather than while it runs, as Playwright can't trace VS Code live. The viewer can re-run tests when a spec changes. After changing the extension itself, run `yarn pretest:e2e` in another terminal to rebuild it.
+
+When adding tests, keep selectors for VS Code's own UI in `e2e/pages/workbench.ts`, as they can change between VS Code releases. Elements of our webviews that have no stable `id` can be given a `data-testid`.
+
+##### How a Test Run Works
+
+When you run `yarn test:e2e`:
+
+1. The `pretest:e2e` script type-checks the tests and rebuilds the extension, because the tests use the built copy in `dist`.
+2. Playwright reads its settings from `e2e/playwright.config.ts`.
+3. `e2e/global.setup.ts` gets a copy of VS Code. It's only downloaded once, and is then kept in `.vscode-test`.
+4. For each test in the `*.spec.ts` files:
+   1. `e2e/fixtures.ts` makes a temporary folder, copies `src/tests/data` into it, and starts VS Code on that copy with the extension loaded.
+   2. The test runs, and controls VS Code through the helpers in `e2e/pages`.
+   3. `e2e/fixtures.ts` saves a trace of the test, closes VS Code, stops the Data Editor's server and deletes the temporary folder.
+5. Playwright writes the report to `e2e/playwright-report`.
+
+To follow this in the code, start with a test in `e2e/dataEditor.spec.ts`, then read `e2e/fixtures.ts`.
 
 ### Debugging the Extension
 

@@ -35,6 +35,10 @@ src/version.ts
 # unknown
 .vscode-test/
 
+# playwright output
+e2e/test-results/
+e2e/playwright-report/
+
 # scala metals vscode extension compiled folder
 .metals
 .bloop

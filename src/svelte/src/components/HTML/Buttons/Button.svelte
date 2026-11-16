@@ -25,6 +25,8 @@ limitations under the License.
   export let isDisabled = false
   export let width = ''
   export let fixedWidth = ''
+  // Becomes data-testid, which gives tests a stable way to find this button
+  export let testId: string | undefined = undefined
 
   onMount(() => {
     collapseContent = shouldCollapseContent()
@@ -50,6 +52,7 @@ limitations under the License.
   {#if collapseContent}
     <button
       class={$UIThemeCSSClass + ' collapsed'}
+      data-testid={testId}
       disabled={isDisabled}
       on:click={!isDisabled ? fn : () => {}}
       style:width={fixedWidth}
@@ -68,6 +71,7 @@ limitations under the License.
   {:else}
     <button
       class={$UIThemeCSSClass}
+      data-testid={testId}
       disabled={isDisabled}
       on:click={!isDisabled ? fn : () => {}}
       style:width={fixedWidth.length > 0 ? fixedWidth : width}

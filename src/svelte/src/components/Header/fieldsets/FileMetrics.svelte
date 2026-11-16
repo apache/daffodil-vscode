@@ -138,7 +138,12 @@ limitations under the License.
   </FlexContainer>
   <FlexContainer --dir="row" --align-items="center">
     {#if displayOpts}
-      <Button fn={save} isDisabled={!saveable()} description="Save to disk">
+      <Button
+        fn={save}
+        isDisabled={!saveable()}
+        description="Save to disk"
+        testId="save"
+      >
         <span slot="left" class="btn-icon material-symbols-outlined">save</span>
         <span slot="default">&nbsp;Save</span>
       </Button>
@@ -153,6 +158,7 @@ limitations under the License.
         fn={toggleSaveDisplay}
         isDisabled={!saveable()}
         description="Save"
+        testId="save-options"
       >
         <span slot="left" class="btn-icon material-symbols-outlined">save</span>
         <span slot="default">Save&hellip;</span>

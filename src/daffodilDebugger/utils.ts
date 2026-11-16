@@ -207,6 +207,23 @@ const quoteArg = (value: string): string => {
   return `'${value.replace(/'/g, "'\\''")}'`
 }
 
+// The environment for running the Daffodil CLI on the chosen JDK
+const daffodilCliEnv = (javaHome?: IJavaHomeInfo): NodeJS.ProcessEnv => {
+  // Vite replaces process.env with {} when bundling, but not this form of it
+  const { env } = process
+
+  // With no JDK to choose, the launcher scripts use whichever java they find
+  if (!javaHome) return env
+
+  // Daffodil's launcher scripts ignore JAVA_HOME and just run "java", so the
+  // chosen JDK has to be first on the PATH too
+  return {
+    ...env,
+    JAVA_HOME: javaHome.path,
+    PATH: path.join(javaHome.path, 'bin') + path.delimiter + env.PATH,
+  }
+}
+
 const runDaffodilCommand = async (
   command: string,
   env?: NodeJS.ProcessEnv
@@ -354,11 +371,7 @@ export async function validateSchemaWithDaffodilCLI(
   args.push(parserOutPath)
 
   const command = [cliPath, ...args].map(quoteArg).join(' ')
-  const env = javaHome
-    ? { ...process.env, JAVA_HOME: javaHome.path }
-    : process.env
-
-  const result = await runDaffodilCommand(command, env)
+  const result = await runDaffodilCommand(command, daffodilCliEnv(javaHome))
 
   if (result.code !== 0) {
     if (fs.existsSync(parserOutPath)) {
