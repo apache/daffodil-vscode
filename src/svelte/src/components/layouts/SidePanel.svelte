@@ -28,7 +28,7 @@ limitations under the License.
 </script>
 
 {#if open}
-  <div class="overlay" on:click={() => (open = false)} />
+  <div class="overlay" on:click={() => (open = false)}></div>
 {/if}
 
 <div

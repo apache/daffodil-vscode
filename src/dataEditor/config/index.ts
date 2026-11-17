@@ -19,6 +19,6 @@ export * from './Extract'
 export {
   WorkspaceKeyword,
   ServerPortKeyword,
-  ConfigureIfPredicate,
-  ConfigKeyReplace,
+  type ConfigureIfPredicate,
+  type ConfigKeyReplace,
 } from './ConfigKeyword'

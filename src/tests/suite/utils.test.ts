@@ -45,6 +45,11 @@ suite('Utils Test Suite', () => {
       name: 'Default Test Case',
       path: '${command:AskForValidatedTDMLPath}',
     },
+    metadata: {
+      vscodeVersion: '',
+      extensionVersion: '',
+      daffodilVersion: '3.11.0',
+    },
     stopOnEntry: true,
     useExistingServer: false,
     validateSchemaBeforeDebug: true,
@@ -71,8 +76,18 @@ suite('Utils Test Suite', () => {
   }
 
   test('Default config', async () => {
-    var config = utils.getConfig({ name: name, request: request, type: type })
-    assert.strictEqual(JSON.stringify(defaultConfig), JSON.stringify(config))
+    const config = utils.getConfig({ name: name, request: request, type: type })
+    const { metadata: actualMetadata, ...actualConfig } = config
+    const { metadata: _expectedMetadata, ...expectedConfig } = defaultConfig
+
+    assert.deepStrictEqual(actualConfig, expectedConfig)
+    assert.deepStrictEqual(
+      Object.keys(actualMetadata).sort(),
+      Object.keys(defaultConfig.metadata).sort()
+    )
+    for (const value of Object.values(actualMetadata)) {
+      assert.strictEqual(typeof value, 'string')
+    }
   })
 
   test('Get current config', async () => {
@@ -88,6 +103,33 @@ suite('Utils Test Suite', () => {
     assert.strictEqual(
       JSON.stringify(defaultConfig),
       JSON.stringify(utils.getCurrentConfig())
+    )
+  })
+
+  test('Data editor file provider returns launch config data as a promise', async () => {
+    const data = '/path/to/PNG/PngSuite-2013jan13/basi3p02.png'
+    const fileProvider = utils.getDataEditorFileProvider({
+      ...defaultConfig,
+      data,
+    })
+    const result = fileProvider.getFile()
+
+    assert.strictEqual(typeof result.then, 'function')
+    assert.strictEqual(await result, data)
+  })
+
+  test('Data editor file provider applies file formatter', async () => {
+    const data = '${workspaceFolder}/input/data.txt'
+    const fileProvider = utils.getDataEditorFileProvider({
+      ...defaultConfig,
+      data,
+    })
+
+    assert.strictEqual(
+      await fileProvider.getFile((file) =>
+        file.replace('${workspaceFolder}', '/workspace')
+      ),
+      '/workspace/input/data.txt'
     )
   })
 })

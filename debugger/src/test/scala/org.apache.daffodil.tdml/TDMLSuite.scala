@@ -98,6 +98,27 @@ class TDMLSuite extends munit.FunSuite {
     assertNotEquals(contentXml, tdmlSingleTestCaseXml)
   }
 
+  test("Test Generate with environment metadata") {
+    val metadata = Map(
+      "vscodeVersion" -> "1.90.0",
+      "extensionVersion" -> "1.6.0-SNAPSHOT",
+      "osType" -> "Windows_NT",
+      "osVersion" -> "10.0.19045"
+    )
+
+    TDML.generate(infosetPath, schemaPath, dataPath, tdmlName, tdmlPath.toString(), metadata)
+
+    val content = readString(tdmlPath)
+    assert(content.contains("<ns1:environment>"))
+    assert(content.contains("<ns1:vscodeVersion>1.90.0</ns1:vscodeVersion>"))
+    assert(content.contains("<ns1:extensionVersion>1.6.0-SNAPSHOT</ns1:extensionVersion>"))
+    assert(content.contains("<ns1:osType>Windows_NT</ns1:osType>"))
+    assert(content.contains("<ns1:osVersion>10.0.19045</ns1:osVersion>"))
+
+    val contentXml = XML.loadString(content)
+    assertEquals(getNamespaces(contentXml), expectedNSHashSet)
+  }
+
   test("Test Execute") {
     val schemaPathExecute = schemaPath
     val dataPathExecute = dataPath

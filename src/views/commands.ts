@@ -119,7 +119,10 @@ export class CommandsProvider implements vscode.TreeDataProvider<CommandItem> {
   // in our boolean expressions mapped to their resolved values.
   private getEnablementContext(): Record<string, any> {
     return {
-      inDebugMode: isDFDLDebugSessionActive,
+      inDebugMode: () =>
+        isDFDLDebugSessionActive(
+          vscode.debug.activeDebugSession?.configuration.data ?? ''
+        ),
       editorLangId: () => this.getActiveLangId(),
       activeEditor: () => this.getActiveCustomEditor(),
       editorTextFocus: () => !(vscode.window.activeTextEditor === undefined),

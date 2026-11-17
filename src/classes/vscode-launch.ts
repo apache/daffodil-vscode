@@ -32,6 +32,7 @@ export interface VSCodeLaunchConfigArgs {
   infosetOutput: InfosetOutput | null
   tdmlConfig: TDMLConfig
   dataEditor: DataEditorConfig | null
+  metadata: Record<string, string>
   stopOnEntry: boolean
   useExistingServer: boolean
   validateSchemaBeforeDebug: boolean

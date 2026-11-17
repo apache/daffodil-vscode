@@ -15,13 +15,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
+  import FlexContainer from 'layout/FlexContainer.svelte'
+  import Tooltip from 'layout/Tooltip.svelte'
+  import { UIThemeCSSClass } from 'utilities/colorScheme'
+
   export let fn: (event?: Event) => void
   export let disabledBy = false
   export let width = ''
   export let active = false
-  import Tooltip from '../../layouts/Tooltip.svelte'
-  import FlexContainer from '../../layouts/FlexContainer.svelte'
-  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
 
   export let description: string
 </script>

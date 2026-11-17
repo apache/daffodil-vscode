@@ -41,11 +41,11 @@
     "watch:svelte-tests": "mocha -r ts-node/register -w ./src/svelte/tests/**/*.test.ts",
     "watch:tdmlEditorJS": "esbuild src/tdmlEditor/webview/webview.js --outfile=dist/views/tdmlEditor/webview/webview.js --bundle --platform=node --format=cjs --watch",
     "compile:tdmlEditorJS": "esbuild src/tdmlEditor/webview/webview.js --outfile=dist/views/tdmlEditor/webview/webview.js --bundle --platform=node --format=cjs",
-    "prepackage": "yarn install && yarn compile && yarn vite:pkg",
-    "package": "run-func build/yarn-scripts.ts package && yarn --cwd dist/package install --production && run-func build/yarn-scripts.ts syncOmegaEditClientRuntime && run-func build/yarn-scripts.ts packageVsix",
+    "prepackage": "yarn install --frozen-lockfile && yarn compile && yarn vite:pkg",
+    "package": "run-func build/yarn-scripts.ts package && yarn --cwd dist/package install --production --frozen-lockfile && run-func build/yarn-scripts.ts syncOmegaEditClientRuntime && run-func build/yarn-scripts.ts packageVsix",
     "pretest": "yarn compile && yarn vite:dev",
     "test": "sbt test && yarn test:svelte && node ./out/tests/omegaEditServerLifecycle.js && node ./out/tests/runTest.js",
-    "test:svelte": "mocha --import=tsx ./src/svelte/tests/**/*.test.ts",
+    "test:svelte": "yarn vitest --config src/svelte/vitest.config.mjs --run",
     "sbt": "sbt Universal/stage",
     "move-debuggers": "run-func build/yarn-scripts.ts moveDebuggers",
     "svelte:check": "svelte-check --tsconfig ./src/svelte/tsconfig.json",
@@ -77,7 +77,7 @@
   "devDependencies": {
     "@sveltejs/adapter-static": "3.0.8",
     "@sveltejs/kit": "^2.69.1",
-    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@tsconfig/svelte": "^5.0.8",
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.3",
@@ -92,7 +92,7 @@
     "concurrently": "^9.2.1",
     "css-loader": "^7.1.2",
     "esbuild": "^0.28.1",
-    "fast-xml-parser": "^5.7.2",
+    "fast-xml-parser": "^5.12.0",
     "glob": "13.0.0",
     "mocha": "11.5.0",
     "picocolors": "^1.1.1",
@@ -110,10 +110,12 @@
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.21.0",
     "typescript": "5.2.2",
-    "vite": "^6.4.3",
+    "vite": "^6.4.4",
+    "vitest": "^4.1.4",
     "vscode-extension-tester": "5.9.1"
   },
   "resolutions": {
+    "vitest/vite": "^6.4.3",
     "@omega-edit/server": "2.0.0",
     "cookie": ">=0.7.0",
     "diff": ">=8.0.3",
@@ -713,7 +715,8 @@
                           "info",
                           "warning",
                           "error",
-                          "critical"
+                          "critical",
+                          "none"
                         ],
                         "description": "Data Editor Logging Level",
                         "default": "info"

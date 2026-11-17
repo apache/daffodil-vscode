@@ -25,6 +25,7 @@ import {
   createSimpleFileLogger,
   getClientVersion,
   getServerInfo,
+  resetClient,
   setLogger,
   startServer,
   stopProcessUsingPID,
@@ -37,6 +38,7 @@ import {
   SERVER_START_TIMEOUT,
 } from '../../dataEditor/dataEditorClient'
 import { writeLogbackConfigFile } from '../../dataEditor/include/server/LogbackConfig'
+import { DataEditorFileProvider } from 'dataEditor/include/utils'
 
 const testPort = 9009 // use a different port than the default for testing to avoid conflicts with running servers
 const logLevel = 'debug'
@@ -46,6 +48,48 @@ function getTestPidFile(serverPort: number) {
 }
 
 suite('Data Editor Test Suite', () => {
+  const pidFile = getTestPidFile(testPort)
+  const serverLogFile = path.join(APP_DATA_PATH, `test-serv-${testPort}.log`)
+  const logFile = path.join(APP_DATA_PATH, `test-dataEditor-${testPort}.log`)
+  let logConfigFile = ''
+  setLogger(createSimpleFileLogger(logFile, logLevel))
+
+  before(async () => {
+    logConfigFile = writeLogbackConfigFile(
+      path.join(APP_DATA_PATH, `test-serv-${testPort}.logconf.xml`),
+      serverLogFile,
+      logLevel
+    )
+    const serverPid = (await Promise.race([
+      startServer(testPort, OMEGA_EDIT_HOST, pidFile, { logConfigFile }),
+      new Promise((resolve, reject) => {
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                `Server startup timed out after ${SERVER_START_TIMEOUT} seconds`
+              )
+            ),
+          SERVER_START_TIMEOUT * 1000
+        )
+      }),
+    ])) as number | undefined
+    if (serverPid === undefined || serverPid <= 0) {
+      throw new Error('Server failed to start or PID is invalid')
+    }
+  })
+
+  after(async () => {
+    resetClient()
+    assert.strictEqual(fs.existsSync(pidFile), true)
+    const pid = parseInt(fs.readFileSync(pidFile).toString())
+    console.log(pid)
+    assert.strictEqual(await stopProcessUsingPID(pid), true)
+    if (fs.existsSync(logConfigFile)) {
+      fs.rmSync(logConfigFile, { force: true })
+    }
+  })
+
   // NOTE: Currently failing after glob update. Maybe add back in later?
   // test('data edit command exists', async () => {
   //   assert.strictEqual(
@@ -55,47 +99,6 @@ suite('Data Editor Test Suite', () => {
   // })
 
   suite('Editor Service', () => {
-    const pidFile = getTestPidFile(testPort)
-    const serverLogFile = path.join(APP_DATA_PATH, `test-serv-${testPort}.log`)
-    const logFile = path.join(APP_DATA_PATH, `test-dataEditor-${testPort}.log`)
-    let logConfigFile = ''
-    setLogger(createSimpleFileLogger(logFile, logLevel))
-
-    before(async () => {
-      logConfigFile = writeLogbackConfigFile(
-        path.join(APP_DATA_PATH, `test-serv-${testPort}.logconf.xml`),
-        serverLogFile,
-        logLevel
-      )
-      const serverPid = (await Promise.race([
-        startServer(testPort, OMEGA_EDIT_HOST, pidFile, { logConfigFile }),
-        new Promise((resolve, reject) => {
-          setTimeout(
-            () =>
-              reject(
-                new Error(
-                  `Server startup timed out after ${SERVER_START_TIMEOUT} seconds`
-                )
-              ),
-            SERVER_START_TIMEOUT * 1000
-          )
-        }),
-      ])) as number | undefined
-      if (serverPid === undefined || serverPid <= 0) {
-        throw new Error('Server failed to start or PID is invalid')
-      }
-    })
-
-    after(async () => {
-      assert.strictEqual(fs.existsSync(pidFile), true)
-      const pid = parseInt(fs.readFileSync(pidFile).toString())
-      console.log(pid)
-      assert.strictEqual(await stopProcessUsingPID(pid), true)
-      if (fs.existsSync(logConfigFile)) {
-        fs.rmSync(logConfigFile, { force: true })
-      }
-    })
-
     test('is running', async () => {
       // make sure the server is listening on the configured port
       const wait_port = require('wait-port')
@@ -122,25 +125,43 @@ suite('Data Editor Test Suite', () => {
 
   suite('Data Editor', () => {
     test('data editor opens', async () => {
+      const mockFileProvider: DataEditorFileProvider = {
+        getFile: async () => {
+          return TEST_SCHEMA
+        },
+      }
       const dataEditWebView: DataEditorClient =
-        await vscode.commands.executeCommand(DATA_EDITOR_COMMAND, TEST_SCHEMA)
+        await vscode.commands.executeCommand(
+          DATA_EDITOR_COMMAND,
+          mockFileProvider
+        )
       assert.ok(dataEditWebView)
-      assert.strictEqual(dataEditWebView.panel.active, true)
+      assert.strictEqual(dataEditWebView.isActive(), true)
       assert.strictEqual(
         // Check if data editor panel has the basename of the file
-        dataEditWebView.panel.title,
+        path.basename(dataEditWebView.currentFile()),
         path.basename(TEST_SCHEMA)
       )
 
+      const duplicateDataEditWebView = await vscode.commands.executeCommand(
+        DATA_EDITOR_COMMAND,
+        mockFileProvider
+      )
+      assert.strictEqual(duplicateDataEditWebView, undefined)
+      assert.strictEqual(dataEditWebView.isActive(), true)
+
       // Listen for the dispose event
       let isDisposed = false
-      dataEditWebView.panel.onDidDispose(() => {
-        isDisposed = true
-      })
+      const disposalListener: vscode.Disposable = {
+        dispose: () => {
+          isDisposed = true
+        },
+      }
+      dataEditWebView.addDisposable(disposalListener)
 
       // Close the data editor panel
-      await dataEditWebView.panel.dispose()
-      await dataEditWebView.waitForDisposeCleanup()
+      await dataEditWebView.dispose()
+      await dataEditWebView.isDisposed // problem child
 
       // Verify that the panel has been disposed
       assert.strictEqual(isDisposed, true)

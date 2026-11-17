@@ -26,6 +26,7 @@ import { XMLParser } from 'fast-xml-parser'
 import * as unzip from 'unzip-stream'
 import { pipeline } from 'stream/promises'
 import { Transform } from 'stream'
+import { DataEditorFileProvider } from 'dataEditor/include/utils'
 let currentConfig: vscode.DebugConfiguration
 
 export const terminalName = 'daffodil-debugger'
@@ -62,6 +63,17 @@ export function runCommand(command: string, params?: any) {
     vscode.commands.executeCommand(command, params).then(undefined, vscodeError)
 }
 
+export function getDataEditorFileProvider(
+  config: vscode.DebugConfiguration
+): DataEditorFileProvider {
+  return {
+    async getFile(formatOp?: (file: string) => string): Promise<string> {
+      const file = config.data as string
+      return formatOp ? formatOp(file) : file
+    },
+  }
+}
+
 // Function for checking if config specifies if either the
 // infoset, infoset diff or data editor needs to be opened
 export async function onDebugStartDisplay(viewsToCheck: string[]) {
@@ -71,7 +83,7 @@ export async function onDebugStartDisplay(viewsToCheck: string[]) {
     switch (viewToCheck) {
       case 'data-editor':
         if (config.openDataEditor) {
-          runCommand('extension.data.edit', config.data)
+          runCommand('extension.data.edit', getDataEditorFileProvider(config))
         }
         break
       case 'infoset-view':
@@ -116,6 +128,18 @@ function checkInfosetFileExtension(
   }
 }
 
+function checkInfosetFileRoot(
+  infosetOutput: InfosetOutput,
+  infosetFormat: string
+) {
+  if (
+    !fs.existsSync(path.parse(infosetOutput.path).root) &&
+    !infosetOutput.path.startsWith('${workspaceFolder}')
+  ) {
+    infosetOutput.path = '${workspaceFolder}/' + infosetOutput.path
+  }
+}
+
 function checkSettingValue<T>(target: unknown, defaults: T): T {
   if (
     typeof defaults !== 'object' ||
@@ -151,6 +175,9 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
   const launchConfigArgs: VSCodeLaunchConfigArgs = JSON.parse(
     JSON.stringify(jsonArgs)
   )
+  const extensionVersion =
+    vscode.extensions.getExtension('asf.apache-daffodil-vscode')?.packageJSON
+      ?.version ?? ''
   // NOTE: Don't make this a static value as extension configuration may change while the extension is loaded.
   const defaultConf = vscode.workspace.getConfiguration()
 
@@ -193,6 +220,12 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
         file: '',
       },
     }),
+    metadata: {
+      vscodeVersion: vscode.version,
+      extensionVersion,
+      daffodilVersion:
+        (launchConfigArgs as any).dfdlDebugger?.daffodilVersion ?? '',
+    },
     dfdlDebugger: defaultConf.get('dfdlDebugger', {
       daffodilVersion: '4.2.0',
       timeout: '10s',
@@ -209,6 +242,10 @@ export function getConfig(jsonArgs: object): vscode.DebugConfiguration {
 
   if (launchConfigArgs.infosetOutput?.type == 'file') {
     checkInfosetFileExtension(
+      launchConfigArgs.infosetOutput!,
+      launchConfigArgs.infosetFormat!
+    )
+    checkInfosetFileRoot(
       launchConfigArgs.infosetOutput!,
       launchConfigArgs.infosetFormat!
     )

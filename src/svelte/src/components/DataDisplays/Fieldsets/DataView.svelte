@@ -31,11 +31,11 @@ limitations under the License.
     selectionDataStore,
     editedDataSegment,
     selectedByte,
-  } from '../../../stores'
-  import { ENDIANNESS_OPTIONS } from '../../../stores/configuration'
-  import { UIThemeCSSClass } from '../../../utilities/colorScheme'
+  } from 'stores'
+  import { ENDIANNESS_OPTIONS } from 'stores/configuration'
+  import { UIThemeCSSClass } from 'utilities/colorScheme'
   import { createEventDispatcher } from 'svelte'
-  import Input from '../../Inputs/Input/Input.svelte'
+  import Input from 'HTMLWrappers/Input/Input.svelte'
 
   const eventDispatcher = createEventDispatcher()
   const ERROR_MESSAGE_TIMEOUT = 5000

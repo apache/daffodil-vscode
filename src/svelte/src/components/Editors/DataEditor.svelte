@@ -15,28 +15,40 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <script lang="ts">
+  import ContentControls from 'editor_components/DataDisplays/Fieldsets/ContentControls.svelte'
+  import { getDebugVarContext } from 'editor_components/Debug'
+  import { isRegularSizedFile } from 'editor_components/Header/fieldsets/FileMetrics.svelte.ts'
+  import { EditByteModes, type RadixValues } from 'ext_types'
+  import FlexContainer from 'layout/FlexContainer.svelte'
+  import HelpIcon from 'layout/HelpIcon.svelte'
+  import DataView from 'editor_components/DataDisplays/Fieldsets/DataView.svelte'
   import {
     editorSelection,
-    editMode,
     selectionDataStore,
-    regularSizedFile,
     viewport,
     selectionSize,
     addressRadix,
-  } from '../../stores'
-  import { EditByteModes, type RadixValues } from '../../stores/configuration'
-  import { UIThemeCSSClass } from '../../utilities/colorScheme'
+    editMode,
+  } from 'stores'
   import { createEventDispatcher } from 'svelte'
-  import ContentControls from '../DataDisplays/Fieldsets/ContentControls.svelte'
-  import FlexContainer from '../layouts/FlexContainer.svelte'
-  import DataView from '../DataDisplays/Fieldsets/DataView.svelte'
-  import HelpIcon from '../layouts/HelpIcon.svelte'
+  import { UIThemeCSSClass } from 'utilities/colorScheme'
   /* DEBUG_ONLY_START */
-  import { getDebugVarContext } from '../Debug'
+  import { viewportByteIndicators } from 'utilities/highlights.ts'
   getDebugVarContext().add({
     id: 'selection',
     valueStr: () => {
       return `(${$selectionDataStore.startOffset}, ${$selectionDataStore.endOffset})`
+    },
+  })
+  getDebugVarContext().add({
+    id: 'Highlights (Selection)',
+    valueStr: () => {
+      let ret = '['
+      $viewportByteIndicators.forEach((v, i, a) => {
+        if (v === 1) ret += ` ${i}`
+      })
+      ret += ' ]'
+      return ret
     },
   })
   /* DEBUG_ONLY_END */
@@ -53,7 +65,7 @@ limitations under the License.
   let displayTextEditorArea: boolean
   $: displayTextEditorArea =
     $editMode === EditByteModes.Multiple &&
-    ($selectionDataStore.active || !$regularSizedFile)
+    ($selectionDataStore.active || !isRegularSizedFile())
 
   function clearDataDisplays() {
     eventDispatcher('clearDataDisplays')
@@ -126,7 +138,7 @@ limitations under the License.
       on:click={handleEditorEvent}
       on:input={handleEditorEvent}
       bind:value={$editorSelection}
-    />
+    ></textarea>
 
     <FlexContainer>
       <ContentControls on:applyChanges />

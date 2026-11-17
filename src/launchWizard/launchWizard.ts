@@ -589,7 +589,7 @@ class LaunchWizard {
 
     let dataEditor: DataEditorConfig = defaultValues.dataEditor
     let dataEditorLogLevelSelect = ''
-    let dataEditorLogLevelTypes = getAllowedLogLevels(true)
+    let dataEditorLogLevelTypes = getAllowedLogLevels(true).concat('none')
     let dataEditorLogLevel = dataEditor.logging.level
 
     dataEditorLogLevelTypes.forEach((type) => {

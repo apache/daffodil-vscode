@@ -19,6 +19,7 @@ import { strictEqual } from 'assert'
 import { join } from 'path'
 import {
   appendTestCase,
+  getTDMLMetadata,
   getTestCaseDisplayData,
   readTDMLFileContents,
 } from '../../tdmlEditor/utilities/tdmlXmlUtils'
@@ -49,6 +50,44 @@ suite('TDML Utils Test Suite', () => {
         })
       }
     )
+  })
+
+  test('TDML metadata includes Daffodil version for the selected test case', async () => {
+    const xmlBuffer = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns1:testSuite xmlns:ns1="http://www.ibm.com/xmlns/dfdl/testData" suiteName="Suite">
+  <ns1:parserTestCase name="Case1" root="file" model="schema1.dfdl.xsd" description="Desc1" roundTrip="onePass">
+    <ns1:environment>
+      <ns1:daffodilVersion>4.0.0</ns1:daffodilVersion>
+      <ns1:vscodeVersion>1.100.0</ns1:vscodeVersion>
+    </ns1:environment>
+    <ns1:document>
+      <ns1:documentPart type="file">data1.xml</ns1:documentPart>
+    </ns1:document>
+    <ns1:infoset>
+      <ns1:dfdlInfoset type="file">infoset1.xml</ns1:dfdlInfoset>
+    </ns1:infoset>
+  </ns1:parserTestCase>
+  <ns1:parserTestCase name="Case2" root="file" model="schema2.dfdl.xsd" description="Desc2" roundTrip="onePass">
+    <ns1:environment>
+      <ns1:daffodilVersion>3.11.0</ns1:daffodilVersion>
+      <ns1:vscodeVersion>1.90.0</ns1:vscodeVersion>
+    </ns1:environment>
+    <ns1:document>
+      <ns1:documentPart type="file">data2.xml</ns1:documentPart>
+    </ns1:document>
+    <ns1:infoset>
+      <ns1:dfdlInfoset type="file">infoset2.xml</ns1:dfdlInfoset>
+    </ns1:infoset>
+  </ns1:parserTestCase>
+</ns1:testSuite>`
+
+    const selectedCaseMetadata = await getTDMLMetadata(xmlBuffer, 'Case2')
+    strictEqual(selectedCaseMetadata.daffodilVersion, '3.11.0')
+    strictEqual(selectedCaseMetadata.vscodeVersion, '1.90.0')
+
+    const firstCaseMetadata = await getTDMLMetadata(xmlBuffer, 'Case1')
+    strictEqual(firstCaseMetadata.daffodilVersion, '4.0.0')
+    strictEqual(firstCaseMetadata.vscodeVersion, '1.100.0')
   })
 
   test('Valid TDML File - Multiple Test Cases', async () => {

@@ -18,6 +18,7 @@
 package org.apache.daffodil.tdml
 
 import java.io.File
+import java.nio.charset.StandardCharsets
 import java.nio.file._
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.JAXBElement
@@ -137,14 +138,16 @@ object TDML {
       schemaPath: Path,
       dataPath: Path,
       tdmlName: String,
-      tdmlPath: String
+      tdmlPath: String,
+      metadata: Map[String, String] = Map.empty
   ): Unit =
     TDML.generate(
       convertToRelativePath(infosetPath, tdmlPath),
       convertToRelativePath(schemaPath, tdmlPath),
       convertToRelativePath(dataPath, tdmlPath),
       tdmlName,
-      tdmlPath
+      tdmlPath,
+      metadata
     )
 
   // Generate a new TDML file.
@@ -163,7 +166,8 @@ object TDML {
       schemaPath: String,
       dataPath: String,
       tdmlName: String,
-      tdmlPath: String
+      tdmlPath: String,
+      metadata: Map[String, String]
   ): Unit = {
     val factory = new ObjectFactory()
 
@@ -177,7 +181,49 @@ object TDML {
     val marshaller = JAXBContext.newInstance(classOf[TestSuite]).createMarshaller()
     marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
     marshaller.marshal(testSuite, new java.io.File(tdmlPath))
+
+    addEnvironmentElement(tdmlPath, metadata)
   }
+
+  private def addEnvironmentElement(tdmlPath: String, metadata: Map[String, String]): Unit =
+    if (metadata.nonEmpty) {
+      val content = new String(Files.readAllBytes(Paths.get(tdmlPath)), StandardCharsets.UTF_8)
+      val closingTag = "</ns1:parserTestCase>"
+      val insertionPoint = content.lastIndexOf(closingTag)
+      if (insertionPoint >= 0) {
+        val environmentBlock = buildEnvironmentBlock(metadata)
+        val updated = content.substring(0, insertionPoint) + environmentBlock + content.substring(insertionPoint)
+        val _ = Files.write(Paths.get(tdmlPath), updated.getBytes(StandardCharsets.UTF_8))
+      }
+    }
+
+  private def buildEnvironmentBlock(metadata: Map[String, String]): String = {
+    val entries = Seq(
+      metadata.get("vscodeVersion").map(value => s"        <ns1:vscodeVersion>${escapeXml(value)}</ns1:vscodeVersion>"),
+      metadata
+        .get("extensionVersion")
+        .map(value => s"        <ns1:extensionVersion>${escapeXml(value)}</ns1:extensionVersion>"),
+      metadata
+        .get("daffodilVersion")
+        .map(value => s"        <ns1:daffodilVersion>${escapeXml(value)}</ns1:daffodilVersion>"),
+      metadata.get("osType").map(value => s"        <ns1:osType>${escapeXml(value)}</ns1:osType>"),
+      metadata.get("osVersion").map(value => s"        <ns1:osVersion>${escapeXml(value)}</ns1:osVersion>")
+    ).flatten
+
+    if (entries.isEmpty) ""
+    else {
+      val inner = entries.mkString(System.lineSeparator(), System.lineSeparator(), System.lineSeparator())
+      s"      <ns1:environment>$inner      </ns1:environment>${System.lineSeparator()}"
+    }
+  }
+
+  private def escapeXml(value: String): String =
+    value
+      .replace("&", "&amp;")
+      .replace("<", "&lt;")
+      .replace(">", "&gt;")
+      .replace("\"", "&quot;")
+      .replace("'", "&apos;")
 
   // Find the parameters needed to execute a DFDL parse based on the given TDML Parameters
   //

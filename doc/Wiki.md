@@ -381,7 +381,7 @@ This default configuration will prompt the user to select the DFDL Schema and da
 }
 ```
 
-Set `openDataEditor` to `true` to open the Data Editor when the debug session starts. The `dataEditor` settings configure the Ωedit server port and Data Editor logging. Leave `logging.file` empty to use the default OS app-data/XDG log location, or set it to a specific log file path. For the Ωedit server, `logging.level` accepts `trace`, `debug`, `info`, `warn`, `warning`, `error`, `fatal`, and `critical`. The launch config wizard also exposes these settings as **Open Data Editor**, **omega-edit Port**, **Log File**, and **Log Level**.
+Set `openDataEditor` to `true` to open the Data Editor when the debug session starts. The `dataEditor` settings configure the Ωedit server port and Data Editor logging. Leave `logging.file` empty to use the default OS app-data/XDG log location, or set it to a specific log file path. For the Ωedit server, `logging.level` accepts `trace`, `debug`, `info`, `warn`, `warning`, `error`, `fatal`, `critical`, and `none` (`none` disables logging). The launch config wizard also exposes these settings as **Open Data Editor**, **omega-edit Port**, **Log File**, and **Log Level**.
 
 ## Dropdown for Log Level
 A dropdown list has been added in the launch config wizard under Log Level settings. There are four different options to select including DEBUG, INFO, WARNING, ERROR, and CRITICAL.
@@ -505,6 +505,10 @@ If you want to be able to set breakpoints in the schema file, make sure that the
 
 ![{2559195A-206E-4051-97DD-630850F0A4DC}](https://github.com/user-attachments/assets/6eaeecaa-1f16-4cd8-b6d7-c60cd01a2838)
 
+## dfdlx:trace
+The dfdlx:trace function is an extension to the dfdl specification implemented by Daffodil. This function allows users to output runtime values similarly to adding printf functions in C code. These output value are placed into the log file specified for the dfdlDebuggerin the launch.json configuration.
+
+Note that when the desired trace value is static, the user currently needs to make some change to the schema to force it to be recompiled for each run/parse in order for the trace value to be output to the log.
 
 ## Custom DFDL Debugger Views
 
@@ -530,6 +534,14 @@ Commands will only appear on this panel if they are valid in the current context
 
 # TDML Support
 When uploading files to the mailing list, it may be easier to upload a zip file containing a TDML file, the DFDL Schema file, the input data file, and, optionally, the infoset file. Sending this file to the mailing list will allow other users to unpack your zip file and run your test case. It becomes even easier if you have multiple test cases.
+The TDML file has been enhanced with an envrionment section which records the versions of the software utilized. The includes:
+* VSCode version
+* VSCode Daffodil extension version
+* Daffodil version
+* Operating system
+* Operating system version
+
+This information can be required in order to duplicate behavior. The Extension has been updated so that when executing a TDML test, it will attempt to utilize the Daffodil version specified in the testcase. If specified version is unavailable, it will provide a warning message and proceed using the systems default version instead.
 
 To Generate a TDML file, use similar steps for Launching a DFDL Parse Debugging Session:
 * Open the DFDL Schema file
@@ -791,6 +803,7 @@ Changing settings here will change the default values when creating a new launch
 * Some nightly tests are still failing intermittently due to GitHub runners. 
 * TDML Zipping does not support nested/included schema files.
 * TDML cannot handle files that are located on a different drive (Windows). For example, don't run off of C:, then use data or infoset files from D:
+* dfdlx:trace support for static values currently works only when the schema file is compiled. This is related to the functionality of the underlying Daffodil [dfdlx:trace](https://issues.apache.org/jira/browse/DAFFODIL-3105) with saved parsers.
 
 # Reporting Problems and Requesting New Features
 
