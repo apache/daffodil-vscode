@@ -14,11 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { debug } from 'vscode'
+import * as vscode from 'vscode'
 
-export function isDFDLDebugSessionActive(): boolean {
+type DFDLSession = Pick<vscode.DebugSession, 'type' | 'configuration'>
+
+export function isDFDLDebugSessionActive(file?: string): boolean {
+  return isDFDLDebugSession(vscode.debug.activeDebugSession, file)
+}
+
+export function isDFDLDebugSession(
+  session: DFDLSession | undefined,
+  file?: string
+): boolean {
   return (
-    debug.activeDebugSession !== undefined &&
-    debug.activeDebugSession.type === 'dfdl'
+    session !== undefined &&
+    session.type === 'dfdl' &&
+    (file === undefined || session.configuration.data === file)
   )
 }
