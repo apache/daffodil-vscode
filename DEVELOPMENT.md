@@ -85,6 +85,7 @@
     - [Command to build the Documentation](#command-to-build-the-documentation)
   - [Adding Release Candidate Information to Apache Daffodil Site](#adding-release-candidate-information-to-apache-daffodil-site)
   - [Reviewing and Verifying Dependency Bot Updates](#reviewing-and-verifying-dependency-bot-updates)
+  - [Checking for Vulnerabilities in Dependencies](#checking-for-vulnerabilities-in-dependencies)
   - [Testing Information](#testing-information)
   - [Monitoring Project Status](#monitoring-project-status)
   - [DFDL Intellisense Suggestion Cross Reference](#dfdl-intellisense-suggestion-cross-reference)
@@ -701,6 +702,40 @@ If the updates are not GitHub CI action updates, then additional scrutiny is req
 - [ ] **Is the license still compatible with ASF License Policy?**
 - [ ] **Have any changes been made to LICENSE/NOTICE files that need to be incorporated?**
 - [ ] **Have any transitive dependencies been added or changed?**
+
+## Checking for Vulnerabilities in Dependencies
+
+To check npm dependencies for vulnerabilities, run 
+```
+yarn audit --no-color > yarn-audit.txt
+```
+The results can then be view in `yarn-audit.txt`. The `--groups dependencies` flag can also be used to exclude development dependency vulnerabilities.
+
+To check Scala dependencies for vulnerabilities, add 
+```
+addSbtPlugin("net.nmoncho" % "sbt-dependency-check" % "1.8.5")
+``` 
+to project/plugins.sbt, and then run
+```
+sbt dependencyCheck
+```
+Note: The first time you run these tasks it will take some time as the whole NVD database need to be downloaded. Because of this, it may fail if your internet connection or the NVD servers become unstable at any point during the process.
+
+The results can then be viewed by opening the the `dependency-check-report.html` file under each JVM directory in `debugger/target` in a web browser. e.g `debugger/target/jvm-3/dependency-check-report.html`
+
+To update the local NVD database, run
+```
+sbt dependencyCheckUpdate
+```
+
+To delete the local NVD database, run
+```
+sbt dependencyCheckPurge
+```
+
+Lastly, view the Dependabot vulnerability alerts on GitHub under the Security and Quality tab, https://github.com/apache/daffodil-vscode/security/dependabot.
+
+Note: The resolutions section in the package.json is used to force a specific version of a transitive dependency for dependencies that cannot be updated. This can be used to avoid the vulnerabilities in transitive dependency. When updating dependencies in the project, these should be reassessed as a new version may have resolved the transitive dependency vulnerability and the resolution may no longer be needed.
 
 ## Testing Information
 
