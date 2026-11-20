@@ -14,13 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { debug, window } from 'vscode'
+import * as vscode from 'vscode'
 
-export function isDFDLDebugSessionActive(file: string): boolean {
-  if (debug.activeDebugSession === undefined) return false
-  if (debug.activeDebugSession!.type !== 'dfdl') return false
-  if (debug.activeDebugSession!.configuration.data !== file) return false
-  return true
+type DFDLSession = Pick<vscode.DebugSession, 'type' | 'configuration'>
+
+export function isDFDLDebugSessionActive(file?: string): boolean {
+  return isDFDLDebugSession(vscode.debug.activeDebugSession, file)
+}
+
+export function isDFDLDebugSession(
+  session: DFDLSession | undefined,
+  file?: string
+): boolean {
+  return (
+    session !== undefined &&
+    session.type === 'dfdl' &&
+    (file === undefined || session.configuration.data === file)
+  )
 }
 
 export function toEncoding(encoding: string): BufferEncoding {
@@ -38,7 +48,7 @@ export interface DataEditorFileProvider {
 export const VSCodeDialogFileProvider: DataEditorFileProvider = {
   getFile(formatOp?: (file: string) => string) {
     return new Promise(async (res, rej) => {
-      const fileUri = await window.showOpenDialog({
+      const fileUri = await vscode.window.showOpenDialog({
         canSelectMany: false,
         openLabel: 'Select',
         canSelectFiles: true,
